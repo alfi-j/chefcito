@@ -34,6 +34,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
+import { Switch } from "@/components/ui/switch"
+import React from "react"
+import { Label } from "@/components/ui/label"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -103,7 +106,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function UserNav() {
-  const { setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
 
   return (
     <DropdownMenu>
@@ -130,18 +133,21 @@ function UserNav() {
           <span>Profile</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Light</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Dark</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          <LayoutGrid className="mr-2 h-4 w-4" />
-          <span>System</span>
-        </DropdownMenuItem>
+        <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <Label htmlFor="theme-switch" className="ml-2">
+              Toggle Theme
+            </Label>
+            <Switch
+              id="theme-switch"
+              className="ml-auto"
+              checked={theme === "dark"}
+              onCheckedChange={(checked) => {
+                setTheme(checked ? "dark" : "light")
+              }}
+            />
+        </div>
         <DropdownMenuSeparator />
          <Link href="/login">
             <DropdownMenuItem>
