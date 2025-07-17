@@ -7,6 +7,8 @@ import {
   BookOpen,
   LogOut,
   User,
+  Moon,
+  Sun,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -31,7 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Toaster } from "@/components/ui/toaster"
+import { useTheme } from "next-themes"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -101,6 +103,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function UserNav() {
+  const { setTheme } = useTheme()
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -124,6 +128,19 @@ function UserNav() {
         <DropdownMenuItem>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => setTheme("light")}>
+          <Sun className="mr-2 h-4 w-4" />
+          <span>Light</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Dark</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme("system")}>
+          <LayoutGrid className="mr-2 h-4 w-4" />
+          <span>System</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
          <Link href="/login">
