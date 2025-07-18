@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ChevronsUpDown } from 'lucide-react'
+import { Clock, ChevronsUpDown, ClipboardList } from 'lucide-react'
 import { useState, useEffect } from "react"
 
 interface OrderCardProps {
@@ -80,9 +80,12 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
   return (
     <Card className={cn("flex flex-col border-2 text-base", isUrgent ? "border-red-500/50" : "border-transparent")}>
        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3", isUrgent && "bg-red-500/10")}>
-        <div className="flex items-baseline gap-3">
-          <CardTitle className="font-headline text-2xl">#{order.id}</CardTitle>
-          <CardDescription className="font-semibold">Table {order.table}</CardDescription>
+        <div className="flex items-center gap-3">
+          <CardTitle className="font-headline text-2xl flex items-center gap-2">
+            <ClipboardList className="h-6 w-6" />
+            <span>{order.id}</span>
+          </CardTitle>
+          <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
         </div>
         <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
           <Clock className="h-4 w-4" />
