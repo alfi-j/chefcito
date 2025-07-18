@@ -38,11 +38,11 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       )}
       onClick={handleStatusChange}
     >
-      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-        <span className="font-bold text-sm">{item.quantity}x</span>
-        <span className="font-semibold text-sm whitespace-normal break-words flex-1">{item.menuItem.name}</span>
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <span className="font-bold text-base">{item.quantity}x</span>
+        <span className="font-semibold text-base whitespace-normal break-words flex-1">{item.menuItem.name}</span>
       </div>
-      <span className="text-xs font-bold ml-1.5">{item.status}</span>
+      <span className="text-sm font-bold ml-1.5">{item.status}</span>
     </div>
   )
 }
@@ -85,14 +85,14 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
     <Card className={cn("flex flex-col border-2 text-base", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
         <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-1.5", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
           <div className="flex items-center gap-2">
-            <CardTitle className="font-headline text-xl flex items-center gap-1.5">
-              <ClipboardList className="h-4 w-4" />
+            <CardTitle className="font-headline text-2xl flex items-center gap-1.5">
+              <ClipboardList className="h-5 w-5" />
               <span>{order.id}</span>
             </CardTitle>
-            <CardDescription className="font-semibold pt-0.5 text-sm">Table {order.table}</CardDescription>
+            <CardDescription className="font-semibold pt-0.5 text-base">Table {order.table}</CardDescription>
           </div>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground font-semibold">
-            <Clock className="h-3 w-3" />
+          <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
+            <Clock className="h-4 w-4" />
             <span>{timeAgo}</span>
           </div>
         </CardHeader>
