@@ -96,4 +96,28 @@ body {
   .font-size-large {
     font-size: 16px;
   }
+
+  .font-size-small .text-base { font-size: 12px; }
+  .font-size-medium .text-base { font-size: 14px; }
+  .font-size-large .text-base { font-size: 16px; }
+
+  .font-size-small .text-sm { font-size: 10px; }
+  .font-size-medium .text-sm { font-size: 12px; }
+  .font-size-large .text-sm { font-size: 14px; }
+
+  .font-size-small .text-xs { font-size: 9px; }
+  .font-size-medium .text-xs { font-size: 10px; }
+  .font-size-large .text-xs { font-size: 12px; }
+
+  .font-size-small .text-lg { font-size: 16px; }
+  .font-size-medium .text-lg { font-size: 18px; }
+  .font-size-large .text-lg { font-size: 20px; }
+
+  .font-size-small .text-xl { font-size: 18px; }
+  .font-size-medium .text-xl { font-size: 20px; }
+  .font-size-large .text-xl { font-size: 24px; }
+
+  .font-size-small .text-2xl { font-size: 22px; }
+  .font-size-medium .text-2xl { font-size: 24px; }
+  .font-size-large .text-2xl { font-size: 28px; }
 }
