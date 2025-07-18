@@ -9,6 +9,7 @@ import {
   User,
   Moon,
   Sun,
+  Type,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -31,15 +32,23 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
 import { Switch } from "@/components/ui/switch"
-import React from "react"
+import React, { useState } from "react"
 import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils"
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [fontSize, setFontSize] = useState("medium")
 
   const menuItems = [
     { href: "/pos", label: "POS", icon: LayoutGrid },
@@ -95,9 +104,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <h2 className="text-xl font-headline font-semibold">
             {currentPage}
           </h2>
-          <UserNav />
+          <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} />
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/30">
+        <main className={cn("flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/30", `font-size-${fontSize}`)}>
           {children}
         </main>
       </SidebarInset>
@@ -105,7 +114,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
-function UserNav() {
+function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeChange: (size: string) => void }) {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -132,11 +141,26 @@ function UserNav() {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Type className="mr-2 h-4 w-4" />
+            <span>Font Size</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup value={fontSize} onValueChange={onFontSizeChange}>
+                <DropdownMenuRadioItem value="small">Small</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="medium">Medium</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="large">Large</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
         <DropdownMenuSeparator />
         <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <Label htmlFor="theme-switch" className="ml-2">
+            <Label htmlFor="theme-switch" className="flex-grow ml-2">
               Toggle Theme
             </Label>
             <Switch
