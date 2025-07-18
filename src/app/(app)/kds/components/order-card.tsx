@@ -30,7 +30,7 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
   return (
     <div 
       className={cn(
-        "p-1.5 rounded-md transition-all cursor-pointer flex justify-between items-center",
+        "p-1 rounded-md transition-all cursor-pointer flex justify-between items-center",
         item.status === 'Cooked' 
           ? 'bg-muted/50 text-muted-foreground opacity-60' 
           : 'bg-card hover:bg-muted/80',
@@ -38,11 +38,11 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       )}
       onClick={handleStatusChange}
     >
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <span className="font-bold text-base">{item.quantity}x</span>
-        <span className="font-semibold text-base whitespace-normal break-words flex-1">{item.menuItem.name}</span>
+      <div className="flex items-center gap-1.5 flex-1 min-w-0">
+        <span className="font-bold text-sm">{item.quantity}x</span>
+        <span className="font-semibold text-sm whitespace-normal break-words flex-1">{item.menuItem.name}</span>
       </div>
-      <span className="text-xs font-bold ml-2">{item.status}</span>
+      <span className="text-xs font-bold ml-1.5">{item.status}</span>
     </div>
   )
 }
@@ -83,23 +83,23 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
 
   return (
     <Card className={cn("flex flex-col border-2 text-base", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
-        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
-          <div className="flex items-center gap-3">
-            <CardTitle className="font-headline text-2xl flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
+        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-1.5", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
+          <div className="flex items-center gap-2">
+            <CardTitle className="font-headline text-xl flex items-center gap-1.5">
+              <ClipboardList className="h-4 w-4" />
               <span>{order.id}</span>
             </CardTitle>
-            <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
+            <CardDescription className="font-semibold pt-0.5 text-sm">Table {order.table}</CardDescription>
           </div>
-          <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
-            <Clock className="h-4 w-4" />
+          <div className="flex items-center gap-1 text-xs text-muted-foreground font-semibold">
+            <Clock className="h-3 w-3" />
             <span>{timeAgo}</span>
           </div>
         </CardHeader>
         
-        <div className="px-2 pb-2">
-          <Separator className="mb-2" />
-          <div className="space-y-1.5">
+        <div className="px-1.5 pb-1.5">
+          <Separator className="my-1.5" />
+          <div className="space-y-1">
             {sortedItems.map(item => (
               <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
             ))}
