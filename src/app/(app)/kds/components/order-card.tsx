@@ -39,10 +39,10 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       onClick={handleStatusChange}
     >
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
-        <span className="font-bold text-lg">{item.quantity}x</span>
-        <span className="font-semibold text-lg whitespace-normal break-words flex-1">{item.menuItem.name}</span>
+        <span className="font-bold text-xl">{item.quantity}x</span>
+        <span className="font-semibold text-xl whitespace-normal break-words flex-1">{item.menuItem.name}</span>
       </div>
-      <span className="text-base font-bold ml-1.5">{item.status}</span>
+      <span className="text-lg font-bold ml-1.5">{item.status}</span>
     </div>
   )
 }
@@ -89,9 +89,9 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
               <ClipboardList className="h-6 w-6" />
               <span>{order.id}</span>
             </CardTitle>
-            <CardDescription className="font-semibold pt-1 text-lg">Table {order.table}</CardDescription>
+            <CardDescription className="font-semibold pt-1 text-xl">Table {order.table}</CardDescription>
           </div>
-          <div className="flex items-center gap-1.5 text-base text-muted-foreground font-semibold">
+          <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
             <Clock className="h-5 w-5" />
             <span>{timeAgo}</span>
           </div>
