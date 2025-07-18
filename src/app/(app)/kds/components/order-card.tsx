@@ -1,12 +1,11 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
 import { Clock, ChevronsUpDown, ClipboardList } from 'lucide-react'
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 
 interface OrderCardProps {
   order: Order
@@ -34,7 +33,7 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       className={cn(
         "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center",
         item.status === 'Cooked' 
-          ? 'bg-muted/50 text-muted-foreground opacity-60 line-through' 
+          ? 'bg-muted/50 text-muted-foreground opacity-60' 
           : 'bg-card hover:bg-muted/80',
         statusColors[item.status]
       )}
@@ -76,11 +75,19 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
   const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
   const [isOpen, setIsOpen] = useState(true);
 
+  const sortedItems = useMemo(() => {
+    return [...order.items].sort((a, b) => {
+      if (a.status === 'Cooked' && b.status !== 'Cooked') return 1;
+      if (a.status !== 'Cooked' && b.status === 'Cooked') return -1;
+      return 0;
+    });
+  }, [order.items]);
+
   return (
-    <Card className={cn("flex flex-col border-2 text-base", isUrgent ? "border-red-500/50" : "border-transparent")}>
+    <Card className={cn("flex flex-col border-2 text-base", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
         <CollapsibleTrigger asChild>
-          <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3 cursor-pointer", isUrgent && "bg-red-500/10")}>
+          <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3 cursor-pointer", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
             <div className="flex items-center gap-3">
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
                 <ClipboardList className="h-6 w-6" />
@@ -99,12 +106,12 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
         <div className="px-3 pb-3">
           <Separator className="mb-2" />
           <div className="space-y-2">
-             {!isOpen && order.items.length > 0 && (
-                <OrderItem key={order.items[0].id} item={order.items[0]} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
+             {!isOpen && sortedItems.length > 0 && (
+                <OrderItem key={sortedItems[0].id} item={sortedItems[0]} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
              )}
           </div>
           <CollapsibleContent className="space-y-2">
-            {order.items.map(item => (
+            {sortedItems.map(item => (
               <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
             ))}
           </CollapsibleContent>
