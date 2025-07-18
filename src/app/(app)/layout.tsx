@@ -10,6 +10,7 @@ import {
   Moon,
   Sun,
   Type,
+  Laptop,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -22,6 +23,7 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  SidebarRail,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
@@ -61,6 +63,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <Sidebar>
+        <SidebarRail />
         <SidebarHeader className="p-4">
           <Link href="/pos" className="flex items-center gap-2">
             <UtensilsCrossed className="w-8 h-8 text-primary" />
@@ -100,10 +103,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Sidebar>
       <SidebarInset>
         <header className="flex items-center justify-between p-4 bg-background border-b h-16">
-          <SidebarTrigger className="md:hidden"/>
-          <h2 className="text-xl font-headline font-semibold">
-            {currentPage}
-          </h2>
+          <div className="flex items-center gap-2">
+             <SidebarTrigger />
+             <h2 className="text-xl font-headline font-semibold">
+                {currentPage}
+             </h2>
+          </div>
           <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} />
         </header>
         <main className={cn("flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/30", `font-size-${fontSize}`)}>
@@ -141,6 +146,24 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
+        
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="ml-2">Theme</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Type className="mr-2 h-4 w-4" />
@@ -156,22 +179,6 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <div className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <Label htmlFor="theme-switch" className="flex-grow ml-2">
-              Toggle Theme
-            </Label>
-            <Switch
-              id="theme-switch"
-              className="ml-auto"
-              checked={theme === "dark"}
-              onCheckedChange={(checked) => {
-                setTheme(checked ? "dark" : "light")
-              }}
-            />
-        </div>
         <DropdownMenuSeparator />
          <Link href="/login">
             <DropdownMenuItem>
