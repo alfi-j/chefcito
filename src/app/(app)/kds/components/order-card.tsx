@@ -22,7 +22,8 @@ const statusColors = {
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
 
 function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType, orderId: number, onUpdateItemStatus: OrderCardProps['onUpdateItemStatus'] }) {
-  const handleStatusChange = () => {
+  const handleStatusChange = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the collapsible from toggling
     const currentIndex = statusSequence.indexOf(item.status);
     const nextIndex = (currentIndex + 1) % statusSequence.length;
     onUpdateItemStatus(orderId, item.id, statusSequence[nextIndex]);
@@ -73,48 +74,42 @@ function useTimeAgo(date: Date) {
 export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
-  const canCollapse = order.items.length > 3;
-  const [isOpen, setIsOpen] = useState(!canCollapse);
-
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <Card className={cn("flex flex-col border-2 text-base", isUrgent ? "border-red-500/50" : "border-transparent")}>
-       <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3", isUrgent && "bg-red-500/10")}>
-        <div className="flex items-center gap-3">
-          <CardTitle className="font-headline text-2xl flex items-center gap-2">
-            <ClipboardList className="h-6 w-6" />
-            <span>{order.id}</span>
-          </CardTitle>
-          <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
-        </div>
-        <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
-          <Clock className="h-4 w-4" />
-          <span>{timeAgo}</span>
-        </div>
-      </CardHeader>
-      <CardContent className="p-3">
-        <Separator className="mb-2" />
-         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+        <CollapsibleTrigger asChild>
+          <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3 cursor-pointer", isUrgent && "bg-red-500/10")}>
+            <div className="flex items-center gap-3">
+              <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                <ClipboardList className="h-6 w-6" />
+                <span>{order.id}</span>
+              </CardTitle>
+              <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
+            </div>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
+              <Clock className="h-4 w-4" />
+              <span>{timeAgo}</span>
+              <ChevronsUpDown className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-180" : "")} />
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        
+        <div className="px-3 pb-3">
+          <Separator className="mb-2" />
           <div className="space-y-2">
-              {order.items.slice(0, 3).map(item => (
-                <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
-              ))}
+             {!isOpen && order.items.length > 0 && (
+                <OrderItem key={order.items[0].id} item={order.items[0]} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
+             )}
           </div>
-          <CollapsibleContent className="space-y-2 mt-2">
-             {order.items.slice(3).map(item => (
-                <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
-              ))}
+          <CollapsibleContent className="space-y-2">
+            {order.items.map(item => (
+              <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
+            ))}
           </CollapsibleContent>
-          {canCollapse && (
-            <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full h-8 mt-2">
-                    <ChevronsUpDown className="h-4 w-4" />
-                    <span className="ml-2">{isOpen ? "Show Less" : "Show More"}</span>
-                </Button>
-            </CollapsibleTrigger>
-          )}
-        </Collapsible>
-      </CardContent>
+        </div>
+      </Collapsible>
     </Card>
   )
 }
