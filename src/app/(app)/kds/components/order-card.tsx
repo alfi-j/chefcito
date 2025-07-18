@@ -14,9 +14,9 @@ interface OrderCardProps {
 }
 
 const statusColors = {
-  New: 'bg-blue-500',
-  Cooking: 'bg-yellow-500',
-  Cooked: 'bg-green-500',
+  New: 'bg-blue-500/10 border-l-4 border-blue-500',
+  Cooking: 'bg-yellow-500/10 border-l-4 border-yellow-500',
+  Cooked: 'bg-green-500/10',
 };
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
@@ -31,17 +31,19 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
   return (
     <div 
       className={cn(
-        "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center text-base",
-        item.status === 'Cooked' ? 'bg-muted/50 text-muted-foreground opacity-60 line-through' : 'bg-card hover:bg-muted/80'
+        "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center",
+        item.status === 'Cooked' 
+          ? 'bg-muted/50 text-muted-foreground opacity-60 line-through' 
+          : 'bg-card hover:bg-muted/80',
+        statusColors[item.status]
       )}
       onClick={handleStatusChange}
     >
-      <div className="flex items-center gap-2">
-        <div className={cn("w-2 h-2 rounded-full", statusColors[item.status])} />
-        <span className="font-bold">{item.quantity}x</span>
-        <span className="truncate">{item.menuItem.name}</span>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <span className="font-bold text-lg">{item.quantity}x</span>
+        <span className="font-semibold text-lg whitespace-normal break-words flex-1">{item.menuItem.name}</span>
       </div>
-      <span className="text-sm font-bold">{item.status}</span>
+      <span className="text-sm font-bold ml-2">{item.status}</span>
     </div>
   )
 }
@@ -90,12 +92,12 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
       <CardContent className="p-3">
         <Separator className="mb-2" />
          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-          <div className="space-y-1">
+          <div className="space-y-2">
               {order.items.slice(0, 3).map(item => (
                 <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
               ))}
           </div>
-          <CollapsibleContent className="space-y-1 mt-1">
+          <CollapsibleContent className="space-y-2 mt-2">
              {order.items.slice(3).map(item => (
                 <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
               ))}
