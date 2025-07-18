@@ -80,9 +80,9 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
   return (
     <Card className={cn("flex flex-col border-2 text-base", isUrgent ? "border-red-500/50" : "border-transparent")}>
        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3", isUrgent && "bg-red-500/10")}>
-        <div>
-          <CardTitle className="font-headline text-lg">Order #{order.id}</CardTitle>
-          <CardDescription>Table {order.table}</CardDescription>
+        <div className="flex items-baseline gap-3">
+          <CardTitle className="font-headline text-2xl">#{order.id}</CardTitle>
+          <CardDescription className="font-semibold">Table {order.table}</CardDescription>
         </div>
         <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
           <Clock className="h-4 w-4" />
