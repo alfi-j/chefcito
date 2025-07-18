@@ -31,7 +31,7 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
   return (
     <div 
       className={cn(
-        "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center text-sm",
+        "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center text-base",
         item.status === 'Cooked' ? 'bg-muted/50 text-muted-foreground opacity-60 line-through' : 'bg-card hover:bg-muted/80'
       )}
       onClick={handleStatusChange}
@@ -41,7 +41,7 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
         <span className="font-bold">{item.quantity}x</span>
         <span className="truncate">{item.menuItem.name}</span>
       </div>
-      <span className="text-xs font-bold">{item.status}</span>
+      <span className="text-sm font-bold">{item.status}</span>
     </div>
   )
 }
