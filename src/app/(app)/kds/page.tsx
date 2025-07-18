@@ -57,7 +57,7 @@ export default function KdsPage() {
         )
     }
     return (
-        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-2 space-y-2 py-4">
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6 gap-2 space-y-2 py-4">
             {orderList.map(order => (
                 <div key={order.id} className="break-inside-avoid">
                     <OrderCard order={order} onUpdateItemStatus={updateItemStatus} />

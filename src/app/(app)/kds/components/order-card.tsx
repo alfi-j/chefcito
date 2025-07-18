@@ -1,10 +1,9 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ChevronsUpDown, ClipboardList } from 'lucide-react'
+import { Clock, ClipboardList } from 'lucide-react'
 import { useState, useEffect, useMemo } from "react"
 
 interface OrderCardProps {
@@ -22,7 +21,7 @@ const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Coo
 
 function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType, orderId: number, onUpdateItemStatus: OrderCardProps['onUpdateItemStatus'] }) {
   const handleStatusChange = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the collapsible from toggling
+    e.stopPropagation(); 
     const currentIndex = statusSequence.indexOf(item.status);
     const nextIndex = (currentIndex + 1) % statusSequence.length;
     onUpdateItemStatus(orderId, item.id, statusSequence[nextIndex]);
@@ -31,7 +30,7 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
   return (
     <div 
       className={cn(
-        "p-2 rounded-md transition-all cursor-pointer flex justify-between items-center",
+        "p-1.5 rounded-md transition-all cursor-pointer flex justify-between items-center",
         item.status === 'Cooked' 
           ? 'bg-muted/50 text-muted-foreground opacity-60' 
           : 'bg-card hover:bg-muted/80',
@@ -39,11 +38,11 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       )}
       onClick={handleStatusChange}
     >
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="font-bold text-lg">{item.quantity}x</span>
-        <span className="font-semibold text-lg whitespace-normal break-words flex-1">{item.menuItem.name}</span>
+      <div className="flex items-center gap-2 flex-1 min-w-0">
+        <span className="font-bold text-base">{item.quantity}x</span>
+        <span className="font-semibold text-base whitespace-normal break-words flex-1">{item.menuItem.name}</span>
       </div>
-      <span className="text-sm font-bold ml-2">{item.status}</span>
+      <span className="text-xs font-bold ml-2">{item.status}</span>
     </div>
   )
 }
@@ -73,7 +72,6 @@ function useTimeAgo(date: Date) {
 export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
-  const [isOpen, setIsOpen] = useState(true);
 
   const sortedItems = useMemo(() => {
     return [...order.items].sort((a, b) => {
@@ -85,38 +83,28 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
 
   return (
     <Card className={cn("flex flex-col border-2 text-base", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
-        <CollapsibleTrigger asChild>
-          <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-3 cursor-pointer", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
-            <div className="flex items-center gap-3">
-              <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                <ClipboardList className="h-6 w-6" />
-                <span>{order.id}</span>
-              </CardTitle>
-              <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
-            </div>
-            <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
-              <Clock className="h-4 w-4" />
-              <span>{timeAgo}</span>
-              <ChevronsUpDown className={cn("h-4 w-4 transition-transform", isOpen ? "rotate-180" : "")} />
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
-        
-        <div className="px-3 pb-3">
-          <Separator className="mb-2" />
-          <div className="space-y-2">
-             {!isOpen && sortedItems.length > 0 && (
-                <OrderItem key={sortedItems[0].id} item={sortedItems[0]} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
-             )}
+        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
+          <div className="flex items-center gap-3">
+            <CardTitle className="font-headline text-2xl flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
+              <span>{order.id}</span>
+            </CardTitle>
+            <CardDescription className="font-semibold pt-1">Table {order.table}</CardDescription>
           </div>
-          <CollapsibleContent className="space-y-2">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground font-semibold">
+            <Clock className="h-4 w-4" />
+            <span>{timeAgo}</span>
+          </div>
+        </CardHeader>
+        
+        <div className="px-2 pb-2">
+          <Separator className="mb-2" />
+          <div className="space-y-1.5">
             {sortedItems.map(item => (
               <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
             ))}
-          </CollapsibleContent>
+          </div>
         </div>
-      </Collapsible>
     </Card>
   )
 }
