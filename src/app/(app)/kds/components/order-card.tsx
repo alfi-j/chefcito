@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, ArrowLeft, ArrowRight } from 'lucide-react'
+import { Clock, ClipboardList, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 interface OrderCardProps {
   order: Order
   onUpdateItemStatus: (orderId: number, itemId: string) => void
+  onRevertItemStatus: (orderId: number, itemId: string) => void
   onMoveOrder: (orderId: number, direction: 'left' | 'right') => void
   isFirst: boolean
   isLast: boolean
@@ -24,18 +25,23 @@ const statusColors = {
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
 
-function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType, orderId: number, onUpdateItemStatus: OrderCardProps['onUpdateItemStatus'] }) {
+function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: { item: OrderItemType, orderId: number, onUpdateItemStatus: OrderCardProps['onUpdateItemStatus'], onRevertItemStatus: OrderCardProps['onRevertItemStatus'] }) {
   const handleStatusChange = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     if (item.status === 'Cooked') return;
     onUpdateItemStatus(orderId, item.id);
   };
+
+  const handleRevertStatus = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onRevertItemStatus(orderId, item.id);
+  }
   
   const isFullyCooked = item.quantity === 0 && item.cookedCount > 0;
 
   return (
     <>
-      {!isFullyCooked && (
+      {item.quantity > 0 && (
         <div 
           className={cn(
             "p-1 rounded-md transition-all cursor-pointer flex justify-between items-center",
@@ -54,15 +60,19 @@ function OrderItem({ item, orderId, onUpdateItemStatus }: { item: OrderItemType,
       {item.cookedCount > 0 && (
         <div 
           className={cn(
-            "p-1 rounded-md transition-all flex justify-between items-center",
-            'bg-muted/50 text-muted-foreground opacity-60' 
+            "p-1 rounded-md transition-all flex justify-between items-center group cursor-pointer",
+            'bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100 hover:bg-destructive/10' 
           )}
+          onClick={handleRevertStatus}
         >
           <div className="flex items-center gap-1.5 flex-1 min-w-0">
             <span className="font-bold text-xl">{item.cookedCount}x</span>
             <span className="font-semibold text-xl whitespace-normal break-words flex-1">{item.menuItem.name}</span>
           </div>
-          <span className="text-lg font-bold ml-1.5">Cooked</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold ml-1.5">Cooked</span>
+            <RotateCcw className="h-4 w-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
         </div>
       )}
     </>
@@ -91,7 +101,7 @@ function useTimeAgo(date: Date) {
   return timeAgo;
 }
 
-export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isLast }: OrderCardProps) {
+export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMoveOrder, isFirst, isLast }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
 
@@ -134,7 +144,7 @@ export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isL
           <Separator className="mb-1" />
           <div className="space-y-1">
             {sortedItems.map(item => (
-              <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} />
+              <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
             ))}
           </div>
         </div>

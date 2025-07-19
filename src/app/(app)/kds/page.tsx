@@ -67,6 +67,42 @@ export default function KdsPage() {
       return updatedOrders;
     });
   }, []);
+
+  const revertItemStatus = useCallback((orderId: number, itemId: string) => {
+    setOrders(currentOrders => {
+      return currentOrders.map(order => {
+        if (order.id === orderId) {
+          const updatedItems = order.items.map(item => {
+            if (item.id === itemId && item.cookedCount > 0) {
+              const newQuantity = item.quantity + 1;
+              const newCookedCount = item.cookedCount - 1;
+              // When an item is reverted, its status should go back to 'New'
+              // for the active portion.
+              return {
+                ...item,
+                quantity: newQuantity,
+                cookedCount: newCookedCount,
+                status: 'New'
+              };
+            }
+            return item;
+          });
+
+          const newOrder = { ...order, items: updatedItems };
+
+          // If an order was completed, it must now be pending again.
+          if (isOrderCompleted(newOrder)) {
+            newOrder.status = 'completed';
+          } else {
+            newOrder.status = 'pending';
+          }
+
+          return newOrder;
+        }
+        return order;
+      });
+    });
+  }, []);
   
   const handleMoveOrder = useCallback((orderId: number, direction: 'left' | 'right') => {
     setOrders(currentOrders => {
@@ -108,6 +144,7 @@ export default function KdsPage() {
                     key={order.id} 
                     order={order} 
                     onUpdateItemStatus={updateItemStatus}
+                    onRevertItemStatus={revertItemStatus}
                     onMoveOrder={handleMoveOrder}
                     isFirst={index === 0}
                     isLast={index === orderList.length - 1}
