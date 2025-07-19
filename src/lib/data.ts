@@ -57,5 +57,36 @@ export const initialOrders: Order[] = [
             { id: '2-2', menuItem: menuItems[4], quantity: 1, status: 'New' },
             { id: '2-3', menuItem: menuItems[8], quantity: 1, status: 'Cooked' },
         ]
+    },
+    {
+        id: 103,
+        table: 8,
+        status: 'pending',
+        createdAt: new Date(Date.now() - 22 * 60 * 1000), // 22 minutes ago, should be urgent
+        items: [
+            { id: '3-1', menuItem: menuItems[5], quantity: 1, status: 'New' },
+            { id: '3-2', menuItem: menuItems[6], quantity: 1, status: 'New' },
+            { id: '3-3', menuItem: menuItems[7], quantity: 2, status: 'Cooking' },
+        ]
+    },
+    {
+        id: 104,
+        table: 12,
+        status: 'pending',
+        createdAt: new Date(Date.now() - 1 * 60 * 1000), // 1 minute ago
+        items: [
+            { id: '4-1', menuItem: menuItems[0], quantity: 1, status: 'New' },
+            { id: '4-2', menuItem: menuItems[1], quantity: 1, status: 'New' },
+            { id: '4-3', menuItem: menuItems[2], quantity: 1, status: 'Cooking' },
+            { id: '4-4', menuItem: menuItems[3], quantity: 1, status: 'New' },
+            { id: '4-5', menuItem: menuItems[4], quantity: 1, status: 'New' },
+            { id: '4-6', menuItem: menuItems[5], quantity: 1, status: 'Cooked' },
+            { id: '4-7', menuItem: menuItems[6], quantity: 1, status: 'New' },
+            { id: '4-8', menuItem: menuItems[7], quantity: 2, status: 'Cooking' },
+            { id: '4-9', menuItem: menuItems[8], quantity: 2, status: 'New' },
+            { id: '4-10', menuItem: menuItems[3], quantity: 1, status: 'New' },
+            { id: '4-11', menuItem: menuItems[1], quantity: 1, status: 'New' },
+            { id: '4-12', menuItem: menuItems[0], quantity: 1, status: 'Cooked' },
+        ]
     }
 ];
