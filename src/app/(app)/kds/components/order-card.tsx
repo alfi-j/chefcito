@@ -3,12 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList } from 'lucide-react'
+import { Clock, ClipboardList, ArrowLeft, ArrowRight } from 'lucide-react'
 import { useState, useEffect, useMemo } from "react"
+import { Button } from "@/components/ui/button"
 
 interface OrderCardProps {
   order: Order
   onUpdateItemStatus: (orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Cooked') => void
+  onMoveOrder: (orderId: number, direction: 'left' | 'right') => void
+  isFirst: boolean
+  isLast: boolean
 }
 
 const statusColors = {
@@ -69,7 +73,7 @@ function useTimeAgo(date: Date) {
   return timeAgo;
 }
 
-export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
+export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isLast }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
 
@@ -91,9 +95,17 @@ export function OrderCard({ order, onUpdateItemStatus }: OrderCardProps) {
             </CardTitle>
             <CardDescription className="font-semibold pt-1 text-xl">Table {order.table}</CardDescription>
           </div>
-          <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-            <Clock className="h-5 w-5" />
-            <span>{timeAgo}</span>
+          <div className="flex items-center gap-1">
+             <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+             <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
+                <ArrowRight className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
+                <Clock className="h-5 w-5" />
+                <span>{timeAgo}</span>
+            </div>
           </div>
         </CardHeader>
         

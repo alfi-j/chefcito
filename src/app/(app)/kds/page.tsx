@@ -30,7 +30,6 @@ export default function KdsPage() {
             items: updatedItems,
           };
           
-          // Update the top-level order status
           if (isOrderCompleted(newOrder)) {
             newOrder.status = 'completed';
           } else {
@@ -44,11 +43,33 @@ export default function KdsPage() {
       return updatedOrders;
     });
   }, []);
+  
+  const handleMoveOrder = useCallback((orderId: number, direction: 'left' | 'right') => {
+    setOrders(currentOrders => {
+        const pending = currentOrders.filter(o => o.status === 'pending');
+        const completed = currentOrders.filter(o => o.status === 'completed');
+        
+        const orderIndex = pending.findIndex(o => o.id === orderId);
+        if (orderIndex === -1) return currentOrders;
+
+        const newIndex = direction === 'left' ? orderIndex - 1 : orderIndex + 1;
+
+        if (newIndex < 0 || newIndex >= pending.length) {
+            return currentOrders; // Cannot move further
+        }
+
+        const newPending = [...pending];
+        const [movedOrder] = newPending.splice(orderIndex, 1);
+        newPending.splice(newIndex, 0, movedOrder);
+
+        return [...newPending, ...completed];
+    });
+  }, []);
 
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
   const completedOrders = useMemo(() => orders.filter(o => o.status === 'completed'), [orders]);
 
-  const renderOrderList = (orderList: Order[]) => {
+  const renderOrderList = (orderList: Order[], listType: 'pending' | 'completed') => {
     if (orderList.length === 0) {
         return (
             <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
@@ -58,8 +79,15 @@ export default function KdsPage() {
     }
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-2 py-4 items-start">
-            {orderList.map(order => (
-                <OrderCard key={order.id} order={order} onUpdateItemStatus={updateItemStatus} />
+            {orderList.map((order, index) => (
+                <OrderCard 
+                    key={order.id} 
+                    order={order} 
+                    onUpdateItemStatus={updateItemStatus}
+                    onMoveOrder={handleMoveOrder}
+                    isFirst={index === 0}
+                    isLast={index === orderList.length - 1}
+                />
             ))}
         </div>
     );
@@ -73,10 +101,10 @@ export default function KdsPage() {
           <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pending">
-          {renderOrderList(pendingOrders)}
+          {renderOrderList(pendingOrders, 'pending')}
         </TabsContent>
         <TabsContent value="completed">
-          {renderOrderList(completedOrders)}
+          {renderOrderList(completedOrders, 'completed')}
         </TabsContent>
       </Tabs>
     </Card>
