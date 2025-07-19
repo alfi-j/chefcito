@@ -118,3 +118,14 @@
   .font-size-medium .text-2xl { font-size: 28px; }
   .font-size-large .text-2xl { font-size: 32px; }
 }
+
+@layer utilities {
+  .animate-blink {
+    animation: blink 1.5s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 100% { background-color: hsla(var(--destructive), 0.1); }
+    50% { background-color: hsla(var(--destructive), 0.25); }
+  }
+}

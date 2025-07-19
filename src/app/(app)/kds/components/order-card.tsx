@@ -103,7 +103,17 @@ function useTimeAgo(date: Date) {
 
 export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMoveOrder, isFirst, isLast }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
-  const isUrgent = (new Date().getTime() - order.createdAt.getTime()) > 10 * 60 * 1000; // > 10 minutes
+  
+  const [now, setNow] = useState(new Date().getTime());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date().getTime()), 60000); // Update every minute for urgency check
+    return () => clearInterval(interval);
+  }, []);
+
+  const elapsedMinutes = (now - order.createdAt.getTime()) / (1000 * 60);
+  const isUrgent = elapsedMinutes > 10;
+  const isVeryUrgent = elapsedMinutes > 20;
 
   const sortedItems = useMemo(() => {
     return [...order.items].sort((a, b) => {
@@ -117,7 +127,10 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
 
   return (
     <Card className={cn("flex flex-col border-2", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
-        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
+        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", 
+            isUrgent && !isVeryUrgent && order.status === 'pending' && "bg-red-500/10",
+            isVeryUrgent && order.status === 'pending' && "animate-blink"
+        )}>
           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
               <ArrowLeft className="h-5 w-5" />
           </Button>
