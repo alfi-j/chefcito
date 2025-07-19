@@ -88,25 +88,25 @@ export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isL
   return (
     <Card className={cn("flex flex-col border-2", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
         <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", isUrgent && order.status === 'pending' && "bg-red-500/10")}>
-          <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
+              <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex flex-col items-center">
             <CardTitle className="font-headline text-3xl flex items-center gap-2">
               <ClipboardList className="h-6 w-6" />
               <span>{order.id}</span>
             </CardTitle>
             <CardDescription className="font-semibold pt-1 text-xl">Table {order.table}</CardDescription>
           </div>
-          <div className="flex items-center gap-1">
-             <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
-                <ArrowLeft className="h-5 w-5" />
-            </Button>
-             <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
-                <ArrowRight className="h-5 w-5" />
-            </Button>
+          <div className="flex flex-col items-center">
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                 <Clock className="h-5 w-5" />
                 <span>{timeAgo}</span>
             </div>
           </div>
+           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
+              <ArrowRight className="h-5 w-5" />
+          </Button>
         </CardHeader>
         
         <div className="p-1 pt-0">
