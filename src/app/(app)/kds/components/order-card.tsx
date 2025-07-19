@@ -91,18 +91,16 @@ export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isL
           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
               <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex flex-col items-center">
+          <div className="flex-grow flex justify-center items-baseline gap-x-2">
             <CardTitle className="font-headline text-3xl flex items-center gap-2">
               <ClipboardList className="h-6 w-6" />
               <span>{order.id}</span>
             </CardTitle>
-            <CardDescription className="font-semibold pt-1 text-xl">Table {order.table}</CardDescription>
+            <CardDescription className="font-semibold text-lg">Table {order.table}</CardDescription>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-                <Clock className="h-5 w-5" />
-                <span>{timeAgo}</span>
-            </div>
+          <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold min-w-[70px] justify-end">
+              <Clock className="h-5 w-5" />
+              <span>{timeAgo}</span>
           </div>
            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
               <ArrowRight className="h-5 w-5" />
