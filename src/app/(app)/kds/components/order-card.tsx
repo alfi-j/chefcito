@@ -126,10 +126,10 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
   }, [order.items]);
 
   return (
-    <Card className={cn("flex flex-col border-2", isUrgent && order.status === 'pending' ? "border-red-500/50" : "border-transparent")}>
+    <Card className={cn("flex flex-col border-2", isUrgent && order.status === 'pending' ? "border-destructive/50" : "border-transparent")}>
         <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", 
-            isUrgent && !isVeryUrgent && order.status === 'pending' && "bg-red-500/10",
-            isVeryUrgent && order.status === 'pending' && "animate-blink"
+            isVeryUrgent && order.status === 'pending' && "bg-destructive/20",
+            isUrgent && !isVeryUrgent && order.status === 'pending' && "bg-destructive/10"
         )}>
           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
               <ArrowLeft className="h-5 w-5" />
