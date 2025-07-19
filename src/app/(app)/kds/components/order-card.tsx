@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, ArrowLeft, ArrowRight, Tablet } from 'lucide-react'
+import { Clock, ClipboardList, ArrowLeft, ArrowRight, Table } from 'lucide-react'
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 
@@ -97,7 +97,7 @@ export function OrderCard({ order, onUpdateItemStatus, onMoveOrder, isFirst, isL
               <span>{order.id}</span>
             </CardTitle>
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-                <Tablet className="h-5 w-5" />
+                <Table className="h-5 w-5" />
                 <span>{order.table}</span>
             </div>
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
