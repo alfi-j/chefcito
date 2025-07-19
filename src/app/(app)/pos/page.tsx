@@ -19,7 +19,7 @@ export default function PosPage() {
             : orderItem
         );
       }
-      return [...prev, { id: `${item.id}-${Date.now()}`, menuItem: item, quantity: 1, status: 'New' }];
+      return [...prev, { id: `${item.id}-${Date.now()}`, menuItem: item, quantity: 1, cookedCount: 0, status: 'New' }];
     });
     toast({
       title: `${item.name} added`,

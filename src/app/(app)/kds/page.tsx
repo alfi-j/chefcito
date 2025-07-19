@@ -5,7 +5,9 @@ import { initialOrders, type Order } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 
-const isOrderCompleted = (order: Order) => order.items.every(item => item.status === 'Cooked');
+const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0);
+
+const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
 
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -17,13 +19,35 @@ export default function KdsPage() {
     setOrders(sortedInitialOrders);
   }, []);
 
-  const updateItemStatus = useCallback((orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Cooked') => {
+  const updateItemStatus = useCallback((orderId: number, itemId: string) => {
     setOrders(currentOrders => {
       const updatedOrders = currentOrders.map(order => {
         if (order.id === orderId) {
-          const updatedItems = order.items.map(item =>
-            item.id === itemId ? { ...item, status: newStatus } : item
-          );
+          const updatedItems = order.items.map(item => {
+            if (item.id === itemId) {
+              // If already 'Cooked', do nothing
+              if (item.status === 'Cooked') return item;
+
+              const currentIndex = statusSequence.indexOf(item.status);
+              const nextStatus = statusSequence[currentIndex + 1];
+
+              if (nextStatus === 'Cooked') {
+                 // Decrement quantity and increment cookedCount
+                 const newQuantity = item.quantity - 1;
+                 const newCookedCount = item.cookedCount + 1;
+ 
+                 // If there are still items left, reset status to New, else it is Cooked
+                 const newStatus = newQuantity > 0 ? 'New' : 'Cooked';
+                 
+                 return { ...item, quantity: newQuantity, cookedCount: newCookedCount, status: newStatus };
+
+              } else {
+                // Just update status to 'Cooking'
+                return { ...item, status: nextStatus };
+              }
+            }
+            return item;
+          });
           
           const newOrder = {
             ...order,
