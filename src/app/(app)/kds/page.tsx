@@ -138,17 +138,18 @@ export default function KdsPage() {
         )
     }
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-2 py-4 items-start">
+        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6 gap-2 py-4 space-y-2">
             {orderList.map((order, index) => (
-                <OrderCard 
-                    key={order.id} 
-                    order={order} 
-                    onUpdateItemStatus={updateItemStatus}
-                    onRevertItemStatus={revertItemStatus}
-                    onMoveOrder={handleMoveOrder}
-                    isFirst={index === 0}
-                    isLast={index === orderList.length - 1}
-                />
+                <div key={order.id} className="break-inside-avoid">
+                    <OrderCard 
+                        order={order} 
+                        onUpdateItemStatus={updateItemStatus}
+                        onRevertItemStatus={revertItemStatus}
+                        onMoveOrder={handleMoveOrder}
+                        isFirst={index === 0}
+                        isLast={index === orderList.length - 1}
+                    />
+                </div>
             ))}
         </div>
     );
