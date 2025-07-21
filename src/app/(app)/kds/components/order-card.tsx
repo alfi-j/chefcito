@@ -134,9 +134,9 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
               <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex-grow flex justify-center items-center gap-x-4">
-            <CardTitle className="font-headline text-3xl flex items-center gap-2">
-              <ClipboardList className="h-6 w-6" />
+          <div className="flex-grow flex justify-center items-center gap-x-2">
+            <CardTitle className="font-headline text-2xl flex items-center gap-2">
+              <ClipboardList className="h-5 w-5" />
               <span>{order.id}</span>
             </CardTitle>
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
@@ -145,7 +145,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
             </div>
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                 <Clock className="h-5 w-5" />
-                <span>{timeAgo}</span>
+                <span className="whitespace-nowrap">{timeAgo}</span>
             </div>
           </div>
            <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
