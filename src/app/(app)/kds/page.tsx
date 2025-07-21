@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { OrderCard } from "./components/order-card";
@@ -8,6 +9,31 @@ import { Card } from "@/components/ui/card";
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0);
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
+
+const useMasonryLayout = (orders: Order[], columns: number) => {
+    const [layout, setLayout] = useState<Order[][]>([]);
+
+    useEffect(() => {
+        const newLayout: Order[][] = Array.from({ length: columns }, () => []);
+        if (orders.length > 0) {
+            const columnHeights = Array(columns).fill(0);
+
+            orders.forEach(order => {
+                // This is a rough estimation of card height. A real-world scenario might need
+                // to actually measure the element, but for this app, number of items is a good proxy.
+                const cardHeight = 120 + order.items.length * 40; 
+                
+                const shortestColumnIndex = columnHeights.indexOf(Math.min(...columnHeights));
+                newLayout[shortestColumnIndex].push(order);
+                columnHeights[shortestColumnIndex] += cardHeight;
+            });
+        }
+        setLayout(newLayout);
+    }, [orders, columns]);
+
+    return layout;
+};
+
 
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -128,9 +154,31 @@ export default function KdsPage() {
 
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
   const completedOrders = useMemo(() => orders.filter(o => o.status === 'completed'), [orders]);
+  
+  const getColumnCount = () => {
+    if (typeof window === 'undefined') return 4;
+    if (window.innerWidth >= 1920) return 6; // 3xl
+    if (window.innerWidth >= 1536) return 5; // 2xl
+    if (window.innerWidth >= 1280) return 4; // xl
+    if (window.innerWidth >= 1024) return 3; // lg
+    if (window.innerWidth >= 768) return 2;  // md
+    return 1; // sm
+  }
 
-  const renderOrderList = (orderList: Order[], listType: 'pending' | 'completed') => {
-    if (orderList.length === 0) {
+  const [columnCount, setColumnCount] = useState(getColumnCount());
+  
+  useEffect(() => {
+    const handleResize = () => setColumnCount(getColumnCount());
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const pendingLayout = useMasonryLayout(pendingOrders, columnCount);
+  const completedLayout = useMasonryLayout(completedOrders, columnCount);
+
+  const renderOrderList = (layout: Order[][], listType: 'pending' | 'completed') => {
+    const totalOrders = layout.reduce((acc, col) => acc + col.length, 0);
+    if (totalOrders === 0) {
         return (
             <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
                 <p>No orders in this category.</p>
@@ -139,16 +187,20 @@ export default function KdsPage() {
     }
     return (
         <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-2 items-start">
-            {orderList.map((order, index) => (
-                <div key={order.id} className="break-inside-avoid">
-                    <OrderCard 
-                        order={order} 
-                        onUpdateItemStatus={updateItemStatus}
-                        onRevertItemStatus={revertItemStatus}
-                        onMoveOrder={handleMoveOrder}
-                        isFirst={index === 0}
-                        isLast={index === orderList.length - 1}
-                    />
+            {layout.map((column, colIndex) => (
+                <div key={`${listType}-col-${colIndex}`} className="flex flex-col gap-2">
+                    {column.map((order, orderIndex) => (
+                         <OrderCard 
+                            key={order.id}
+                            order={order} 
+                            onUpdateItemStatus={updateItemStatus}
+                            onRevertItemStatus={revertItemStatus}
+                            onMoveOrder={handleMoveOrder}
+                            // Simplified logic, as true first/last is harder in masonry
+                            isFirst={orderIndex === 0 && colIndex === 0}
+                            isLast={false} 
+                        />
+                    ))}
                 </div>
             ))}
         </div>
@@ -163,10 +215,10 @@ export default function KdsPage() {
           <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pending">
-          {renderOrderList(pendingOrders, 'pending')}
+          {renderOrderList(pendingLayout, 'pending')}
         </TabsContent>
         <TabsContent value="completed">
-          {renderOrderList(completedOrders, 'completed')}
+          {renderOrderList(completedLayout, 'completed')}
         </TabsContent>
       </Tabs>
     </Card>
