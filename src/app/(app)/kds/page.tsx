@@ -138,7 +138,7 @@ export default function KdsPage() {
         )
     }
     return (
-        <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 3xl:columns-6 gap-2 py-4 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-2 py-4 items-start">
             {orderList.map((order, index) => (
                 <div key={order.id} className="break-inside-avoid">
                     <OrderCard 
