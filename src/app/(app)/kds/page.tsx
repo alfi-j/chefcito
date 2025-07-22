@@ -123,7 +123,6 @@ export default function KdsPage() {
 
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    setDragOverOrderId(null);
   };
 
 
