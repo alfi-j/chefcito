@@ -3,18 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react'
+import { Clock, ClipboardList, GripVertical, RotateCcw } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
-import { useState, useEffect, useMemo } from "react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useMemo, type DragEvent } from "react"
 
 interface OrderCardProps {
   order: Order
   onUpdateItemStatus: (orderId: number, itemId: string) => void
   onRevertItemStatus: (orderId: number, itemId: string) => void
-  onMoveOrder: (orderId: number, direction: 'left' | 'right') => void
-  isFirst: boolean
-  isLast: boolean
+  onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
+  onDrop: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
+  onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
+  onDragLeave: (e: DragEvent<HTMLDivElement>) => void;
+  isDraggingOver: boolean;
 }
 
 const statusColors = {
@@ -101,7 +102,7 @@ function useTimeAgo(date: Date) {
   return timeAgo;
 }
 
-export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMoveOrder, isFirst, isLast }: OrderCardProps) {
+export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, isDraggingOver }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   
   const [now, setNow] = useState(new Date().getTime());
@@ -125,15 +126,28 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
     });
   }, [order.items]);
 
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault(); // Necessary to allow dropping
+  };
+
   return (
-    <Card className="flex flex-col">
+    <Card 
+      className={cn(
+        "flex flex-col cursor-grab",
+        isDraggingOver && "border-2 border-dashed border-primary"
+      )}
+      draggable={order.status === 'pending'}
+      onDragStart={(e) => onDragStart(e, order.id)}
+      onDrop={(e) => onDrop(e, order.id)}
+      onDragOver={handleDragOver}
+      onDragEnter={(e) => onDragEnter(e, order.id)}
+      onDragLeave={onDragLeave}
+    >
         <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", 
             isVeryUrgent && order.status === 'pending' && "bg-destructive/20",
             isUrgent && !isVeryUrgent && order.status === 'pending' && "bg-yellow-500/20"
         )}>
-          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isFirst} onClick={() => onMoveOrder(order.id, 'left')}>
-              <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
           <div className="flex-grow flex justify-center items-center gap-x-2">
             <CardTitle className="font-headline text-2xl flex items-center gap-2">
               <ClipboardList className="h-5 w-5" />
@@ -148,9 +162,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onMov
                 <span className="whitespace-nowrap">{timeAgo}</span>
             </div>
           </div>
-           <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isLast} onClick={() => onMoveOrder(order.id, 'right')}>
-              <ArrowRight className="h-5 w-5" />
-          </Button>
+          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
         </CardHeader>
         
         <div className="p-1 pt-0">
