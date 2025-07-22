@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, GripVertical, RotateCcw } from 'lucide-react'
+import { Clock, ClipboardList, GripVertical, RotateCcw, AlertTriangle } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
 
@@ -158,10 +158,14 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                 <Clock className="h-5 w-5" />
                 <span className="whitespace-nowrap">{timeAgo}</span>
                 {order.status === 'pending' && isVeryUrgent && (
-                  <div className="w-3 h-3 rounded-full bg-destructive animate-blink" />
+                  <div className="w-6 h-6 rounded-full bg-destructive animate-blink flex items-center justify-center">
+                    <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
+                  </div>
                 )}
                 {order.status === 'pending' && isUrgent && !isVeryUrgent && (
-                  <div className="w-3 h-3 rounded-full bg-yellow-500 animate-blink" />
+                   <div className="w-6 h-6 rounded-full bg-yellow-500 animate-blink flex items-center justify-center">
+                    <AlertTriangle className="h-4 w-4 text-black" />
+                   </div>
                 )}
             </div>
           </div>
