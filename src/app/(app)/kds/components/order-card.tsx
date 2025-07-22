@@ -210,4 +210,3 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
     </Card>
   )
 }
-
