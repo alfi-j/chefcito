@@ -70,63 +70,67 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   };
 
   return (
-    <Card 
-      className={cn(
-        "flex flex-col cursor-grab mb-2",
-        isDraggingOver && "border-2 border-dashed border-primary"
-      )}
-      draggable={order.status === 'pending'}
-      onDragStart={(e) => onDragStart(e, order.id)}
-      onDrop={(e) => onDrop(e, order.id)}
-      onDragOver={handleDragOver}
-      onDragEnter={(e) => onDragEnter(e, order.id)}
-      onDragLeave={onDragLeave}
-    >
-        <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
-          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-          <div className="flex-grow flex justify-center items-center gap-x-2">
-            <CardTitle className="font-headline text-2xl flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
-              <span>{order.id}</span>
-            </CardTitle>
-            <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-                <MdOutlineTableRestaurant className="h-5 w-5" />
-                <span>{order.table}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-                <Clock className="h-5 w-5" />
-                <span className="whitespace-nowrap">{timeAgo}</span>
-                {order.status === 'pending' && isVeryUrgent && (
-                  <div className="w-6 h-6 rounded-full bg-destructive animate-blink flex items-center justify-center">
-                    <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
-                  </div>
-                )}
-                {order.status === 'pending' && isUrgent && !isVeryUrgent && (
-                   <div className="w-6 h-6 rounded-full bg-yellow-500 animate-blink flex items-center justify-center">
-                    <AlertTriangle className="h-4 w-4 text-black" />
-                   </div>
-                )}
-            </div>
-          </div>
-          <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-        </CardHeader>
-        
-        <div className="p-1 pt-0">
-          <Separator className="mb-1" />
-          <div className="space-y-1">
-            {orderedCategories.map((category, index) => (
-              <div key={category}>
-                {index > 0 && <Separator className="my-2"/>}
-                <h4 className="font-bold text-sm px-1 text-muted-foreground">{category}</h4>
-                <div className="space-y-1 mt-1">
-                  {groupedItems[category].map(item => (
-                    <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
-                  ))}
-                </div>
+    <div className={cn(
+        "relative rounded-lg mb-2",
+        isDraggingOver && "p-0.5 bg-gradient-to-r from-yellow-500 to-amber-500 animate-marching-ants"
+      )}>
+      <Card 
+        className={cn(
+          "flex flex-col cursor-grab",
+        )}
+        draggable={order.status === 'pending'}
+        onDragStart={(e) => onDragStart(e, order.id)}
+        onDrop={(e) => onDrop(e, order.id)}
+        onDragOver={handleDragOver}
+        onDragEnter={(e) => onDragEnter(e, order.id)}
+        onDragLeave={onDragLeave}
+      >
+          <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
+            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+            <div className="flex-grow flex justify-center items-center gap-x-2">
+              <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                <span>{order.id}</span>
+              </CardTitle>
+              <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
+                  <MdOutlineTableRestaurant className="h-5 w-5" />
+                  <span>{order.table}</span>
               </div>
-            ))}
+              <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
+                  <Clock className="h-5 w-5" />
+                  <span className="whitespace-nowrap">{timeAgo}</span>
+                  {order.status === 'pending' && isVeryUrgent && (
+                    <div className="w-6 h-6 rounded-full bg-destructive animate-blink flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
+                    </div>
+                  )}
+                  {order.status === 'pending' && isUrgent && !isVeryUrgent && (
+                     <div className="w-6 h-6 rounded-full bg-yellow-500 animate-blink flex items-center justify-center">
+                      <AlertTriangle className="h-4 w-4 text-black" />
+                     </div>
+                  )}
+              </div>
+            </div>
+            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+          </CardHeader>
+          
+          <div className="p-1 pt-0">
+            <Separator className="mb-1" />
+            <div className="space-y-1">
+              {orderedCategories.map((category, index) => (
+                <div key={category}>
+                  {index > 0 && <Separator className="my-2"/>}
+                  <h4 className="font-bold text-sm px-1 text-muted-foreground">{category}</h4>
+                  <div className="space-y-1 mt-1">
+                    {groupedItems[category].map(item => (
+                      <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-    </Card>
+      </Card>
+    </div>
   )
 }

@@ -128,4 +128,21 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
+
+  .animate-marching-ants {
+    --bg-size: 40px;
+    background-image: linear-gradient(45deg, hsl(var(--primary)) 25%, transparent 25%), 
+                      linear-gradient(-45deg, hsl(var(--primary)) 25%, transparent 25%), 
+                      linear-gradient(45deg, transparent 75%, hsl(var(--primary)) 75%), 
+                      linear-gradient(-45deg, transparent 75%, hsl(var(--primary)) 75%);
+    background-size: var(--bg-size) var(--bg-size);
+    background-position: 0 0;
+    animation: marching-ants 800ms infinite linear;
+  }
+
+  @keyframes marching-ants {
+    to {
+      background-position: var(--bg-size) 0;
+    }
+  }
 }
