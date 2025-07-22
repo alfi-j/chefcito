@@ -5,7 +5,6 @@ import { OrderCard } from "./components/order-card";
 import { initialOrders, type Order } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 import Masonry from 'react-masonry-css';
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0);
@@ -26,7 +25,6 @@ export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState('pending');
 
-  // Drag and Drop State
   const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
   const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
 
@@ -36,81 +34,51 @@ export default function KdsPage() {
   }, []);
 
   const updateItemStatus = useCallback((orderId: number, itemId: string) => {
-    setOrders(currentOrders => {
-      const updatedOrders = currentOrders.map(order => {
-        if (order.id === orderId) {
-          const updatedItems = order.items.map(item => {
-            if (item.id === itemId) {
-              if (item.status === 'Cooked') return item;
+    setOrders(currentOrders => currentOrders.map(order => {
+      if (order.id !== orderId) return order;
 
-              const currentIndex = statusSequence.indexOf(item.status);
-              const nextStatus = statusSequence[currentIndex + 1];
+      const updatedItems = order.items.map(item => {
+        if (item.id !== itemId || item.status === 'Cooked') return item;
 
-              if (nextStatus === 'Cooked') {
-                 const newQuantity = item.quantity - 1;
-                 const newCookedCount = item.cookedCount + 1;
- 
-                 const newStatus = newQuantity > 0 ? 'New' : 'Cooked';
-                 
-                 return { ...item, quantity: newQuantity, cookedCount: newCookedCount, status: newStatus };
+        const currentIndex = statusSequence.indexOf(item.status);
+        const nextStatus = statusSequence[currentIndex + 1];
 
-              } else {
-                return { ...item, status: nextStatus };
-              }
-            }
-            return item;
-          });
-          
-          const newOrder = {
-            ...order,
-            items: updatedItems,
-          };
-          
-          if (isOrderCompleted(newOrder)) {
-            newOrder.status = 'completed';
-          } else {
-            newOrder.status = 'pending';
-          }
-
-          return newOrder;
+        if (nextStatus === 'Cooked') {
+          const newQuantity = item.quantity - 1;
+          const newCookedCount = item.cookedCount + 1;
+          const newStatus = newQuantity > 0 ? 'New' : 'Cooked';
+          return { ...item, quantity: newQuantity, cookedCount: newCookedCount, status: newStatus };
         }
-        return order;
+        
+        return { ...item, status: nextStatus };
       });
-      return updatedOrders;
-    });
+      
+      const newOrder = { ...order, items: updatedItems };
+      newOrder.status = isOrderCompleted(newOrder) ? 'completed' : 'pending';
+      return newOrder;
+    }));
   }, []);
 
   const revertItemStatus = useCallback((orderId: number, itemId: string) => {
-    setOrders(currentOrders => {
-      return currentOrders.map(order => {
-        if (order.id === orderId) {
-          const updatedItems = order.items.map(item => {
-            if (item.id === itemId && item.cookedCount > 0) {
-              const newQuantity = item.quantity + 1;
-              const newCookedCount = item.cookedCount - 1;
-              return {
-                ...item,
-                quantity: newQuantity,
-                cookedCount: newCookedCount,
-                status: 'New'
-              };
-            }
-            return item;
-          });
-
-          const newOrder = { ...order, items: updatedItems };
-
-          if (isOrderCompleted(newOrder)) {
-            newOrder.status = 'completed';
-          } else {
-            newOrder.status = 'pending';
-          }
-
-          return newOrder;
+    setOrders(currentOrders => currentOrders.map(order => {
+      if (order.id !== orderId) return order;
+      
+      const updatedItems = order.items.map(item => {
+        if (item.id === itemId && item.cookedCount > 0) {
+          return {
+            ...item,
+            quantity: item.quantity + 1,
+            cookedCount: item.cookedCount - 1,
+            status: 'New'
+          };
         }
-        return order;
+        return item;
       });
-    });
+
+      const newOrder = { ...order, items: updatedItems };
+      newOrder.status = isOrderCompleted(newOrder) ? 'completed' : 'pending';
+      return newOrder;
+    }));
   }, []);
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
@@ -121,27 +89,25 @@ export default function KdsPage() {
   const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
     e.preventDefault();
     if (draggedOrderId === null || draggedOrderId === dropOrderId) {
-        setDraggedOrderId(null);
-        setDragOverOrderId(null);
-        return;
+      setDraggedOrderId(null);
+      setDragOverOrderId(null);
+      return;
     }
     
     setOrders(currentOrders => {
-        const pending = currentOrders.filter(o => o.status === 'pending');
-        const completed = currentOrders.filter(o => o.status === 'completed');
+      const pending = currentOrders.filter(o => o.status === 'pending');
+      const completed = currentOrders.filter(o => o.status === 'completed');
 
-        const draggedIndex = pending.findIndex(o => o.id === draggedOrderId);
-        const dropIndex = pending.findIndex(o => o.id === dropOrderId);
+      const draggedIndex = pending.findIndex(o => o.id === draggedOrderId);
+      const dropIndex = pending.findIndex(o => o.id === dropOrderId);
 
-        if (draggedIndex === -1 || dropIndex === -1) {
-            return currentOrders;
-        }
+      if (draggedIndex === -1 || dropIndex === -1) return currentOrders;
 
-        const newPending = [...pending];
-        const [draggedOrder] = newPending.splice(draggedIndex, 1);
-        newPending.splice(dropIndex, 0, draggedOrder);
-        
-        return [...newPending, ...completed];
+      const newPending = [...pending];
+      const [draggedOrder] = newPending.splice(draggedIndex, 1);
+      newPending.splice(dropIndex, 0, draggedOrder);
+      
+      return [...newPending, ...completed];
     });
 
     setDraggedOrderId(null);
@@ -151,17 +117,14 @@ export default function KdsPage() {
   const handleDragEnter = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     e.preventDefault();
     if (draggedOrderId !== orderId) {
-        setDragOverOrderId(orderId);
+      setDragOverOrderId(orderId);
     }
   };
 
   const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    // Check if the related target is outside the component boundary
-    if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
-        setDragOverOrderId(null);
-    }
-  }
+    setDragOverOrderId(null);
+  };
 
 
   const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
@@ -169,42 +132,34 @@ export default function KdsPage() {
   
   const renderOrderList = (orderList: Order[]) => {
     if (orderList.length === 0) {
-        return (
-            <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
-                <p>No orders in this category.</p>
-            </div>
-        )
+      return (
+        <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
+          <p>No orders in this category.</p>
+        </div>
+      );
     }
     return (
       <Masonry
         breakpointCols={breakpointColumnsObj}
         className="flex w-auto -ml-2"
         columnClassName="pl-2 bg-clip-padding"
-        onDragOver={(e) => e.preventDefault()}
       >
         {orderList.map((order) => (
-              <div
-                key={order.id}
-                className="mb-2"
-                style={{
-                  opacity: draggedOrderId === order.id ? 0.5 : 1,
-                }}
-              >
-                  <OrderCard 
-                      order={order} 
-                      onUpdateItemStatus={updateItemStatus}
-                      onRevertItemStatus={revertItemStatus}
-                      onDragStart={handleDragStart}
-                      onDrop={handleDrop}
-                      onDragEnter={handleDragEnter}
-                      onDragLeave={handleDragLeave}
-                      isDraggingOver={dragOverOrderId === order.id}
-                  />
-              </div>
+          <OrderCard 
+            key={order.id}
+            order={order} 
+            onUpdateItemStatus={updateItemStatus}
+            onRevertItemStatus={revertItemStatus}
+            onDragStart={handleDragStart}
+            onDrop={handleDrop}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            isDraggingOver={dragOverOrderId === order.id}
+          />
         ))}
       </Masonry>
     );
-  }
+  };
 
   return (
     <Card>

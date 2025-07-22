@@ -1,12 +1,14 @@
 
 "use client"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, GripVertical, RotateCcw, AlertTriangle } from 'lucide-react'
+import { Clock, ClipboardList, GripVertical, AlertTriangle } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
+import { useTimeAgo } from "@/hooks/use-time-ago"
+import { OrderItem } from "./order-item"
 
 interface OrderCardProps {
   order: Order
@@ -17,88 +19,6 @@ interface OrderCardProps {
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragLeave: (e: DragEvent<HTMLDivElement>) => void;
   isDraggingOver: boolean;
-}
-
-const statusColors = {
-  New: 'bg-blue-500/10',
-  Cooking: 'bg-yellow-500/10',
-  Cooked: 'bg-green-500/10',
-};
-
-const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
-
-function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: { item: OrderItemType, orderId: number, onUpdateItemStatus: OrderCardProps['onUpdateItemStatus'], onRevertItemStatus: OrderCardProps['onRevertItemStatus'] }) {
-  const handleStatusChange = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (item.status === 'Cooked') return;
-    onUpdateItemStatus(orderId, item.id);
-  };
-
-  const handleRevertStatus = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onRevertItemStatus(orderId, item.id);
-  }
-  
-  return (
-    <>
-      {item.quantity > 0 && (
-        <div 
-          className={cn(
-            "p-1 rounded-md transition-all cursor-pointer flex justify-between items-center",
-            'bg-card hover:bg-muted/80',
-            statusColors[item.status]
-          )}
-          onClick={handleStatusChange}
-        >
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="font-bold text-xl">{item.quantity}x</span>
-            <span className="font-semibold text-xl whitespace-normal break-words flex-1">{item.menuItem.name}</span>
-          </div>
-          <span className="text-lg font-bold ml-1.5">{item.status}</span>
-        </div>
-      )}
-      {item.cookedCount > 0 && (
-        <div 
-          className={cn(
-            "p-1 rounded-md transition-all flex justify-between items-center group cursor-pointer",
-            'bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100 hover:bg-destructive/10' 
-          )}
-          onClick={handleRevertStatus}
-        >
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="font-bold text-xl">{item.cookedCount}x</span>
-            <span className="font-semibold text-xl whitespace-normal break-words flex-1">{item.menuItem.name}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-lg font-bold ml-1.5">Cooked</span>
-            <RotateCcw className="h-4 w-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        </div>
-      )}
-    </>
-  )
-}
-
-function useTimeAgo(date: Date) {
-  const [timeAgo, setTimeAgo] = useState('');
-
-  useEffect(() => {
-    const update = () => {
-      const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-      const minutes = Math.floor(seconds / 60);
-      const hours = Math.floor(minutes / 60);
-
-      if (hours > 0) setTimeAgo(`${hours}h`);
-      else if (minutes > 0) setTimeAgo(`${minutes}m`);
-      else setTimeAgo(`${seconds < 5 ? 'now' : `${seconds}s`}`);
-    };
-
-    update();
-    const interval = setInterval(update, 5000); // update every 5 seconds
-    return () => clearInterval(interval);
-  }, [date]);
-
-  return timeAgo;
 }
 
 export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, isDraggingOver }: OrderCardProps) {
@@ -152,7 +72,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   return (
     <Card 
       className={cn(
-        "flex flex-col cursor-grab",
+        "flex flex-col cursor-grab mb-2",
         isDraggingOver && "border-2 border-dashed border-primary"
       )}
       draggable={order.status === 'pending'}
