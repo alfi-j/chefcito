@@ -1,7 +1,8 @@
+
 "use client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { type Order, type OrderItem as OrderItemType } from "@/lib/data"
+import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/data"
 import { cn } from "@/lib/utils"
 import { Clock, ClipboardList, GripVertical, RotateCcw, AlertTriangle } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
@@ -19,8 +20,8 @@ interface OrderCardProps {
 }
 
 const statusColors = {
-  New: 'bg-blue-500/10 border-l-4 border-blue-500',
-  Cooking: 'bg-yellow-500/10 border-l-4 border-yellow-500',
+  New: 'bg-blue-500/10',
+  Cooking: 'bg-yellow-500/10',
   Cooked: 'bg-green-500/10',
 };
 
@@ -38,8 +39,6 @@ function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: { 
     onRevertItemStatus(orderId, item.id);
   }
   
-  const isFullyCooked = item.quantity === 0 && item.cookedCount > 0;
-
   return (
     <>
       {item.quantity > 0 && (
@@ -116,15 +115,35 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   const isUrgent = elapsedMinutes > 10;
   const isVeryUrgent = elapsedMinutes > 20;
 
-  const sortedItems = useMemo(() => {
-    return [...order.items].sort((a, b) => {
-      const aIsFullyCooked = a.quantity === 0 && a.cookedCount > 0;
-      const bIsFullyCooked = b.quantity === 0 && b.cookedCount > 0;
-      if (aIsFullyCooked && !bIsFullyCooked) return 1;
-      if (!aIsFullyCooked && bIsFullyCooked) return -1;
-      return 0;
-    });
+  const groupedItems = useMemo(() => {
+    const groups: Record<string, OrderItemType[]> = {};
+    
+    // Group items by category
+    for (const item of order.items) {
+      const category = item.menuItem.category;
+      if (!groups[category]) {
+        groups[category] = [];
+      }
+      groups[category].push(item);
+    }
+    
+    // Sort items within each group (uncooked first)
+    for (const category in groups) {
+      groups[category].sort((a, b) => {
+        const aIsFullyCooked = a.quantity === 0 && a.cookedCount > 0;
+        const bIsFullyCooked = b.quantity === 0 && b.cookedCount > 0;
+        if (aIsFullyCooked && !bIsFullyCooked) return 1;
+        if (!aIsFullyCooked && bIsFullyCooked) return -1;
+        return 0;
+      });
+    }
+
+    return groups;
   }, [order.items]);
+
+  const orderedCategories = useMemo(() => {
+    return menuCategories.filter(cat => groupedItems[cat]);
+  }, [groupedItems]);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault(); // Necessary to allow dropping
@@ -133,7 +152,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   return (
     <Card 
       className={cn(
-        "flex flex-col cursor-grab",
+        "flex flex-col cursor-grab break-inside-avoid",
         isDraggingOver && "border-2 border-dashed border-primary"
       )}
       draggable={order.status === 'pending'}
@@ -175,11 +194,20 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
         <div className="p-1 pt-0">
           <Separator className="mb-1" />
           <div className="space-y-1">
-            {sortedItems.map(item => (
-              <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
+            {orderedCategories.map((category, index) => (
+              <div key={category}>
+                {index > 0 && <Separator className="my-2"/>}
+                <h4 className="font-bold text-sm px-1 text-muted-foreground">{category}</h4>
+                <div className="space-y-1 mt-1">
+                  {groupedItems[category].map(item => (
+                    <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
     </Card>
   )
 }
+
