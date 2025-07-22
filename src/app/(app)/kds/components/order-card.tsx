@@ -152,7 +152,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   return (
     <Card 
       className={cn(
-        "flex flex-col cursor-grab break-inside-avoid mb-2",
+        "flex flex-col cursor-grab mb-2",
         isDraggingOver && "border-2 border-dashed border-primary"
       )}
       draggable={order.status === 'pending'}
