@@ -143,10 +143,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
       onDragEnter={(e) => onDragEnter(e, order.id)}
       onDragLeave={onDragLeave}
     >
-        <CardHeader className={cn("flex-row items-center justify-between space-y-0 p-2", 
-            isVeryUrgent && order.status === 'pending' && "bg-destructive/20",
-            isUrgent && !isVeryUrgent && order.status === 'pending' && "bg-yellow-500/20"
-        )}>
+        <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
           <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
           <div className="flex-grow flex justify-center items-center gap-x-2">
             <CardTitle className="font-headline text-2xl flex items-center gap-2">
@@ -160,6 +157,12 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
             <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                 <Clock className="h-5 w-5" />
                 <span className="whitespace-nowrap">{timeAgo}</span>
+                {order.status === 'pending' && isVeryUrgent && (
+                  <div className="w-3 h-3 rounded-full bg-destructive animate-blink" />
+                )}
+                {order.status === 'pending' && isUrgent && !isVeryUrgent && (
+                  <div className="w-3 h-3 rounded-full bg-yellow-500 animate-blink" />
+                )}
             </div>
           </div>
           <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />

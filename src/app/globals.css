@@ -125,7 +125,7 @@
   }
   
   @keyframes blink {
-    0%, 100% { background-color: hsla(var(--destructive), 0.1); }
-    50% { background-color: hsla(var(--destructive), 0.25); }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 }
