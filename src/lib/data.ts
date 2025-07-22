@@ -89,5 +89,36 @@ export const initialOrders: Order[] = [
             { id: '4-11', menuItem: menuItems[1], quantity: 1, cookedCount: 0, status: 'New' },
             { id: '4-12', menuItem: menuItems[0], quantity: 1, cookedCount: 1, status: 'Cooked' },
         ]
+    },
+    {
+        id: 105,
+        table: 3,
+        status: 'pending',
+        createdAt: new Date(Date.now() - 8 * 60 * 1000), // 8 minutes ago
+        items: [
+            { id: '5-1', menuItem: menuItems[1], quantity: 1, cookedCount: 0, status: 'Cooking' },
+            { id: '5-2', menuItem: menuItems[3], quantity: 2, cookedCount: 0, status: 'New' },
+        ]
+    },
+    {
+        id: 106,
+        table: 7,
+        status: 'pending',
+        createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+        items: [
+            { id: '6-1', menuItem: menuItems[4], quantity: 1, cookedCount: 0, status: 'New' },
+            { id: '6-2', menuItem: menuItems[5], quantity: 1, cookedCount: 0, status: 'Cooking' },
+            { id: '6-3', menuItem: menuItems[6], quantity: 1, cookedCount: 1, status: 'Cooked' },
+        ]
+    },
+    {
+        id: 107,
+        table: 9,
+        status: 'completed',
+        createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        items: [
+            { id: '7-1', menuItem: menuItems[0], quantity: 0, cookedCount: 1, status: 'Cooked' },
+            { id: '7-2', menuItem: menuItems[8], quantity: 0, cookedCount: 2, status: 'Cooked' },
+        ]
     }
 ];
