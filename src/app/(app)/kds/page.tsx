@@ -6,10 +6,20 @@ import { initialOrders, type Order } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import Masonry from 'react-masonry-css';
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0);
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
+
+const breakpointColumnsObj = {
+  default: 5,
+  1920: 5, // 3xl
+  1536: 4, // 2xl
+  1280: 3, // xl
+  1024: 2, // lg
+  768: 1   // md
+};
 
 
 export default function KdsPage() {
@@ -166,30 +176,33 @@ export default function KdsPage() {
         )
     }
     return (
-        <div 
-          className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-2"
-          onDragOver={(e) => e.preventDefault()}
-        >
-            {orderList.map((order) => (
-                 <div
-                   key={order.id}
-                   style={{
-                     opacity: draggedOrderId === order.id ? 0.5 : 1,
-                   }}
-                 >
-                    <OrderCard 
-                        order={order} 
-                        onUpdateItemStatus={updateItemStatus}
-                        onRevertItemStatus={revertItemStatus}
-                        onDragStart={handleDragStart}
-                        onDrop={handleDrop}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        isDraggingOver={dragOverOrderId === order.id}
-                    />
-                 </div>
-            ))}
-        </div>
+      <Masonry
+        breakpointCols={breakpointColumnsObj}
+        className="flex w-auto -ml-2"
+        columnClassName="pl-2 bg-clip-padding"
+        onDragOver={(e) => e.preventDefault()}
+      >
+        {orderList.map((order) => (
+              <div
+                key={order.id}
+                className="mb-2"
+                style={{
+                  opacity: draggedOrderId === order.id ? 0.5 : 1,
+                }}
+              >
+                  <OrderCard 
+                      order={order} 
+                      onUpdateItemStatus={updateItemStatus}
+                      onRevertItemStatus={revertItemStatus}
+                      onDragStart={handleDragStart}
+                      onDrop={handleDrop}
+                      onDragEnter={handleDragEnter}
+                      onDragLeave={handleDragLeave}
+                      isDraggingOver={dragOverOrderId === order.id}
+                  />
+              </div>
+        ))}
+      </Masonry>
     );
   }
 
@@ -200,10 +213,10 @@ export default function KdsPage() {
           <TabsTrigger value="pending">Pending ({pendingOrders.length})</TabsTrigger>
           <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="pending">
+        <TabsContent value="pending" className="pt-4">
           {renderOrderList(pendingOrders)}
         </TabsContent>
-        <TabsContent value="completed">
+        <TabsContent value="completed" className="pt-4">
           {renderOrderList(completedOrders)}
         </TabsContent>
       </Tabs>
