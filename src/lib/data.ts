@@ -21,6 +21,7 @@ export type Order = {
   status: 'pending' | 'completed';
   createdAt: Date;
   table: number;
+  isPinned?: boolean;
 };
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
@@ -43,6 +44,7 @@ export const initialOrders: Order[] = [
         table: 5,
         status: 'pending',
         createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+        isPinned: false,
         items: [
             { id: '1-1', menuItem: menuItems[2], quantity: 1, cookedCount: 0, status: 'New' },
             { id: '1-2', menuItem: menuItems[3], quantity: 1, cookedCount: 0, status: 'New' },
@@ -53,6 +55,7 @@ export const initialOrders: Order[] = [
         table: 2,
         status: 'pending',
         createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+        isPinned: true,
         items: [
             { id: '2-1', menuItem: menuItems[0], quantity: 2, cookedCount: 0, status: 'Cooking' },
             { id: '2-2', menuItem: menuItems[4], quantity: 1, cookedCount: 0, status: 'New' },
@@ -64,6 +67,7 @@ export const initialOrders: Order[] = [
         table: 8,
         status: 'pending',
         createdAt: new Date(Date.now() - 22 * 60 * 1000), // 22 minutes ago, should be urgent
+        isPinned: false,
         items: [
             { id: '3-1', menuItem: menuItems[5], quantity: 1, cookedCount: 0, status: 'New' },
             { id: '3-2', menuItem: menuItems[6], quantity: 1, cookedCount: 0, status: 'New' },
@@ -75,6 +79,7 @@ export const initialOrders: Order[] = [
         table: 12,
         status: 'pending',
         createdAt: new Date(Date.now() - 1 * 60 * 1000), // 1 minute ago
+        isPinned: false,
         items: [
             { id: '4-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New' },
             { id: '4-2', menuItem: menuItems[1], quantity: 1, cookedCount: 0, status: 'New' },
@@ -95,6 +100,7 @@ export const initialOrders: Order[] = [
         table: 3,
         status: 'pending',
         createdAt: new Date(Date.now() - 8 * 60 * 1000), // 8 minutes ago
+        isPinned: false,
         items: [
             { id: '5-1', menuItem: menuItems[1], quantity: 1, cookedCount: 0, status: 'Cooking' },
             { id: '5-2', menuItem: menuItems[3], quantity: 2, cookedCount: 0, status: 'New' },
@@ -105,6 +111,7 @@ export const initialOrders: Order[] = [
         table: 7,
         status: 'pending',
         createdAt: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+        isPinned: false,
         items: [
             { id: '6-1', menuItem: menuItems[4], quantity: 1, cookedCount: 0, status: 'New' },
             { id: '6-2', menuItem: menuItems[5], quantity: 1, cookedCount: 0, status: 'Cooking' },
@@ -116,6 +123,7 @@ export const initialOrders: Order[] = [
         table: 9,
         status: 'completed',
         createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
+        isPinned: false,
         items: [
             { id: '7-1', menuItem: menuItems[0], quantity: 0, cookedCount: 1, status: 'Cooked' },
             { id: '7-2', menuItem: menuItems[8], quantity: 0, cookedCount: 2, status: 'Cooked' },

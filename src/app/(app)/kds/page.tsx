@@ -29,7 +29,12 @@ export default function KdsPage() {
   const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
 
   useEffect(() => {
-    const sortedInitialOrders = [...initialOrders].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    // Initial sort can be based on creation time, but pinned status will override it.
+    const sortedInitialOrders = [...initialOrders].sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        return a.createdAt.getTime() - b.createdAt.getTime();
+    });
     setOrders(sortedInitialOrders);
   }, []);
 
@@ -95,19 +100,25 @@ export default function KdsPage() {
     }
     
     setOrders(currentOrders => {
-      const pending = currentOrders.filter(o => o.status === 'pending');
-      const completed = currentOrders.filter(o => o.status === 'completed');
+        const pending = currentOrders.filter(o => o.status === 'pending');
+        const completed = currentOrders.filter(o => o.status === 'completed');
 
-      const draggedIndex = pending.findIndex(o => o.id === draggedOrderId);
-      const dropIndex = pending.findIndex(o => o.id === dropOrderId);
+        const draggedOrder = pending.find(o => o.id === draggedOrderId);
+        if (!draggedOrder || draggedOrder.isPinned) {
+            // Cannot reorder pinned items this way
+             setDraggedOrderId(null);
+             setDragOverOrderId(null);
+            return currentOrders;
+        }
 
-      if (draggedIndex === -1 || dropIndex === -1) return currentOrders;
+        let newPending = pending.filter(o => o.id !== draggedOrderId);
+        const dropIndex = newPending.findIndex(o => o.id === dropOrderId);
 
-      const newPending = [...pending];
-      const [draggedOrder] = newPending.splice(draggedIndex, 1);
-      newPending.splice(dropIndex, 0, draggedOrder);
+        if (dropIndex === -1) return currentOrders;
+
+        newPending.splice(dropIndex, 0, draggedOrder);
       
-      return [...newPending, ...completed];
+        return [...newPending, ...completed];
     });
 
     setDraggedOrderId(null);
@@ -117,7 +128,10 @@ export default function KdsPage() {
   const handleDragEnter = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     e.preventDefault();
     if (draggedOrderId !== orderId) {
-      setDragOverOrderId(orderId);
+      const draggedOrder = orders.find(o => o.id === draggedOrderId);
+      if (draggedOrder && !draggedOrder.isPinned) {
+        setDragOverOrderId(orderId);
+      }
     }
   };
 
@@ -125,8 +139,39 @@ export default function KdsPage() {
     e.preventDefault();
   };
 
+  const togglePinOrder = useCallback((orderId: number) => {
+    setOrders(currentOrders => {
+      const orderToToggle = currentOrders.find(o => o.id === orderId);
+      if (!orderToToggle) return currentOrders;
+      
+      const updatedOrder = { ...orderToToggle, isPinned: !orderToToggle.isPinned };
+      
+      const otherOrders = currentOrders.filter(o => o.id !== orderId);
+      const newOrders = [...otherOrders, updatedOrder];
 
-  const pendingOrders = useMemo(() => orders.filter(o => o.status === 'pending'), [orders]);
+      // Re-sort the array: Pinned first, then by creation date.
+      return newOrders.sort((a, b) => {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        // if both are pinned or both unpinned, sort by original index or time
+        const pendingA = orders.find(o => o.id === a.id);
+        const pendingB = orders.find(o => o.id === b.id);
+        if(pendingA && pendingB && !a.isPinned && !b.isPinned) {
+            return pendingA.createdAt.getTime() - pendingB.createdAt.getTime();
+        }
+        return 0;
+      });
+    });
+  }, [orders]);
+
+
+  const pendingOrders = useMemo(() => {
+      const pending = orders.filter(o => o.status === 'pending');
+      const pinned = pending.filter(o => o.isPinned);
+      const unpinned = pending.filter(o => !o.isPinned);
+      return [...pinned, ...unpinned];
+  }, [orders]);
+
   const completedOrders = useMemo(() => orders.filter(o => o.status === 'completed'), [orders]);
   
   const renderOrderList = (orderList: Order[]) => {
@@ -154,6 +199,7 @@ export default function KdsPage() {
             onDragEnter={handleDragEnter}
             onDragLeave={handleDragLeave}
             isDraggingOver={dragOverOrderId === order.id}
+            onTogglePin={togglePinOrder}
           />
         ))}
       </Masonry>

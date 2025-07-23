@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/data"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, GripVertical, AlertTriangle } from 'lucide-react'
+import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
 import { useTimeAgo } from "@/hooks/use-time-ago"
@@ -19,9 +19,10 @@ interface OrderCardProps {
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragLeave: (e: DragEvent<HTMLDivElement>) => void;
   isDraggingOver: boolean;
+  onTogglePin: (orderId: number) => void;
 }
 
-export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, isDraggingOver }: OrderCardProps) {
+export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, isDraggingOver, onTogglePin }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   
   const [now, setNow] = useState(new Date().getTime());
@@ -68,6 +69,11 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault(); // Necessary to allow dropping
   };
+  
+  const handlePinClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onTogglePin(order.id);
+  }
 
   return (
     <div className={cn(
@@ -77,6 +83,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
       <Card 
         className={cn(
           "flex flex-col cursor-grab",
+          order.isPinned && "border-primary border-2"
         )}
         draggable={order.status === 'pending'}
         onDragStart={(e) => onDragStart(e, order.id)}
@@ -111,7 +118,13 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                   )}
               </div>
             </div>
-            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+             <button onClick={handlePinClick} className="p-1 rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring">
+              {order.isPinned ? (
+                <Pin className="h-5 w-5 text-primary fill-primary" />
+              ) : (
+                <PinOff className="h-5 w-5 text-muted-foreground" />
+              )}
+            </button>
           </CardHeader>
           
           <div className="p-1 pt-0">
