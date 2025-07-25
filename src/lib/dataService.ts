@@ -4,13 +4,12 @@
 import { createClient } from './supabase/server';
 import { type Order, type MenuItem, type OrderItem, type Category } from './types';
 
-const supabase = createClient();
-
 // In a real app, you'd have more robust error handling
 // and potentially more complex queries.
 
 // Category Management
 export async function getCategories(): Promise<Category[]> {
+  const supabase = createClient();
   const { data, error } = await supabase.from('categories').select('*').order('name', { ascending: true });
   if (error) {
     console.error('Error fetching categories:', error);
@@ -20,6 +19,7 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function addCategory(name: string): Promise<Category | null> {
+    const supabase = createClient();
     const { data, error } = await supabase
         .from('categories')
         .insert({ name })
@@ -33,6 +33,7 @@ export async function addCategory(name: string): Promise<Category | null> {
 }
 
 export async function updateCategory(id: number, name: string): Promise<Category | null> {
+    const supabase = createClient();
     const { data, error } = await supabase
         .from('categories')
         .update({ name })
@@ -47,6 +48,7 @@ export async function updateCategory(id: number, name: string): Promise<Category
 }
 
 export async function deleteCategory(id: number): Promise<boolean> {
+    const supabase = createClient();
     const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('name')
@@ -89,6 +91,7 @@ export async function deleteCategory(id: number): Promise<boolean> {
 
 // Menu Item Management
 export async function getMenuItems(): Promise<MenuItem[]> {
+  const supabase = createClient();
   const { data, error } = await supabase.from('menu_items').select('*');
   if (error) {
     console.error('Error fetching menu items:', error);
@@ -105,6 +108,7 @@ export async function getMenuItems(): Promise<MenuItem[]> {
 }
 
 export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem | null> {
+    const supabase = createClient();
     const { data, error } = await supabase
         .from('menu_items')
         .insert({
@@ -125,6 +129,7 @@ export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem 
 }
 
 export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
+    const supabase = createClient();
     const { data, error } = await supabase
         .from('menu_items')
         .update({
@@ -146,6 +151,7 @@ export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
 }
 
 export async function deleteMenuItem(itemId: string): Promise<boolean> {
+    const supabase = createClient();
     const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
     if (error) {
         console.error('Error deleting menu item:', error);
@@ -156,6 +162,7 @@ export async function deleteMenuItem(itemId: string): Promise<boolean> {
 
 // Order Management
 export async function getOrders(): Promise<Order[]> {
+    const supabase = createClient();
     const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -196,6 +203,7 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'status' | 'isPinned'> & { items: Omit<OrderItem, 'id' | 'menuItem' | 'cookedCount' | 'status' | 'menuItemId'> & { menuItemId: string }[] }): Promise<Order | null> {
+    const supabase = createClient();
     const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -235,6 +243,7 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'statu
 
 
 export async function updateOrderItemStatus(orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Cooked', newQuantity: number, newCookedCount: number): Promise<boolean> {
+  const supabase = createClient();
   const { error } = await supabase
     .from('order_items')
     .update({ status: newStatus, quantity: newQuantity, cooked_count: newCookedCount })
@@ -248,6 +257,7 @@ export async function updateOrderItemStatus(orderId: number, itemId: string, new
 }
 
 export async function updateOrderStatus(orderId: number, newStatus: 'pending' | 'completed'): Promise<boolean> {
+  const supabase = createClient();
   const { error } = await supabase
     .from('orders')
     .update({ status: newStatus })
@@ -262,6 +272,7 @@ export async function updateOrderStatus(orderId: number, newStatus: 'pending' | 
 
 
 export async function toggleOrderPin(orderId: number, isPinned: boolean): Promise<boolean> {
+    const supabase = createClient();
     const { error } = await supabase
         .from('orders')
         .update({ is_pinned: isPinned })
