@@ -49,11 +49,26 @@ export async function updateCategory(id: number, name: string): Promise<Category
 
 export async function deleteCategory(id: number): Promise<boolean> {
     const supabase = createClient();
-    // First, check if any menu items are using this category
+    
+    // First, get the category name
+    const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('name')
+        .eq('id', id)
+        .single();
+
+    if (categoryError) {
+        console.error('Error fetching category name:', categoryError);
+        return false;
+    }
+
+    const categoryName = categoryData.name;
+
+    // Now check if any menu items are using this category name
     const { data: menuItems, error: checkError } = await supabase
         .from('menu_items')
         .select('id')
-        .eq('category', (await supabase.from('categories').select('name').eq('id', id).single()).data?.name)
+        .eq('category', categoryName)
         .limit(1);
 
     if (checkError) {
