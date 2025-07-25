@@ -1,13 +1,28 @@
+
 "use client"
-import React, { useState } from 'react';
-import { menuItems, menuCategories, type OrderItem, type MenuItem } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import { type OrderItem, type MenuItem } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
+import { getMenuItems, createOrder } from '@/lib/dataService';
+import { menuCategories } from '@/lib/types';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
-  const { toast } = useToast()
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      setLoading(true);
+      const items = await getMenuItems();
+      setMenuItems(items);
+      setLoading(false);
+    };
+    fetchMenu();
+  }, []);
   
   const handleAddItem = (item: MenuItem) => {
     setCurrentOrderItems(prev => {
@@ -44,6 +59,53 @@ export default function PosPage() {
     setCurrentOrderItems([]);
   };
 
+  const handleSendToKitchen = async () => {
+    if (currentOrderItems.length === 0) {
+      toast({
+        title: "Empty Order",
+        description: "Cannot send an empty order to the kitchen.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const orderToCreate = {
+      table: 4, // Mock table number
+      items: currentOrderItems.map(item => ({
+        menuItemId: item.menuItem.id,
+        quantity: item.quantity,
+        cookedCount: 0,
+        status: 'New'
+      })),
+    };
+    
+    // @ts-ignore
+    const newOrder = await createOrder(orderToCreate);
+    
+    if (newOrder) {
+      toast({
+        title: "Order Sent!",
+        description: "The order has been sent to the kitchen.",
+      });
+      handleClearOrder();
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to send order to the kitchen.",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+  if (loading) {
+     return (
+        <div className="flex justify-center items-center h-full">
+            <p>Loading menu...</p>
+        </div>
+    )
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
       <div className="lg:col-span-2 h-full">
@@ -55,6 +117,7 @@ export default function PosPage() {
           onUpdateQuantity={handleUpdateQuantity} 
           onRemoveItem={handleRemoveItem}
           onClearOrder={handleClearOrder}
+          onSendToKitchen={handleSendToKitchen}
         />
       </div>
     </div>

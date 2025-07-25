@@ -1,44 +1,26 @@
+
 "use client"
 import Image from 'next/image'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { type OrderItem } from '@/lib/data'
+import { type OrderItem } from '@/lib/types'
 import { MinusCircle, PlusCircle, Trash2, Send } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
 
 interface CurrentOrderProps {
   items: OrderItem[];
   onUpdateQuantity: (itemId: string, newQuantity: number) => void;
   onRemoveItem: (itemId: string) => void;
   onClearOrder: () => void;
+  onSendToKitchen: () => void;
 }
 
-export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrder }: CurrentOrderProps) {
-  const { toast } = useToast()
+export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrder, onSendToKitchen }: CurrentOrderProps) {
   
   const subtotal = items.reduce((acc, item) => acc + item.menuItem.price * item.quantity, 0)
   const tax = subtotal * 0.08
   const total = subtotal + tax
-  
-  const handleSendToKitchen = () => {
-    if (items.length === 0) {
-      toast({
-        title: "Empty Order",
-        description: "Cannot send an empty order to the kitchen.",
-        variant: "destructive"
-      })
-      return
-    }
-    // In a real app, this would send data to a server.
-    // For now, we'll just show a success toast and clear the order.
-    toast({
-      title: "Order Sent!",
-      description: "The order has been sent to the kitchen.",
-    })
-    onClearOrder()
-  }
 
   return (
     <Card className="h-full flex flex-col">
@@ -98,10 +80,10 @@ export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrd
           </div>
           <Separator className="my-2" />
           <div className="w-full grid grid-cols-2 gap-2">
-            <Button variant="outline">Save Order</Button>
+            <Button variant="outline" onClick={onClearOrder}>Clear Order</Button>
             <Button variant="secondary">Payment</Button>
           </div>
-          <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={handleSendToKitchen}>
+          <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen}>
             <Send className="mr-2 h-4 w-4"/>
             Send to Kitchen
           </Button>

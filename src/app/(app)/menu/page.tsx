@@ -1,5 +1,6 @@
+
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -38,34 +39,71 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { menuItems as initialMenuItems, menuCategories, type MenuItem } from "@/lib/data"
+import { menuCategories, type MenuItem } from "@/lib/types"
+import { addMenuItem, deleteMenuItem, getMenuItems, updateMenuItem } from '@/lib/dataService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/hooks/use-toast'
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems)
-  // This state would be used to control the dialog visibility
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // In a real app, these functions would interact with an API
-  const handleAddItem = (item: Omit<MenuItem, 'id'>) => {
-    const newItem = { ...item, id: Date.now().toString() };
-    setMenuItems(prev => [...prev, newItem]);
+  useEffect(() => {
+    const fetchItems = async () => {
+      setLoading(true);
+      const items = await getMenuItems();
+      setMenuItems(items);
+      setLoading(false);
+    };
+    fetchItems();
+  }, []);
+
+  const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
+    let savedItem: MenuItem | null = null;
+    if ('id' in itemData) {
+      savedItem = await updateMenuItem(itemData);
+      if (savedItem) {
+        setMenuItems(prev => prev.map(item => item.id === savedItem!.id ? savedItem! : item));
+        toast({ title: "Success", description: "Menu item updated." });
+      } else {
+        toast({ title: "Error", description: "Failed to update item.", variant: "destructive" });
+      }
+    } else {
+      savedItem = await addMenuItem(itemData);
+       if (savedItem) {
+        setMenuItems(prev => [...prev, savedItem!]);
+        toast({ title: "Success", description: "Menu item added." });
+      } else {
+        toast({ title: "Error", description: "Failed to add item.", variant: "destructive" });
+      }
+    }
   };
 
-  const handleEditItem = (updatedItem: MenuItem) => {
-    setMenuItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
-  };
-
-  const handleDeleteItem = (itemId: string) => {
-    setMenuItems(prev => prev.filter(item => item.id !== itemId));
+  const handleDeleteItem = async (itemId: string) => {
+    const success = await deleteMenuItem(itemId);
+    if (success) {
+      setMenuItems(prev => prev.filter(item => item.id !== itemId));
+      toast({ title: "Success", description: "Menu item deleted." });
+    } else {
+       toast({ title: "Error", description: "Failed to delete item.", variant: "destructive" });
+    }
   };
   
+  if (loading) {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <p>Loading menu...</p>
+        </div>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="font-headline text-2xl">Menu Management</CardTitle>
-          <MenuItemDialog onSave={() => {}} setIsOpen={setIsDialogOpen} isOpen={isDialogOpen}>
+          <MenuItemDialog onSave={handleSaveItem}>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Item
@@ -97,7 +135,7 @@ export default function MenuPage() {
                       alt={item.name}
                       className="aspect-square rounded-md object-cover"
                       height="64"
-                      src={item.imageUrl}
+                      src={item.imageUrl || 'https://placehold.co/64x64.png'}
                       width="64"
                       data-ai-hint={item.aiHint}
                     />
@@ -118,7 +156,7 @@ export default function MenuPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <MenuItemDialog item={item} onSave={() => {}} setIsOpen={setIsDialogOpen} isOpen={isDialogOpen}>
+                           <MenuItemDialog item={item} onSave={handleSaveItem}>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
                           </MenuItemDialog>
                           <DropdownMenuSeparator />
@@ -141,16 +179,35 @@ function MenuItemDialog({
   children, 
   item,
   onSave,
-  isOpen,
-  setIsOpen,
 }: { 
   children: React.ReactNode, 
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
-  isOpen: boolean,
-  setIsOpen: (open: boolean) => void,
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!item;
+
+  const [name, setName] = useState(item?.name || '');
+  const [price, setPrice] = useState(item?.price || 0);
+  const [category, setCategory] = useState(item?.category || '');
+  const [imageUrl, setImageUrl] = useState(item?.imageUrl || 'https://placehold.co/300x200.png');
+
+
+  const handleSubmit = () => {
+    const itemData = {
+      name,
+      price: Number(price),
+      category,
+      imageUrl,
+      aiHint: `${name} food`,
+    };
+    if (isEditMode) {
+      onSave({ id: item.id, ...itemData });
+    } else {
+      onSave(itemData);
+    }
+    setIsOpen(false);
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -165,15 +222,15 @@ function MenuItemDialog({
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">Name</Label>
-            <Input id="name" defaultValue={item?.name} className="col-span-3" />
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">Price</Label>
-            <Input id="price" type="number" defaultValue={item?.price} className="col-span-3" />
+            <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right">Category</Label>
-            <Select defaultValue={item?.category}>
+            <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -185,7 +242,7 @@ function MenuItemDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-          <Button type="submit" onClick={() => setIsOpen(false)}>{isEditMode ? 'Save changes' : 'Create Item'}</Button>
+          <Button type="submit" onClick={handleSubmit}>{isEditMode ? 'Save changes' : 'Create Item'}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
