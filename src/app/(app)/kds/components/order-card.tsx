@@ -2,7 +2,7 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/data"
+import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
