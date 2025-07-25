@@ -48,14 +48,18 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
       groups[category].push(item);
     }
     
-    // Sort items within each group (uncooked first)
+    // Sort items within each group
     for (const category in groups) {
       groups[category].sort((a, b) => {
+         // Primary sort: uncategorized (cooked) items last
         const aIsFullyCooked = a.quantity === 0 && a.cookedCount > 0;
         const bIsFullyCooked = b.quantity === 0 && b.cookedCount > 0;
         if (aIsFullyCooked && !bIsFullyCooked) return 1;
         if (!aIsFullyCooked && bIsFullyCooked) return -1;
-        return 0;
+        
+        // Secondary sort: by status order
+        const statusOrder = { 'New': 0, 'Cooking': 1, 'Cooked': 2 };
+        return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
       });
     }
 
@@ -77,14 +81,14 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
 
   return (
     <div className={cn(
-        "relative rounded-lg",
-        "w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.33%-0.5rem)] xl:w-[calc(25%-0.5rem)] 2xl:w-[calc(20%-0.5rem)]",
-        isDraggingOver && "p-0.5 bg-gradient-to-r from-yellow-500 to-amber-500 animate-marching-ants"
+        "relative rounded-lg w-full",
+        isDraggingOver && "outline outline-2 outline-dashed outline-primary"
       )}>
       <Card 
         className={cn(
-          "flex flex-col cursor-grab",
-          order.isPinned && "border-primary border-2"
+          "flex flex-col h-full",
+          order.isPinned && "border-primary border-2",
+          order.status === 'pending' ? "cursor-grab" : "cursor-default"
         )}
         draggable={order.status === 'pending'}
         onDragStart={(e) => onDragStart(e, order.id)}
@@ -94,7 +98,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
         onDragLeave={onDragLeave}
       >
           <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
-            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+            <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab invisible" />
             <div className="flex-grow flex justify-center items-center gap-x-2">
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
@@ -128,9 +132,9 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
             </button>
           </CardHeader>
           
-          <div className="p-1 pt-0">
+          <div className="p-1 pt-0 flex-1">
             <Separator className="mb-1" />
-            <div className="space-y-1">
+            <div className="space-y-1 h-full">
               {orderedCategories.map((category, index) => (
                 <div key={category}>
                   {index > 0 && <Separator className="my-2"/>}
