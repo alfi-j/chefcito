@@ -65,9 +65,9 @@ export async function deleteCategory(id: number): Promise<boolean> {
     const categoryName = categoryData.name;
 
     // Check if any menu items are using this category name
-    const { data: menuItems, error: checkError } = await supabase
+    const { count, error: checkError } = await supabase
         .from('menu_items')
-        .select('id', { count: 'exact' })
+        .select('*', { count: 'exact', head: true })
         .eq('category', categoryName);
         
 
@@ -76,8 +76,8 @@ export async function deleteCategory(id: number): Promise<boolean> {
         return false;
     }
 
-    if (menuItems && menuItems.length > 0) {
-        console.error('Cannot delete category because it is still in use by menu items.');
+    if (count && count > 0) {
+        console.error(`Cannot delete category "${categoryName}" because it is still in use by ${count} menu item(s).`);
         // We return false to indicate the operation failed, and the toast on the front-end will display an error.
         return false; 
     }
