@@ -50,7 +50,7 @@ export async function updateCategory(id: number, name: string): Promise<Category
 export async function deleteCategory(id: number): Promise<boolean> {
     const supabase = createClient();
     
-    // First, get the category name
+    // First, get the category name to check against menu_items
     const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('name')
@@ -58,13 +58,13 @@ export async function deleteCategory(id: number): Promise<boolean> {
         .single();
 
     if (categoryError) {
-        console.error('Error fetching category name:', categoryError);
+        console.error('Error fetching category to delete:', categoryError);
         return false;
     }
 
     const categoryName = categoryData.name;
 
-    // Now check if any menu items are using this category name
+    // Check if any menu items are using this category name
     const { data: menuItems, error: checkError } = await supabase
         .from('menu_items')
         .select('id')
@@ -77,15 +77,18 @@ export async function deleteCategory(id: number): Promise<boolean> {
     }
 
     if (menuItems && menuItems.length > 0) {
-        console.error('Cannot delete category with associated menu items.');
+        console.error('Cannot delete category because it is still in use by menu items.');
+        // We return false to indicate the operation failed, and the toast on the front-end will display an error.
         return false; 
     }
 
+    // If no menu items are using the category, proceed with deletion
     const { error: deleteError } = await supabase.from('categories').delete().eq('id', id);
     if (deleteError) {
         console.error('Error deleting category:', deleteError);
         return false;
     }
+    
     return true;
 }
 
@@ -199,7 +202,7 @@ export async function getOrders(): Promise<Order[]> {
     }));
 }
 
-export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'status'> & { items: Omit<OrderItem, 'id' | 'menuItem'>[] }): Promise<Order | null> {
+export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'status' | 'isPinned'> & { items: Omit<OrderItem, 'id' | 'menuItem' | 'cookedCount' | 'status' | 'menuItemId'> & { menuItemId: string }[] }): Promise<Order | null> {
     const supabase = createClient();
     
     const { data: orderData, error: orderError } = await supabase
