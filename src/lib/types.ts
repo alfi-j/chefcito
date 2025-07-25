@@ -25,4 +25,9 @@ export type Order = {
   isPinned?: boolean;
 };
 
+export type Category = {
+    id: number;
+    name: string;
+};
+
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

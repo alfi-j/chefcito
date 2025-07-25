@@ -2,11 +2,80 @@
 'use server'
 
 import { createClient } from './supabase/server';
-import { type Order, type MenuItem, type OrderItem } from './types';
+import { type Order, type MenuItem, type OrderItem, type Category } from './types';
 
 // In a real app, you'd have more robust error handling
 // and potentially more complex queries.
 
+// Category Management
+export async function getCategories(): Promise<Category[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.from('categories').select('*').order('name', { ascending: true });
+  if (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function addCategory(name: string): Promise<Category | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('categories')
+        .insert({ name })
+        .select()
+        .single();
+    if (error) {
+        console.error('Error adding category:', error);
+        return null;
+    }
+    return data;
+}
+
+export async function updateCategory(id: number, name: string): Promise<Category | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('categories')
+        .update({ name })
+        .eq('id', id)
+        .select()
+        .single();
+    if (error) {
+        console.error('Error updating category:', error);
+        return null;
+    }
+    return data;
+}
+
+export async function deleteCategory(id: number): Promise<boolean> {
+    const supabase = createClient();
+    // First, check if any menu items are using this category
+    const { data: menuItems, error: checkError } = await supabase
+        .from('menu_items')
+        .select('id')
+        .eq('category', (await supabase.from('categories').select('name').eq('id', id).single()).data?.name)
+        .limit(1);
+
+    if (checkError) {
+        console.error('Error checking for menu items in category:', checkError);
+        return false;
+    }
+
+    if (menuItems && menuItems.length > 0) {
+        console.error('Cannot delete category with associated menu items.');
+        return false; 
+    }
+
+    const { error: deleteError } = await supabase.from('categories').delete().eq('id', id);
+    if (deleteError) {
+        console.error('Error deleting category:', deleteError);
+        return false;
+    }
+    return true;
+}
+
+
+// Menu Item Management
 export async function getMenuItems(): Promise<MenuItem[]> {
   const supabase = createClient();
   const { data, error } = await supabase.from('menu_items').select('*');
@@ -23,6 +92,60 @@ export async function getMenuItems(): Promise<MenuItem[]> {
   }));
 }
 
+export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('menu_items')
+        .insert({
+            name: item.name,
+            price: item.price,
+            category: item.category,
+            image_url: item.imageUrl,
+            ai_hint: item.aiHint,
+        })
+        .select()
+        .single();
+        
+    if (error) {
+        console.error('Error adding menu item:', error);
+        return null;
+    }
+    return { ...data, imageUrl: data.image_url, aiHint: data.ai_hint };
+}
+
+export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from('menu_items')
+        .update({
+            name: item.name,
+            price: item.price,
+            category: item.category,
+            image_url: item.imageUrl,
+            ai_hint: item.aiHint,
+        })
+        .eq('id', item.id)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating menu item:', error);
+        return null;
+    }
+    return { ...data, imageUrl: data.image_url, aiHint: data.ai_hint };
+}
+
+export async function deleteMenuItem(itemId: string): Promise<boolean> {
+    const supabase = createClient();
+    const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
+    if (error) {
+        console.error('Error deleting menu item:', error);
+        return false;
+    }
+    return true;
+}
+
+// Order Management
 export async function getOrders(): Promise<Order[]> {
     const supabase = createClient();
     const { data: ordersData, error: ordersError } = await supabase
@@ -140,59 +263,6 @@ export async function toggleOrderPin(orderId: number, isPinned: boolean): Promis
     
     if (error) {
         console.error('Error toggling pin status:', error);
-        return false;
-    }
-    return true;
-}
-
-export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem | null> {
-    const supabase = createClient();
-    const { data, error } = await supabase
-        .from('menu_items')
-        .insert({
-            name: item.name,
-            price: item.price,
-            category: item.category,
-            image_url: item.imageUrl,
-            ai_hint: item.aiHint,
-        })
-        .select()
-        .single();
-        
-    if (error) {
-        console.error('Error adding menu item:', error);
-        return null;
-    }
-    return { ...data, imageUrl: data.image_url, aiHint: data.ai_hint };
-}
-
-export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
-    const supabase = createClient();
-    const { data, error } = await supabase
-        .from('menu_items')
-        .update({
-            name: item.name,
-            price: item.price,
-            category: item.category,
-            image_url: item.imageUrl,
-            ai_hint: item.aiHint,
-        })
-        .eq('id', item.id)
-        .select()
-        .single();
-
-    if (error) {
-        console.error('Error updating menu item:', error);
-        return null;
-    }
-    return { ...data, imageUrl: data.image_url, aiHint: data.ai_hint };
-}
-
-export async function deleteMenuItem(itemId: string): Promise<boolean> {
-    const supabase = createClient();
-    const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
-    if (error) {
-        console.error('Error deleting menu item:', error);
         return false;
     }
     return true;

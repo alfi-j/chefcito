@@ -1,27 +1,28 @@
 
 "use client"
 import React, { useState, useEffect } from 'react';
-import { type OrderItem, type MenuItem } from '@/lib/types';
+import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { useToast } from "@/hooks/use-toast";
-import { getMenuItems, createOrder } from '@/lib/dataService';
-import { menuCategories } from '@/lib/types';
+import { getMenuItems, createOrder, getCategories } from '@/lib/dataService';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchMenu = async () => {
+    const fetchMenuData = async () => {
       setLoading(true);
-      const items = await getMenuItems();
+      const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
       setMenuItems(items);
+      setCategories(cats);
       setLoading(false);
     };
-    fetchMenu();
+    fetchMenuData();
   }, []);
   
   const handleAddItem = (item: MenuItem) => {
@@ -109,7 +110,7 @@ export default function PosPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
       <div className="lg:col-span-2 h-full">
-        <MenuSelection menuItems={menuItems} categories={menuCategories} onAddItem={handleAddItem} />
+        <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleAddItem} />
       </div>
       <div className="lg:col-span-1 h-full">
         <CurrentOrder 

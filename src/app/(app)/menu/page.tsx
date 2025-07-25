@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,25 +39,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { menuCategories, type MenuItem } from "@/lib/types"
-import { addMenuItem, deleteMenuItem, getMenuItems, updateMenuItem } from '@/lib/dataService'
+import { type Category, type MenuItem } from "@/lib/types"
+import { 
+  addMenuItem, 
+  deleteMenuItem, 
+  getMenuItems, 
+  updateMenuItem, 
+  getCategories, 
+  addCategory, 
+  deleteCategory, 
+  updateCategory 
+} from '@/lib/dataService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      setLoading(true);
-      const items = await getMenuItems();
-      setMenuItems(items);
-      setLoading(false);
-    };
-    fetchItems();
+  const fetchAllData = useCallback(async () => {
+    setLoading(true);
+    const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
+    setMenuItems(items);
+    setCategories(cats);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     let savedItem: MenuItem | null = null;
@@ -90,6 +103,10 @@ export default function MenuPage() {
     }
   };
   
+  const handleCategoryUpdate = (updatedCategories: Category[]) => {
+    setCategories(updatedCategories);
+  }
+
   if (loading) {
     return (
         <div className="flex justify-center items-center h-full">
@@ -103,12 +120,15 @@ export default function MenuPage() {
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="font-headline text-2xl">Menu Management</CardTitle>
-          <MenuItemDialog onSave={handleSaveItem}>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Item
-            </Button>
-          </MenuItemDialog>
+          <div className="flex gap-2">
+            <CategoryDialog categories={categories} onUpdate={handleCategoryUpdate} />
+            <MenuItemDialog onSave={handleSaveItem} categories={categories}>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </MenuItemDialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -156,7 +176,7 @@ export default function MenuPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                           <MenuItemDialog item={item} onSave={handleSaveItem}>
+                           <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories}>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
                           </MenuItemDialog>
                           <DropdownMenuSeparator />
@@ -179,10 +199,12 @@ function MenuItemDialog({
   children, 
   item,
   onSave,
+  categories
 }: { 
   children: React.ReactNode, 
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
+  categories: Category[],
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!item;
@@ -235,7 +257,7 @@ function MenuItemDialog({
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
-                {menuCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -243,6 +265,103 @@ function MenuItemDialog({
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? 'Save changes' : 'Create Item'}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: (categories: Category[]) => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const { toast } = useToast();
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    const newCategory = await addCategory(newCategoryName);
+    if (newCategory) {
+      onUpdate([...categories, newCategory]);
+      setNewCategoryName('');
+      toast({ title: "Success", description: "Category added." });
+    } else {
+      toast({ title: "Error", description: "Failed to add category.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    const success = await deleteCategory(id);
+    if (success) {
+      onUpdate(categories.filter(c => c.id !== id));
+      toast({ title: "Success", description: "Category deleted." });
+    } else {
+      toast({ title: "Error", description: "Failed to delete category. It might be in use.", variant: "destructive" });
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!editingCategory || !editingCategory.name.trim()) return;
+    const updated = await updateCategory(editingCategory.id, editingCategory.name);
+    if (updated) {
+      onUpdate(categories.map(c => c.id === updated.id ? updated : c));
+      setEditingCategory(null);
+      toast({ title: "Success", description: "Category updated." });
+    } else {
+      toast({ title: "Error", description: "Failed to update category.", variant: "destructive" });
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Manage Categories</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-headline">Manage Categories</DialogTitle>
+          <DialogDescription>Add, edit, or delete your menu categories.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Input
+              placeholder="New category name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+            <Button onClick={handleAddCategory}>Add</Button>
+          </div>
+          <ScrollArea className="h-64 border rounded-md">
+            <div className="p-2 space-y-1">
+              {categories.map(category => (
+                <div key={category.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                  {editingCategory?.id === category.id ? (
+                    <Input
+                      value={editingCategory.name}
+                      onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                      onBlur={handleUpdateCategory}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategory()}
+                      autoFocus
+                      className="h-8"
+                    />
+                  ) : (
+                    <span className="flex-1">{category.name}</span>
+                  )}
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCategory(category)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteCategory(category.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
