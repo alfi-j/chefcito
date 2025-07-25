@@ -67,9 +67,9 @@ export async function deleteCategory(id: number): Promise<boolean> {
     // Check if any menu items are using this category name
     const { data: menuItems, error: checkError } = await supabase
         .from('menu_items')
-        .select('id')
-        .eq('category', categoryName)
-        .limit(1);
+        .select('id', { count: 'exact' })
+        .eq('category', categoryName);
+        
 
     if (checkError) {
         console.error('Error checking for menu items in category:', checkError);
