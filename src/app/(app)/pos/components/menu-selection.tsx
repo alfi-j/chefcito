@@ -1,9 +1,10 @@
+
 "use client"
 import { useState } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { type MenuItem } from '@/lib/data'
+import { type MenuItem } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface MenuSelectionProps {
@@ -13,7 +14,21 @@ interface MenuSelectionProps {
 }
 
 export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectionProps) {
-  const [activeTab, setActiveTab] = useState(categories[0])
+  const [activeTab, setActiveTab] = useState(categories[0] || '')
+  
+  if (categories.length === 0) {
+    return (
+       <Card className="h-full flex flex-col items-center justify-center">
+        <CardHeader>
+          <CardTitle className="font-headline">Menu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>No menu categories found.</p>
+          <p className="text-sm text-muted-foreground">Add categories and items on the Menu page.</p>
+        </CardContent>
+       </Card>
+    )
+  }
   
   return (
     <Card className="h-full flex flex-col">

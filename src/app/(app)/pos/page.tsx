@@ -82,8 +82,6 @@ export default function PosPage() {
       items: currentOrderItems.map(item => ({
         menuItemId: item.menuItem.id,
         quantity: item.quantity,
-        cookedCount: 0,
-        status: 'New'
       })),
     };
     
