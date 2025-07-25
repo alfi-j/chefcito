@@ -39,51 +39,43 @@ export default function KdsPage() {
   }, [fetchOrders]);
   
   const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    
-    const item = order.items.find(i => i.id === itemId);
-    if (!item) return;
+    setOrders(currentOrders => {
+        const newOrders = currentOrders.map(o => {
+            if (o.id !== orderId) return o;
+            const newItems = o.items.map(i => {
+                if (i.id !== itemId || i.status === 'Cooked') return i;
 
-    let success = false;
-    
-    // This is the main logic for status progression
-    if (item.status !== 'Cooked') {
-        const currentIndex = statusSequence.indexOf(item.status);
-        const nextStatus = statusSequence[currentIndex + 1];
-        
-        if (nextStatus) {
-            // If the next status is 'Cooked', we move one quantity from uncooked to cooked
-            if (nextStatus === 'Cooked') {
-                 const newQuantity = item.quantity - 1;
-                 const newCookedCount = item.cookedCount + 1;
-                 // If there are still items left to be cooked, reset their status to 'New'
-                 const statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
-                 success = await updateOrderItemStatus(orderId, itemId, statusForRemaining, newQuantity, newCookedCount);
-            } else {
-                 // For 'New' -> 'Cooking'
-                 success = await updateOrderItemStatus(orderId, itemId, nextStatus, item.quantity, item.cookedCount);
+                const currentIndex = statusSequence.indexOf(i.status);
+                const nextStatus = statusSequence[currentIndex + 1];
+
+                if (nextStatus === 'Cooked') {
+                    const newQuantity = i.quantity - 1;
+                    const newCookedCount = i.cookedCount + 1;
+                    const statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
+                    updateOrderItemStatus(orderId, itemId, statusForRemaining, newQuantity, newCookedCount).then(success => {
+                        if (success) fetchOrders();
+                        else toast({ title: "Error", description: "Failed to update item status.", variant: "destructive" });
+                    });
+                    return { ...i, quantity: newQuantity, cookedCount: newCookedCount, status: statusForRemaining };
+                } else {
+                     updateOrderItemStatus(orderId, itemId, nextStatus, i.quantity, i.cookedCount).then(success => {
+                        if (success) fetchOrders();
+                        else toast({ title: "Error", description: "Failed to update item status.", variant: "destructive" });
+                    });
+                    return { ...i, status: nextStatus };
+                }
+            });
+            const updatedOrder = { ...o, items: newItems };
+            if (isOrderCompleted(updatedOrder)) {
+                updateOrderStatus(orderId, 'completed').then(success => {
+                    if (success) fetchOrders();
+                });
             }
-        }
-    }
-    
-    if (success) {
-       const updatedOrders = await getOrders();
-       setOrders(updatedOrders);
-       
-       const updatedOrder = updatedOrders.find(o => o.id === orderId);
-       if (updatedOrder && isOrderCompleted(updatedOrder)) {
-         await updateOrderStatus(orderId, 'completed');
-         // Final fetch to update tab counts and move card
-         const finalOrders = await getOrders();
-         setOrders(finalOrders);
-       }
-    } else {
-      if (item.status !== 'Cooked') {
-        toast({ title: "Error", description: "Failed to update item status.", variant: "destructive" });
-      }
-    }
-  }, [orders, toast]);
+            return updatedOrder;
+        });
+        return newOrders;
+    });
+  }, [fetchOrders, toast]);
 
 
   const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
@@ -95,18 +87,16 @@ export default function KdsPage() {
     const newQuantity = item.quantity + 1;
     const newCookedCount = item.cookedCount - 1;
 
-    // When reverting, always set the status of the "re-added" item to 'New'
     const success = await updateOrderItemStatus(orderId, itemId, 'New', newQuantity, newCookedCount);
     if (success) {
       if (order.status === 'completed') {
         await updateOrderStatus(orderId, 'pending');
       }
-      const updatedOrders = await getOrders();
-      setOrders(updatedOrders);
+      await fetchOrders();
     } else {
       toast({ title: "Error", description: "Failed to revert item status.", variant: "destructive" });
     }
-  }, [orders, toast]);
+  }, [orders, toast, fetchOrders]);
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     setDraggedOrderId(orderId);
@@ -122,23 +112,24 @@ export default function KdsPage() {
     }
     
     setOrders(currentOrders => {
-        const orderList = currentOrders.filter(o => o.status === 'pending');
-        const draggedOrder = orderList.find(o => o.id === draggedOrderId);
-        
+        const pending = currentOrders.filter(o => o.status === 'pending');
+        const completed = currentOrders.filter(o => o.status === 'completed');
+
+        const draggedOrder = pending.find(o => o.id === draggedOrderId);
         if (!draggedOrder || draggedOrder.isPinned) {
             setDraggedOrderId(null);
             setDragOverOrderId(null);
             return currentOrders;
         }
 
-        const otherOrders = orderList.filter(o => o.id !== draggedOrderId);
+        const otherOrders = pending.filter(o => o.id !== draggedOrderId);
         const dropIndex = otherOrders.findIndex(o => o.id === dropOrderId);
 
         if (dropIndex === -1) return currentOrders;
 
         otherOrders.splice(dropIndex, 0, draggedOrder);
       
-        return [...otherOrders, ...currentOrders.filter(o => o.status !== 'pending')];
+        return [...otherOrders, ...completed];
     });
 
     setDraggedOrderId(null);
@@ -167,18 +158,18 @@ export default function KdsPage() {
     const newPinState = !orderToToggle.isPinned;
     const success = await toggleOrderPin(orderId, newPinState);
     if(success) {
-      const updatedOrders = await getOrders();
-      setOrders(updatedOrders);
+      await fetchOrders();
     } else {
        toast({ title: "Error", description: "Failed to update pin status.", variant: "destructive" });
     }
-  }, [orders, toast]);
+  }, [orders, toast, fetchOrders]);
 
   const pendingOrders = useMemo(() => {
-      const pending = orders.filter(o => o.status === 'pending');
-      const pinned = pending.filter(o => o.isPinned).sort((a,b) => a.createdAt.getTime() - b.createdAt.getTime());
-      const unpinned = pending.filter(o => !o.isPinned).sort((a,b) => a.createdAt.getTime() - b.createdAt.getTime());
-      return [...pinned, ...unpinned];
+    const pending = orders.filter(o => o.status === 'pending');
+    // Ensure chronological sort for unpinned items before applying drag-and-drop
+    const unpinned = pending.filter(o => !o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return [...pinned, ...unpinned];
   }, [orders]);
 
   const completedOrders = useMemo(() => {

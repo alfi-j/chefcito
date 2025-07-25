@@ -296,8 +296,8 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
     }
   };
 
-  const handleDeleteCategory = async (id: number) => {
-    const success = await deleteCategory(id);
+  const handleDeleteCategory = async (id: number, name: string) => {
+    const success = await deleteCategory(id, name);
     if (success) {
       onUpdate();
       toast({ title: "Success", description: "Category deleted." });
@@ -363,7 +363,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCategory(category)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteCategory(category.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteCategory(category.id, category.name)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

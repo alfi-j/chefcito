@@ -47,27 +47,14 @@ export async function updateCategory(id: number, name: string): Promise<Category
     return data;
 }
 
-export async function deleteCategory(id: number): Promise<boolean> {
+export async function deleteCategory(id: number, name: string): Promise<boolean> {
     const supabase = createClient();
-    const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('id', id)
-        .single();
-
-    if (categoryError) {
-        console.error('Error fetching category to delete:', categoryError);
-        return false;
-    }
     
-    if (!categoryData) return false;
-
-    const categoryName = categoryData.name;
-
+    // Check if any menu items are using this category
     const { count, error: checkError } = await supabase
         .from('menu_items')
         .select('*', { count: 'exact', head: true })
-        .eq('category', categoryName);
+        .eq('category', name);
 
     if (checkError) {
         console.error('Error checking for menu items in category:', checkError);
@@ -75,10 +62,11 @@ export async function deleteCategory(id: number): Promise<boolean> {
     }
 
     if (count && count > 0) {
-        console.error(`Cannot delete category "${categoryName}" because it is still in use by ${count} menu item(s).`);
+        console.error(`Cannot delete category "${name}" because it is still in use by ${count} menu item(s).`);
         return false; 
     }
 
+    // If not in use, proceed with deletion
     const { error: deleteError } = await supabase.from('categories').delete().eq('id', id);
     if (deleteError) {
         console.error('Error deleting category:', deleteError);
