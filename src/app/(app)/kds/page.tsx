@@ -5,21 +5,10 @@ import { OrderCard } from "./components/order-card";
 import { initialOrders, type Order } from "@/lib/data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
-import Masonry from 'react-masonry-css';
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0);
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
-
-const breakpointColumnsObj = {
-  default: 5,
-  1920: 5, // 3xl
-  1536: 4, // 2xl
-  1280: 3, // xl
-  1024: 2, // lg
-  768: 1   // md
-};
-
 
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -183,11 +172,7 @@ export default function KdsPage() {
       );
     }
     return (
-      <Masonry
-        breakpointCols={breakpointColumnsObj}
-        className="flex w-auto -ml-2"
-        columnClassName="pl-2 bg-clip-padding"
-      >
+      <div className="flex flex-wrap gap-2 items-start">
         {orderList.map((order) => (
           <OrderCard 
             key={order.id}
@@ -202,7 +187,7 @@ export default function KdsPage() {
             onTogglePin={togglePinOrder}
           />
         ))}
-      </Masonry>
+      </div>
     );
   };
 

@@ -77,7 +77,8 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
 
   return (
     <div className={cn(
-        "relative rounded-lg mb-2",
+        "relative rounded-lg",
+        "w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.33%-0.5rem)] xl:w-[calc(25%-0.5rem)] 2xl:w-[calc(20%-0.5rem)]",
         isDraggingOver && "p-0.5 bg-gradient-to-r from-yellow-500 to-amber-500 animate-marching-ants"
       )}>
       <Card 
