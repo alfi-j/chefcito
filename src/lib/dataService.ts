@@ -4,12 +4,13 @@
 import { createClient } from './supabase/server';
 import { type Order, type MenuItem, type OrderItem, type Category } from './types';
 
+const supabase = createClient();
+
 // In a real app, you'd have more robust error handling
 // and potentially more complex queries.
 
 // Category Management
 export async function getCategories(): Promise<Category[]> {
-  const supabase = createClient();
   const { data, error } = await supabase.from('categories').select('*').order('name', { ascending: true });
   if (error) {
     console.error('Error fetching categories:', error);
@@ -19,7 +20,6 @@ export async function getCategories(): Promise<Category[]> {
 }
 
 export async function addCategory(name: string): Promise<Category | null> {
-    const supabase = createClient();
     const { data, error } = await supabase
         .from('categories')
         .insert({ name })
@@ -33,7 +33,6 @@ export async function addCategory(name: string): Promise<Category | null> {
 }
 
 export async function updateCategory(id: number, name: string): Promise<Category | null> {
-    const supabase = createClient();
     const { data, error } = await supabase
         .from('categories')
         .update({ name })
@@ -48,9 +47,6 @@ export async function updateCategory(id: number, name: string): Promise<Category
 }
 
 export async function deleteCategory(id: number): Promise<boolean> {
-    const supabase = createClient();
-    
-    // First, get the category name to check against menu_items
     const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('name')
@@ -61,15 +57,15 @@ export async function deleteCategory(id: number): Promise<boolean> {
         console.error('Error fetching category to delete:', categoryError);
         return false;
     }
+    
+    if (!categoryData) return false;
 
     const categoryName = categoryData.name;
 
-    // Check if any menu items are using this category name
     const { count, error: checkError } = await supabase
         .from('menu_items')
         .select('*', { count: 'exact', head: true })
         .eq('category', categoryName);
-        
 
     if (checkError) {
         console.error('Error checking for menu items in category:', checkError);
@@ -78,11 +74,9 @@ export async function deleteCategory(id: number): Promise<boolean> {
 
     if (count && count > 0) {
         console.error(`Cannot delete category "${categoryName}" because it is still in use by ${count} menu item(s).`);
-        // We return false to indicate the operation failed, and the toast on the front-end will display an error.
         return false; 
     }
 
-    // If no menu items are using the category, proceed with deletion
     const { error: deleteError } = await supabase.from('categories').delete().eq('id', id);
     if (deleteError) {
         console.error('Error deleting category:', deleteError);
@@ -95,23 +89,22 @@ export async function deleteCategory(id: number): Promise<boolean> {
 
 // Menu Item Management
 export async function getMenuItems(): Promise<MenuItem[]> {
-  const supabase = createClient();
   const { data, error } = await supabase.from('menu_items').select('*');
   if (error) {
     console.error('Error fetching menu items:', error);
     return [];
   }
-  // This is a temporary mapping to match the frontend model.
-  // In a real app, you'd likely adjust your frontend or DB schema.
   return data.map((item: any) => ({
-    ...item,
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    category: item.category,
     imageUrl: item.image_url,
     aiHint: item.ai_hint
   }));
 }
 
 export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem | null> {
-    const supabase = createClient();
     const { data, error } = await supabase
         .from('menu_items')
         .insert({
@@ -132,7 +125,6 @@ export async function addMenuItem(item: Omit<MenuItem, 'id'>): Promise<MenuItem 
 }
 
 export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
-    const supabase = createClient();
     const { data, error } = await supabase
         .from('menu_items')
         .update({
@@ -154,7 +146,6 @@ export async function updateMenuItem(item: MenuItem): Promise<MenuItem | null> {
 }
 
 export async function deleteMenuItem(itemId: string): Promise<boolean> {
-    const supabase = createClient();
     const { error } = await supabase.from('menu_items').delete().eq('id', itemId);
     if (error) {
         console.error('Error deleting menu item:', error);
@@ -165,7 +156,6 @@ export async function deleteMenuItem(itemId: string): Promise<boolean> {
 
 // Order Management
 export async function getOrders(): Promise<Order[]> {
-    const supabase = createClient();
     const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select(`
@@ -194,7 +184,10 @@ export async function getOrders(): Promise<Order[]> {
             cookedCount: item.cooked_count,
             status: item.status,
             menuItem: {
-              ...item.menu_items,
+              id: item.menu_items.id,
+              name: item.menu_items.name,
+              price: item.menu_items.price,
+              category: item.menu_items.category,
               imageUrl: item.menu_items.image_url,
               aiHint: item.menu_items.ai_hint,
             }
@@ -203,8 +196,6 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'status' | 'isPinned'> & { items: Omit<OrderItem, 'id' | 'menuItem' | 'cookedCount' | 'status' | 'menuItemId'> & { menuItemId: string }[] }): Promise<Order | null> {
-    const supabase = createClient();
-    
     const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .insert({
@@ -244,7 +235,6 @@ export async function createOrder(order: Omit<Order, 'id' | 'createdAt' | 'statu
 
 
 export async function updateOrderItemStatus(orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Cooked', newQuantity: number, newCookedCount: number): Promise<boolean> {
-  const supabase = createClient();
   const { error } = await supabase
     .from('order_items')
     .update({ status: newStatus, quantity: newQuantity, cooked_count: newCookedCount })
@@ -258,7 +248,6 @@ export async function updateOrderItemStatus(orderId: number, itemId: string, new
 }
 
 export async function updateOrderStatus(orderId: number, newStatus: 'pending' | 'completed'): Promise<boolean> {
-  const supabase = createClient();
   const { error } = await supabase
     .from('orders')
     .update({ status: newStatus })
@@ -273,7 +262,6 @@ export async function updateOrderStatus(orderId: number, newStatus: 'pending' | 
 
 
 export async function toggleOrderPin(orderId: number, isPinned: boolean): Promise<boolean> {
-    const supabase = createClient();
     const { error } = await supabase
         .from('orders')
         .update({ is_pinned: isPinned })

@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
@@ -14,16 +14,23 @@ export default function PosPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const fetchMenuData = useCallback(async () => {
+    setLoading(true);
+    try {
+        const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
+        setMenuItems(items);
+        setCategories(cats);
+    } catch(error) {
+        console.error("Failed to fetch menu data:", error);
+        toast({ title: "Error", description: "Could not fetch menu data.", variant: "destructive" });
+    } finally {
+        setLoading(false);
+    }
+  }, [toast]);
+  
   useEffect(() => {
-    const fetchMenuData = async () => {
-      setLoading(true);
-      const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
-      setMenuItems(items);
-      setCategories(cats);
-      setLoading(false);
-    };
     fetchMenuData();
-  }, []);
+  }, [fetchMenuData]);
   
   const handleAddItem = (item: MenuItem) => {
     setCurrentOrderItems(prev => {

@@ -62,11 +62,17 @@ export default function MenuPage() {
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
-    const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
-    setMenuItems(items);
-    setCategories(cats);
-    setLoading(false);
-  }, []);
+    try {
+      const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
+      setMenuItems(items);
+      setCategories(cats);
+    } catch (error) {
+       console.error("Failed to fetch menu data:", error);
+       toast({ title: "Error", description: "Could not fetch menu data.", variant: "destructive" });
+    } finally {
+        setLoading(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
     fetchAllData();
@@ -77,7 +83,7 @@ export default function MenuPage() {
     if ('id' in itemData) {
       savedItem = await updateMenuItem(itemData);
       if (savedItem) {
-        setMenuItems(prev => prev.map(item => item.id === savedItem!.id ? savedItem! : item));
+        await fetchAllData();
         toast({ title: "Success", description: "Menu item updated." });
       } else {
         toast({ title: "Error", description: "Failed to update item.", variant: "destructive" });
@@ -85,7 +91,7 @@ export default function MenuPage() {
     } else {
       savedItem = await addMenuItem(itemData);
        if (savedItem) {
-        setMenuItems(prev => [...prev, savedItem!]);
+        await fetchAllData();
         toast({ title: "Success", description: "Menu item added." });
       } else {
         toast({ title: "Error", description: "Failed to add item.", variant: "destructive" });
@@ -96,15 +102,15 @@ export default function MenuPage() {
   const handleDeleteItem = async (itemId: string) => {
     const success = await deleteMenuItem(itemId);
     if (success) {
-      setMenuItems(prev => prev.filter(item => item.id !== itemId));
+      await fetchAllData();
       toast({ title: "Success", description: "Menu item deleted." });
     } else {
        toast({ title: "Error", description: "Failed to delete item.", variant: "destructive" });
     }
   };
   
-  const handleCategoryUpdate = (updatedCategories: Category[]) => {
-    setCategories(updatedCategories);
+  const handleCategoriesUpdate = async () => {
+    await fetchAllData();
   }
 
   if (loading) {
@@ -121,7 +127,7 @@ export default function MenuPage() {
         <div className="flex justify-between items-center">
           <CardTitle className="font-headline text-2xl">Menu Management</CardTitle>
           <div className="flex gap-2">
-            <CategoryDialog categories={categories} onUpdate={handleCategoryUpdate} />
+            <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
             <MenuItemDialog onSave={handleSaveItem} categories={categories}>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -272,7 +278,7 @@ function MenuItemDialog({
 }
 
 
-function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: (categories: Category[]) => void }) {
+function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -282,7 +288,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
     if (!newCategoryName.trim()) return;
     const newCategory = await addCategory(newCategoryName);
     if (newCategory) {
-      onUpdate([...categories, newCategory]);
+      onUpdate();
       setNewCategoryName('');
       toast({ title: "Success", description: "Category added." });
     } else {
@@ -293,7 +299,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
   const handleDeleteCategory = async (id: number) => {
     const success = await deleteCategory(id);
     if (success) {
-      onUpdate(categories.filter(c => c.id !== id));
+      onUpdate();
       toast({ title: "Success", description: "Category deleted." });
     } else {
       toast({ title: "Error", description: "Failed to delete category. It might be in use.", variant: "destructive" });
@@ -304,7 +310,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
     if (!editingCategory || !editingCategory.name.trim()) return;
     const updated = await updateCategory(editingCategory.id, editingCategory.name);
     if (updated) {
-      onUpdate(categories.map(c => c.id === updated.id ? updated : c));
+      onUpdate();
       setEditingCategory(null);
       toast({ title: "Success", description: "Category updated." });
     } else {
@@ -313,7 +319,12 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      setIsOpen(open);
+      if (!open) {
+        setEditingCategory(null);
+      }
+    }}>
       <DialogTrigger asChild>
         <Button variant="outline">Manage Categories</Button>
       </DialogTrigger>
@@ -328,6 +339,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
               placeholder="New category name"
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
             />
             <Button onClick={handleAddCategory}>Add</Button>
           </div>
@@ -345,7 +357,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
                       className="h-8"
                     />
                   ) : (
-                    <span className="flex-1">{category.name}</span>
+                    <span className="flex-1" onDoubleClick={() => setEditingCategory(category)}>{category.name}</span>
                   )}
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCategory(category)}>
