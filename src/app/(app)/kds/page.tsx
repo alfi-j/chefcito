@@ -11,19 +11,6 @@ const isOrderCompleted = (order: Order) => order.items.every(item => item.quanti
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
 
-async function apiRequest(action: string, payload: any) {
-  const res = await fetch('/api/orders', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, payload }),
-  });
-  if (!res.ok) {
-    const { error } = await res.json();
-    throw new Error(error || 'API request failed');
-  }
-  return res.json();
-}
-
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +24,14 @@ export default function KdsPage() {
       const res = await fetch('/api/orders');
       if (!res.ok) throw new Error('Failed to fetch orders');
       const fetchedOrders = await res.json();
-      setOrders(fetchedOrders.map((o: Order) => ({...o, createdAt: new Date(o.createdAt)}))); // Make sure createdAt is a Date object
+      // Only update orders if there's a change to avoid unnecessary re-renders
+      setOrders(currentOrders => {
+        const newOrders = fetchedOrders.map((o: Order) => ({...o, createdAt: new Date(o.createdAt)}));
+        if (JSON.stringify(currentOrders) !== JSON.stringify(newOrders)) {
+          return newOrders;
+        }
+        return currentOrders;
+      });
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       toast({ title: "Error", description: "Could not fetch orders.", variant: "destructive" });
@@ -53,73 +47,126 @@ export default function KdsPage() {
   }, [fetchOrders]);
   
   const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    const item = order.items.find(i => i.id === itemId);
-    if (!item || item.status === 'Cooked') return;
+    const originalOrders = [...orders];
+    let updatedOrder: Order | undefined;
 
-    const currentIndex = statusSequence.indexOf(item.status);
-    const nextStatus = statusSequence[currentIndex + 1];
+    // --- Optimistic Update ---
+    const newOrders = orders.map(o => {
+      if (o.id !== orderId) return o;
+      
+      const item = o.items.find(i => i.id === itemId);
+      if (!item || item.status === 'Cooked') return o;
 
-    let newQuantity = item.quantity;
-    let newCookedCount = item.cookedCount;
-    let statusForRemaining = item.status;
+      const currentIndex = statusSequence.indexOf(item.status);
+      const nextStatus = statusSequence[currentIndex + 1];
 
-    if (nextStatus === 'Cooked') {
-        newQuantity -= 1;
-        newCookedCount += 1;
-        statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
-    }
+      let newQuantity = item.quantity;
+      let newCookedCount = item.cookedCount;
+      let statusForRemaining = item.status;
 
+      if (nextStatus === 'Cooked') {
+          newQuantity -= 1;
+          newCookedCount += 1;
+          statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
+      }
+      
+      const newItems = o.items.map(i => {
+          if (i.id !== itemId) return i;
+          return { ...i, status: nextStatus === 'Cooked' ? statusForRemaining : nextStatus, quantity: newQuantity, cookedCount: newCookedCount };
+      });
+
+      updatedOrder = { ...o, items: newItems };
+      if (isOrderCompleted(updatedOrder)) {
+          updatedOrder.status = 'completed';
+      }
+      return updatedOrder;
+    });
+
+    setOrders(newOrders);
+    // --- End Optimistic Update ---
+
+    if (!updatedOrder) return;
+    
+    const itemToUpdate = updatedOrder.items.find(i => i.id === itemId);
+    if (!itemToUpdate) return;
+    
     try {
-        await apiRequest('updateItemStatus', { 
-            itemId, 
-            newStatus: nextStatus === 'Cooked' ? statusForRemaining : nextStatus,
-            newQuantity, 
-            newCookedCount 
-        });
+      const res = await fetch('/api/orders', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'updateItemStatus', 
+            payload: {
+              itemId, 
+              newStatus: itemToUpdate.status,
+              newQuantity: itemToUpdate.quantity, 
+              newCookedCount: itemToUpdate.cookedCount
+            }
+          }),
+      });
 
-        const tempUpdatedOrders = orders.map(o => {
-          if (o.id !== orderId) return o;
-          const newItems = o.items.map(i => {
-              if (i.id !== itemId) return i;
-              return { ...i, status: nextStatus === 'Cooked' ? statusForRemaining : nextStatus, quantity: newQuantity, cookedCount: newCookedCount };
+      if (!res.ok) throw new Error('Failed to update item status on server');
+      
+      if (updatedOrder.status === 'completed') {
+          await fetch('/api/orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'updateOrderStatus', payload: { orderId, newStatus: 'completed' } }),
           });
-          const updatedOrder = { ...o, items: newItems };
-          if (isOrderCompleted(updatedOrder)) {
-              apiRequest('updateOrderStatus', { orderId, newStatus: 'completed' });
-              updatedOrder.status = 'completed';
-          }
-          return updatedOrder;
-        });
-        setOrders(tempUpdatedOrders);
+      }
 
-        // A final fetch to ensure consistency after all local updates
-        await fetchOrders();
     } catch (error: any) {
         toast({ title: "Error", description: error.message || "Failed to update item status.", variant: "destructive" });
+        // Revert to original state on failure
+        setOrders(originalOrders);
     }
-  }, [orders, fetchOrders, toast]);
+  }, [orders, toast]);
 
   const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
+    const originalOrders = [...orders];
+    
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
     const item = order.items.find(i => i.id === itemId);
     if (!item || item.cookedCount <= 0) return;
 
+    // --- Optimistic Update ---
     const newQuantity = item.quantity + 1;
     const newCookedCount = item.cookedCount - 1;
 
+    const newOrders = orders.map(o => {
+        if (o.id !== orderId) return o;
+        return {
+            ...o,
+            status: 'pending', // Revert order to pending if it was completed
+            items: o.items.map(i => {
+                if (i.id !== itemId) return i;
+                return { ...i, status: 'New', quantity: newQuantity, cookedCount: newCookedCount };
+            })
+        };
+    });
+
+    setOrders(newOrders);
+    // --- End Optimistic Update ---
+
     try {
-        await apiRequest('updateItemStatus', { itemId, newStatus: 'New', newQuantity, newCookedCount });
-        if (order.status === 'completed') {
-            await apiRequest('updateOrderStatus', { orderId, newStatus: 'pending' });
-        }
-        await fetchOrders();
+      await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateItemStatus', payload: { itemId, newStatus: 'New', newQuantity, newCookedCount } }),
+      });
+      if (order.status === 'completed') {
+        await fetch('/api/orders', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'updateOrderStatus', payload: { orderId, newStatus: 'pending' } }),
+        });
+      }
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to revert item status.", variant: "destructive" });
+      setOrders(originalOrders); // Revert on error
     }
-  }, [orders, toast, fetchOrders]);
+  }, [orders, toast]);
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     setDraggedOrderId(orderId);
@@ -175,15 +222,25 @@ export default function KdsPage() {
   };
 
   const togglePinOrder = useCallback(async (orderId: number) => {
-    const orderToToggle = orders.find(o => o.id === orderId);
-    if (!orderToToggle) return;
+    const originalOrders = [...orders];
+    const newPinState = !orders.find(o => o.id === orderId)?.isPinned;
     
-    const newPinState = !orderToToggle.isPinned;
+    // Optimistic Update
+    setOrders(orders.map(o => o.id === orderId ? { ...o, isPinned: newPinState } : o));
+
     try {
-      await apiRequest('togglePin', { orderId, isPinned: newPinState });
-      await fetchOrders();
+      const res = await fetch('/api/orders', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'togglePin', payload: { orderId, isPinned: newPinState } }),
+      });
+      if (!res.ok) throw new Error("Failed to update pin status on server");
+      // Optional: a silent fetch to ensure full consistency after a while
+      setTimeout(() => fetchOrders(), 500);
+
     } catch (error: any) {
        toast({ title: "Error", description: error.message || "Failed to update pin status.", variant: "destructive" });
+       setOrders(originalOrders);
     }
   }, [orders, toast, fetchOrders]);
 
