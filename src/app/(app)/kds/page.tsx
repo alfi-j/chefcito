@@ -23,13 +23,32 @@ export default function KdsPage() {
     try {
       const res = await fetch('/api/orders');
       if (!res.ok) throw new Error('Failed to fetch orders');
-      const fetchedOrders = await res.json();
-      // Only update orders if there's a change to avoid unnecessary re-renders
+      const fetchedOrders: Order[] = await res.json();
+      
       setOrders(currentOrders => {
-        const newOrders = fetchedOrders.map((o: Order) => ({...o, createdAt: new Date(o.createdAt)}));
-        if (JSON.stringify(currentOrders) !== JSON.stringify(newOrders)) {
-          return newOrders;
+        const newOrdersFromServer = fetchedOrders.map(o => ({...o, createdAt: new Date(o.createdAt)}));
+        
+        if (loading) { // On initial load, just set the orders.
+          return newOrdersFromServer;
         }
+
+        // For subsequent polls, only add new orders to avoid overwriting optimistic updates.
+        const currentOrderIds = new Set(currentOrders.map(o => o.id));
+        const ordersToAdd = newOrdersFromServer.filter(o => !currentOrderIds.has(o.id));
+        
+        if (ordersToAdd.length > 0) {
+            // We should also update the state of completed orders that might have been reverted
+            const updatedOrders = currentOrders.map(existingOrder => {
+                const updatedFromServer = newOrdersFromServer.find(o => o.id === existingOrder.id);
+                // If an order was completed and is now pending again (due to revert), update it
+                if (existingOrder.status === 'completed' && updatedFromServer && updatedFromServer.status === 'pending') {
+                    return updatedFromServer;
+                }
+                return existingOrder;
+            });
+            return [...updatedOrders, ...ordersToAdd];
+        }
+
         return currentOrders;
       });
     } catch (error) {
@@ -38,11 +57,12 @@ export default function KdsPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+  }, [toast, loading]);
+
 
   useEffect(() => {
-    fetchOrders();
-    const interval = setInterval(fetchOrders, 5000); // Poll for new orders every 5 seconds
+    fetchOrders(); // Initial fetch
+    const interval = setInterval(fetchOrders, 5000); // Poll for new orders
     return () => clearInterval(interval);
   }, [fetchOrders]);
   
@@ -223,10 +243,13 @@ export default function KdsPage() {
 
   const togglePinOrder = useCallback(async (orderId: number) => {
     const originalOrders = [...orders];
-    const newPinState = !orders.find(o => o.id === orderId)?.isPinned;
+    const orderToPin = orders.find(o => o.id === orderId);
+    if (!orderToPin) return;
+
+    const newPinState = !orderToPin.isPinned;
     
     // Optimistic Update
-    setOrders(orders.map(o => o.id === orderId ? { ...o, isPinned: newPinState } : o));
+    setOrders(currentOrders => currentOrders.map(o => o.id === orderId ? { ...o, isPinned: newPinState } : o));
 
     try {
       const res = await fetch('/api/orders', {
@@ -235,19 +258,16 @@ export default function KdsPage() {
         body: JSON.stringify({ action: 'togglePin', payload: { orderId, isPinned: newPinState } }),
       });
       if (!res.ok) throw new Error("Failed to update pin status on server");
-      // Optional: a silent fetch to ensure full consistency after a while
-      setTimeout(() => fetchOrders(), 500);
 
     } catch (error: any) {
        toast({ title: "Error", description: error.message || "Failed to update pin status.", variant: "destructive" });
        setOrders(originalOrders);
     }
-  }, [orders, toast, fetchOrders]);
+  }, [orders, toast]);
 
   const pendingOrders = useMemo(() => {
     const pending = orders.filter(o => o.status === 'pending');
-    // Ensure chronological sort for unpinned items before applying drag-and-drop
-    const unpinned = pending.filter(o => !o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    const unpinned = pending.filter(o => !o.isPinned);
     const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
     return [...pinned, ...unpinned];
   }, [orders]);
