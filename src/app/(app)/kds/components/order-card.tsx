@@ -81,8 +81,8 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
 
   return (
     <div className={cn(
-        "relative rounded-lg w-full",
-        isDraggingOver && "outline outline-2 outline-dashed outline-primary"
+        "relative rounded-lg w-full p-1",
+        isDraggingOver && "animate-marching-ants"
       )}>
       <Card 
         className={cn(
@@ -90,7 +90,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
           order.isPinned && "border-primary border-2",
           order.status === 'pending' ? "cursor-grab" : "cursor-default"
         )}
-        draggable={order.status === 'pending'}
+        draggable={order.status === 'pending' && !order.isPinned}
         onDragStart={(e) => onDragStart(e, order.id)}
         onDrop={(e) => onDrop(e, order.id)}
         onDragOver={handleDragOver}
