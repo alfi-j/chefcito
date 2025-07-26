@@ -1,0 +1,128 @@
+
+{
+    "pos": {
+        "title": "POS",
+        "loading": "Loading menu...",
+        "current_order": {
+            "title": "Current Order",
+            "table": "Table {{table}}",
+            "no_items": "No items in order.",
+            "select_items": "Select items from the menu to get started.",
+            "subtotal": "Subtotal",
+            "tax": "Tax (8%)",
+            "total": "Total",
+            "clear_order": "Clear Order",
+            "payment": "Payment",
+            "send_to_kitchen": "Send to Kitchen"
+        },
+        "menu_selection": {
+            "title": "Menu",
+            "no_categories_title": "Menu",
+            "no_categories_desc_1": "No menu categories found.",
+            "no_categories_desc_2": "Add categories and items on the Menu page."
+        },
+        "toast": {
+            "item_added": "{{item}} added",
+            "empty_order_title": "Empty Order",
+            "empty_order_desc": "Cannot send an empty order to the kitchen.",
+            "order_sent_title": "Order Sent!",
+            "order_sent_desc": "The order has been sent to the kitchen.",
+            "fetch_error": "Could not fetch menu data.",
+            "send_error": "Failed to send order to the kitchen."
+        }
+    },
+    "kds": {
+        "title": "KDS",
+        "loading": "Loading orders...",
+        "no_orders": "No orders in this category.",
+        "tabs": {
+            "pending": "Pending",
+            "completed": "Completed"
+        },
+        "toast": {
+            "fetch_error": "Could not fetch orders.",
+            "update_item_error": "Failed to update item status.",
+            "revert_item_error": "Failed to revert item status.",
+            "pin_error": "Failed to update pin status."
+        }
+    },
+    "menu": {
+        "title": "Menu Management",
+        "loading": "Loading menu...",
+        "add_item": "Add Item",
+        "manage_categories": "Manage Categories",
+        "table": {
+            "image": "Image",
+            "name": "Name",
+            "category": "Category",
+            "price": "Price",
+            "actions": "Actions",
+            "toggle_menu": "Toggle menu",
+            "edit": "Edit",
+            "delete": "Delete"
+        },
+        "item_dialog": {
+            "edit_title": "Edit Menu Item",
+            "add_title": "Add New Menu Item",
+            "edit_desc": "Make changes to the menu item here. Click save when you're done.",
+            "add_desc": "Add a new item to your menu. Click save when you're done.",
+            "name": "Name",
+            "price": "Price",
+            "category": "Category",
+            "select_category": "Select a category"
+        },
+        "category_dialog": {
+            "title": "Manage Categories",
+            "desc": "Add, edit, or delete your menu categories.",
+            "new_name": "New category name",
+            "add": "Add"
+        },
+        "toast": {
+            "fetch_error": "Could not fetch menu data.",
+            "item_updated": "Menu item updated.",
+            "item_added": "Menu item added.",
+            "update_item_error": "Failed to update item.",
+            "add_item_error": "Failed to add item.",
+            "item_deleted": "Menu item deleted.",
+            "delete_item_error": "Failed to delete item.",
+            "category_added": "Category added.",
+            "add_category_error": "Failed to add category.",
+            "category_deleted": "Category deleted.",
+            "delete_category_error": "Failed to delete category.",
+            "category_updated": "Category updated.",
+            "update_category_error": "Failed to update category."
+        }
+    },
+    "userMenu": {
+        "staff_member": "Staff Member",
+        "profile": "Profile",
+        "logout": "Logout",
+        "theme": {
+            "title": "Theme",
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System"
+        },
+        "font_size": {
+            "title": "Font Size",
+            "small": "Small",
+            "medium": "Medium",
+            "large": "Large"
+        },
+        "language": {
+            "title": "Language",
+            "en": "English",
+            "es": "Spanish"
+        }
+    },
+    "dialog": {
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create Item",
+        "close": "Close"
+    },
+    "toast": {
+        "success": "Success",
+        "error": "Error"
+    }
+}

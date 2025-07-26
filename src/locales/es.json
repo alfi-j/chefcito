@@ -1,0 +1,128 @@
+
+{
+    "pos": {
+        "title": "Terminal de Venta",
+        "loading": "Cargando menú...",
+        "current_order": {
+            "title": "Orden Actual",
+            "table": "Mesa {{table}}",
+            "no_items": "No hay artículos en la orden.",
+            "select_items": "Selecciona artículos del menú para comenzar.",
+            "subtotal": "Subtotal",
+            "tax": "Impuesto (8%)",
+            "total": "Total",
+            "clear_order": "Limpiar Orden",
+            "payment": "Pago",
+            "send_to_kitchen": "Enviar a Cocina"
+        },
+        "menu_selection": {
+            "title": "Menú",
+            "no_categories_title": "Menú",
+            "no_categories_desc_1": "No se encontraron categorías de menú.",
+            "no_categories_desc_2": "Agrega categorías y artículos en la página de Menú."
+        },
+        "toast": {
+            "item_added": "{{item}} agregado",
+            "empty_order_title": "Orden Vacía",
+            "empty_order_desc": "No se puede enviar una orden vacía a la cocina.",
+            "order_sent_title": "¡Orden Enviada!",
+            "order_sent_desc": "La orden ha sido enviada a la cocina.",
+            "fetch_error": "No se pudieron cargar los datos del menú.",
+            "send_error": "Error al enviar la orden a la cocina."
+        }
+    },
+    "kds": {
+        "title": "Sistema de Cocina",
+        "loading": "Cargando órdenes...",
+        "no_orders": "No hay órdenes en esta categoría.",
+        "tabs": {
+            "pending": "Pendientes",
+            "completed": "Completadas"
+        },
+        "toast": {
+            "fetch_error": "No se pudieron cargar las órdenes.",
+            "update_item_error": "Error al actualizar el estado del artículo.",
+            "revert_item_error": "Error al revertir el estado del artículo.",
+            "pin_error": "Error al actualizar el estado de anclaje."
+        }
+    },
+    "menu": {
+        "title": "Gestión de Menú",
+        "loading": "Cargando menú...",
+        "add_item": "Añadir Artículo",
+        "manage_categories": "Gestionar Categorías",
+        "table": {
+            "image": "Imagen",
+            "name": "Nombre",
+            "category": "Categoría",
+            "price": "Precio",
+            "actions": "Acciones",
+            "toggle_menu": "Alternar menú",
+            "edit": "Editar",
+            "delete": "Eliminar"
+        },
+        "item_dialog": {
+            "edit_title": "Editar Artículo del Menú",
+            "add_title": "Añadir Nuevo Artículo al Menú",
+            "edit_desc": "Realiza cambios en el artículo del menú aquí. Haz clic en guardar cuando termines.",
+            "add_desc": "Añade un nuevo artículo a tu menú. Haz clic en crear cuando termines.",
+            "name": "Nombre",
+            "price": "Precio",
+            "category": "Categoría",
+            "select_category": "Selecciona una categoría"
+        },
+        "category_dialog": {
+            "title": "Gestionar Categorías",
+            "desc": "Añade, edita o elimina las categorías de tu menú.",
+            "new_name": "Nombre de la nueva categoría",
+            "add": "Añadir"
+        },
+        "toast": {
+            "fetch_error": "No se pudieron cargar los datos del menú.",
+            "item_updated": "Artículo del menú actualizado.",
+            "item_added": "Artículo del menú añadido.",
+            "update_item_error": "Error al actualizar el artículo.",
+            "add_item_error": "Error al añadir el artículo.",
+            "item_deleted": "Artículo del menú eliminado.",
+            "delete_item_error": "Error al eliminar el artículo.",
+            "category_added": "Categoría añadida.",
+            "add_category_error": "Error al añadir la categoría.",
+            "category_deleted": "Categoría eliminada.",
+            "delete_category_error": "Error al eliminar la categoría.",
+            "category_updated": "Categoría actualizada.",
+            "update_category_error": "Error al actualizar la categoría."
+        }
+    },
+    "userMenu": {
+        "staff_member": "Miembro del Personal",
+        "profile": "Perfil",
+        "logout": "Cerrar Sesión",
+        "theme": {
+            "title": "Tema",
+            "light": "Claro",
+            "dark": "Oscuro",
+            "system": "Sistema"
+        },
+        "font_size": {
+            "title": "Tamaño de Fuente",
+            "small": "Pequeño",
+            "medium": "Mediano",
+            "large": "Grande"
+        },
+        "language": {
+            "title": "Idioma",
+            "en": "Inglés",
+            "es": "Español"
+        }
+    },
+    "dialog": {
+        "cancel": "Cancelar",
+        "save": "Guardar cambios",
+        "create": "Crear Artículo",
+        "close": "Cerrar"
+    },
+    "toast": {
+        "success": "Éxito",
+        "error": "Error"
+    }
+}

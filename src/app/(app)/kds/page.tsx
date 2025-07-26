@@ -6,6 +6,7 @@ import { type Order } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from "@/context/i18n-context";
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
 
@@ -18,6 +19,7 @@ export default function KdsPage() {
   const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
   const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -53,11 +55,11 @@ export default function KdsPage() {
       });
     } catch (error) {
       console.error("Failed to fetch orders:", error);
-      toast({ title: "Error", description: "Could not fetch orders.", variant: "destructive" });
+      toast({ title: t('toast.error'), description: t('kds.toast.fetch_error'), variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  }, [toast, loading]);
+  }, [toast, loading, t]);
 
 
   useEffect(() => {
@@ -136,11 +138,11 @@ export default function KdsPage() {
       }
 
     } catch (error: any) {
-        toast({ title: "Error", description: error.message || "Failed to update item status.", variant: "destructive" });
+        toast({ title: t('toast.error'), description: error.message || t('kds.toast.update_item_error'), variant: "destructive" });
         // Revert to original state on failure
         setOrders(originalOrders);
     }
-  }, [orders, toast]);
+  }, [orders, toast, t]);
 
   const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
     const originalOrders = [...orders];
@@ -183,10 +185,10 @@ export default function KdsPage() {
         });
       }
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to revert item status.", variant: "destructive" });
+      toast({ title: t('toast.error'), description: error.message || t('kds.toast.revert_item_error'), variant: "destructive" });
       setOrders(originalOrders); // Revert on error
     }
-  }, [orders, toast]);
+  }, [orders, toast, t]);
   
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     setDraggedOrderId(orderId);
@@ -260,10 +262,10 @@ export default function KdsPage() {
       if (!res.ok) throw new Error("Failed to update pin status on server");
 
     } catch (error: any) {
-       toast({ title: "Error", description: error.message || "Failed to update pin status.", variant: "destructive" });
+       toast({ title: t('toast.error'), description: error.message || t('kds.toast.pin_error'), variant: "destructive" });
        setOrders(originalOrders);
     }
-  }, [orders, toast]);
+  }, [orders, toast, t]);
 
   const pendingOrders = useMemo(() => {
     const pending = orders.filter(o => o.status === 'pending');
@@ -278,12 +280,12 @@ export default function KdsPage() {
   
   const renderOrderList = (orderList: Order[]) => {
     if (loading) {
-        return <div className="flex justify-center items-center h-[calc(100vh-200px)]"><p>Loading orders...</p></div>
+        return <div className="flex justify-center items-center h-[calc(100vh-200px)]"><p>{t('kds.loading')}</p></div>
     }
     if (orderList.length === 0) {
       return (
         <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
-          <p>No orders in this category.</p>
+          <p>{t('kds.no_orders')}</p>
         </div>
       );
     }
@@ -311,8 +313,8 @@ export default function KdsPage() {
     <Card>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pending">Pending ({pendingOrders.length})</TabsTrigger>
-          <TabsTrigger value="completed">Completed ({completedOrders.length})</TabsTrigger>
+          <TabsTrigger value="pending">{t('kds.tabs.pending')} ({pendingOrders.length})</TabsTrigger>
+          <TabsTrigger value="completed">{t('kds.tabs.completed')} ({completedOrders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pending" className="pt-4">
           {renderOrderList(pendingOrders)}

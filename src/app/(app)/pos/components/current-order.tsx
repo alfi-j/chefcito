@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem } from '@/lib/types'
 import { MinusCircle, PlusCircle, Trash2, Send } from 'lucide-react'
+import { useI18n } from '@/context/i18n-context'
 
 interface CurrentOrderProps {
   items: OrderItem[];
@@ -17,7 +18,7 @@ interface CurrentOrderProps {
 }
 
 export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrder, onSendToKitchen }: CurrentOrderProps) {
-  
+  const { t } = useI18n();
   const subtotal = items.reduce((acc, item) => acc + item.menuItem.price * item.quantity, 0)
   const tax = subtotal * 0.08
   const total = subtotal + tax
@@ -25,16 +26,16 @@ export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrd
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline">Current Order</CardTitle>
-        <CardDescription>Table 4</CardDescription>
+        <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
+        <CardDescription>{t('pos.current_order.table', { table: 4 })}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-grow">
           <div className="space-y-4 pr-4">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
-                <p>No items in order.</p>
-                <p className="text-sm">Select items from the menu to get started.</p>
+                <p>{t('pos.current_order.no_items')}</p>
+                <p className="text-sm">{t('pos.current_order.select_items')}</p>
               </div>
             ) : (
               items.map(item => (
@@ -66,26 +67,26 @@ export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrd
         <CardFooter className="flex-col !p-4 border-t">
           <div className="w-full space-y-1 text-sm py-2">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Tax (8%)</span>
+              <span className="text-muted-foreground">{t('pos.current_order.tax')}</span>
               <span>${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-base text-primary">
-              <span>Total</span>
+              <span>{t('pos.current_order.total')}</span>
               <span>${total.toFixed(2)}</span>
             </div>
           </div>
           <Separator className="my-2" />
           <div className="w-full grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={onClearOrder}>Clear Order</Button>
-            <Button variant="secondary">Payment</Button>
+            <Button variant="outline" onClick={onClearOrder}>{t('pos.current_order.clear_order')}</Button>
+            <Button variant="secondary">{t('pos.current_order.payment')}</Button>
           </div>
           <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen}>
             <Send className="mr-2 h-4 w-4"/>
-            Send to Kitchen
+            {t('pos.current_order.send_to_kitchen')}
           </Button>
         </CardFooter>
       )}

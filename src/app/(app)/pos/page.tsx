@@ -5,6 +5,7 @@ import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { useToast } from "@/hooks/use-toast";
+import { useI18n } from '@/context/i18n-context';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
@@ -12,6 +13,7 @@ export default function PosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const fetchMenuData = useCallback(async () => {
     setLoading(true);
@@ -29,11 +31,11 @@ export default function PosPage() {
         setCategories(cats);
     } catch(error) {
         console.error("Failed to fetch menu data:", error);
-        toast({ title: "Error", description: "Could not fetch menu data.", variant: "destructive" });
+        toast({ title: t('toast.error'), description: t('pos.toast.fetch_error'), variant: "destructive" });
     } finally {
         setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
   
   useEffect(() => {
     fetchMenuData();
@@ -52,7 +54,7 @@ export default function PosPage() {
       return [...prev, { id: `${item.id}-${Date.now()}`, menuItem: item, quantity: 1, cookedCount: 0, status: 'New' }];
     });
     toast({
-      title: `${item.name} added`,
+      title: t('pos.toast.item_added', { item: item.name }),
     })
   };
 
@@ -77,8 +79,8 @@ export default function PosPage() {
   const handleSendToKitchen = async () => {
     if (currentOrderItems.length === 0) {
       toast({
-        title: "Empty Order",
-        description: "Cannot send an empty order to the kitchen.",
+        title: t('pos.toast.empty_order_title'),
+        description: t('pos.toast.empty_order_desc'),
         variant: "destructive"
       });
       return;
@@ -100,15 +102,15 @@ export default function PosPage() {
     
     if (res.ok) {
       toast({
-        title: "Order Sent!",
-        description: "The order has been sent to the kitchen.",
+        title: t('pos.toast.order_sent_title'),
+        description: t('pos.toast.order_sent_desc'),
       });
       handleClearOrder();
     } else {
       const { error } = await res.json();
       toast({
-        title: "Error",
-        description: error || "Failed to send order to the kitchen.",
+        title: t('toast.error'),
+        description: error || t('pos.toast.send_error'),
         variant: "destructive"
       });
     }
@@ -118,7 +120,7 @@ export default function PosPage() {
   if (loading) {
      return (
         <div className="flex justify-center items-center h-full">
-            <p>Loading menu...</p>
+            <p>{t('pos.loading')}</p>
         </div>
     )
   }

@@ -43,12 +43,14 @@ import { type Category, type MenuItem } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useI18n } from '@/context/i18n-context'
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -66,11 +68,11 @@ export default function MenuPage() {
       setCategories(cats);
     } catch (error) {
        console.error("Failed to fetch menu data:", error);
-       toast({ title: "Error", description: "Could not fetch menu data.", variant: "destructive" });
+       toast({ title: t('toast.error'), description: t('menu.toast.fetch_error'), variant: "destructive" });
     } finally {
         setLoading(false);
     }
-  }, [toast]);
+  }, [toast, t]);
 
   useEffect(() => {
     fetchAllData();
@@ -87,10 +89,10 @@ export default function MenuPage() {
 
     if (res.ok) {
       await fetchAllData();
-      toast({ title: "Success", description: `Menu item ${isEditMode ? 'updated' : 'added'}.` });
+      toast({ title: t('toast.success'), description: t(isEditMode ? 'menu.toast.item_updated' : 'menu.toast.item_added') });
     } else {
       const { error } = await res.json();
-      toast({ title: "Error", description: error || `Failed to ${isEditMode ? 'update' : 'add'} item.`, variant: "destructive" });
+      toast({ title: t('toast.error'), description: error || t(isEditMode ? 'menu.toast.update_item_error' : 'menu.toast.add_item_error'), variant: "destructive" });
     }
   };
 
@@ -102,10 +104,10 @@ export default function MenuPage() {
     });
     if (res.ok) {
       await fetchAllData();
-      toast({ title: "Success", description: "Menu item deleted." });
+      toast({ title: t('toast.success'), description: t('menu.toast.item_deleted') });
     } else {
        const { error } = await res.json();
-       toast({ title: "Error", description: error || "Failed to delete item.", variant: "destructive" });
+       toast({ title: t('toast.error'), description: error || t('menu.toast.delete_item_error'), variant: "destructive" });
     }
   };
   
@@ -116,7 +118,7 @@ export default function MenuPage() {
   if (loading) {
     return (
         <div className="flex justify-center items-center h-full">
-            <p>Loading menu...</p>
+            <p>{t('menu.loading')}</p>
         </div>
     )
   }
@@ -125,13 +127,13 @@ export default function MenuPage() {
     <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="font-headline text-2xl">Menu Management</CardTitle>
+          <CardTitle className="font-headline text-2xl">{t('menu.title')}</CardTitle>
           <div className="flex gap-2">
             <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
             <MenuItemDialog onSave={handleSaveItem} categories={categories}>
               <Button>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Item
+                {t('menu.add_item')}
               </Button>
             </MenuItemDialog>
           </div>
@@ -143,13 +145,13 @@ export default function MenuPage() {
             <TableHeader>
               <TableRow>
                 <TableHead className="hidden w-[100px] sm:table-cell">
-                  Image
+                  {t('menu.table.image')}
                 </TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Price</TableHead>
+                <TableHead>{t('menu.table.name')}</TableHead>
+                <TableHead>{t('menu.table.category')}</TableHead>
+                <TableHead className="text-right">{t('menu.table.price')}</TableHead>
                 <TableHead>
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">{t('menu.table.actions')}</span>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -177,16 +179,16 @@ export default function MenuPage() {
                         <DropdownMenuTrigger asChild>
                           <Button aria-haspopup="true" size="icon" variant="ghost">
                             <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+                            <span className="sr-only">{t('menu.table.toggle_menu')}</span>
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t('menu.table.actions')}</DropdownMenuLabel>
                            <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories}>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>{t('menu.table.edit')}</DropdownMenuItem>
                           </MenuItemDialog>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('menu.table.delete')}</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -214,6 +216,7 @@ function MenuItemDialog({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!item;
+  const { t } = useI18n();
 
   const [name, setName] = useState(item?.name || '');
   const [price, setPrice] = useState(item?.price || 0);
@@ -242,25 +245,25 @@ function MenuItemDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">{isEditMode ? 'Edit Menu Item' : 'Add New Menu Item'}</DialogTitle>
+          <DialogTitle className="font-headline">{isEditMode ? t('menu.item_dialog.edit_title') : t('menu.item_dialog.add_title')}</DialogTitle>
           <DialogDescription>
-            {isEditMode ? 'Make changes to the menu item here.' : 'Add a new item to your menu.'} Click save when you're done.
+            {isEditMode ? t('menu.item_dialog.edit_desc') : t('menu.item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">Name</Label>
+            <Label htmlFor="name" className="text-right">{t('menu.item_dialog.name')}</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="price" className="text-right">Price</Label>
+            <Label htmlFor="price" className="text-right">{t('menu.item_dialog.price')}</Label>
             <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right">Category</Label>
+            <Label htmlFor="category" className="text-right">{t('menu.item_dialog.category')}</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select a category" />
+                <SelectValue placeholder={t('menu.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
@@ -269,8 +272,8 @@ function MenuItemDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit}>{isEditMode ? 'Save changes' : 'Create Item'}</Button>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.cancel')}</Button>
+          <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -283,6 +286,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { toast } = useToast();
+  const { t } = useI18n();
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
@@ -295,10 +299,10 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
     if (res.ok) {
       onUpdate();
       setNewCategoryName('');
-      toast({ title: "Success", description: "Category added." });
+      toast({ title: t('toast.success'), description: t('menu.toast.category_added') });
     } else {
       const { error } = await res.json();
-      toast({ title: "Error", description: error || "Failed to add category.", variant: "destructive" });
+      toast({ title: t('toast.error'), description: error || t('menu.toast.add_category_error'), variant: "destructive" });
     }
   };
 
@@ -311,10 +315,10 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
 
     if (res.ok) {
       onUpdate();
-      toast({ title: "Success", description: "Category deleted." });
+      toast({ title: t('toast.success'), description: t('menu.toast.category_deleted') });
     } else {
       const { error } = await res.json();
-      toast({ title: "Error", description: error || "Failed to delete category.", variant: "destructive" });
+      toast({ title: t('toast.error'), description: error || t('menu.toast.delete_category_error'), variant: "destructive" });
     }
   };
 
@@ -330,10 +334,10 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
     if (res.ok) {
       onUpdate();
       setEditingCategory(null);
-      toast({ title: "Success", description: "Category updated." });
+      toast({ title: t('toast.success'), description: t('menu.toast.category_updated') });
     } else {
       const { error } = await res.json();
-      toast({ title: "Error", description: error || "Failed to update category.", variant: "destructive" });
+      toast({ title: t('toast.error'), description: error || t('menu.toast.update_category_error'), variant: "destructive" });
     }
   };
 
@@ -345,22 +349,22 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
       }
     }}>
       <DialogTrigger asChild>
-        <Button variant="outline">Manage Categories</Button>
+        <Button variant="outline">{t('menu.manage_categories')}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-headline">Manage Categories</DialogTitle>
-          <DialogDescription>Add, edit, or delete your menu categories.</DialogDescription>
+          <DialogTitle className="font-headline">{t('menu.category_dialog.title')}</DialogTitle>
+          <DialogDescription>{t('menu.category_dialog.desc')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex gap-2">
             <Input
-              placeholder="New category name"
+              placeholder={t('menu.category_dialog.new_name')}
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
             />
-            <Button onClick={handleAddCategory}>Add</Button>
+            <Button onClick={handleAddCategory}>{t('menu.category_dialog.add')}</Button>
           </div>
           <ScrollArea className="h-64 border rounded-md">
             <div className="p-2 space-y-1">
@@ -392,7 +396,7 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
           </ScrollArea>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>Close</Button>
+          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

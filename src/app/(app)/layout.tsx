@@ -1,3 +1,4 @@
+
 "use client"
 import Link from "next/link"
 import {
@@ -10,7 +11,7 @@ import {
   Moon,
   Sun,
   Type,
-  Laptop,
+  Languages,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -43,22 +44,34 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
-import { Switch } from "@/components/ui/switch"
 import React, { useState } from "react"
-import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { I18nProvider, useI18n } from "@/context/i18n-context"
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+
+function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [fontSize, setFontSize] = useState("medium")
+  const { t } = useI18n()
 
   const menuItems = [
-    { href: "/pos", label: "POS", icon: LayoutGrid },
-    { href: "/kds", label: "KDS", icon: ClipboardList },
-    { href: "/menu", label: "Menu", icon: BookOpen },
+    { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
+    { href: "/kds", label: t('kds.title'), icon: ClipboardList },
+    { href: "/menu", label: t('menu.title'), icon: BookOpen },
   ]
+  
+  const getPageTitle = () => {
+    const currentItem = menuItems.find((item) => pathname.startsWith(item.href));
+    if (currentItem) {
+      return currentItem.label;
+    }
+    if (pathname.startsWith('/pos')) return t('pos.title');
+    if (pathname.startsWith('/kds')) return t('kds.title');
+    if (pathname.startsWith('/menu')) return t('menu.title');
+    return "Dashboard";
+  }
 
-  const currentPage = menuItems.find((item) => pathname.startsWith(item.href))?.label || "Dashboard"
+  const currentPage = getPageTitle();
 
   return (
     <SidebarProvider>
@@ -91,10 +104,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={{children: "Logout"}}>
+              <SidebarMenuButton asChild tooltip={{children: t('userMenu.logout')}}>
                 <Link href="/login">
                   <LogOut />
-                  <span>Logout</span>
+                  <span>{t('userMenu.logout')}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -119,8 +132,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <I18nProvider>
+      <AppLayoutContent>{children}</AppLayoutContent>
+    </I18nProvider>
+  )
+}
+
 function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeChange: (size: string) => void }) {
   const { theme, setTheme } = useTheme()
+  const { t, language, setLanguage } = useI18n()
 
   return (
     <DropdownMenu>
@@ -135,7 +158,7 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Staff Member</p>
+            <p className="text-sm font-medium leading-none">{t('userMenu.staff_member')}</p>
             <p className="text-xs leading-none text-muted-foreground">
               staff@chefcito.com
             </p>
@@ -144,21 +167,21 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
         <DropdownMenuSeparator />
         <DropdownMenuItem>
           <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
+          <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>
         
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="ml-2">Theme</span>
+            <span className="ml-2">{t('userMenu.theme.title')}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="light">{t('userMenu.theme.light')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">{t('userMenu.theme.dark')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">{t('userMenu.theme.system')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
@@ -167,23 +190,39 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Type className="mr-2 h-4 w-4" />
-            <span>Font Size</span>
+            <span>{t('userMenu.font_size.title')}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
               <DropdownMenuRadioGroup value={fontSize} onValueChange={onFontSizeChange}>
-                <DropdownMenuRadioItem value="small">Small</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="medium">Medium</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="large">Large</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="small">{t('userMenu.font_size.small')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="medium">{t('userMenu.font_size.medium')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="large">{t('userMenu.font_size.large')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
+
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Languages className="mr-2 h-4 w-4" />
+            <span>{t('userMenu.language.title')}</span>
+          </DropdownMenuSubTrigger>
+          <DropdownMenuPortal>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup value={language} onValueChange={(value) => setLanguage(value as 'en' | 'es')}>
+                <DropdownMenuRadioItem value="en">{t('userMenu.language.en')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="es">{t('userMenu.language.es')}</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuPortal>
+        </DropdownMenuSub>
+        
         <DropdownMenuSeparator />
          <Link href="/login">
             <DropdownMenuItem>
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
+                <span>{t('userMenu.logout')}</span>
             </DropdownMenuItem>
          </Link>
       </DropdownMenuContent>
