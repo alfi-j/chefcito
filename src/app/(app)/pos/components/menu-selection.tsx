@@ -37,11 +37,13 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
       </CardHeader>
       <CardContent className="flex-grow flex flex-col min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-            {categories.map(category => (
-              <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-            ))}
-          </TabsList>
+          <ScrollArea className="w-full whitespace-nowrap rounded-lg">
+             <TabsList className="inline-flex w-max">
+                {categories.map(category => (
+                  <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                ))}
+              </TabsList>
+          </ScrollArea>
           
           <div className="flex-grow relative mt-4">
             <ScrollArea className="absolute inset-0">
