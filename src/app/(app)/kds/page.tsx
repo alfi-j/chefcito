@@ -203,30 +203,34 @@ export default function KdsPage() {
   const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
     e.preventDefault();
     if (draggedOrderId === null || draggedOrderId === dropOrderId) {
-      setDraggedOrderId(null);
-      setDragOverOrderId(null);
+      handleDragEnd();
       return;
     }
-    
+
     setOrders(currentOrders => {
-        const pending = currentOrders.filter(o => o.status === 'pending');
+        const pending = currentOrders.filter(o => o.status === 'pending' && !o.isPinned);
+        const pinned = currentOrders.filter(o => o.status === 'pending' && o.isPinned);
         const completed = currentOrders.filter(o => o.status === 'completed');
 
         const draggedOrder = pending.find(o => o.id === draggedOrderId);
-        if (!draggedOrder || draggedOrder.isPinned) {
-            setDraggedOrderId(null);
-            setDragOverOrderId(null);
+        if (!draggedOrder) {
+            handleDragEnd();
             return currentOrders;
         }
 
-        const reorderedPending = pending.filter(o => o.id !== draggedOrderId);
-        const dropIndex = reorderedPending.findIndex(o => o.id === dropOrderId);
+        const fromIndex = pending.findIndex(o => o.id === draggedOrderId);
+        const toIndex = pending.findIndex(o => o.id === dropOrderId);
 
-        if (dropIndex === -1) return currentOrders;
+        if (fromIndex === -1 || toIndex === -1) {
+          handleDragEnd();
+          return currentOrders;
+        }
         
-        reorderedPending.splice(dropIndex, 0, draggedOrder);
+        const reorderedPending = [...pending];
+        const [removed] = reorderedPending.splice(fromIndex, 1);
+        reorderedPending.splice(toIndex, 0, removed);
       
-        return [...reorderedPending, ...completed];
+        return [...pinned, ...reorderedPending, ...completed];
     });
 
     handleDragEnd();
