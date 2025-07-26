@@ -2,10 +2,10 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// This file is now used by the API routes which run in a server context.
 export function createClient() {
   const cookieStore = cookies()
 
-  // Create a server's supabase client with cookies
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

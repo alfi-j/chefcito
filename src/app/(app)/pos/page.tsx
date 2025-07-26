@@ -5,7 +5,6 @@ import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { useToast } from "@/hooks/use-toast";
-import { getMenuItems, createOrder, getCategories } from '@/lib/dataService';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
@@ -17,7 +16,15 @@ export default function PosPage() {
   const fetchMenuData = useCallback(async () => {
     setLoading(true);
     try {
-        const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
+        const [itemsRes, catsRes] = await Promise.all([
+            fetch('/api/menu'),
+            fetch('/api/categories'),
+        ]);
+        if (!itemsRes.ok || !catsRes.ok) {
+            throw new Error('Failed to fetch menu data');
+        }
+        const items = await itemsRes.json();
+        const cats = await catsRes.json();
         setMenuItems(items);
         setCategories(cats);
     } catch(error) {
@@ -85,19 +92,23 @@ export default function PosPage() {
       })),
     };
     
-    // @ts-ignore
-    const newOrder = await createOrder(orderToCreate);
+    const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderToCreate),
+    });
     
-    if (newOrder) {
+    if (res.ok) {
       toast({
         title: "Order Sent!",
         description: "The order has been sent to the kitchen.",
       });
       handleClearOrder();
     } else {
+      const { error } = await res.json();
       toast({
         title: "Error",
-        description: "Failed to send order to the kitchen.",
+        description: error || "Failed to send order to the kitchen.",
         variant: "destructive"
       });
     }

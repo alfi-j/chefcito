@@ -5,12 +5,24 @@ import { OrderCard } from "./components/order-card";
 import { type Order } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
-import { getOrders, updateOrderItemStatus, updateOrderStatus, toggleOrderPin } from "@/lib/dataService";
 import { useToast } from "@/hooks/use-toast";
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
+
+async function apiRequest(action: string, payload: any) {
+  const res = await fetch('/api/orders', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, payload }),
+  });
+  if (!res.ok) {
+    const { error } = await res.json();
+    throw new Error(error || 'API request failed');
+  }
+  return res.json();
+}
 
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -22,8 +34,10 @@ export default function KdsPage() {
 
   const fetchOrders = useCallback(async () => {
     try {
-      const fetchedOrders = await getOrders();
-      setOrders(fetchedOrders);
+      const res = await fetch('/api/orders');
+      if (!res.ok) throw new Error('Failed to fetch orders');
+      const fetchedOrders = await res.json();
+      setOrders(fetchedOrders.map((o: Order) => ({...o, createdAt: new Date(o.createdAt)}))); // Make sure createdAt is a Date object
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       toast({ title: "Error", description: "Could not fetch orders.", variant: "destructive" });
@@ -39,44 +53,53 @@ export default function KdsPage() {
   }, [fetchOrders]);
   
   const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {
-    setOrders(currentOrders => {
-        const newOrders = currentOrders.map(o => {
-            if (o.id !== orderId) return o;
-            const newItems = o.items.map(i => {
-                if (i.id !== itemId || i.status === 'Cooked') return i;
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    const item = order.items.find(i => i.id === itemId);
+    if (!item || item.status === 'Cooked') return;
 
-                const currentIndex = statusSequence.indexOf(i.status);
-                const nextStatus = statusSequence[currentIndex + 1];
+    const currentIndex = statusSequence.indexOf(item.status);
+    const nextStatus = statusSequence[currentIndex + 1];
 
-                if (nextStatus === 'Cooked') {
-                    const newQuantity = i.quantity - 1;
-                    const newCookedCount = i.cookedCount + 1;
-                    const statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
-                    updateOrderItemStatus(orderId, itemId, statusForRemaining, newQuantity, newCookedCount).then(success => {
-                        if (success) fetchOrders();
-                        else toast({ title: "Error", description: "Failed to update item status.", variant: "destructive" });
-                    });
-                    return { ...i, quantity: newQuantity, cookedCount: newCookedCount, status: statusForRemaining };
-                } else {
-                     updateOrderItemStatus(orderId, itemId, nextStatus, i.quantity, i.cookedCount).then(success => {
-                        if (success) fetchOrders();
-                        else toast({ title: "Error", description: "Failed to update item status.", variant: "destructive" });
-                    });
-                    return { ...i, status: nextStatus };
-                }
-            });
-            const updatedOrder = { ...o, items: newItems };
-            if (isOrderCompleted(updatedOrder)) {
-                updateOrderStatus(orderId, 'completed').then(success => {
-                    if (success) fetchOrders();
-                });
-            }
-            return updatedOrder;
+    let newQuantity = item.quantity;
+    let newCookedCount = item.cookedCount;
+    let statusForRemaining = item.status;
+
+    if (nextStatus === 'Cooked') {
+        newQuantity -= 1;
+        newCookedCount += 1;
+        statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
+    }
+
+    try {
+        await apiRequest('updateItemStatus', { 
+            itemId, 
+            newStatus: nextStatus === 'Cooked' ? statusForRemaining : nextStatus,
+            newQuantity, 
+            newCookedCount 
         });
-        return newOrders;
-    });
-  }, [fetchOrders, toast]);
 
+        const tempUpdatedOrders = orders.map(o => {
+          if (o.id !== orderId) return o;
+          const newItems = o.items.map(i => {
+              if (i.id !== itemId) return i;
+              return { ...i, status: nextStatus === 'Cooked' ? statusForRemaining : nextStatus, quantity: newQuantity, cookedCount: newCookedCount };
+          });
+          const updatedOrder = { ...o, items: newItems };
+          if (isOrderCompleted(updatedOrder)) {
+              apiRequest('updateOrderStatus', { orderId, newStatus: 'completed' });
+              updatedOrder.status = 'completed';
+          }
+          return updatedOrder;
+        });
+        setOrders(tempUpdatedOrders);
+
+        // A final fetch to ensure consistency after all local updates
+        await fetchOrders();
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message || "Failed to update item status.", variant: "destructive" });
+    }
+  }, [orders, fetchOrders, toast]);
 
   const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
     const order = orders.find(o => o.id === orderId);
@@ -87,14 +110,14 @@ export default function KdsPage() {
     const newQuantity = item.quantity + 1;
     const newCookedCount = item.cookedCount - 1;
 
-    const success = await updateOrderItemStatus(orderId, itemId, 'New', newQuantity, newCookedCount);
-    if (success) {
-      if (order.status === 'completed') {
-        await updateOrderStatus(orderId, 'pending');
-      }
-      await fetchOrders();
-    } else {
-      toast({ title: "Error", description: "Failed to revert item status.", variant: "destructive" });
+    try {
+        await apiRequest('updateItemStatus', { itemId, newStatus: 'New', newQuantity, newCookedCount });
+        if (order.status === 'completed') {
+            await apiRequest('updateOrderStatus', { orderId, newStatus: 'pending' });
+        }
+        await fetchOrders();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to revert item status.", variant: "destructive" });
     }
   }, [orders, toast, fetchOrders]);
   
@@ -156,11 +179,11 @@ export default function KdsPage() {
     if (!orderToToggle) return;
     
     const newPinState = !orderToToggle.isPinned;
-    const success = await toggleOrderPin(orderId, newPinState);
-    if(success) {
+    try {
+      await apiRequest('togglePin', { orderId, isPinned: newPinState });
       await fetchOrders();
-    } else {
-       toast({ title: "Error", description: "Failed to update pin status.", variant: "destructive" });
+    } catch (error: any) {
+       toast({ title: "Error", description: error.message || "Failed to update pin status.", variant: "destructive" });
     }
   }, [orders, toast, fetchOrders]);
 

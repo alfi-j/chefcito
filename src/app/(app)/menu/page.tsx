@@ -40,16 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { type Category, type MenuItem } from "@/lib/types"
-import { 
-  addMenuItem, 
-  deleteMenuItem, 
-  getMenuItems, 
-  updateMenuItem, 
-  getCategories, 
-  addCategory, 
-  deleteCategory, 
-  updateCategory 
-} from '@/lib/dataService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -63,7 +53,15 @@ export default function MenuPage() {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-      const [items, cats] = await Promise.all([getMenuItems(), getCategories()]);
+      const [itemsRes, catsRes] = await Promise.all([
+        fetch('/api/menu'),
+        fetch('/api/categories')
+      ]);
+      if (!itemsRes.ok || !catsRes.ok) {
+          throw new Error('Failed to fetch menu data');
+      }
+      const items = await itemsRes.json();
+      const cats = await catsRes.json();
       setMenuItems(items);
       setCategories(cats);
     } catch (error) {
@@ -79,33 +77,35 @@ export default function MenuPage() {
   }, [fetchAllData]);
 
   const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
-    let savedItem: MenuItem | null = null;
-    if ('id' in itemData) {
-      savedItem = await updateMenuItem(itemData);
-      if (savedItem) {
-        await fetchAllData();
-        toast({ title: "Success", description: "Menu item updated." });
-      } else {
-        toast({ title: "Error", description: "Failed to update item.", variant: "destructive" });
-      }
+    const isEditMode = 'id' in itemData;
+    const method = isEditMode ? 'PUT' : 'POST';
+    const res = await fetch('/api/menu', {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(itemData),
+    });
+
+    if (res.ok) {
+      await fetchAllData();
+      toast({ title: "Success", description: `Menu item ${isEditMode ? 'updated' : 'added'}.` });
     } else {
-      savedItem = await addMenuItem(itemData);
-       if (savedItem) {
-        await fetchAllData();
-        toast({ title: "Success", description: "Menu item added." });
-      } else {
-        toast({ title: "Error", description: "Failed to add item.", variant: "destructive" });
-      }
+      const { error } = await res.json();
+      toast({ title: "Error", description: error || `Failed to ${isEditMode ? 'update' : 'add'} item.`, variant: "destructive" });
     }
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    const success = await deleteMenuItem(itemId);
-    if (success) {
+    const res = await fetch('/api/menu', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: itemId }),
+    });
+    if (res.ok) {
       await fetchAllData();
       toast({ title: "Success", description: "Menu item deleted." });
     } else {
-       toast({ title: "Error", description: "Failed to delete item.", variant: "destructive" });
+       const { error } = await res.json();
+       toast({ title: "Error", description: error || "Failed to delete item.", variant: "destructive" });
     }
   };
   
@@ -286,35 +286,54 @@ function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUp
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
-    const newCategory = await addCategory(newCategoryName);
-    if (newCategory) {
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newCategoryName }),
+    });
+
+    if (res.ok) {
       onUpdate();
       setNewCategoryName('');
       toast({ title: "Success", description: "Category added." });
     } else {
-      toast({ title: "Error", description: "Failed to add category.", variant: "destructive" });
+      const { error } = await res.json();
+      toast({ title: "Error", description: error || "Failed to add category.", variant: "destructive" });
     }
   };
 
   const handleDeleteCategory = async (id: number, name: string) => {
-    const success = await deleteCategory(id, name);
-    if (success) {
+    const res = await fetch('/api/categories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, name }),
+    });
+
+    if (res.ok) {
       onUpdate();
       toast({ title: "Success", description: "Category deleted." });
     } else {
-      toast({ title: "Error", description: "Failed to delete category. It might be in use.", variant: "destructive" });
+      const { error } = await res.json();
+      toast({ title: "Error", description: error || "Failed to delete category.", variant: "destructive" });
     }
   };
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
-    const updated = await updateCategory(editingCategory.id, editingCategory.name);
-    if (updated) {
+    
+    const res = await fetch('/api/categories', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editingCategory.id, name: editingCategory.name }),
+    });
+    
+    if (res.ok) {
       onUpdate();
       setEditingCategory(null);
       toast({ title: "Success", description: "Category updated." });
     } else {
-      toast({ title: "Error", description: "Failed to update category.", variant: "destructive" });
+      const { error } = await res.json();
+      toast({ title: "Error", description: error || "Failed to update category.", variant: "destructive" });
     }
   };
 
