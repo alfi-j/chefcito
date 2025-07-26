@@ -80,10 +80,17 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   }
 
   return (
-    <div className={cn(
+    <div 
+      className={cn(
         "relative rounded-lg w-full p-1",
         isDraggingOver && "animate-marching-ants"
-      )}>
+      )}
+      onDragStart={(e) => onDragStart(e, order.id)}
+      onDrop={(e) => onDrop(e, order.id)}
+      onDragOver={handleDragOver}
+      onDragEnter={(e) => onDragEnter(e, order.id)}
+      onDragLeave={onDragLeave}
+    >
       <Card 
         className={cn(
           "flex flex-col h-full",
@@ -91,11 +98,6 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
           order.status === 'pending' ? "cursor-grab" : "cursor-default"
         )}
         draggable={order.status === 'pending' && !order.isPinned}
-        onDragStart={(e) => onDragStart(e, order.id)}
-        onDrop={(e) => onDrop(e, order.id)}
-        onDragOver={handleDragOver}
-        onDragEnter={(e) => onDragEnter(e, order.id)}
-        onDragLeave={onDragLeave}
       >
           <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
             <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab invisible" />

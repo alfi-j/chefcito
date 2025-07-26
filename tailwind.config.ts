@@ -91,7 +91,7 @@ export default {
             height: '0',
           },
         },
-        'marching-ants': {
+         'marching-ants': {
           to: {
             'background-position': 'var(--bg-size) 0',
           },

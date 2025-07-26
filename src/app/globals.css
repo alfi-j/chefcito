@@ -128,7 +128,7 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
-
+  
   .animate-marching-ants {
     --bg-size: 40px;
     background-image: linear-gradient(45deg, hsl(var(--primary)) 25%, transparent 25%), 
