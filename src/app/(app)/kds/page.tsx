@@ -219,18 +219,17 @@ export default function KdsPage() {
             return currentOrders;
         }
 
-        const otherOrders = pending.filter(o => o.id !== draggedOrderId);
-        const dropIndex = otherOrders.findIndex(o => o.id === dropOrderId);
+        const reorderedPending = pending.filter(o => o.id !== draggedOrderId);
+        const dropIndex = reorderedPending.findIndex(o => o.id === dropOrderId);
 
         if (dropIndex === -1) return currentOrders;
-
-        otherOrders.splice(dropIndex, 0, draggedOrder);
+        
+        reorderedPending.splice(dropIndex, 0, draggedOrder);
       
-        return [...otherOrders, ...completed];
+        return [...reorderedPending, ...completed];
     });
 
-    setDraggedOrderId(null);
-    setDragOverOrderId(null);
+    handleDragEnd();
   };
   
   const handleDragEnter = (e: DragEvent<HTMLDivElement>, orderId: number) => {
