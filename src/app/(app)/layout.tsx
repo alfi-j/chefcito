@@ -27,7 +27,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,10 +47,12 @@ import { useTheme } from "next-themes"
 import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { I18nProvider, useI18n } from "@/context/i18n-context"
+import { createClient } from "@/lib/supabase/client"
 
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const [fontSize, setFontSize] = useState("medium")
   const { t } = useI18n()
 
@@ -72,6 +74,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   const currentPage = getPageTitle();
+  
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <SidebarProvider>
@@ -104,11 +113,11 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild tooltip={{children: t('userMenu.logout')}}>
-                <Link href="/login">
+              <SidebarMenuButton onClick={handleLogout} asChild tooltip={{children: t('userMenu.logout')}}>
+                <div>
                   <LogOut />
                   <span>{t('userMenu.logout')}</span>
-                </Link>
+                </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -122,7 +131,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
                 {currentPage}
              </h2>
           </div>
-          <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} />
+          <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
         </header>
         <main className={cn("flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/30", `font-size-${fontSize}`)}>
           {children}
@@ -141,7 +150,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
-function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeChange: (size: string) => void }) {
+function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void }) {
   const { theme, setTheme } = useTheme()
   const { t, language, setLanguage } = useI18n()
 
@@ -219,12 +228,10 @@ function UserNav({ fontSize, onFontSizeChange }: { fontSize: string, onFontSizeC
         </DropdownMenuSub>
         
         <DropdownMenuSeparator />
-         <Link href="/login">
-            <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>{t('userMenu.logout')}</span>
-            </DropdownMenuItem>
-         </Link>
+        <DropdownMenuItem onClick={onLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>{t('userMenu.logout')}</span>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
