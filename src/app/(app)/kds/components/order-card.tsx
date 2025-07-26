@@ -17,12 +17,11 @@ interface OrderCardProps {
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDrop: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
-  onDragLeave: (e: DragEvent<HTMLDivElement>) => void;
   isDraggingOver: boolean;
   onTogglePin: (orderId: number) => void;
 }
 
-export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, isDraggingOver, onTogglePin }: OrderCardProps) {
+export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   
   const [now, setNow] = useState(new Date().getTime());
@@ -89,7 +88,6 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
       onDrop={(e) => onDrop(e, order.id)}
       onDragOver={handleDragOver}
       onDragEnter={(e) => onDragEnter(e, order.id)}
-      onDragLeave={onDragLeave}
     >
       <Card 
         className={cn(

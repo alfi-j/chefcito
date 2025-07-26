@@ -195,6 +195,11 @@ export default function KdsPage() {
     e.dataTransfer.effectAllowed = 'move';
   };
 
+  const handleDragEnd = () => {
+    setDraggedOrderId(null);
+    setDragOverOrderId(null);
+  };
+
   const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
     e.preventDefault();
     if (draggedOrderId === null || draggedOrderId === dropOrderId) {
@@ -236,11 +241,6 @@ export default function KdsPage() {
         setDragOverOrderId(orderId);
       }
     }
-  };
-
-  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragOverOrderId(null);
   };
 
   const togglePinOrder = useCallback(async (orderId: number) => {
@@ -290,7 +290,7 @@ export default function KdsPage() {
       );
     }
     return (
-       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 items-start">
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 items-start" onDragEnd={handleDragEnd}>
         {orderList.map((order) => (
           <OrderCard 
             key={order.id}
@@ -300,7 +300,6 @@ export default function KdsPage() {
             onDragStart={handleDragStart}
             onDrop={handleDrop}
             onDragEnter={handleDragEnter}
-            onDragLeave={handleDragLeave}
             isDraggingOver={dragOverOrderId === order.id}
             onTogglePin={togglePinOrder}
           />
