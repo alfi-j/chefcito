@@ -47,7 +47,6 @@ import { useTheme } from "next-themes"
 import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { I18nProvider, useI18n } from "@/context/i18n-context"
-import { createClient } from "@/lib/supabase/client"
 
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
@@ -76,10 +75,8 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const currentPage = getPageTitle();
   
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    // In a real app, this would call an API to invalidate a session
     router.push('/login')
-    router.refresh()
   }
 
   return (

@@ -1,27 +1,10 @@
 
 import { type NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/middleware'
 
-export async function middleware(request: NextRequest) {
-  const { supabase, response } = createClient(request)
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  const { pathname } = request.nextUrl
-
-  // if user is not logged in and is not trying to log in, redirect to login
-  if (!user && pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
-  
-  // if user is logged in and is on the login page, redirect to POS
-  if (user && pathname === '/login') {
-    return NextResponse.redirect(new URL('/pos', request.url))
-  }
-
-  return response
+// This middleware is currently not performing any logic.
+// It can be extended to handle authentication checks for a real backend.
+export function middleware(request: NextRequest) {
+  return NextResponse.next()
 }
 
 export const config = {

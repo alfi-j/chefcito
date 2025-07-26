@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/context/i18n-context"
@@ -19,23 +18,12 @@ export function LoginForm() {
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        const supabase = createClient()
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
-
-        if (error) {
-            toast({
-                title: t('toast.error'),
-                description: error.message,
-                variant: "destructive"
-            });
-            return;
-        }
-
+        // Mock login - in a real app, you'd validate credentials
+        toast({
+            title: "Login Successful",
+            description: "Welcome back!",
+        });
         router.push("/pos")
-        router.refresh()
     }
 
     return (
