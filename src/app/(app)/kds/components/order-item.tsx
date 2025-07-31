@@ -33,16 +33,27 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
   const renderUncookedItem = () => (
     <div 
       className={cn(
-        "p-1 rounded-md transition-all cursor-pointer flex justify-between items-center",
+        "p-1 rounded-md transition-all cursor-pointer",
         statusColors[item.status]
       )}
       onClick={handleStatusChange}
     >
-      <div className="flex items-center gap-1.5 flex-1 min-w-0">
-        <span className="font-bold text-xl">{item.quantity}x</span>
-        <span className="font-semibold text-xl whitespace-normal break-words flex-1">{item.menuItem.name}</span>
+      <div className="flex justify-between items-start">
+        <div className="flex items-start gap-1.5 flex-1 min-w-0">
+          <span className="font-bold text-xl leading-tight">{item.quantity}x</span>
+          <div className="flex-1">
+            <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
+            {item.selectedExtras && item.selectedExtras.length > 0 && (
+              <div className="pl-2 text-sm text-muted-foreground font-medium">
+                {item.selectedExtras.map(extra => (
+                  <div key={extra.id}>+ {extra.name}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <span className="text-lg font-bold ml-1.5 leading-tight">{item.status}</span>
       </div>
-      <span className="text-lg font-bold ml-1.5">{item.status}</span>
     </div>
   );
 
@@ -54,9 +65,18 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
         )}
         onClick={handleRevertStatus}
       >
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <span className="font-bold text-xl">{item.cookedCount}x</span>
-          <span className="font-semibold text-xl whitespace-normal break-words flex-1 line-through">{item.menuItem.name}</span>
+        <div className="flex items-start gap-1.5 flex-1 min-w-0">
+          <span className="font-bold text-xl leading-tight">{item.cookedCount}x</span>
+           <div className="flex-1">
+            <span className="font-semibold text-xl whitespace-normal break-words line-through leading-tight">{item.menuItem.name}</span>
+            {item.selectedExtras && item.selectedExtras.length > 0 && (
+               <div className="pl-2 text-sm text-muted-foreground font-medium line-through">
+                {item.selectedExtras.map(extra => (
+                  <div key={extra.id}>+ {extra.name}</div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-lg font-bold ml-1.5">Cooked</span>
