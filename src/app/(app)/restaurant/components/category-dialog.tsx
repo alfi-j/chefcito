@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Check } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { useToast } from '@/hooks/use-toast'
 import { useI18n } from '@/context/i18n-context'
@@ -76,6 +76,10 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
   };
   
   const startEditing = (category: Category) => {
+    // If there's a category being edited, save it before starting to edit a new one.
+    if (editingCategory) {
+      handleUpdateCategory();
+    }
     setEditingCategory(JSON.parse(JSON.stringify(category)));
   }
 
@@ -146,7 +150,11 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                           <MultiSelect
                             options={modifierGroups}
                             selected={editingCategory.linkedModifiers || []}
-                            onChange={(selected) => setEditingCategory({...editingCategory, linkedModifiers: selected})}
+                            onChange={(selected) => {
+                               if (editingCategory) {
+                                setEditingCategory({...editingCategory, linkedModifiers: selected})
+                               }
+                            }}
                             className="mt-1"
                           />
                         </div>
@@ -159,9 +167,15 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                     </div>
                   )}
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEditing(category)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                     {editingCategory?.id === category.id ? (
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:text-green-700" onClick={handleUpdateCategory}>
+                        <Check className="h-4 w-4" />
+                      </Button>
+                     ) : (
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEditing(category)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                     )}
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteCategory(category.id, category.name)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
