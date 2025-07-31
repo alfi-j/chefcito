@@ -124,7 +124,9 @@
             "title": "Manage Categories",
             "desc": "Add, edit, or delete your menu categories.",
             "new_name": "New category name",
-            "add": "Add"
+            "add": "Add",
+            "is_extra": "Use as extras",
+            "extra_category": "Extras Category"
         },
         "payment_method_dialog": {
             "edit_title": "Edit Payment Method",
@@ -192,6 +194,3 @@
         "error": "Error"
     }
 }
-
-    
-    

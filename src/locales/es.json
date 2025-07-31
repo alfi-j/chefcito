@@ -124,7 +124,9 @@
             "title": "Gestionar Categorías",
             "desc": "Añade, edita o elimina las categorías de tu menú.",
             "new_name": "Nombre de la nueva categoría",
-            "add": "Añadir"
+            "add": "Añadir",
+            "is_extra": "Usar como extras",
+            "extra_category": "Categoría de Extras"
         },
         "payment_method_dialog": {
             "edit_title": "Editar Método de Pago",
@@ -192,6 +194,3 @@
         "error": "Error"
     }
 }
-
-    
-    

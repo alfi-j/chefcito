@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState, useEffect, useCallback } from 'react';
-import { type OrderItem, type MenuItem, type Category, type Extra } from '@/lib/types';
+import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
@@ -41,7 +41,7 @@ export default function PosPage() {
     setSelectedItem(item);
   };
 
-  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: Extra[]) => {
+  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     setCurrentOrderItems(prev => {
       const newItem: OrderItem = { 
         id: `${item.id}-${Date.now()}`, 
@@ -164,7 +164,7 @@ export default function PosPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
           <div className="lg:col-span-2 h-full">
-            <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleSelectItem} />
+            <MenuSelection menuItems={menuItems.filter(i => !categories.find(c => c.name === i.category)?.isExtra)} categories={categories.filter(c => !c.isExtra).map(c => c.name)} onAddItem={handleSelectItem} />
           </div>
           <div className="lg:col-span-1 h-full">
             <CurrentOrder 

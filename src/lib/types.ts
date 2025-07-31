@@ -1,10 +1,4 @@
 
-export type Extra = {
-  id: string;
-  name: string;
-  price: number;
-};
-
 export type MenuItem = {
   id: string;
   name: string;
@@ -12,7 +6,6 @@ export type MenuItem = {
   category: string;
   imageUrl: string;
   aiHint?: string;
-  availableExtras?: Extra[];
 };
 
 export type OrderItem = {
@@ -21,7 +14,7 @@ export type OrderItem = {
   quantity: number;
   cookedCount: number;
   status: 'New' | 'Cooking' | 'Cooked';
-  selectedExtras?: Extra[];
+  selectedExtras?: MenuItem[];
 };
 
 export type Order = {
@@ -36,6 +29,7 @@ export type Order = {
 export type Category = {
     id: number;
     name: string;
+    isExtra?: boolean;
 };
 
 export type PaymentMethod = {

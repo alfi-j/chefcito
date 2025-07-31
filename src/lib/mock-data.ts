@@ -1,21 +1,18 @@
 
-import { type MenuItem, type Category, type Order, type OrderItem, type Extra, type PaymentMethod } from './types';
-
-const extras: Extra[] = [
-    { id: 'extra-1', name: 'Extra Cheese', price: 1.50 },
-    { id: 'extra-2', name: 'Bacon', price: 2.00 },
-    { id: 'extra-3', name: 'Avocado', price: 2.50 },
-    { id: 'extra-4', name: 'Extra Patty', price: 4.00 },
-];
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod } from './types';
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pizza food', availableExtras: [extras[0], extras[1]] },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'salad food', availableExtras: [extras[2]] },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pizza food' },
+  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'salad food' },
   { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pasta food' },
   { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'tiramisu food' },
   { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'bruschetta food' },
   { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'soda drink' },
+  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'cheese topping' },
+  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'bacon topping' },
+  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'avocado topping' },
+  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'burger meat' },
 ];
 
 let categories: Category[] = [
@@ -23,6 +20,7 @@ let categories: Category[] = [
   { id: 2, name: 'Main Courses' },
   { id: 3, name: 'Desserts' },
   { id: 4, name: 'Beverages' },
+  { id: 5, name: 'Extras', isExtra: true },
 ];
 
 let orders: Order[] = [
@@ -33,7 +31,7 @@ let orders: Order[] = [
         createdAt: new Date(Date.now() - 5 * 60 * 1000), 
         isPinned: false,
         items: [
-            { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New', selectedExtras: [extras[0]] },
+            { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New', selectedExtras: [menuItems.find(m => m.id === 'extra-1')!] },
             { id: '1-2', menuItem: menuItems[2], quantity: 1, cookedCount: 0, status: 'New' },
         ]
     },
@@ -76,17 +74,18 @@ let nextItemId = 100;
 // Categories
 export const getCategories = () => [...categories].sort((a,b) => a.name.localeCompare(b.name));
 
-export const addCategory = (name: string) => {
-    const newCategory: Category = { id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, name };
+export const addCategory = (name: string, isExtra?: boolean) => {
+    const newCategory: Category = { id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, name, isExtra };
     categories.push(newCategory);
     return newCategory;
 };
 
-export const updateCategory = (id: number, name: string) => {
+export const updateCategory = (id: number, name: string, isExtra?: boolean) => {
     const category = categories.find(c => c.id === id);
     if (category) {
         const oldName = category.name;
         category.name = name;
+        category.isExtra = isExtra;
         // Also update menu items
         menuItems.forEach(item => {
             if (item.category === oldName) {

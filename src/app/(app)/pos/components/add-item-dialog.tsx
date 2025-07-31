@@ -15,30 +15,37 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useI18n } from '@/context/i18n-context';
-import { type MenuItem, type Extra } from '@/lib/types';
+import { type MenuItem, type Category } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
+import { getCategories, getMenuItems } from '@/lib/mock-data';
 
 interface AddItemDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem;
-  onAddItem: (item: MenuItem, quantity: number, selectedExtras: Extra[]) => void;
+  onAddItem: (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => void;
 }
 
 export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItemDialogProps) {
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
-  const [selectedExtras, setSelectedExtras] = useState<Extra[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
+  const [availableExtras, setAvailableExtras] = useState<MenuItem[]>([]);
 
   useEffect(() => {
     // Reset state when dialog opens for a new item
     if (isOpen) {
       setQuantity(1);
       setSelectedExtras([]);
+      
+      const allCategories = getCategories();
+      const extraCategories = allCategories.filter(c => c.isExtra).map(c => c.name);
+      const allMenuItems = getMenuItems();
+      setAvailableExtras(allMenuItems.filter(mi => extraCategories.includes(mi.category)));
     }
   }, [isOpen, item]);
   
-  const handleExtraChange = (extra: Extra, checked: boolean) => {
+  const handleExtraChange = (extra: MenuItem, checked: boolean) => {
     setSelectedExtras(prev => 
       checked ? [...prev, extra] : prev.filter(e => e.id !== extra.id)
     );
@@ -62,11 +69,11 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItem
         </DialogHeader>
 
         <div className="py-4 space-y-6">
-            {item.availableExtras && item.availableExtras.length > 0 && (
+            {availableExtras && availableExtras.length > 0 && (
                 <div className="space-y-2">
                     <Label className="font-semibold">{t('pos.add_item_dialog.extras')}</Label>
                     <div className="space-y-2">
-                        {item.availableExtras.map(extra => (
+                        {availableExtras.map(extra => (
                              <div key={extra.id} className="flex items-center space-x-2">
                                 <Checkbox
                                     id={`extra-${extra.id}`}
