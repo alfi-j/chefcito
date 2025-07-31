@@ -12,6 +12,7 @@ import {
   Sun,
   Type,
   Languages,
+  Settings,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -59,6 +60,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
     { href: "/restaurant", label: t('restaurant.title'), icon: Building },
+    { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ]
   
   const getPageTitle = () => {
@@ -66,9 +68,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     if (currentItem) {
       return currentItem.label;
     }
-    if (pathname.startsWith('/pos')) return t('pos.title');
-    if (pathname.startsWith('/kds')) return t('kds.title');
-    if (pathname.startsWith('/restaurant')) return t('restaurant.title');
     return "Dashboard";
   }
 
@@ -91,7 +90,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {menuItems.map((item) => (
+            {menuItems.filter(item => !item.isHidden).map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
@@ -150,6 +149,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void }) {
   const { theme, setTheme } = useTheme()
   const { t, language, setLanguage } = useI18n()
+  const router = useRouter();
 
   return (
     <DropdownMenu>
@@ -170,7 +170,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => router.push('/profile')}>
           <User className="mr-2 h-4 w-4" />
           <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>

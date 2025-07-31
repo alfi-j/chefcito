@@ -165,6 +165,26 @@
             "payment_method_delete_error": "Failed to delete payment method."
         }
     },
+    "profile": {
+        "title": "Profile",
+        "account_title": "My Account",
+        "account_desc": "Update your account settings.",
+        "name": "Name",
+        "email": "Email",
+        "save_button": "Save Changes",
+        "password_section_title": "Change Password",
+        "password_section_desc": "Update your password here. Please be careful.",
+        "current_password": "Current Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm New Password",
+        "change_password_button": "Change Password",
+        "toast": {
+            "profile_updated": "Profile information saved.",
+            "password_mismatch": "New passwords do not match.",
+            "password_empty": "Please fill in all password fields.",
+            "password_updated": "Password updated successfully."
+        }
+    },
     "userMenu": {
         "staff_member": "Staff Member",
         "profile": "Profile",

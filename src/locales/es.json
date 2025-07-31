@@ -165,6 +165,26 @@
             "payment_method_delete_error": "Error al eliminar el método de pago."
         }
     },
+    "profile": {
+        "title": "Perfil",
+        "account_title": "Mi Cuenta",
+        "account_desc": "Actualiza la configuración de tu cuenta.",
+        "name": "Nombre",
+        "email": "Correo Electrónico",
+        "save_button": "Guardar Cambios",
+        "password_section_title": "Cambiar Contraseña",
+        "password_section_desc": "Actualiza tu contraseña aquí. Por favor, ten cuidado.",
+        "current_password": "Contraseña Actual",
+        "new_password": "Nueva Contraseña",
+        "confirm_password": "Confirmar Nueva Contraseña",
+        "change_password_button": "Cambiar Contraseña",
+        "toast": {
+            "profile_updated": "Información del perfil guardada.",
+            "password_mismatch": "Las nuevas contraseñas no coinciden.",
+            "password_empty": "Por favor, rellena todos los campos de contraseña.",
+            "password_updated": "Contraseña actualizada correctamente."
+        }
+    },
     "userMenu": {
         "staff_member": "Miembro del Personal",
         "profile": "Perfil",
