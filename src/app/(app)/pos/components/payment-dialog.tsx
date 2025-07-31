@@ -55,8 +55,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   
   const addSplit = () => {
     const newId = Date.now();
-    const amountToPre-fill = remainingBalance > 0 ? remainingBalance.toFixed(2) : "0.00"
-    setSplits(currentSplits => [...currentSplits, { id: newId, amount: amountToPre-fill }]);
+    const amountToPreFill = remainingBalance > 0 ? remainingBalance.toFixed(2) : "0.00";
+    setSplits(currentSplits => [...currentSplits, { id: newId, amount: amountToPreFill }]);
   }
   
   const removeSplit = (id: number) => {
