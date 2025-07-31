@@ -1,0 +1,64 @@
+
+"use client"
+
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "./components/date-range-picker";
+import { SalesReport } from "./components/sales-report";
+import { ItemReport } from "./components/item-report";
+import { KitchenReport } from "./components/kitchen-report";
+import { useI18n } from '@/context/i18n-context';
+import { type DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { File } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+export default function ReportsPage() {
+  const { t } = useI18n();
+  const { toast } = useToast();
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  });
+
+  const handleExport = () => {
+    // This is a mock export. In a real app, this would trigger a download.
+    toast({
+      title: t('reports.toast.export_title'),
+      description: t('reports.toast.export_desc'),
+    });
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-3xl font-headline font-bold">{t('reports.title')}</h1>
+        <div className="flex gap-2 items-center">
+          <DateRangePicker date={date} onDateChange={setDate} />
+          <Button variant="outline" onClick={handleExport}>
+            <File className="mr-2 h-4 w-4" />
+            {t('reports.export')}
+          </Button>
+        </div>
+      </div>
+      <Tabs defaultValue="sales" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="sales">{t('reports.tabs.sales')}</TabsTrigger>
+          <TabsTrigger value="items">{t('reports.tabs.items')}</TabsTrigger>
+          <TabsTrigger value="kitchen">{t('reports.tabs.kitchen')}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="sales">
+          <SalesReport dateRange={date} />
+        </TabsContent>
+        <TabsContent value="items">
+          <ItemReport dateRange={date} />
+        </TabsContent>
+        <TabsContent value="kitchen">
+          <KitchenReport dateRange={date} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}

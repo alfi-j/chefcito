@@ -1,18 +1,21 @@
 
 import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod } from './types';
+import { subDays, eachDayOfInterval, format, differenceInMinutes, startOfDay } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pizza food' },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'salad food' },
-  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pasta food' },
-  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'tiramisu food' },
-  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'bruschetta food' },
-  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'soda drink' },
-  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'cheese topping' },
-  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'bacon topping' },
-  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'avocado topping' },
-  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'burger meat' },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: '', aiHint: 'pizza food' },
+  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food' },
+  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: '', aiHint: 'pasta food' },
+  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food' },
+  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food' },
+  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink' },
+  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping' },
+  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping' },
+  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping' },
+  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat' },
 ];
 
 let categories: Category[] = [
@@ -50,13 +53,45 @@ let orders: Order[] = [
         id: 3, 
         table: 1, 
         status: 'completed', 
-        createdAt: new Date(Date.now() - 30 * 60 * 1000), 
+        createdAt: new Date(Date.now() - 30 * 60 * 1000),
+        completedAt: new Date(Date.now() - 20 * 60 * 1000),
         isPinned: false,
         items: [
             { id: '3-1', menuItem: menuItems[3], quantity: 0, cookedCount: 1, status: 'Cooked' },
         ]
     },
 ];
+
+// Generate more historical completed orders for reporting
+for (let i = 0; i < 50; i++) {
+    const createdAt = subDays(new Date(), Math.floor(Math.random() * 30));
+    const prepTime = Math.floor(Math.random() * 20) + 5; // 5 to 25 minutes
+    const completedAt = new Date(createdAt.getTime() + prepTime * 60 * 1000);
+    const numItems = Math.floor(Math.random() * 4) + 1;
+    const orderItems: OrderItem[] = [];
+
+    for (let j = 0; j < numItems; j++) {
+        const menuItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+        const quantity = Math.floor(Math.random() * 2) + 1;
+        orderItems.push({
+            id: `h-${i}-${j}`,
+            menuItem: menuItem,
+            quantity: 0,
+            cookedCount: quantity,
+            status: 'Cooked'
+        });
+    }
+
+    orders.push({
+        id: 100 + i,
+        table: Math.floor(Math.random() * 10) + 1,
+        status: 'completed',
+        createdAt,
+        completedAt,
+        items: orderItems,
+    });
+}
+
 
 let paymentMethods: PaymentMethod[] = [
     { id: 'pm-1', name: 'Cash', type: 'cash', enabled: true },
@@ -66,8 +101,8 @@ let paymentMethods: PaymentMethod[] = [
 ];
 
 
-let nextOrderId = 4;
-let nextItemId = 100;
+let nextOrderId = orders.length + 1;
+let nextItemId = 1000;
 
 // Functions to interact with mock data
 
@@ -175,6 +210,13 @@ export const updateOrderItemStatus = (payload: { itemId: string, newStatus: Orde
             item.status = payload.newStatus;
             item.quantity = payload.newQuantity;
             item.cookedCount = payload.newCookedCount;
+            // If the whole order is now cooked, mark it as completed
+            if (order.items.every(i => i.quantity === 0 && i.cookedCount > 0)) {
+                 if (order.status === 'pending') {
+                    order.status = 'completed';
+                    order.completedAt = new Date();
+                 }
+            }
             return true;
         }
     }
@@ -185,7 +227,9 @@ export const updateOrderStatus = (payload: { orderId: number; newStatus: 'pendin
     const order = orders.find(o => o.id === payload.orderId);
     if (order) {
         order.status = payload.newStatus;
-        return true;
+        if(payload.newStatus === 'completed' && !order.completedAt) {
+            order.completedAt = new Date();
+        }
     }
     return false;
 }
@@ -225,4 +269,125 @@ export const deletePaymentMethod = (id: string) => {
         return true;
     }
     return false;
+};
+
+
+// Reporting
+const getOrderTotal = (order: Order) => {
+    return order.items.reduce((total, item) => {
+        const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
+        const mainItemPrice = item.menuItem.price + extrasTotal;
+        return total + (mainItemPrice * (item.cookedCount + item.quantity));
+    }, 0);
+};
+
+export const getSalesReport = (dateRange?: DateRange) => {
+    const completedOrders = orders.filter(o => {
+        if (o.status !== 'completed' || !o.completedAt) return false;
+        if (!dateRange || !dateRange.from) return true;
+        const to = dateRange.to || new Date();
+        return o.completedAt >= dateRange.from && o.completedAt <= to;
+    });
+
+    const totalRevenue = completedOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
+    const totalOrders = completedOrders.length;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    const dailySales: { [key: string]: number } = {};
+    if (dateRange?.from) {
+        const interval = eachDayOfInterval({ start: dateRange.from, end: dateRange.to || dateRange.from });
+        interval.forEach(day => {
+            const formattedDay = format(day, 'MMM d');
+            dailySales[formattedDay] = 0;
+        });
+    }
+
+    completedOrders.forEach(order => {
+        const day = format(order.completedAt!, 'MMM d');
+        if (dailySales[day] !== undefined) {
+            dailySales[day] += getOrderTotal(order);
+        }
+    });
+
+    return {
+        totalRevenue,
+        totalOrders,
+        avgOrderValue,
+        dailySales: Object.entries(dailySales).map(([date, total]) => ({ date, total })),
+    };
+};
+
+export const getItemSalesReport = (dateRange?: DateRange) => {
+    const completedOrders = orders.filter(o => {
+        if (o.status !== 'completed' || !o.completedAt) return false;
+        if (!dateRange || !dateRange.from) return true;
+        const to = dateRange.to || new Date();
+        return o.completedAt >= dateRange.from && o.completedAt <= to;
+    });
+
+    const itemSales: { [key: string]: { name: string, quantity: number, total: number } } = {};
+
+    completedOrders.forEach(order => {
+        order.items.forEach(item => {
+            if (!itemSales[item.menuItem.id]) {
+                itemSales[item.menuItem.id] = { name: item.menuItem.name, quantity: 0, total: 0 };
+            }
+            const quantity = item.cookedCount + item.quantity;
+            itemSales[item.menuItem.id].quantity += quantity;
+            itemSales[item.menuItem.id].total += item.menuItem.price * quantity;
+
+            item.selectedExtras?.forEach(extra => {
+                 if (!itemSales[extra.id]) {
+                    itemSales[extra.id] = { name: extra.name, quantity: 0, total: 0 };
+                }
+                itemSales[extra.id].quantity += quantity;
+                itemSales[extra.id].total += extra.price * quantity;
+            });
+        });
+    });
+
+    const allItems = Object.values(itemSales).sort((a, b) => b.quantity - a.quantity);
+
+    return {
+        bestSelling: allItems.slice(0, 5),
+        leastSelling: allItems.slice(-5).reverse(),
+    };
+};
+
+export const getKitchenPerformanceReport = (dateRange?: DateRange) => {
+    const completedOrders = orders.filter(o => {
+        if (o.status !== 'completed' || !o.completedAt) return false;
+        if (!dateRange || !dateRange.from) return true;
+        const to = dateRange.to || new Date();
+        return o.completedAt >= dateRange.from && o.completedAt <= to;
+    });
+
+    if (completedOrders.length === 0) {
+        return { avgPrepTime: 0, mostDelayed: [] };
+    }
+
+    const prepTimes = completedOrders.map(o => differenceInMinutes(o.completedAt!, o.createdAt));
+    const avgPrepTime = prepTimes.reduce((acc, time) => acc + time, 0) / prepTimes.length;
+
+    const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
+    completedOrders.forEach(order => {
+        const prepTime = differenceInMinutes(order.completedAt!, order.createdAt);
+        order.items.forEach(item => {
+            if (!itemPrepTimes[item.menuItem.id]) {
+                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+            }
+            itemPrepTimes[item.menuItem.id].times.push(prepTime);
+            itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
+        });
+    });
+
+    const mostDelayed = Object.values(itemPrepTimes)
+        .map(item => ({
+            name: item.name,
+            avgTime: item.times.reduce((a, b) => a + b, 0) / item.times.length,
+        }))
+        .sort((a, b) => b.avgTime - a.avgTime)
+        .slice(0, 5);
+
+    return { avgPrepTime, mostDelayed };
 };

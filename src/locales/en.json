@@ -165,6 +165,49 @@
             "payment_method_delete_error": "Failed to delete payment method."
         }
     },
+    "reports": {
+        "title": "Reports",
+        "export": "Export",
+        "pick_a_date": "Pick a date",
+        "loading": "Loading report data...",
+        "no_data": "No data available for the selected period.",
+        "tabs": {
+            "sales": "Sales",
+            "items": "Items",
+            "kitchen": "Kitchen"
+        },
+        "sales": {
+            "total_revenue": "Total Revenue",
+            "total_orders": "Total Orders",
+            "avg_order_value": "Avg. Order Value",
+            "daily_sales": "Daily Sales",
+            "daily_sales_desc": "Revenue generated per day in the selected period.",
+            "revenue": "Revenue"
+        },
+        "items": {
+            "best_selling": "Best Selling Items",
+            "least_selling": "Least Selling Items",
+            "table": {
+                "item": "Item",
+                "quantity_sold": "Quantity Sold",
+                "total_revenue": "Total Revenue"
+            }
+        },
+        "kitchen": {
+            "avg_prep_time": "Average Prep Time",
+            "avg_prep_time_desc": "Average time from order creation to completion.",
+            "most_delayed": "Most Delayed Items",
+            "most_delayed_desc": "Items with the longest average preparation time.",
+            "table": {
+                "item": "Item",
+                "avg_time": "Avg. Time"
+            }
+        },
+        "toast": {
+            "export_title": "Exporting Report",
+            "export_desc": "Your report is being generated and will download shortly."
+        }
+    },
     "profile": {
         "title": "Profile",
         "account_title": "My Account",

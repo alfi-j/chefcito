@@ -23,6 +23,7 @@ export type Order = {
   items: OrderItem[];
   status: 'pending' | 'completed';
   createdAt: Date;
+  completedAt?: Date;
   table: number;
   isPinned?: boolean;
 };
@@ -30,7 +31,7 @@ export type Order = {
 export type Category = {
     id: number;
     name: string;
-    isModifierGroup?: boolean; // Replaces isExtra
+    isModifierGroup?: boolean;
     linkedModifiers?: string[]; // Names of modifier categories
 };
 
@@ -49,5 +50,3 @@ export type BillSplit = {
 }
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
-
-    

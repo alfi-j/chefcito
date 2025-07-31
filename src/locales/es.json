@@ -165,6 +165,49 @@
             "payment_method_delete_error": "Error al eliminar el método de pago."
         }
     },
+    "reports": {
+        "title": "Informes",
+        "export": "Exportar",
+        "pick_a_date": "Elige una fecha",
+        "loading": "Cargando datos del informe...",
+        "no_data": "No hay datos disponibles para el período seleccionado.",
+        "tabs": {
+            "sales": "Ventas",
+            "items": "Artículos",
+            "kitchen": "Cocina"
+        },
+        "sales": {
+            "total_revenue": "Ingresos Totales",
+            "total_orders": "Pedidos Totales",
+            "avg_order_value": "Valor Promedio Pedido",
+            "daily_sales": "Ventas Diarias",
+            "daily_sales_desc": "Ingresos generados por día en el período seleccionado.",
+            "revenue": "Ingresos"
+        },
+        "items": {
+            "best_selling": "Artículos Más Vendidos",
+            "least_selling": "Artículos Menos Vendidos",
+            "table": {
+                "item": "Artículo",
+                "quantity_sold": "Cantidad Vendida",
+                "total_revenue": "Ingresos Totales"
+            }
+        },
+        "kitchen": {
+            "avg_prep_time": "Tiempo Promedio de Prep.",
+            "avg_prep_time_desc": "Tiempo promedio desde la creación hasta la finalización del pedido.",
+            "most_delayed": "Artículos con Mayor Retraso",
+            "most_delayed_desc": "Artículos con el tiempo de preparación promedio más largo.",
+            "table": {
+                "item": "Artículo",
+                "avg_time": "Tiempo Promedio"
+            }
+        },
+        "toast": {
+            "export_title": "Exportando Informe",
+            "export_desc": "Tu informe se está generando y se descargará en breve."
+        }
+    },
     "profile": {
         "title": "Perfil",
         "account_title": "Mi Cuenta",

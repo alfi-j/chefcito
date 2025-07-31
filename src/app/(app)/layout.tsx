@@ -13,6 +13,7 @@ import {
   Type,
   Languages,
   Settings,
+  BarChart3,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -43,7 +44,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
 import React, { useState } from "react"
 import { cn } from "@/lib/utils"
@@ -60,6 +61,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
     { href: "/restaurant", label: t('restaurant.title'), icon: Building },
+    { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ]
   
