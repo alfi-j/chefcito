@@ -1,10 +1,11 @@
 
 "use client"
 import React, { useState, useEffect, useCallback } from 'react';
-import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
+import { type OrderItem, type MenuItem, type Category, type Extra } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { PaymentDialog } from './components/payment-dialog';
+import { AddItemDialog } from './components/add-item-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
 import { getMenuItems, getCategories, addOrder } from '@/lib/mock-data';
@@ -15,11 +16,11 @@ export default function PosPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
   const { t } = useI18n();
 
   const fetchMenuData = useCallback(() => {
-    // In a real app, this would be an API call.
     setLoading(true);
     try {
         setMenuItems(getMenuItems());
@@ -36,22 +37,28 @@ export default function PosPage() {
     fetchMenuData();
   }, [fetchMenuData]);
   
-  const handleAddItem = (item: MenuItem) => {
+  const handleSelectItem = (item: MenuItem) => {
+    setSelectedItem(item);
+  };
+
+  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: Extra[]) => {
     setCurrentOrderItems(prev => {
-      const existingItem = prev.find(orderItem => orderItem.menuItem.id === item.id);
-      if (existingItem) {
-        return prev.map(orderItem => 
-          orderItem.menuItem.id === item.id 
-            ? { ...orderItem, quantity: orderItem.quantity + 1 }
-            : orderItem
-        );
-      }
-      return [...prev, { id: `${item.id}-${Date.now()}`, menuItem: item, quantity: 1, cookedCount: 0, status: 'New' }];
+      const newItem: OrderItem = { 
+        id: `${item.id}-${Date.now()}`, 
+        menuItem: item, 
+        quantity, 
+        cookedCount: 0, 
+        status: 'New',
+        selectedExtras
+      };
+      return [...prev, newItem];
     });
     toast({
       title: t('pos.toast.item_added', { item: item.name }),
-    })
+    });
+    setSelectedItem(null);
   };
+
 
   const handleRemoveItem = (itemId: string) => {
     setCurrentOrderItems(prev => prev.filter(item => item.id !== itemId));
@@ -81,16 +88,11 @@ export default function PosPage() {
       return;
     }
 
-    // In a real app, this would be an API call
     try {
-      const orderToCreate = {
+      addOrder({
         table: 4, // Mock table number
-        items: currentOrderItems.map(item => ({
-          menuItemId: item.menuItem.id,
-          quantity: item.quantity,
-        })),
-      };
-      addOrder(orderToCreate);
+        items: currentOrderItems,
+      });
       toast({
         title: t('pos.toast.order_sent_title'),
         description: t('pos.toast.order_sent_desc'),
@@ -118,8 +120,6 @@ export default function PosPage() {
   }
 
   const handleConfirmPayment = () => {
-    // This is where a real payment gateway integration would happen.
-    // For now, we just show a success message.
     toast({
       title: t('pos.toast.payment_success_title'),
       description: t('pos.toast.payment_success_desc'),
@@ -136,7 +136,10 @@ export default function PosPage() {
     )
   }
 
-  const subtotal = currentOrderItems.reduce((acc, item) => acc + item.menuItem.price * item.quantity, 0);
+  const subtotal = currentOrderItems.reduce((acc, item) => {
+    const extrasPrice = item.selectedExtras?.reduce((extraAcc, extra) => extraAcc + extra.price, 0) || 0;
+    return acc + (item.menuItem.price + extrasPrice) * item.quantity;
+  }, 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
@@ -148,9 +151,17 @@ export default function PosPage() {
         totalAmount={total}
         onConfirmPayment={handleConfirmPayment}
       />
+      {selectedItem && (
+        <AddItemDialog
+          item={selectedItem}
+          isOpen={!!selectedItem}
+          onOpenChange={(open) => !open && setSelectedItem(null)}
+          onAddItem={handleAddItemToOrder}
+        />
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
         <div className="lg:col-span-2 h-full">
-          <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleAddItem} />
+          <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleSelectItem} />
         </div>
         <div className="lg:col-span-1 h-full">
           <CurrentOrder 

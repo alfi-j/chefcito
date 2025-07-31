@@ -29,6 +29,12 @@
             "cash": "Efectivo",
             "confirm": "Confirmar Pago"
         },
+        "add_item_dialog": {
+            "customize": "Personaliza tu artículo y añádelo a la orden.",
+            "extras": "Extras",
+            "quantity": "Cantidad",
+            "add_to_order": "Añadir a la Orden"
+        },
         "toast": {
             "item_added": "{{item}} agregado",
             "empty_order_title": "Orden Vacía",

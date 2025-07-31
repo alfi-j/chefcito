@@ -29,6 +29,12 @@
             "cash": "Cash",
             "confirm": "Confirm Payment"
         },
+        "add_item_dialog": {
+            "customize": "Customize your item and add it to the order.",
+            "extras": "Extras",
+            "quantity": "Quantity",
+            "add_to_order": "Add to Order"
+        },
         "toast": {
             "item_added": "{{item}} added",
             "empty_order_title": "Empty Order",

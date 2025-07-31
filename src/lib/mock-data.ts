@@ -1,10 +1,17 @@
 
-import { type MenuItem, type Category, type Order, type OrderItem } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type Extra } from './types';
+
+const extras: Extra[] = [
+    { id: 'extra-1', name: 'Extra Cheese', price: 1.50 },
+    { id: 'extra-2', name: 'Bacon', price: 2.00 },
+    { id: 'extra-3', name: 'Avocado', price: 2.50 },
+    { id: 'extra-4', name: 'Extra Patty', price: 4.00 },
+];
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pizza food' },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'salad food' },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pizza food', availableExtras: [extras[0], extras[1]] },
+  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'salad food', availableExtras: [extras[2]] },
   { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'pasta food' },
   { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'tiramisu food' },
   { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: 'https://placehold.co/300x200.png', aiHint: 'bruschetta food' },
@@ -26,7 +33,7 @@ let orders: Order[] = [
         createdAt: new Date(Date.now() - 5 * 60 * 1000), 
         isPinned: false,
         items: [
-            { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New' },
+            { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New', selectedExtras: [extras[0]] },
             { id: '1-2', menuItem: menuItems[2], quantity: 1, cookedCount: 0, status: 'New' },
         ]
     },
@@ -126,7 +133,7 @@ export const findMenuItemById = (id: string) => menuItems.find(item => item.id =
 
 
 // Orders
-export const getInitialOrders = () => JSON.parse(JSON.stringify(orders.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())));
+export const getInitialOrders = () => JSON.parse(JSON.stringify(orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())));
 
 let lastNewOrderCheck = Date.now();
 export const getNewOrders = () => {
@@ -155,24 +162,14 @@ export const getNewOrders = () => {
 }
 
 
-export const addOrder = (orderData: { table: number, items: { menuItemId: string; quantity: number }[] }) => {
+export const addOrder = (orderData: { table: number, items: OrderItem[] }) => {
     const newOrder: Order = {
         id: nextOrderId++,
         table: orderData.table,
         status: 'pending',
         createdAt: new Date(),
         isPinned: false,
-        items: orderData.items.map(item => {
-            const menuItem = findMenuItemById(item.menuItemId);
-            if (!menuItem) throw new Error(`Menu item with id ${item.menuItemId} not found`);
-            return {
-                id: String(nextItemId++),
-                menuItem,
-                quantity: item.quantity,
-                cookedCount: 0,
-                status: 'New'
-            }
-        })
+        items: orderData.items.map(item => ({...item, id: String(nextItemId++)}))
     };
     orders.push(newOrder);
     return newOrder;

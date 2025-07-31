@@ -40,24 +40,35 @@ export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, on
               </div>
             ) : (
               items.map(item => (
-                <div key={item.id} className="flex items-center gap-4">
-                   <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
-                  <div className="flex-grow">
-                    <p className="font-semibold">{item.menuItem.name}</p>
-                    <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
-                      <MinusCircle className="h-4 w-4" />
+                <div key={item.id}>
+                  <div className="flex items-center gap-4">
+                    <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
+                    <div className="flex-grow">
+                      <p className="font-semibold">{item.menuItem.name}</p>
+                      <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+                        <MinusCircle className="h-4 w-4" />
+                      </Button>
+                      <span className="font-bold w-4 text-center">{item.quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+                        <PlusCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => onRemoveItem(item.id)}>
+                      <Trash2 className="h-4 w-4"/>
                     </Button>
-                    <span className="font-bold w-4 text-center">{item.quantity}</span>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
-                      <PlusCircle className="h-4 w-4" />
-                    </Button>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => onRemoveItem(item.id)}>
-                    <Trash2 className="h-4 w-4"/>
-                  </Button>
+                  {item.selectedExtras && item.selectedExtras.length > 0 && (
+                    <div className="pl-16 mt-1 text-sm text-muted-foreground">
+                      <ul className="list-disc list-inside">
+                        {item.selectedExtras.map(extra => (
+                           <li key={extra.id}>{extra.name} (+${extra.price.toFixed(2)})</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ))
             )}
