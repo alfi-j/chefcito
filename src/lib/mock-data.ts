@@ -146,27 +146,7 @@ export const getInitialOrders = () => JSON.parse(JSON.stringify(orders.sort((a, 
 
 let lastNewOrderCheck = Date.now();
 export const getNewOrders = () => {
-    // Simulate new orders appearing randomly
-    if (Math.random() > 0.8) {
-        const newOrder = {
-            id: nextOrderId++,
-            table: Math.floor(Math.random() * 20) + 1,
-            status: 'pending' as const,
-            createdAt: new Date(),
-            isPinned: false,
-            items: [
-                {
-                    id: String(nextItemId++),
-                    menuItem: menuItems[Math.floor(Math.random() * menuItems.length)],
-                    quantity: Math.floor(Math.random() * 2) + 1,
-                    cookedCount: 0,
-                    status: 'New' as const
-                }
-            ]
-        };
-        orders.push(newOrder);
-        return [newOrder];
-    }
+    // Return empty array to stop new orders from being added
     return [];
 }
 

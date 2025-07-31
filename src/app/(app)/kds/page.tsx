@@ -32,28 +32,14 @@ export default function KdsPage() {
 
   const fetchOrders = useCallback(() => {
     // In a real app, you'd fetch from an API
-    if (loading) {
-        const initialOrders = getInitialOrders();
-        setOrders(parseOrderDates(initialOrders));
-    } else {
-        // Simulate polling for new orders
-        const newOrders = getNewOrders();
-        if (newOrders.length > 0) {
-            setOrders(currentOrders => {
-                const currentIds = new Set(currentOrders.map(o => o.id));
-                const filteredNew = newOrders.filter(o => !currentIds.has(o.id));
-                return [...currentOrders, ...parseOrderDates(filteredNew)];
-            });
-        }
-    }
+    const initialOrders = getInitialOrders();
+    setOrders(parseOrderDates(initialOrders));
     setLoading(false);
-  }, [loading]);
+  }, []);
 
 
   useEffect(() => {
     fetchOrders(); // Initial fetch
-    const interval = setInterval(fetchOrders, 5000); // Poll for new orders
-    return () => clearInterval(interval);
   }, [fetchOrders]);
   
   const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {

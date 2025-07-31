@@ -12,9 +12,11 @@ export function useTimeAgo(date: Date) {
       const minutes = Math.floor(seconds / 60);
       const hours = Math.floor(minutes / 60);
 
-      if (hours > 0) setTimeAgo(`${hours}h`);
-      else if (minutes > 0) setTimeAgo(`${minutes}m`);
-      else setTimeAgo(`${seconds < 5 ? 'now' : `${seconds}s`}`);
+      if (hours > 0) {
+        setTimeAgo(`${hours}h`);
+      } else {
+        setTimeAgo(`${Math.max(1, minutes)}m`);
+      }
     };
 
     update();
