@@ -90,6 +90,7 @@
         },
         "payment_methods": {
             "title": "Métodos de Pago",
+            "desc": "Gestiona las opciones de pago disponibles en la caja.",
             "add_method": "Añadir Método",
             "table": {
                 "name": "Nombre",
@@ -185,3 +186,5 @@
         "error": "Error"
     }
 }
+
+    

@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { type Category, type MenuItem, type PaymentMethod } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { useI18n } from '@/context/i18n-context'
@@ -40,6 +40,9 @@ import {
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import { Label } from '@/components/ui/label'
 
 
 export default function RestaurantPage() {
@@ -227,8 +230,11 @@ export default function RestaurantPage() {
       
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
+          <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
+            <div className="space-y-1">
+              <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
+              <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
+            </div>
             <PaymentMethodDialog onSave={handleSavePaymentMethod}>
               <Button>
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -238,7 +244,8 @@ export default function RestaurantPage() {
           </div>
         </CardHeader>
         <CardContent>
-           <div className="border rounded-lg">
+            {/* Desktop Table View */}
+           <div className="border rounded-lg hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -278,8 +285,42 @@ export default function RestaurantPage() {
               </TableBody>
             </Table>
            </div>
+           {/* Mobile Card View */}
+            <div className="space-y-4 md:hidden">
+              {paymentMethods.map((method, index) => (
+                <div key={method.id} className="border rounded-lg p-4 space-y-4">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="font-semibold">{method.name}</p>
+                            <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
+                                <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                            </PaymentMethodDialog>
+                            <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Separator />
+                    
+                    <div className="flex justify-between items-center">
+                        <Label htmlFor={`enabled-${method.id}`} className="font-medium">{t('restaurant.payment_methods.table.enabled')}</Label>
+                        <Switch
+                            id={`enabled-${method.id}`}
+                            checked={method.enabled}
+                            onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                        />
+                    </div>
+                </div>
+              ))}
+            </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+
+    

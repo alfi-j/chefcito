@@ -90,6 +90,7 @@
         },
         "payment_methods": {
             "title": "Payment Methods",
+            "desc": "Manage the payment options available at checkout.",
             "add_method": "Add Method",
             "table": {
                 "name": "Name",
@@ -185,3 +186,5 @@
         "error": "Error"
     }
 }
+
+    
