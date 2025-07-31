@@ -41,7 +41,7 @@ export function MenuItemDialog({
   const { t } = useI18n();
 
   const [name, setName] = useState('');
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState<string | number>(0);
   const [category, setCategory] = useState('');
   const [imageUrl, setImageUrl] = useState('https://placehold.co/300x200.png');
   const [linkedModifiers, setLinkedModifiers] = useState<string[]>([]);
@@ -56,7 +56,7 @@ export function MenuItemDialog({
   useEffect(() => {
     if(isOpen) {
       setName(item?.name || '');
-      setPrice(item?.price || 0);
+      setPrice(item?.price || '');
       setCategory(item?.category || '');
       setImageUrl(item?.imageUrl || 'https://placehold.co/300x200.png');
       setLinkedModifiers(item?.linkedModifiers || []);
@@ -65,9 +65,15 @@ export function MenuItemDialog({
 
 
   const handleSubmit = () => {
+    const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(finalPrice)) {
+      // You might want to add user feedback here, e.g., a toast notification
+      return;
+    }
+
     const itemData = {
       name,
-      price: Number(price),
+      price: finalPrice,
       category,
       imageUrl,
       aiHint: `${name} food`,
@@ -98,7 +104,20 @@ export function MenuItemDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">{t('restaurant.item_dialog.price')}</Label>
-            <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
+            <Input 
+              id="price" 
+              type="text" 
+              inputMode="decimal"
+              pattern="[0-9.]*"
+              value={price} 
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d*\.?\d*$/.test(value)) {
+                    setPrice(value);
+                }
+              }} 
+              className="col-span-3" 
+            />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right">{t('restaurant.item_dialog.category')}</Label>

@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -39,22 +39,36 @@ export function MenuItemDialog({
   const isEditMode = !!item;
   const { t } = useI18n();
 
-  const [name, setName] = useState(item?.name || '');
-  const [price, setPrice] = useState(item?.price || 0);
-  const [category, setCategory] = useState(item?.category || '');
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl || 'https://placehold.co/300x200.png');
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState<string | number>(0);
+  const [category, setCategory] = useState('');
+  const [imageUrl, setImageUrl] = useState('https://placehold.co/300x200.png');
+
+  useEffect(() => {
+    if (isOpen) {
+      setName(item?.name || '');
+      setPrice(item?.price || '');
+      setCategory(item?.category || '');
+      setImageUrl(item?.imageUrl || 'https://placehold.co/300x200.png');
+    }
+  }, [isOpen, item]);
 
 
   const handleSubmit = () => {
+    const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(finalPrice)) {
+      // Handle invalid price input, maybe show a toast
+      return;
+    }
     const itemData = {
       name,
-      price: Number(price),
+      price: finalPrice,
       category,
       imageUrl,
       aiHint: `${name} food`,
     };
     if (isEditMode) {
-      onSave({ id: item.id, ...itemData });
+      onSave({ id: item!.id, ...itemData });
     } else {
       onSave(itemData);
     }
@@ -78,7 +92,20 @@ export function MenuItemDialog({
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">{t('menu.item_dialog.price')}</Label>
-            <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
+            <Input 
+              id="price" 
+              type="text" 
+              inputMode="decimal"
+              pattern="[0-9.]*"
+              value={price} 
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^\d*\.?\d*$/.test(value)) {
+                    setPrice(value);
+                }
+              }} 
+              className="col-span-3" 
+            />
           </div>
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right">{t('menu.item_dialog.category')}</Label>
