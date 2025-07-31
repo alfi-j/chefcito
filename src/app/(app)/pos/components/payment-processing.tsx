@@ -40,14 +40,14 @@ export function PaymentProcessing({ orderItems, totalAmount, onPaymentSuccess, o
                 onConfirmPayment={onPaymentSuccess}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full max-h-[80vh]">
-                 <Card className="lg:col-span-2 flex flex-col">
+            <div className="grid grid-cols-1 gap-8 h-full max-h-[80vh] items-center justify-center">
+                 <Card className="flex flex-col max-w-xl mx-auto w-full">
                     <CardHeader>
                         <CardTitle className="font-headline text-2xl">{t('pos.payment_dialog.title')}</CardTitle>
                         <CardDescription>{t('pos.current_order.table', { table: 4 })}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow">
-                        <ScrollArea className="h-[50vh]">
+                        <ScrollArea className="h-[40vh]">
                             <div className="space-y-4 pr-4">
                                 {orderItems.map(item => (
                                     <div key={item.id} className="flex items-center gap-4">

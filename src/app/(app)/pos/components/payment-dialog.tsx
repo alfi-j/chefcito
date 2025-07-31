@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getPaymentMethods } from '@/lib/mock-data';
 import { PaymentMethod } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
 
 
 interface PaymentDialogProps {
@@ -41,9 +42,14 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [selectedBank, setSelectedBank] = useState<string>('');
+  const [isSplittingBill, setIsSplittingBill] = useState(false);
   const [splits, setSplits] = useState<Array<{id: number, amount: string}>>([]);
   const { t } = useI18n();
   
+  const resetSplits = () => {
+    setSplits([{ id: Date.now(), amount: totalAmount > 0 ? totalAmount.toFixed(2) : '0.00' }]);
+  }
+
   useEffect(() => {
     if (isOpen) {
       const methods = getPaymentMethods().filter(m => m.enabled);
@@ -57,7 +63,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           setSelectedBank('');
         }
       }
-      setSplits([{ id: Date.now(), amount: totalAmount > 0 ? totalAmount.toFixed(2) : '0.00' }]);
+      setIsSplittingBill(false);
+      resetSplits();
     }
   }, [isOpen, totalAmount]);
   
@@ -96,6 +103,12 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     setSplits(currentSplits => currentSplits.filter(split => split.id !== id));
   }
 
+  const handleSplitToggle = (checked: boolean) => {
+    setIsSplittingBill(checked);
+    if (!checked) {
+      resetSplits();
+    }
+  }
 
   const getIconForMethod = (type: PaymentMethod['type']) => {
     switch (type) {
@@ -160,7 +173,10 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-                <Label htmlFor="split-bill" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch id="split-bill-switch" checked={isSplittingBill} onCheckedChange={handleSplitToggle} />
+                  <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
+                </div>
                 <div className={cn(
                     "text-lg font-bold",
                     remainingBalance > 0.01 && "text-destructive",
@@ -170,35 +186,40 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     {t('pos.payment_dialog.remaining_balance')}: ${remainingBalance.toFixed(2)}
                 </div>
             </div>
-             <ScrollArea className="h-40 w-full pr-4">
-                <div className="space-y-2">
-                    {splits.map((split, index) => (
-                        <div key={split.id} className="flex items-center gap-2">
-                            <Label className="w-20 shrink-0">{t('pos.payment_dialog.payment')} {index + 1}</Label>
-                            <Input
-                                type="text"
-                                value={split.amount}
-                                onChange={(e) => handleSplitChange(split.id, e.target.value)}
-                                className="text-right flex-1"
-                                placeholder="0.00"
-                            />
-                             <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-destructive/80 hover:text-destructive shrink-0"
-                                onClick={() => removeSplit(split.id)}
-                                disabled={splits.length <= 1}
-                            >
-                                <Trash2 className="h-4 w-4"/>
-                            </Button>
-                        </div>
-                    ))}
-                </div>
-            </ScrollArea>
-            <Button variant="outline" size="sm" onClick={addSplit} disabled={remainingBalance <= 0.01}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t('pos.payment_dialog.add_payment')}
-            </Button>
+            
+            {isSplittingBill && (
+              <>
+                <ScrollArea className="h-40 w-full pr-4">
+                    <div className="space-y-2">
+                        {splits.map((split, index) => (
+                            <div key={split.id} className="flex items-center gap-2">
+                                <Label className="w-20 shrink-0">{t('pos.payment_dialog.payment')} {index + 1}</Label>
+                                <Input
+                                    type="text"
+                                    value={split.amount}
+                                    onChange={(e) => handleSplitChange(split.id, e.target.value)}
+                                    className="text-right flex-1"
+                                    placeholder="0.00"
+                                />
+                                <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-destructive/80 hover:text-destructive shrink-0"
+                                    onClick={() => removeSplit(split.id)}
+                                    disabled={splits.length <= 1}
+                                >
+                                    <Trash2 className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                        ))}
+                    </div>
+                </ScrollArea>
+                <Button variant="outline" size="sm" onClick={addSplit} disabled={remainingBalance <= 0.01}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t('pos.payment_dialog.add_payment')}
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
