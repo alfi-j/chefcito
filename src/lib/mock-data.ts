@@ -6,9 +6,9 @@ import { DateRange } from 'react-day-picker';
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Pizzas', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true },
   { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true },
-  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true },
+  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Pastas', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true },
   { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true },
   { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true },
   { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true },
@@ -19,11 +19,13 @@ let menuItems: MenuItem[] = [
 ];
 
 let categories: Category[] = [
-  { id: 1, name: 'Appetizers' },
-  { id: 2, name: 'Main Courses', linkedModifiers: ['Extras'] },
-  { id: 3, name: 'Desserts' },
-  { id: 4, name: 'Beverages' },
-  { id: 5, name: 'Extras', isModifierGroup: true },
+  { id: 1, name: 'Appetizers', parentId: null },
+  { id: 2, name: 'Main Courses', linkedModifiers: ['Extras'], parentId: null },
+  { id: 3, name: 'Desserts', parentId: null },
+  { id: 4, name: 'Beverages', parentId: null },
+  { id: 5, name: 'Extras', isModifierGroup: true, parentId: null },
+  { id: 6, name: 'Pizzas', parentId: 2 },
+  { id: 7, name: 'Pastas', parentId: 2 },
 ];
 
 let orders: Order[] = [
@@ -109,24 +111,26 @@ let nextItemId = 1000;
 // Categories
 export const getCategories = () => [...categories].sort((a,b) => a.name.localeCompare(b.name));
 
-export const addCategory = (name: string, isModifierGroup?: boolean, linkedModifiers?: string[]) => {
+export const addCategory = (name: string, isModifierGroup?: boolean, linkedModifiers?: string[], parentId?: number | null) => {
     const newCategory: Category = { 
         id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, 
         name, 
         isModifierGroup,
-        linkedModifiers
+        linkedModifiers,
+        parentId
     };
     categories.push(newCategory);
     return newCategory;
 };
 
-export const updateCategory = (id: number, name: string, isModifierGroup?: boolean, linkedModifiers?: string[]) => {
+export const updateCategory = (id: number, name: string, isModifierGroup?: boolean, linkedModifiers?: string[], parentId?: number | null) => {
     const category = categories.find(c => c.id === id);
     if (category) {
         const oldName = category.name;
         category.name = name;
         category.isModifierGroup = isModifierGroup;
         category.linkedModifiers = linkedModifiers;
+        category.parentId = parentId;
         // Also update menu items
         menuItems.forEach(item => {
             if (item.category === oldName) {

@@ -10,6 +10,13 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -21,6 +28,10 @@ import { addCategory, updateCategory, deleteCategory as mockDeleteCategory, isCa
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
+
+interface RenderedCategory extends Category {
+  depth: number;
+}
 
 export function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -66,7 +77,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
   const handleUpdateCategory = () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
     try {
-      updateCategory(editingCategory.id, editingCategory.name, editingCategory.isModifierGroup, editingCategory.linkedModifiers);
+      updateCategory(editingCategory.id, editingCategory.name, editingCategory.isModifierGroup, editingCategory.linkedModifiers, editingCategory.parentId);
       onUpdate();
       setEditingCategory(null);
       toast({ title: t('toast.success'), description: t('restaurant.toast.category_updated') });
@@ -76,7 +87,6 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
   };
   
   const startEditing = (category: Category) => {
-    // If there's a category being edited, save it before starting to edit a new one.
     if (editingCategory) {
       handleUpdateCategory();
     }
@@ -92,6 +102,34 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
       setEditingCategory(null);
     }
   };
+  
+  const renderedCategories = useMemo(() => {
+    const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const roots: Category[] = [];
+
+    categories.forEach(category => {
+        if (category.parentId && categoryMap.has(category.parentId)) {
+            categoryMap.get(category.parentId)!.children.push(category as any);
+        } else {
+            roots.push(category);
+        }
+    });
+    
+    const flattened: RenderedCategory[] = [];
+    const traverse = (category: Category, depth: number) => {
+        flattened.push({ ...category, depth });
+        const children = categoryMap.get(category.id)?.children || [];
+        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+    };
+
+    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    return flattened;
+  }, [categories]);
+
+  const parentCategoryOptions = useMemo(() => {
+    return renderedCategories.filter(c => c.id !== editingCategory?.id);
+  }, [renderedCategories, editingCategory]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -123,7 +161,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
           </div>
           <ScrollArea className="h-64 border rounded-md">
             <div className="p-2 space-y-1">
-              {categories.map(category => (
+              {renderedCategories.map(category => (
                 <div key={category.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                   {editingCategory?.id === category.id ? (
                     <div className='flex-1 space-y-2'>
@@ -134,16 +172,45 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                         autoFocus
                         className="h-8"
                       />
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id={`isModifier-${category.id}`} 
-                          checked={editingCategory.isModifierGroup} 
-                          onCheckedChange={(checked) => setEditingCategory({ ...editingCategory, isModifierGroup: !!checked })}
-                        />
-                        <Label htmlFor={`isModifier-${category.id}`} className="text-sm font-medium">
-                          {t('restaurant.category_dialog.is_modifier')}
-                        </Label>
+                      <div className="grid grid-cols-2 gap-2">
+                         <div className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`isModifier-${category.id}`} 
+                              checked={editingCategory.isModifierGroup} 
+                              onCheckedChange={(checked) => setEditingCategory({ ...editingCategory, isModifierGroup: !!checked })}
+                            />
+                            <Label htmlFor={`isModifier-${category.id}`} className="text-sm font-medium">
+                              {t('restaurant.category_dialog.is_modifier')}
+                            </Label>
+                        </div>
                       </div>
+
+                       {!editingCategory.isModifierGroup && (
+                        <div>
+                          <Label className="text-sm font-medium">{t('restaurant.category_dialog.parent_category')}</Label>
+                          <Select
+                            value={String(editingCategory.parentId || 'null')}
+                            onValueChange={(value) => {
+                               if(editingCategory) {
+                                  setEditingCategory({...editingCategory, parentId: value === 'null' ? null : Number(value)})
+                               }
+                            }}
+                          >
+                             <SelectTrigger className="mt-1 h-8">
+                                <SelectValue placeholder={t('restaurant.category_dialog.select_parent')} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="null">{t('restaurant.category_dialog.no_parent')}</SelectItem>
+                                {parentCategoryOptions.map(opt => (
+                                    <SelectItem key={opt.id} value={String(opt.id)}>
+                                        <span style={{ paddingLeft: `${opt.depth * 1.25}rem` }}>{opt.name}</span>
+                                    </SelectItem>
+                                ))}
+                              </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      
                       {!editingCategory.isModifierGroup && (
                         <div>
                           <Label className="text-sm font-medium">{t('restaurant.category_dialog.linked_modifiers')}</Label>
@@ -161,7 +228,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                       )}
                     </div>
                   ) : (
-                    <div className='flex-1' onDoubleClick={() => startEditing(category)}>
+                    <div className='flex-1' onDoubleClick={() => startEditing(category)} style={{ paddingLeft: `${category.depth * 1.25}rem` }}>
                       <span>{category.name}</span>
                       {category.isModifierGroup && <span className="text-xs text-muted-foreground ml-2">({t('restaurant.category_dialog.modifier_group')})</span>}
                     </div>

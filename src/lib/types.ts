@@ -35,6 +35,7 @@ export type Category = {
     name: string;
     isModifierGroup?: boolean;
     linkedModifiers?: string[]; // Names of modifier categories
+    parentId?: number | null;
 };
 
 export type PaymentMethod = {

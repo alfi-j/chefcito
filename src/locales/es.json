@@ -140,7 +140,10 @@
             "add": "Añadir",
             "is_modifier": "Es un grupo de modificadores",
             "modifier_group": "Grupo de Modificadores",
-            "linked_modifiers": "Modificadores Vinculados"
+            "linked_modifiers": "Modificadores Vinculados",
+            "parent_category": "Categoría Padre",
+            "select_parent": "Selecciona una categoría padre",
+            "no_parent": "Sin Padre"
         },
         "payment_method_dialog": {
             "edit_title": "Editar Método de Pago",

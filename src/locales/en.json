@@ -140,7 +140,10 @@
             "add": "Add",
             "is_modifier": "Is a modifier group",
             "modifier_group": "Modifier Group",
-            "linked_modifiers": "Linked Modifiers"
+            "linked_modifiers": "Linked Modifiers",
+            "parent_category": "Parent Category",
+            "select_parent": "Select a parent category",
+            "no_parent": "No Parent"
         },
         "payment_method_dialog": {
             "edit_title": "Edit Payment Method",

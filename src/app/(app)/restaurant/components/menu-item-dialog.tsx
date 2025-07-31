@@ -26,6 +26,9 @@ import { MultiSelect } from './multi-select'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 
+interface RenderedCategory extends Category {
+  depth: number;
+}
 
 export function MenuItemDialog({ 
   children, 
@@ -56,6 +59,29 @@ export function MenuItemDialog({
         .map(c => ({ value: c.name, label: c.name })), 
     [categories]
   );
+  
+  const renderedCategories = useMemo(() => {
+    const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const roots: Category[] = [];
+
+    categories.forEach(category => {
+        if (category.parentId && categoryMap.has(category.parentId)) {
+            categoryMap.get(category.parentId)!.children.push(category as any);
+        } else {
+            roots.push(category);
+        }
+    });
+    
+    const flattened: RenderedCategory[] = [];
+    const traverse = (category: Category, depth: number) => {
+        flattened.push({ ...category, depth });
+        const children = categoryMap.get(category.id)?.children || [];
+        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+    };
+
+    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    return flattened;
+  }, [categories]);
 
   useEffect(() => {
     if(isOpen) {
@@ -138,7 +164,7 @@ export function MenuItemDialog({
                 <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                {renderedCategories.map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
               </SelectContent>
             </Select>
           </div>
