@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
+import { PaymentDialog } from './components/payment-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
 
@@ -12,6 +13,7 @@ export default function PosPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useI18n();
 
@@ -116,6 +118,26 @@ export default function PosPage() {
     }
   };
 
+  const handleOpenPaymentDialog = () => {
+     if (currentOrderItems.length === 0) {
+      toast({
+        title: t('pos.toast.empty_order_title'),
+        description: t('pos.toast.empty_order_payment_desc'),
+        variant: "destructive"
+      });
+      return;
+    }
+    setPaymentDialogOpen(true);
+  }
+
+  const handleConfirmPayment = () => {
+    toast({
+      title: t('pos.toast.payment_success_title'),
+      description: t('pos.toast.payment_success_desc'),
+    });
+    handleClearOrder();
+    setPaymentDialogOpen(false);
+  }
 
   if (loading) {
      return (
@@ -125,20 +147,36 @@ export default function PosPage() {
     )
   }
 
+  const subtotal = currentOrderItems.reduce((acc, item) => acc + item.menuItem.price * item.quantity, 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal + tax;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
-      <div className="lg:col-span-2 h-full">
-        <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleAddItem} />
+    <>
+      <PaymentDialog
+        isOpen={isPaymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        totalAmount={total}
+        onConfirmPayment={handleConfirmPayment}
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
+        <div className="lg:col-span-2 h-full">
+          <MenuSelection menuItems={menuItems} categories={categories.map(c => c.name)} onAddItem={handleAddItem} />
+        </div>
+        <div className="lg:col-span-1 h-full">
+          <CurrentOrder 
+            items={currentOrderItems} 
+            onUpdateQuantity={handleUpdateQuantity} 
+            onRemoveItem={handleRemoveItem}
+            onClearOrder={handleClearOrder}
+            onSendToKitchen={handleSendToKitchen}
+            onPayment={handleOpenPaymentDialog}
+            subtotal={subtotal}
+            tax={tax}
+            total={total}
+          />
+        </div>
       </div>
-      <div className="lg:col-span-1 h-full">
-        <CurrentOrder 
-          items={currentOrderItems} 
-          onUpdateQuantity={handleUpdateQuantity} 
-          onRemoveItem={handleRemoveItem}
-          onClearOrder={handleClearOrder}
-          onSendToKitchen={handleSendToKitchen}
-        />
-      </div>
-    </div>
+    </>
   );
 }

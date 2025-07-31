@@ -21,14 +21,25 @@
             "no_categories_desc_1": "No se encontraron categorías de menú.",
             "no_categories_desc_2": "Agrega categorías y artículos en la página de Menú."
         },
+        "payment_dialog": {
+            "title": "Procesar Pago",
+            "total_due": "Total a Pagar",
+            "method": "Método de Pago",
+            "card": "Tarjeta",
+            "cash": "Efectivo",
+            "confirm": "Confirmar Pago"
+        },
         "toast": {
             "item_added": "{{item}} agregado",
             "empty_order_title": "Orden Vacía",
             "empty_order_desc": "No se puede enviar una orden vacía a la cocina.",
+            "empty_order_payment_desc": "No se puede procesar el pago de una orden vacía.",
             "order_sent_title": "¡Orden Enviada!",
             "order_sent_desc": "La orden ha sido enviada a la cocina.",
             "fetch_error": "No se pudieron cargar los datos del menú.",
-            "send_error": "Error al enviar la orden a la cocina."
+            "send_error": "Error al enviar la orden a la cocina.",
+            "payment_success_title": "Pago Exitoso",
+            "payment_success_desc": "La orden ha sido pagada y completada."
         }
     },
     "kds": {

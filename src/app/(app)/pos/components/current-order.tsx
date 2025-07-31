@@ -6,22 +6,23 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem } from '@/lib/types'
-import { MinusCircle, PlusCircle, Trash2, Send } from 'lucide-react'
+import { MinusCircle, PlusCircle, Trash2, Send, CreditCard } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 
 interface CurrentOrderProps {
   items: OrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
   onUpdateQuantity: (itemId: string, newQuantity: number) => void;
   onRemoveItem: (itemId: string) => void;
   onClearOrder: () => void;
   onSendToKitchen: () => void;
+  onPayment: () => void;
 }
 
-export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrder, onSendToKitchen }: CurrentOrderProps) {
+export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, onRemoveItem, onClearOrder, onSendToKitchen, onPayment }: CurrentOrderProps) {
   const { t } = useI18n();
-  const subtotal = items.reduce((acc, item) => acc + item.menuItem.price * item.quantity, 0)
-  const tax = subtotal * 0.08
-  const total = subtotal + tax
 
   return (
     <Card className="h-full flex flex-col">
@@ -82,7 +83,10 @@ export function CurrentOrder({ items, onUpdateQuantity, onRemoveItem, onClearOrd
           <Separator className="my-2" />
           <div className="w-full grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={onClearOrder}>{t('pos.current_order.clear_order')}</Button>
-            <Button variant="secondary">{t('pos.current_order.payment')}</Button>
+            <Button variant="secondary" onClick={onPayment}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              {t('pos.current_order.payment')}
+            </Button>
           </div>
           <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen}>
             <Send className="mr-2 h-4 w-4"/>

@@ -21,14 +21,25 @@
             "no_categories_desc_1": "No menu categories found.",
             "no_categories_desc_2": "Add categories and items on the Menu page."
         },
+        "payment_dialog": {
+            "title": "Process Payment",
+            "total_due": "Total Due",
+            "method": "Payment Method",
+            "card": "Card",
+            "cash": "Cash",
+            "confirm": "Confirm Payment"
+        },
         "toast": {
             "item_added": "{{item}} added",
             "empty_order_title": "Empty Order",
             "empty_order_desc": "Cannot send an empty order to the kitchen.",
+            "empty_order_payment_desc": "Cannot process payment for an empty order.",
             "order_sent_title": "Order Sent!",
             "order_sent_desc": "The order has been sent to the kitchen.",
             "fetch_error": "Could not fetch menu data.",
-            "send_error": "Failed to send order to the kitchen."
+            "send_error": "Failed to send order to the kitchen.",
+            "payment_success_title": "Payment Successful",
+            "payment_success_desc": "The order has been paid and completed."
         }
     },
     "kds": {
