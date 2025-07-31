@@ -2,10 +2,9 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LoginForm } from "./login-form"
 import { Utensils } from "lucide-react"
 
-export function LoginFormWrapper() {
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
@@ -18,7 +17,7 @@ export function LoginFormWrapper() {
             <CardDescription>Welcome back! Please login to your account.</CardDescription>
           </CardHeader>
           <CardContent>
-            <LoginForm />
+            {children}
           </CardContent>
         </Card>
       </div>

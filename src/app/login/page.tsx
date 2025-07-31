@@ -1,11 +1,11 @@
 
 import { I18nProvider } from "@/context/i18n-context"
-import { LoginFormWrapper } from "./components/login-form-wrapper"
+import { LoginForm } from "./components/login-form"
 
 export default function LoginPage() {
   return (
     <I18nProvider>
-      <LoginFormWrapper />
+      <LoginForm />
     </I18nProvider>
   )
 }

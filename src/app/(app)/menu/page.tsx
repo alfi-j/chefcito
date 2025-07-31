@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,29 +21,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { type Category, type MenuItem } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { useI18n } from '@/context/i18n-context'
-import { getMenuItems, getCategories, addMenuItem, updateMenuItem, deleteMenuItem, addCategory, updateCategory, deleteCategory as mockDeleteCategory, isCategoryInUse } from '@/lib/mock-data';
+import { getMenuItems, getCategories, addMenuItem, updateMenuItem, deleteMenuItem, isCategoryInUse as mockIsCategoryInUse } from '@/lib/mock-data';
+import { MenuItemDialog } from './components/menu-item-dialog'
+import { CategoryDialog } from './components/category-dialog'
 
 
 export default function MenuPage() {
@@ -54,7 +38,6 @@ export default function MenuPage() {
   const { t } = useI18n();
 
   const fetchAllData = useCallback(() => {
-    // In a real app, you'd fetch from an API
     setLoading(true);
     try {
         setMenuItems(getMenuItems());
@@ -73,7 +56,6 @@ export default function MenuPage() {
 
   const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
-    // In a real app, this would be an API call
     try {
       if (isEditMode) {
         updateMenuItem(itemData as MenuItem);
@@ -88,7 +70,6 @@ export default function MenuPage() {
   };
 
   const handleDeleteItem = async (itemId: string) => {
-    // In a real app, this would be an API call
      try {
       deleteMenuItem(itemId);
       fetchAllData();
@@ -188,188 +169,4 @@ export default function MenuPage() {
       </CardContent>
     </Card>
   )
-}
-
-function MenuItemDialog({ 
-  children, 
-  item,
-  onSave,
-  categories
-}: { 
-  children: React.ReactNode, 
-  item?: MenuItem,
-  onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
-  categories: Category[],
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const isEditMode = !!item;
-  const { t } = useI18n();
-
-  const [name, setName] = useState(item?.name || '');
-  const [price, setPrice] = useState(item?.price || 0);
-  const [category, setCategory] = useState(item?.category || '');
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl || 'https://placehold.co/300x200.png');
-
-
-  const handleSubmit = () => {
-    const itemData = {
-      name,
-      price: Number(price),
-      category,
-      imageUrl,
-      aiHint: `${name} food`,
-    };
-    if (isEditMode) {
-      onSave({ id: item.id, ...itemData });
-    } else {
-      onSave(itemData);
-    }
-    setIsOpen(false);
-  };
-  
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle className="font-headline">{isEditMode ? t('menu.item_dialog.edit_title') : t('menu.item_dialog.add_title')}</DialogTitle>
-          <DialogDescription>
-            {isEditMode ? t('menu.item_dialog.edit_desc') : t('menu.item_dialog.add_desc')}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">{t('menu.item_dialog.name')}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="price" className="text-right">{t('menu.item_dialog.price')}</Label>
-            <Input id="price" type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="col-span-3" />
-          </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right">{t('menu.item_dialog.category')}</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder={t('menu.item_dialog.select_category')} />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.cancel')}</Button>
-          <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-
-function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: () => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState('');
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { toast } = useToast();
-  const { t } = useI18n();
-
-  const handleAddCategory = () => {
-    if (!newCategoryName.trim()) return;
-    try {
-      addCategory(newCategoryName);
-      onUpdate();
-      setNewCategoryName('');
-      toast({ title: t('toast.success'), description: t('menu.toast.category_added') });
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('menu.toast.add_category_error'), variant: "destructive" });
-    }
-  };
-
-  const handleDeleteCategory = (id: number, name: string) => {
-    try {
-      if (isCategoryInUse(name)) {
-        throw new Error(`Cannot delete category "${name}" because it is still in use.`);
-      }
-      mockDeleteCategory(id);
-      onUpdate();
-      toast({ title: t('toast.success'), description: t('menu.toast.category_deleted') });
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('menu.toast.delete_category_error'), variant: "destructive" });
-    }
-  };
-
-  const handleUpdateCategory = () => {
-    if (!editingCategory || !editingCategory.name.trim()) return;
-    try {
-      updateCategory(editingCategory.id, editingCategory.name);
-      onUpdate();
-      setEditingCategory(null);
-      toast({ title: t('toast.success'), description: t('menu.toast.category_updated') });
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('menu.toast.update_category_error'), variant: "destructive" });
-    }
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) {
-        setEditingCategory(null);
-      }
-    }}>
-      <DialogTrigger asChild>
-        <Button variant="outline">{t('menu.manage_categories')}</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-headline">{t('menu.category_dialog.title')}</DialogTitle>
-          <DialogDescription>{t('menu.category_dialog.desc')}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder={t('menu.category_dialog.new_name')}
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
-            />
-            <Button onClick={handleAddCategory}>{t('menu.category_dialog.add')}</Button>
-          </div>
-          <ScrollArea className="h-64 border rounded-md">
-            <div className="p-2 space-y-1">
-              {categories.map(category => (
-                <div key={category.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                  {editingCategory?.id === category.id ? (
-                    <Input
-                      value={editingCategory.name}
-                      onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                      onBlur={handleUpdateCategory}
-                      onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategory()}
-                      autoFocus
-                      className="h-8"
-                    />
-                  ) : (
-                    <span className="flex-1" onDoubleClick={() => setEditingCategory(category)}>{category.name}</span>
-                  )}
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditingCategory(category)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteCategory(category.id, category.name)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.close')}</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
