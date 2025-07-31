@@ -14,6 +14,13 @@ const isOrderCompleted = (order: Order) => order.items.every(item => item.quanti
 
 const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
 
+const parseOrderDates = (orders: Order[]): Order[] => {
+  return orders.map(order => ({
+    ...order,
+    createdAt: new Date(order.createdAt),
+  }));
+};
+
 export default function KdsPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +34,7 @@ export default function KdsPage() {
     // In a real app, you'd fetch from an API
     if (loading) {
         const initialOrders = getInitialOrders();
-        setOrders(initialOrders);
+        setOrders(parseOrderDates(initialOrders));
     } else {
         // Simulate polling for new orders
         const newOrders = getNewOrders();
@@ -35,7 +42,7 @@ export default function KdsPage() {
             setOrders(currentOrders => {
                 const currentIds = new Set(currentOrders.map(o => o.id));
                 const filteredNew = newOrders.filter(o => !currentIds.has(o.id));
-                return [...currentOrders, ...filteredNew];
+                return [...currentOrders, ...parseOrderDates(filteredNew)];
             });
         }
     }
@@ -108,7 +115,7 @@ export default function KdsPage() {
 
     } catch (error: any) {
         toast({ title: t('toast.error'), description: error.message || t('kds.toast.update_item_error'), variant: "destructive" });
-        setOrders(originalOrders);
+        setOrders(parseOrderDates(originalOrders));
     }
   }, [orders, toast, t]);
 
@@ -147,7 +154,7 @@ export default function KdsPage() {
       }
     } catch (error: any) {
       toast({ title: t('toast.error'), description: error.message || t('kds.toast.revert_item_error'), variant: "destructive" });
-      setOrders(originalOrders); // Revert on error
+      setOrders(parseOrderDates(originalOrders)); // Revert on error
     }
   }, [orders, toast, t]);
   
