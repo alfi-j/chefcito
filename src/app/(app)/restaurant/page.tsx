@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,18 +21,31 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { type Category, type MenuItem } from "@/lib/types"
+import { type Category, type MenuItem, type PaymentMethod } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Switch } from '@/components/ui/switch'
 import { useToast } from '@/hooks/use-toast'
 import { useI18n } from '@/context/i18n-context'
-import { getMenuItems, getCategories, addMenuItem, updateMenuItem, deleteMenuItem } from '@/lib/mock-data';
+import { 
+  getMenuItems, 
+  getCategories, 
+  addMenuItem, 
+  updateMenuItem, 
+  deleteMenuItem,
+  getPaymentMethods,
+  updatePaymentMethod as mockUpdatePaymentMethod,
+  addPaymentMethod as mockAddPaymentMethod,
+  deletePaymentMethod as mockDeletePaymentMethod,
+} from '@/lib/mock-data';
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
+import { PaymentMethodDialog } from './components/payment-method-dialog'
 
 
 export default function RestaurantPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useI18n();
@@ -42,8 +55,9 @@ export default function RestaurantPage() {
     try {
         setMenuItems(getMenuItems());
         setCategories(getCategories());
+        setPaymentMethods(getPaymentMethods());
     } catch (error) {
-       console.error("Failed to fetch menu data:", error);
+       console.error("Failed to fetch data:", error);
        toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
     } finally {
         setLoading(false);
@@ -54,7 +68,7 @@ export default function RestaurantPage() {
     fetchAllData();
   }, [fetchAllData]);
 
-  const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
+  const handleSaveItem = (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
     try {
       if (isEditMode) {
@@ -69,7 +83,7 @@ export default function RestaurantPage() {
     }
   };
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = (itemId: string) => {
      try {
       deleteMenuItem(itemId);
       fetchAllData();
@@ -82,6 +96,45 @@ export default function RestaurantPage() {
   const handleCategoriesUpdate = () => {
     fetchAllData();
   }
+
+  const handlePaymentMethodToggle = (id: string, enabled: boolean) => {
+    try {
+      const method = paymentMethods.find(m => m.id === id);
+      if(method) {
+        mockUpdatePaymentMethod({ ...method, enabled });
+        fetchAllData();
+        toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_updated') });
+      }
+    } catch(error: any) {
+      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_update_error'), variant: "destructive" });
+    }
+  }
+
+  const handleSavePaymentMethod = (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
+     const isEditMode = 'id' in methodData;
+     try {
+        if (isEditMode) {
+          mockUpdatePaymentMethod(methodData as PaymentMethod);
+        } else {
+          mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
+        }
+        fetchAllData();
+        toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
+     } catch (error: any) {
+        toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error'), variant: "destructive" });
+     }
+  }
+
+  const handleDeletePaymentMethod = (id: string) => {
+    try {
+      mockDeletePaymentMethod(id);
+      fetchAllData();
+      toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_deleted') });
+    } catch(error: any) {
+      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_delete_error'), variant: "destructive" });
+    }
+  }
+
 
   if (loading) {
     return (
@@ -169,6 +222,62 @@ export default function RestaurantPage() {
               </TableBody>
             </Table>
           </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
+            <PaymentMethodDialog onSave={handleSavePaymentMethod}>
+              <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t('restaurant.payment_methods.add_method')}
+              </Button>
+            </PaymentMethodDialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+           <div className="border rounded-lg">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('restaurant.payment_methods.table.name')}</TableHead>
+                  <TableHead>{t('restaurant.payment_methods.table.type')}</TableHead>
+                  <TableHead>{t('restaurant.payment_methods.table.enabled')}</TableHead>
+                  <TableHead>
+                    <span className="sr-only">{t('restaurant.payment_methods.table.actions')}</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paymentMethods.map((method) => (
+                  <TableRow key={method.id}>
+                    <TableCell className="font-medium">{method.name}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Switch 
+                        checked={method.enabled} 
+                        onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                       <div className="flex justify-end gap-2">
+                          <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
+                            <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                          </PaymentMethodDialog>
+                          <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                       </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+           </div>
         </CardContent>
       </Card>
     </div>

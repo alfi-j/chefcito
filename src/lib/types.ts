@@ -38,4 +38,12 @@ export type Category = {
     name: string;
 };
 
+export type PaymentMethod = {
+  id: string;
+  name: string;
+  type: 'cash' | 'card' | 'bank_transfer';
+  enabled: boolean;
+  banks?: string[];
+};
+
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

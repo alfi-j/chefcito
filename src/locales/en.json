@@ -27,6 +27,8 @@
             "method": "Payment Method",
             "card": "Card",
             "cash": "Cash",
+            "bank": "Bank",
+            "select_bank": "Select a bank",
             "confirm": "Confirm Payment",
             "split_bill": "Split Bill",
             "per_person": "per person",
@@ -86,6 +88,21 @@
                 "delete": "Delete"
             }
         },
+        "payment_methods": {
+            "title": "Payment Methods",
+            "add_method": "Add Method",
+            "table": {
+                "name": "Name",
+                "type": "Type",
+                "enabled": "Enabled",
+                "actions": "Actions"
+            },
+            "types": {
+                "cash": "Cash",
+                "card": "Card",
+                "bank_transfer": "Bank Transfer"
+            }
+        },
         "item_dialog": {
             "edit_title": "Edit Menu Item",
             "add_title": "Add New Menu Item",
@@ -102,8 +119,19 @@
             "new_name": "New category name",
             "add": "Add"
         },
+        "payment_method_dialog": {
+            "edit_title": "Edit Payment Method",
+            "add_title": "Add New Payment Method",
+            "edit_desc": "Make changes to the payment method.",
+            "add_desc": "Add a new way for customers to pay.",
+            "name": "Name",
+            "type": "Type",
+            "select_type": "Select a type",
+            "banks": "Banks",
+            "add_bank": "Add a new bank"
+        },
         "toast": {
-            "fetch_error": "Could not fetch menu data.",
+            "fetch_error": "Could not fetch data.",
             "item_updated": "Menu item updated.",
             "item_added": "Menu item added.",
             "update_item_error": "Failed to update item.",
@@ -115,7 +143,13 @@
             "category_deleted": "Category deleted.",
             "delete_category_error": "Failed to delete category.",
             "category_updated": "Category updated.",
-            "update_category_error": "Failed to update category."
+            "update_category_error": "Failed to update category.",
+            "payment_method_updated": "Payment method updated.",
+            "payment_method_update_error": "Failed to update payment method.",
+            "payment_method_added": "Payment method added.",
+            "payment_method_add_error": "Failed to add payment method.",
+            "payment_method_deleted": "Payment method deleted.",
+            "payment_method_delete_error": "Failed to delete payment method."
         }
     },
     "userMenu": {
@@ -143,7 +177,7 @@
     "dialog": {
         "cancel": "Cancel",
         "save": "Save changes",
-        "create": "Create Item",
+        "create": "Create",
         "close": "Close"
     },
     "toast": {

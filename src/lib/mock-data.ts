@@ -1,5 +1,5 @@
 
-import { type MenuItem, type Category, type Order, type OrderItem, type Extra } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type Extra, type PaymentMethod } from './types';
 
 const extras: Extra[] = [
     { id: 'extra-1', name: 'Extra Cheese', price: 1.50 },
@@ -59,6 +59,15 @@ let orders: Order[] = [
         ]
     },
 ];
+
+let paymentMethods: PaymentMethod[] = [
+    { id: 'pm-1', name: 'Cash', type: 'cash', enabled: true },
+    { id: 'pm-2', name: 'Card', type: 'card', enabled: true },
+    { id: 'pm-3', name: 'Bank Transfer', type: 'bank_transfer', enabled: true, banks: ['Bank A', 'Bank B', 'Bank C'] },
+    { id: 'pm-4', name: 'Gift Card', type: 'card', enabled: false },
+];
+
+
 let nextOrderId = 4;
 let nextItemId = 100;
 
@@ -205,3 +214,31 @@ export const toggleOrderPin = (payload: { orderId: number; isPinned: boolean }) 
     }
     return false;
 }
+
+
+// Payment Methods
+export const getPaymentMethods = () => [...paymentMethods];
+
+export const addPaymentMethod = (method: Omit<PaymentMethod, 'id'>) => {
+    const newMethod: PaymentMethod = { id: `pm-${Date.now()}`, ...method };
+    paymentMethods.push(newMethod);
+    return newMethod;
+};
+
+export const updatePaymentMethod = (method: PaymentMethod) => {
+    const index = paymentMethods.findIndex(i => i.id === method.id);
+    if (index > -1) {
+        paymentMethods[index] = method;
+        return method;
+    }
+    return null;
+};
+
+export const deletePaymentMethod = (id: string) => {
+    const index = paymentMethods.findIndex(i => i.id === id);
+    if (index > -1) {
+        paymentMethods.splice(index, 1);
+        return true;
+    }
+    return false;
+};

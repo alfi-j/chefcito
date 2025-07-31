@@ -27,6 +27,8 @@
             "method": "Método de Pago",
             "card": "Tarjeta",
             "cash": "Efectivo",
+            "bank": "Banco",
+            "select_bank": "Seleccione un banco",
             "confirm": "Confirmar Pago",
             "split_bill": "Dividir Cuenta",
             "per_person": "por persona",
@@ -86,6 +88,21 @@
                 "delete": "Eliminar"
             }
         },
+        "payment_methods": {
+            "title": "Métodos de Pago",
+            "add_method": "Añadir Método",
+            "table": {
+                "name": "Nombre",
+                "type": "Tipo",
+                "enabled": "Habilitado",
+                "actions": "Acciones"
+            },
+            "types": {
+                "cash": "Efectivo",
+                "card": "Tarjeta",
+                "bank_transfer": "Transferencia Bancaria"
+            }
+        },
         "item_dialog": {
             "edit_title": "Editar Artículo del Menú",
             "add_title": "Añadir Nuevo Artículo al Menú",
@@ -102,8 +119,19 @@
             "new_name": "Nombre de la nueva categoría",
             "add": "Añadir"
         },
+        "payment_method_dialog": {
+            "edit_title": "Editar Método de Pago",
+            "add_title": "Añadir Nuevo Método de Pago",
+            "edit_desc": "Realiza cambios en el método de pago.",
+            "add_desc": "Añade una nueva forma de pago para los clientes.",
+            "name": "Nombre",
+            "type": "Tipo",
+            "select_type": "Selecciona un tipo",
+            "banks": "Bancos",
+            "add_bank": "Añadir un nuevo banco"
+        },
         "toast": {
-            "fetch_error": "No se pudieron cargar los datos del menú.",
+            "fetch_error": "No se pudieron cargar los datos.",
             "item_updated": "Artículo del menú actualizado.",
             "item_added": "Artículo del menú añadido.",
             "update_item_error": "Error al actualizar el artículo.",
@@ -115,7 +143,13 @@
             "category_deleted": "Categoría eliminada.",
             "delete_category_error": "Error al eliminar la categoría.",
             "category_updated": "Categoría actualizada.",
-            "update_category_error": "Error al actualizar la categoría."
+            "update_category_error": "Error al actualizar la categoría.",
+            "payment_method_updated": "Método de pago actualizado.",
+            "payment_method_update_error": "Error al actualizar el método de pago.",
+            "payment_method_added": "Método de pago añadido.",
+            "payment_method_add_error": "Error al añadir el método de pago.",
+            "payment_method_deleted": "Método de pago eliminado.",
+            "payment_method_delete_error": "Error al eliminar el método de pago."
         }
     },
     "userMenu": {
@@ -143,7 +177,7 @@
     "dialog": {
         "cancel": "Cancelar",
         "save": "Guardar cambios",
-        "create": "Crear Artículo",
+        "create": "Crear",
         "close": "Cerrar"
     },
     "toast": {

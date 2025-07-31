@@ -10,15 +10,24 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useI18n } from '@/context/i18n-context';
-import { CreditCard, DollarSign, Users, PlusCircle, Trash2 } from 'lucide-react';
+import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { getPaymentMethods } from '@/lib/mock-data';
+import { PaymentMethod } from '@/lib/types';
 
 
 interface PaymentDialogProps {
@@ -29,7 +38,9 @@ interface PaymentDialogProps {
 }
 
 export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPayment }: PaymentDialogProps) {
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+  const [selectedBank, setSelectedBank] = useState<string>('');
   const [splits, setSplits] = useState<Array<{id: number, amount: string}>>([]);
   const { t } = useI18n();
   
@@ -39,10 +50,24 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   useEffect(() => {
     if (isOpen) {
+      const methods = getPaymentMethods().filter(m => m.enabled);
+      setPaymentMethods(methods);
+      if (methods.length > 0) {
+        setSelectedMethod(methods[0]);
+      }
       setSplits([{ id: Date.now(), amount: totalAmount.toFixed(2) }]);
-      setPaymentMethod('card');
+      setSelectedBank('');
     }
   }, [isOpen, totalAmount]);
+  
+  useEffect(() => {
+    if (selectedMethod?.type === 'bank_transfer' && selectedMethod.banks && selectedMethod.banks.length > 0) {
+      setSelectedBank(selectedMethod.banks[0]);
+    } else {
+      setSelectedBank('');
+    }
+  }, [selectedMethod]);
+
 
   const handleSplitChange = (id: number, value: string) => {
     // Allow only numbers and a single decimal point
@@ -63,6 +88,20 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     setSplits(currentSplits => currentSplits.filter(split => split.id !== id));
   }
 
+  const handleMethodChange = (value: string) => {
+    const method = paymentMethods.find(m => m.id === value);
+    if(method) setSelectedMethod(method);
+  }
+
+  const getIconForMethod = (type: PaymentMethod['type']) => {
+    switch (type) {
+      case 'card': return <CreditCard className="mb-3 h-6 w-6" />;
+      case 'cash': return <DollarSign className="mb-3 h-6 w-6" />;
+      case 'bank_transfer': return <Landmark className="mb-3 h-6 w-6" />;
+      default: return null;
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -78,33 +117,40 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           <div>
             <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
             <RadioGroup 
-              defaultValue="card" 
               className="mt-2 grid grid-cols-2 gap-4"
-              onValueChange={setPaymentMethod}
-              value={paymentMethod}
+              onValueChange={handleMethodChange}
+              value={selectedMethod?.id}
             >
-              <div>
-                <RadioGroupItem value="card" id="card" className="peer sr-only" />
-                <Label
-                  htmlFor="card"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                >
-                  <CreditCard className="mb-3 h-6 w-6" />
-                  {t('pos.payment_dialog.card')}
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="cash" id="cash" className="peer sr-only" />
-                <Label
-                  htmlFor="cash"
-                  className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                >
-                   <DollarSign className="mb-3 h-6 w-6" />
-                  {t('pos.payment_dialog.cash')}
-                </Label>
-              </div>
+              {paymentMethods.map(method => (
+                <div key={method.id}>
+                  <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
+                  <Label
+                    htmlFor={method.id}
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                  >
+                    {getIconForMethod(method.type)}
+                    {method.name}
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
+
+          {selectedMethod?.type === 'bank_transfer' && (
+             <div className="space-y-2">
+                <Label htmlFor="bank" className="font-semibold">{t('pos.payment_dialog.bank')}</Label>
+                <Select value={selectedBank} onValueChange={setSelectedBank}>
+                  <SelectTrigger id="bank">
+                    <SelectValue placeholder={t('pos.payment_dialog.select_bank')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {selectedMethod.banks?.map(bank => (
+                      <SelectItem key={bank} value={bank}>{bank}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+             </div>
+          )}
           
           <Separator />
 
@@ -154,7 +200,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-          <Button onClick={onConfirmPayment} disabled={!canConfirm}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
+          <Button onClick={onConfirmPayment} disabled={!canConfirm || (selectedMethod?.type === 'bank_transfer' && !selectedBank)}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
