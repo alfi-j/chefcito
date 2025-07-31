@@ -44,33 +44,41 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   const [splits, setSplits] = useState<Array<{id: number, amount: string}>>([]);
   const { t } = useI18n();
   
-  const totalPaid = splits.reduce((acc, split) => acc + (parseFloat(split.amount) || 0), 0);
-  const remainingBalance = totalAmount - totalPaid;
-  const canConfirm = Math.abs(remainingBalance) < 0.001 && totalPaid > 0;
-
   useEffect(() => {
     if (isOpen) {
       const methods = getPaymentMethods().filter(m => m.enabled);
       setPaymentMethods(methods);
       if (methods.length > 0) {
-        setSelectedMethod(methods[0]);
+        const defaultMethod = methods[0];
+        setSelectedMethod(defaultMethod);
+        if (defaultMethod.type === 'bank_transfer' && defaultMethod.banks && defaultMethod.banks.length > 0) {
+          setSelectedBank(defaultMethod.banks[0]);
+        } else {
+          setSelectedBank('');
+        }
       }
-      setSplits([{ id: Date.now(), amount: totalAmount.toFixed(2) }]);
-      setSelectedBank('');
+      setSplits([{ id: Date.now(), amount: totalAmount > 0 ? totalAmount.toFixed(2) : '0.00' }]);
     }
   }, [isOpen, totalAmount]);
   
-  useEffect(() => {
-    if (selectedMethod?.type === 'bank_transfer' && selectedMethod.banks && selectedMethod.banks.length > 0) {
-      setSelectedBank(selectedMethod.banks[0]);
-    } else {
-      setSelectedBank('');
+  const handleMethodChange = (value: string) => {
+    const method = paymentMethods.find(m => m.id === value);
+    if(method) {
+      setSelectedMethod(method);
+       if (method.type === 'bank_transfer' && method.banks && method.banks.length > 0) {
+        setSelectedBank(method.banks[0]);
+      } else {
+        setSelectedBank('');
+      }
     }
-  }, [selectedMethod]);
+  }
+
+  const totalPaid = splits.reduce((acc, split) => acc + (parseFloat(split.amount) || 0), 0);
+  const remainingBalance = totalAmount - totalPaid;
+  const canConfirm = Math.abs(remainingBalance) < 0.01 && totalPaid > 0;
 
 
   const handleSplitChange = (id: number, value: string) => {
-    // Allow only numbers and a single decimal point
     if (/^\d*\.?\d{0,2}$/.test(value)) {
         setSplits(currentSplits => 
             currentSplits.map(split => split.id === id ? { ...split, amount: value } : split)
@@ -80,7 +88,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   
   const addSplit = () => {
     const newId = Date.now();
-    const amountToPreFill = remainingBalance > 0 ? remainingBalance.toFixed(2) : "0.00";
+    const amountToPreFill = remainingBalance > 0.01 ? remainingBalance.toFixed(2) : "0.00";
     setSplits(currentSplits => [...currentSplits, { id: newId, amount: amountToPreFill }]);
   }
   
@@ -88,10 +96,6 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     setSplits(currentSplits => currentSplits.filter(split => split.id !== id));
   }
 
-  const handleMethodChange = (value: string) => {
-    const method = paymentMethods.find(m => m.id === value);
-    if(method) setSelectedMethod(method);
-  }
 
   const getIconForMethod = (type: PaymentMethod['type']) => {
     switch (type) {
@@ -117,7 +121,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           <div>
             <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
             <RadioGroup 
-              className="mt-2 grid grid-cols-2 gap-4"
+              className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3"
               onValueChange={handleMethodChange}
               value={selectedMethod?.id}
             >
@@ -159,8 +163,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                 <Label htmlFor="split-bill" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
                 <div className={cn(
                     "text-lg font-bold",
-                    remainingBalance > 0 && "text-destructive",
-                    remainingBalance < 0 && "text-yellow-500",
+                    remainingBalance > 0.01 && "text-destructive",
+                    remainingBalance < -0.01 && "text-yellow-500",
                     canConfirm && "text-green-600"
                 )}>
                     {t('pos.payment_dialog.remaining_balance')}: ${remainingBalance.toFixed(2)}
@@ -170,7 +174,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                 <div className="space-y-2">
                     {splits.map((split, index) => (
                         <div key={split.id} className="flex items-center gap-2">
-                            <Label className="w-20">{t('pos.payment_dialog.payment')} {index + 1}</Label>
+                            <Label className="w-20 shrink-0">{t('pos.payment_dialog.payment')} {index + 1}</Label>
                             <Input
                                 type="text"
                                 value={split.amount}
@@ -181,7 +185,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                              <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-8 w-8 text-destructive/80 hover:text-destructive"
+                                className="h-8 w-8 text-destructive/80 hover:text-destructive shrink-0"
                                 onClick={() => removeSplit(split.id)}
                                 disabled={splits.length <= 1}
                             >
@@ -191,7 +195,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     ))}
                 </div>
             </ScrollArea>
-            <Button variant="outline" size="sm" onClick={addSplit} disabled={remainingBalance <= 0}>
+            <Button variant="outline" size="sm" onClick={addSplit} disabled={remainingBalance <= 0.01}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t('pos.payment_dialog.add_payment')}
             </Button>
