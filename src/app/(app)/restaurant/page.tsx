@@ -250,14 +250,13 @@ export default function RestaurantPage() {
           </div>
         </CardHeader>
         <CardContent>
-            {/* Desktop Table View */}
-           <div className="border rounded-lg hidden md:block">
+           <div className="border rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('restaurant.payment_methods.table.name')}</TableHead>
-                  <TableHead>{t('restaurant.payment_methods.table.type')}</TableHead>
-                  <TableHead>{t('restaurant.payment_methods.table.enabled')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.type')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.enabled')}</TableHead>
                   <TableHead>
                     <span className="sr-only">{t('restaurant.payment_methods.table.actions')}</span>
                   </TableHead>
@@ -266,18 +265,32 @@ export default function RestaurantPage() {
               <TableBody>
                 {paymentMethods.map((method) => (
                   <TableRow key={method.id}>
-                    <TableCell className="font-medium">{method.name}</TableCell>
-                    <TableCell>
+                    <TableCell className="font-medium">
+                        {method.name}
+                        <div className="text-sm text-muted-foreground sm:hidden">
+                          {t(`restaurant.payment_methods.types.${method.type}`)}
+                        </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Switch 
                         checked={method.enabled} 
                         onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                        aria-label={`Enable ${method.name}`}
                       />
                     </TableCell>
                     <TableCell>
-                       <div className="flex justify-end gap-2">
+                       <div className="flex justify-end items-center gap-2">
+                          <div className="flex items-center gap-2 sm:hidden">
+                            <Label htmlFor={`enabled-switch-${method.id}`} className="text-sm">Enabled</Label>
+                            <Switch 
+                              id={`enabled-switch-${method.id}`}
+                              checked={method.enabled} 
+                              onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                            />
+                          </div>
                           <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
                             <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                           </PaymentMethodDialog>
@@ -291,38 +304,6 @@ export default function RestaurantPage() {
               </TableBody>
             </Table>
            </div>
-           {/* Mobile Card View */}
-            <div className="space-y-4 md:hidden">
-              {paymentMethods.map((method, index) => (
-                <div key={method.id} className="border rounded-lg p-4 space-y-4">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="font-semibold">{method.name}</p>
-                            <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
-                        </div>
-                         <div className="flex items-center gap-2">
-                            <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
-                                <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                            </PaymentMethodDialog>
-                            <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-
-                    <Separator />
-                    
-                    <div className="flex justify-between items-center">
-                        <Label htmlFor={`enabled-${method.id}`} className="font-medium">{t('restaurant.payment_methods.table.enabled')}</Label>
-                        <Switch
-                            id={`enabled-${method.id}`}
-                            checked={method.enabled}
-                            onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
-                        />
-                    </div>
-                </div>
-              ))}
-            </div>
         </CardContent>
       </Card>
     </div>
