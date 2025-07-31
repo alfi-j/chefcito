@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -20,22 +20,30 @@ import { useI18n } from '@/context/i18n-context'
 import { addCategory, updateCategory, deleteCategory as mockDeleteCategory, isCategoryInUse } from '@/lib/mock-data';
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { MultiSelect } from './multi-select'
 
 export function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [isNewCategoryExtra, setIsNewCategoryExtra] = useState(false);
+  const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { toast } = useToast();
   const { t } = useI18n();
+  
+  const modifierGroups = useMemo(() => 
+    categories
+        .filter(c => c.isModifierGroup)
+        .map(c => ({ value: c.name, label: c.name })), 
+    [categories]
+  );
 
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
     try {
-      addCategory(newCategoryName, isNewCategoryExtra);
+      addCategory(newCategoryName, isNewCategoryModifier);
       onUpdate();
       setNewCategoryName('');
-      setIsNewCategoryExtra(false);
+      setIsNewCategoryModifier(false);
       toast({ title: t('toast.success'), description: t('restaurant.toast.category_added') });
     } catch(error: any) {
       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.add_category_error'), variant: "destructive" });
@@ -58,7 +66,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
   const handleUpdateCategory = () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
     try {
-      updateCategory(editingCategory.id, editingCategory.name, editingCategory.isExtra);
+      updateCategory(editingCategory.id, editingCategory.name, editingCategory.isModifierGroup, editingCategory.linkedModifiers);
       onUpdate();
       setEditingCategory(null);
       toast({ title: t('toast.success'), description: t('restaurant.toast.category_updated') });
@@ -98,9 +106,9 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
               <Button onClick={handleAddCategory}>{t('restaurant.category_dialog.add')}</Button>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox id="isExtraNew" checked={isNewCategoryExtra} onCheckedChange={(checked) => setIsNewCategoryExtra(!!checked)} />
-              <Label htmlFor="isExtraNew" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                {t('restaurant.category_dialog.is_extra')}
+              <Checkbox id="isModifierNew" checked={isNewCategoryModifier} onCheckedChange={(checked) => setIsNewCategoryModifier(!!checked)} />
+              <Label htmlFor="isModifierNew" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                {t('restaurant.category_dialog.is_modifier')}
               </Label>
             </div>
           </div>
@@ -120,19 +128,30 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                       />
                       <div className="flex items-center space-x-2">
                         <Checkbox 
-                          id={`isExtra-${category.id}`} 
-                          checked={editingCategory.isExtra} 
-                          onCheckedChange={(checked) => setEditingCategory({ ...editingCategory, isExtra: !!checked })}
+                          id={`isModifier-${category.id}`} 
+                          checked={editingCategory.isModifierGroup} 
+                          onCheckedChange={(checked) => setEditingCategory({ ...editingCategory, isModifierGroup: !!checked })}
                         />
-                        <Label htmlFor={`isExtra-${category.id}`} className="text-sm font-medium">
-                          {t('restaurant.category_dialog.is_extra')}
+                        <Label htmlFor={`isModifier-${category.id}`} className="text-sm font-medium">
+                          {t('restaurant.category_dialog.is_modifier')}
                         </Label>
                       </div>
+                      {!editingCategory.isModifierGroup && (
+                        <div>
+                          <Label className="text-sm font-medium">{t('restaurant.category_dialog.linked_modifiers')}</Label>
+                          <MultiSelect
+                            options={modifierGroups}
+                            selected={editingCategory.linkedModifiers || []}
+                            onChange={(selected) => setEditingCategory({...editingCategory, linkedModifiers: selected})}
+                            className="mt-1"
+                          />
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className='flex-1' onDoubleClick={() => startEditing(category)}>
                       <span>{category.name}</span>
-                      {category.isExtra && <span className="text-xs text-muted-foreground ml-2">({t('restaurant.category_dialog.extra_category')})</span>}
+                      {category.isModifierGroup && <span className="text-xs text-muted-foreground ml-2">({t('restaurant.category_dialog.modifier_group')})</span>}
                     </div>
                   )}
                   <div className="flex gap-1">

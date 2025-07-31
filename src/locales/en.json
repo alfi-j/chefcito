@@ -118,15 +118,19 @@
             "name": "Name",
             "price": "Price",
             "category": "Category",
-            "select_category": "Select a category"
+            "select_category": "Select a category",
+            "linked_modifiers": "Linked Modifiers",
+            "select_modifiers": "Select modifiers...",
+            "modifiers_desc": "Modifiers will be available for this item at the POS."
         },
         "category_dialog": {
             "title": "Manage Categories",
             "desc": "Add, edit, or delete your menu categories.",
             "new_name": "New category name",
             "add": "Add",
-            "is_extra": "Use as extras",
-            "extra_category": "Extras Category"
+            "is_modifier": "Is a modifier group",
+            "modifier_group": "Modifier Group",
+            "linked_modifiers": "Linked Modifiers"
         },
         "payment_method_dialog": {
             "edit_title": "Edit Payment Method",

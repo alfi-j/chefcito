@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { type Category, type MenuItem } from "@/lib/types"
 import { useI18n } from '@/context/i18n-context'
+import { MultiSelect } from './multi-select'
 
 
 export function MenuItemDialog({ 
@@ -39,10 +40,28 @@ export function MenuItemDialog({
   const isEditMode = !!item;
   const { t } = useI18n();
 
-  const [name, setName] = useState(item?.name || '');
-  const [price, setPrice] = useState(item?.price || 0);
-  const [category, setCategory] = useState(item?.category || '');
-  const [imageUrl, setImageUrl] = useState(item?.imageUrl || 'https://placehold.co/300x200.png');
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState(0);
+  const [category, setCategory] = useState('');
+  const [imageUrl, setImageUrl] = useState('https://placehold.co/300x200.png');
+  const [linkedModifiers, setLinkedModifiers] = useState<string[]>([]);
+
+  const modifierGroups = useMemo(() => 
+    categories
+        .filter(c => c.isModifierGroup)
+        .map(c => ({ value: c.name, label: c.name })), 
+    [categories]
+  );
+
+  useEffect(() => {
+    if(isOpen) {
+      setName(item?.name || '');
+      setPrice(item?.price || 0);
+      setCategory(item?.category || '');
+      setImageUrl(item?.imageUrl || 'https://placehold.co/300x200.png');
+      setLinkedModifiers(item?.linkedModifiers || []);
+    }
+  }, [isOpen, item]);
 
 
   const handleSubmit = () => {
@@ -52,6 +71,7 @@ export function MenuItemDialog({
       category,
       imageUrl,
       aiHint: `${name} food`,
+      linkedModifiers,
     };
     if (isEditMode) {
       onSave({ id: item.id, ...itemData });
@@ -87,9 +107,23 @@ export function MenuItemDialog({
                 <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
               </SelectContent>
             </Select>
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="modifiers" className="text-right pt-2">{t('restaurant.item_dialog.linked_modifiers')}</Label>
+            <div className="col-span-3">
+               <MultiSelect
+                options={modifierGroups}
+                selected={linkedModifiers}
+                onChange={setLinkedModifiers}
+                placeholder={t('restaurant.item_dialog.select_modifiers')}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {t('restaurant.item_dialog.modifiers_desc')}
+              </p>
+            </div>
           </div>
         </div>
         <DialogFooter>

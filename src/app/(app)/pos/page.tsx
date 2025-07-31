@@ -142,6 +142,9 @@ export default function PosPage() {
   }, 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
+  
+  const displayCategories = categories.filter(c => !c.isModifierGroup).map(c => c.name);
+  const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
 
   return (
     <>
@@ -164,7 +167,7 @@ export default function PosPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
           <div className="lg:col-span-2 h-full">
-            <MenuSelection menuItems={menuItems.filter(i => !categories.find(c => c.name === i.category)?.isExtra)} categories={categories.filter(c => !c.isExtra).map(c => c.name)} onAddItem={handleSelectItem} />
+            <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
           </div>
           <div className="lg:col-span-1 h-full">
             <CurrentOrder 

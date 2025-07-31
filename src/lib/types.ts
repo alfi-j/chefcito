@@ -6,10 +6,11 @@ export type MenuItem = {
   category: string;
   imageUrl: string;
   aiHint?: string;
+  linkedModifiers?: string[]; // Names of modifier categories
 };
 
 export type OrderItem = {
-  id: string;
+  id:string;
   menuItem: MenuItem;
   quantity: number;
   cookedCount: number;
@@ -29,7 +30,8 @@ export type Order = {
 export type Category = {
     id: number;
     name: string;
-    isExtra?: boolean;
+    isModifierGroup?: boolean; // Replaces isExtra
+    linkedModifiers?: string[]; // Names of modifier categories
 };
 
 export type PaymentMethod = {

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import { useI18n } from '@/context/i18n-context';
 import { type MenuItem, type Category } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
 import { getCategories, getMenuItems } from '@/lib/mock-data';
+import { Separator } from '@/components/ui/separator';
 
 interface AddItemDialogProps {
   isOpen: boolean;
@@ -30,18 +31,33 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItem
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
-  const [availableExtras, setAvailableExtras] = useState<MenuItem[]>([]);
+  
+  const availableModifierGroups = useMemo(() => {
+    if (!item) return {};
+
+    const allCategories = getCategories();
+    const allItems = getMenuItems();
+    const itemCategory = allCategories.find(c => c.name === item.category);
+
+    const modifierCategoryNames = new Set([
+      ...(item.linkedModifiers || []),
+      ...(itemCategory?.linkedModifiers || [])
+    ]);
+    
+    const groups: Record<string, MenuItem[]> = {};
+    
+    modifierCategoryNames.forEach(catName => {
+        groups[catName] = allItems.filter(i => i.category === catName);
+    });
+
+    return groups;
+
+  }, [item]);
 
   useEffect(() => {
-    // Reset state when dialog opens for a new item
     if (isOpen) {
       setQuantity(1);
       setSelectedExtras([]);
-      
-      const allCategories = getCategories();
-      const extraCategories = allCategories.filter(c => c.isExtra).map(c => c.name);
-      const allMenuItems = getMenuItems();
-      setAvailableExtras(allMenuItems.filter(mi => extraCategories.includes(mi.category)));
     }
   }, [isOpen, item]);
   
@@ -69,28 +85,31 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItem
         </DialogHeader>
 
         <div className="py-4 space-y-6">
-            {availableExtras && availableExtras.length > 0 && (
-                <div className="space-y-2">
-                    <Label className="font-semibold">{t('pos.add_item_dialog.extras')}</Label>
+            {Object.entries(availableModifierGroups).map(([groupName, modifiers]) => (
+                <div key={groupName} className="space-y-2">
+                    <Label className="font-semibold">{groupName}</Label>
                     <div className="space-y-2">
-                        {availableExtras.map(extra => (
-                             <div key={extra.id} className="flex items-center space-x-2">
+                        {modifiers.map(modifier => (
+                             <div key={modifier.id} className="flex items-center space-x-2">
                                 <Checkbox
-                                    id={`extra-${extra.id}`}
-                                    onCheckedChange={(checked) => handleExtraChange(extra, !!checked)}
+                                    id={`extra-${modifier.id}`}
+                                    onCheckedChange={(checked) => handleExtraChange(modifier, !!checked)}
                                 />
                                 <label
-                                    htmlFor={`extra-${extra.id}`}
+                                    htmlFor={`extra-${modifier.id}`}
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
                                 >
-                                    {extra.name}
+                                    {modifier.name}
                                 </label>
-                                <span className="text-sm text-muted-foreground">+${extra.price.toFixed(2)}</span>
+                                <span className="text-sm text-muted-foreground">+${modifier.price.toFixed(2)}</span>
                             </div>
                         ))}
                     </div>
                 </div>
-            )}
+            ))}
+            
+            <Separator />
+            
              <div className="space-y-2">
                 <Label className="font-semibold">{t('pos.add_item_dialog.quantity')}</Label>
                 <div className="flex items-center gap-4">

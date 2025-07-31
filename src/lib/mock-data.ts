@@ -17,10 +17,10 @@ let menuItems: MenuItem[] = [
 
 let categories: Category[] = [
   { id: 1, name: 'Appetizers' },
-  { id: 2, name: 'Main Courses' },
+  { id: 2, name: 'Main Courses', linkedModifiers: ['Extras'] },
   { id: 3, name: 'Desserts' },
   { id: 4, name: 'Beverages' },
-  { id: 5, name: 'Extras', isExtra: true },
+  { id: 5, name: 'Extras', isModifierGroup: true },
 ];
 
 let orders: Order[] = [
@@ -74,18 +74,24 @@ let nextItemId = 100;
 // Categories
 export const getCategories = () => [...categories].sort((a,b) => a.name.localeCompare(b.name));
 
-export const addCategory = (name: string, isExtra?: boolean) => {
-    const newCategory: Category = { id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, name, isExtra };
+export const addCategory = (name: string, isModifierGroup?: boolean, linkedModifiers?: string[]) => {
+    const newCategory: Category = { 
+        id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, 
+        name, 
+        isModifierGroup,
+        linkedModifiers
+    };
     categories.push(newCategory);
     return newCategory;
 };
 
-export const updateCategory = (id: number, name: string, isExtra?: boolean) => {
+export const updateCategory = (id: number, name: string, isModifierGroup?: boolean, linkedModifiers?: string[]) => {
     const category = categories.find(c => c.id === id);
     if (category) {
         const oldName = category.name;
         category.name = name;
-        category.isExtra = isExtra;
+        category.isModifierGroup = isModifierGroup;
+        category.linkedModifiers = linkedModifiers;
         // Also update menu items
         menuItems.forEach(item => {
             if (item.category === oldName) {
@@ -143,7 +149,6 @@ export const findMenuItemById = (id: string) => menuItems.find(item => item.id =
 // Orders
 export const getInitialOrders = () => JSON.parse(JSON.stringify(orders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())));
 
-let lastNewOrderCheck = Date.now();
 export const getNewOrders = () => {
     // Return empty array to stop new orders from being added
     return [];

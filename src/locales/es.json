@@ -118,15 +118,19 @@
             "name": "Nombre",
             "price": "Precio",
             "category": "Categoría",
-            "select_category": "Selecciona una categoría"
+            "select_category": "Selecciona una categoría",
+            "linked_modifiers": "Modificadores Vinculados",
+            "select_modifiers": "Seleccionar modificadores...",
+            "modifiers_desc": "Los modificadores estarán disponibles para este artículo en el TPV."
         },
         "category_dialog": {
             "title": "Gestionar Categorías",
             "desc": "Añade, edita o elimina las categorías de tu menú.",
             "new_name": "Nombre de la nueva categoría",
             "add": "Añadir",
-            "is_extra": "Usar como extras",
-            "extra_category": "Categoría de Extras"
+            "is_modifier": "Es un grupo de modificadores",
+            "modifier_group": "Grupo de Modificadores",
+            "linked_modifiers": "Modificadores Vinculados"
         },
         "payment_method_dialog": {
             "edit_title": "Editar Método de Pago",
