@@ -27,7 +27,9 @@
             "method": "Payment Method",
             "card": "Card",
             "cash": "Cash",
-            "confirm": "Confirm Payment"
+            "confirm": "Confirm Payment",
+            "split_bill": "Split Bill",
+            "per_person": "per person"
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",

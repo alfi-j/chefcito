@@ -27,7 +27,9 @@
             "method": "Método de Pago",
             "card": "Tarjeta",
             "cash": "Efectivo",
-            "confirm": "Confirmar Pago"
+            "confirm": "Confirmar Pago",
+            "split_bill": "Dividir Cuenta",
+            "per_person": "por persona"
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
