@@ -28,6 +28,7 @@ import { getPaymentMethods } from '@/lib/mock-data';
 import { PaymentMethod, type OrderItem, type BillSplit } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
 interface PaymentDialogProps {
