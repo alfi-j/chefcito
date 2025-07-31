@@ -2,7 +2,7 @@
 "use client"
 import Link from "next/link"
 import {
-  UtensilsCrossed,
+  ChefHat,
   LayoutGrid,
   ClipboardList,
   Building,
@@ -86,7 +86,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         <SidebarRail />
         <SidebarHeader className="p-4">
           <Link href="/pos" className="flex items-center gap-2">
-            <UtensilsCrossed className="w-8 h-8 text-primary" />
+            <ChefHat className="w-8 h-8 text-primary" />
             <h1 className="text-2xl font-headline font-bold text-primary group-data-[collapsible=icon]:hidden">Chefcito</h1>
           </Link>
         </SidebarHeader>
