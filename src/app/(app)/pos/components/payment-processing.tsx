@@ -36,6 +36,7 @@ export function PaymentProcessing({ orderItems, totalAmount, onPaymentSuccess, o
                     if (!open) onCancel();
                     setPaymentDialogOpen(open);
                 }}
+                orderItems={orderItems}
                 totalAmount={totalAmount}
                 onConfirmPayment={onPaymentSuccess}
             />
