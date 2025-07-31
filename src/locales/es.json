@@ -34,7 +34,13 @@
             "per_person": "por persona",
             "payment": "Pago",
             "remaining_balance": "Restante",
-            "add_payment": "Añadir Pago"
+            "add_payment": "Añadir Pago",
+            "bill": "Cuenta",
+            "add_bill": "Añadir Cuenta",
+            "order_summary": "Resumen de la Orden",
+            "assign_items_for": "Asignar artículos para",
+            "all_items_assigned": "Todos los artículos asignados.",
+            "items_unassigned": "Hay artículos sin asignar."
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
@@ -187,4 +193,5 @@
     }
 }
 
+    
     

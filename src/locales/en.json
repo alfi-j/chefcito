@@ -34,7 +34,13 @@
             "per_person": "per person",
             "payment": "Payment",
             "remaining_balance": "Remaining",
-            "add_payment": "Add Payment"
+            "add_payment": "Add Payment",
+            "bill": "Bill",
+            "add_bill": "Add Bill",
+            "order_summary": "Order Summary",
+            "assign_items_for": "Assign items for",
+            "all_items_assigned": "All items assigned.",
+            "items_unassigned": "There are unassigned items."
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",
@@ -187,4 +193,5 @@
     }
 }
 
+    
     

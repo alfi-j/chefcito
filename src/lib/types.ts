@@ -46,4 +46,12 @@ export type PaymentMethod = {
   banks?: string[];
 };
 
+export type BillSplit = {
+  id: number;
+  items: OrderItem[];
+  total: number;
+}
+
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];
+
+    
