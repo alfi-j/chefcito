@@ -43,7 +43,7 @@ export function MenuItemDialog({
   const [name, setName] = useState('');
   const [price, setPrice] = useState<string | number>(0);
   const [category, setCategory] = useState('');
-  const [imageUrl, setImageUrl] = useState('https://placehold.co/300x200.png');
+  const [imageUrl, setImageUrl] = useState('');
   const [linkedModifiers, setLinkedModifiers] = useState<string[]>([]);
 
   const modifierGroups = useMemo(() => 
@@ -58,7 +58,7 @@ export function MenuItemDialog({
       setName(item?.name || '');
       setPrice(item?.price || '');
       setCategory(item?.category || '');
-      setImageUrl(item?.imageUrl || 'https://placehold.co/300x200.png');
+      setImageUrl(item?.imageUrl || '');
       setLinkedModifiers(item?.linkedModifiers || []);
     }
   }, [isOpen, item]);

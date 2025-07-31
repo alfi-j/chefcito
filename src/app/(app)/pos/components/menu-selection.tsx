@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type MenuItem } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Utensils } from 'lucide-react'
 
 interface MenuSelectionProps {
   menuItems: MenuItem[];
@@ -54,8 +55,12 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                     className="cursor-pointer hover:shadow-lg hover:border-primary transition-all flex flex-col overflow-hidden"
                     onClick={() => onAddItem(item)}
                   >
-                    <div className="w-full aspect-video relative">
-                        <Image src={item.imageUrl} alt={item.name} fill className="object-cover" data-ai-hint={item.aiHint} />
+                    <div className="w-full aspect-video relative bg-muted flex items-center justify-center">
+                        {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
+                            <Image src={item.imageUrl} alt={item.name} fill className="object-cover" data-ai-hint={item.aiHint} />
+                        ) : (
+                            <Utensils className="w-1/2 h-1/2 text-muted-foreground/50" />
+                        )}
                     </div>
                     <CardFooter className="p-2 flex-grow flex flex-col items-start justify-between">
                       <p className="font-semibold font-body text-sm">{item.name}</p>

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Utensils } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,14 +127,20 @@ export default function MenuPage() {
               {menuItems.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt={item.name}
-                      className="aspect-square rounded-md object-cover"
-                      height="64"
-                      src={item.imageUrl || 'https://placehold.co/64x64.png'}
-                      width="64"
-                      data-ai-hint={item.aiHint}
-                    />
+                    {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
+                      <Image
+                        alt={item.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={item.imageUrl}
+                        width="64"
+                        data-ai-hint={item.aiHint}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <Utensils className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="font-medium">{item.name}</TableCell>
                   <TableCell>

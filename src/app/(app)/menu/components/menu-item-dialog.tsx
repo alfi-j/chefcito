@@ -42,14 +42,14 @@ export function MenuItemDialog({
   const [name, setName] = useState('');
   const [price, setPrice] = useState<string | number>(0);
   const [category, setCategory] = useState('');
-  const [imageUrl, setImageUrl] = useState('https://placehold.co/300x200.png');
+  const [imageUrl, setImageUrl] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       setName(item?.name || '');
       setPrice(item?.price || '');
       setCategory(item?.category || '');
-      setImageUrl(item?.imageUrl || 'https://placehold.co/300x200.png');
+      setImageUrl(item?.imageUrl || '');
     }
   }, [isOpen, item]);
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem } from '@/lib/types'
-import { MinusCircle, PlusCircle, Trash2, Send, CreditCard } from 'lucide-react'
+import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 
 interface CurrentOrderProps {
@@ -42,7 +42,13 @@ export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, on
               items.map(item => (
                 <div key={item.id}>
                   <div className="flex items-center gap-4">
-                    <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
+                    {item.menuItem.imageUrl && !item.menuItem.imageUrl.startsWith("https://placehold.co") ? (
+                      <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
+                    ) : (
+                       <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                        <Utensils className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
                     <div className="flex-grow">
                       <p className="font-semibold">{item.menuItem.name}</p>
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>

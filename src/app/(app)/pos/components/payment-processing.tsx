@@ -10,6 +10,7 @@ import { useI18n } from "@/context/i18n-context";
 import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Utensils } from "lucide-react";
 
 interface PaymentProcessingProps {
     orderItems: OrderItem[];
@@ -52,7 +53,13 @@ export function PaymentProcessing({ orderItems, totalAmount, onPaymentSuccess, o
                             <div className="space-y-4 pr-4">
                                 {orderItems.map(item => (
                                     <div key={item.id} className="flex items-center gap-4">
-                                        <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
+                                        {item.menuItem.imageUrl && !item.menuItem.imageUrl.startsWith("https://placehold.co") ? (
+                                            <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
+                                        ) : (
+                                            <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
+                                                <Utensils className="w-6 h-6 text-muted-foreground" />
+                                            </div>
+                                        )}
                                         <div className="flex-grow">
                                             <p className="font-semibold">{item.quantity}x {item.menuItem.name}</p>
                                             <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
