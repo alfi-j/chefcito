@@ -85,38 +85,38 @@
   }
 
   .font-size-small {
-    font-size: 14px;
-  }
-  .font-size-medium {
     font-size: 16px;
   }
-  .font-size-large {
+  .font-size-medium {
     font-size: 18px;
   }
+  .font-size-large {
+    font-size: 20px;
+  }
 
-  .font-size-small .text-base { font-size: 14px; }
-  .font-size-medium .text-base { font-size: 16px; }
-  .font-size-large .text-base { font-size: 18px; }
+  .font-size-small .text-base { font-size: 16px; }
+  .font-size-medium .text-base { font-size: 18px; }
+  .font-size-large .text-base { font-size: 20px; }
 
-  .font-size-small .text-sm { font-size: 12px; }
-  .font-size-medium .text-sm { font-size: 14px; }
-  .font-size-large .text-sm { font-size: 16px; }
+  .font-size-small .text-sm { font-size: 14px; }
+  .font-size-medium .text-sm { font-size: 16px; }
+  .font-size-large .text-sm { font-size: 18px; }
 
-  .font-size-small .text-xs { font-size: 11px; }
-  .font-size-medium .text-xs { font-size: 12px; }
-  .font-size-large .text-xs { font-size: 14px; }
+  .font-size-small .text-xs { font-size: 12px; }
+  .font-size-medium .text-xs { font-size: 14px; }
+  .font-size-large .text-xs { font-size: 16px; }
 
-  .font-size-small .text-lg { font-size: 18px; }
-  .font-size-medium .text-lg { font-size: 20px; }
-  .font-size-large .text-lg { font-size: 22px; }
+  .font-size-small .text-lg { font-size: 20px; }
+  .font-size-medium .text-lg { font-size: 22px; }
+  .font-size-large .text-lg { font-size: 24px; }
 
-  .font-size-small .text-xl { font-size: 20px; }
-  .font-size-medium .text-xl { font-size: 22px; }
-  .font-size-large .text-xl { font-size: 26px; }
+  .font-size-small .text-xl { font-size: 22px; }
+  .font-size-medium .text-xl { font-size: 24px; }
+  .font-size-large .text-xl { font-size: 28px; }
 
-  .font-size-small .text-2xl { font-size: 24px; }
-  .font-size-medium .text-2xl { font-size: 28px; }
-  .font-size-large .text-2xl { font-size: 32px; }
+  .font-size-small .text-2xl { font-size: 26px; }
+  .font-size-medium .text-2xl { font-size: 30px; }
+  .font-size-large .text-2xl { font-size: 34px; }
 }
 
 @layer utilities {
