@@ -5,7 +5,7 @@ import {
   UtensilsCrossed,
   LayoutGrid,
   ClipboardList,
-  BookOpen,
+  Building,
   LogOut,
   User,
   Moon,
@@ -58,7 +58,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/menu", label: t('menu.title'), icon: BookOpen },
+    { href: "/restaurant", label: t('restaurant.title'), icon: Building },
   ]
   
   const getPageTitle = () => {
@@ -68,7 +68,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     }
     if (pathname.startsWith('/pos')) return t('pos.title');
     if (pathname.startsWith('/kds')) return t('kds.title');
-    if (pathname.startsWith('/menu')) return t('menu.title');
+    if (pathname.startsWith('/restaurant')) return t('restaurant.title');
     return "Dashboard";
   }
 

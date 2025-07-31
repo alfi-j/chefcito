@@ -63,20 +63,23 @@
             "pin_error": "Error al actualizar el estado de anclaje."
         }
     },
-    "menu": {
-        "title": "Gestión de Menú",
-        "loading": "Cargando menú...",
-        "add_item": "Añadir Artículo",
-        "manage_categories": "Gestionar Categorías",
-        "table": {
-            "image": "Imagen",
-            "name": "Nombre",
-            "category": "Categoría",
-            "price": "Precio",
-            "actions": "Acciones",
-            "toggle_menu": "Alternar menú",
-            "edit": "Editar",
-            "delete": "Eliminar"
+    "restaurant": {
+        "title": "Restaurante",
+        "loading": "Cargando datos...",
+        "menu": {
+            "title": "Gestión de Menú",
+            "add_item": "Añadir Artículo",
+            "manage_categories": "Gestionar Categorías",
+            "table": {
+                "image": "Imagen",
+                "name": "Nombre",
+                "category": "Categoría",
+                "price": "Precio",
+                "actions": "Acciones",
+                "toggle_menu": "Alternar menú",
+                "edit": "Editar",
+                "delete": "Eliminar"
+            }
         },
         "item_dialog": {
             "edit_title": "Editar Artículo del Menú",

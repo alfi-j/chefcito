@@ -63,20 +63,23 @@
             "pin_error": "Failed to update pin status."
         }
     },
-    "menu": {
-        "title": "Menu Management",
-        "loading": "Loading menu...",
-        "add_item": "Add Item",
-        "manage_categories": "Manage Categories",
-        "table": {
-            "image": "Image",
-            "name": "Name",
-            "category": "Category",
-            "price": "Price",
-            "actions": "Actions",
-            "toggle_menu": "Toggle menu",
-            "edit": "Edit",
-            "delete": "Delete"
+    "restaurant": {
+        "title": "Restaurant",
+        "loading": "Loading data...",
+        "menu": {
+            "title": "Menu Management",
+            "add_item": "Add Item",
+            "manage_categories": "Manage Categories",
+            "table": {
+                "image": "Image",
+                "name": "Name",
+                "category": "Category",
+                "price": "Price",
+                "actions": "Actions",
+                "toggle_menu": "Toggle menu",
+                "edit": "Edit",
+                "delete": "Delete"
+            }
         },
         "item_dialog": {
             "edit_title": "Edit Menu Item",
