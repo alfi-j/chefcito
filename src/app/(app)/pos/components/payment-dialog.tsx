@@ -178,7 +178,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                   <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
                 </div>
                 <div className={cn(
-                    "text-lg font-bold",
+                    "text-sm sm:text-lg font-bold text-right",
                     remainingBalance > 0.01 && "text-destructive",
                     remainingBalance < -0.01 && "text-yellow-500",
                     canConfirm && "text-green-600"
@@ -190,26 +190,28 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
             {isSplittingBill && (
               <>
                 <ScrollArea className="h-40 w-full pr-4">
-                    <div className="space-y-2">
+                    <div className="space-y-4">
                         {splits.map((split, index) => (
-                            <div key={split.id} className="flex items-center gap-2">
-                                <Label className="w-20 shrink-0">{t('pos.payment_dialog.payment')} {index + 1}</Label>
-                                <Input
-                                    type="text"
-                                    value={split.amount}
-                                    onChange={(e) => handleSplitChange(split.id, e.target.value)}
-                                    className="text-right flex-1"
-                                    placeholder="0.00"
-                                />
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8 text-destructive/80 hover:text-destructive shrink-0"
-                                    onClick={() => removeSplit(split.id)}
-                                    disabled={splits.length <= 1}
-                                >
-                                    <Trash2 className="h-4 w-4"/>
-                                </Button>
+                            <div key={split.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                <Label className="sm:w-20 shrink-0 text-left">{t('pos.payment_dialog.payment')} {index + 1}</Label>
+                                <div className="flex items-center gap-2 w-full">
+                                    <Input
+                                        type="text"
+                                        value={split.amount}
+                                        onChange={(e) => handleSplitChange(split.id, e.target.value)}
+                                        className="text-right flex-1"
+                                        placeholder="0.00"
+                                    />
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-8 w-8 text-destructive/80 hover:text-destructive shrink-0"
+                                        onClick={() => removeSplit(split.id)}
+                                        disabled={splits.length <= 1}
+                                    >
+                                        <Trash2 className="h-4 w-4"/>
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                     </div>
