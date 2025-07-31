@@ -7,6 +7,7 @@ import { MenuSelection } from './components/menu-selection';
 import { PaymentDialog } from './components/payment-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
+import { getMenuItems, getCategories, addOrder } from '@/lib/mock-data';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
@@ -17,20 +18,12 @@ export default function PosPage() {
   const { toast } = useToast();
   const { t } = useI18n();
 
-  const fetchMenuData = useCallback(async () => {
+  const fetchMenuData = useCallback(() => {
+    // In a real app, this would be an API call.
     setLoading(true);
     try {
-        const [itemsRes, catsRes] = await Promise.all([
-            fetch('/api/menu'),
-            fetch('/api/categories'),
-        ]);
-        if (!itemsRes.ok || !catsRes.ok) {
-            throw new Error('Failed to fetch menu data');
-        }
-        const items = await itemsRes.json();
-        const cats = await catsRes.json();
-        setMenuItems(items);
-        setCategories(cats);
+        setMenuItems(getMenuItems());
+        setCategories(getCategories());
     } catch(error) {
         console.error("Failed to fetch menu data:", error);
         toast({ title: t('toast.error'), description: t('pos.toast.fetch_error'), variant: "destructive" });
@@ -78,7 +71,7 @@ export default function PosPage() {
     setCurrentOrderItems([]);
   };
 
-  const handleSendToKitchen = async () => {
+  const handleSendToKitchen = () => {
     if (currentOrderItems.length === 0) {
       toast({
         title: t('pos.toast.empty_order_title'),
@@ -88,31 +81,25 @@ export default function PosPage() {
       return;
     }
 
-    const orderToCreate = {
-      table: 4, // Mock table number
-      items: currentOrderItems.map(item => ({
-        menuItemId: item.menuItem.id,
-        quantity: item.quantity,
-      })),
-    };
-    
-    const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderToCreate),
-    });
-    
-    if (res.ok) {
+    // In a real app, this would be an API call
+    try {
+      const orderToCreate = {
+        table: 4, // Mock table number
+        items: currentOrderItems.map(item => ({
+          menuItemId: item.menuItem.id,
+          quantity: item.quantity,
+        })),
+      };
+      addOrder(orderToCreate);
       toast({
         title: t('pos.toast.order_sent_title'),
         description: t('pos.toast.order_sent_desc'),
       });
       handleClearOrder();
-    } else {
-      const { error } = await res.json();
-      toast({
+    } catch (error: any) {
+       toast({
         title: t('toast.error'),
-        description: error || t('pos.toast.send_error'),
+        description: error.message || t('pos.toast.send_error'),
         variant: "destructive"
       });
     }
@@ -131,6 +118,8 @@ export default function PosPage() {
   }
 
   const handleConfirmPayment = () => {
+    // This is where a real payment gateway integration would happen.
+    // For now, we just show a success message.
     toast({
       title: t('pos.toast.payment_success_title'),
       description: t('pos.toast.payment_success_desc'),

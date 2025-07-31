@@ -16,9 +16,9 @@ export function LoginForm() {
     const [email, setEmail] = useState("staff@chefcito.com");
     const [password, setPassword] = useState("password");
     
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
-        // Mock login - in a real app, you'd validate credentials
+        // In a real app, this would validate credentials against a backend
         toast({
             title: "Login Successful",
             description: "Welcome back!",

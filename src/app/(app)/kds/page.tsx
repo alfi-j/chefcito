@@ -2,11 +2,13 @@
 "use client";
 import { useState, useEffect, useCallback, useMemo, type DragEvent } from "react";
 import { OrderCard } from "./components/order-card";
-import { type Order } from "@/lib/types";
+import { type Order, type OrderItem } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/context/i18n-context";
+import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin, getNewOrders } from "@/lib/mock-data";
+
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
 
@@ -21,45 +23,24 @@ export default function KdsPage() {
   const { toast } = useToast();
   const { t } = useI18n();
 
-  const fetchOrders = useCallback(async () => {
-    try {
-      const res = await fetch('/api/orders');
-      if (!res.ok) throw new Error('Failed to fetch orders');
-      const fetchedOrders: Order[] = await res.json();
-      
-      setOrders(currentOrders => {
-        const newOrdersFromServer = fetchedOrders.map(o => ({...o, createdAt: new Date(o.createdAt)}));
-        
-        if (loading) { // On initial load, just set the orders.
-          return newOrdersFromServer;
-        }
-
-        // For subsequent polls, only add new orders to avoid overwriting optimistic updates.
-        const currentOrderIds = new Set(currentOrders.map(o => o.id));
-        const ordersToAdd = newOrdersFromServer.filter(o => !currentOrderIds.has(o.id));
-        
-        if (ordersToAdd.length > 0) {
-            // We should also update the state of completed orders that might have been reverted
-            const updatedOrders = currentOrders.map(existingOrder => {
-                const updatedFromServer = newOrdersFromServer.find(o => o.id === existingOrder.id);
-                // If an order was completed and is now pending again (due to revert), update it
-                if (existingOrder.status === 'completed' && updatedFromServer && updatedFromServer.status === 'pending') {
-                    return updatedFromServer;
-                }
-                return existingOrder;
+  const fetchOrders = useCallback(() => {
+    // In a real app, you'd fetch from an API
+    if (loading) {
+        const initialOrders = getInitialOrders();
+        setOrders(initialOrders);
+    } else {
+        // Simulate polling for new orders
+        const newOrders = getNewOrders();
+        if (newOrders.length > 0) {
+            setOrders(currentOrders => {
+                const currentIds = new Set(currentOrders.map(o => o.id));
+                const filteredNew = newOrders.filter(o => !currentIds.has(o.id));
+                return [...currentOrders, ...filteredNew];
             });
-            return [...updatedOrders, ...ordersToAdd];
         }
-
-        return currentOrders;
-      });
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-      toast({ title: t('toast.error'), description: t('kds.toast.fetch_error'), variant: "destructive" });
-    } finally {
-      setLoading(false);
     }
-  }, [toast, loading, t]);
+    setLoading(false);
+  }, [loading]);
 
 
   useEffect(() => {
@@ -69,7 +50,7 @@ export default function KdsPage() {
   }, [fetchOrders]);
   
   const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {
-    const originalOrders = [...orders];
+    const originalOrders = JSON.parse(JSON.stringify(orders)); // Deep copy for revert
     let updatedOrder: Order | undefined;
 
     // --- Optimistic Update ---
@@ -107,45 +88,32 @@ export default function KdsPage() {
     setOrders(newOrders);
     // --- End Optimistic Update ---
 
+    // --- Mock Backend Call ---
     if (!updatedOrder) return;
     
     const itemToUpdate = updatedOrder.items.find(i => i.id === itemId);
     if (!itemToUpdate) return;
     
     try {
-      const res = await fetch('/api/orders', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            action: 'updateItemStatus', 
-            payload: {
-              itemId, 
-              newStatus: itemToUpdate.status,
-              newQuantity: itemToUpdate.quantity, 
-              newCookedCount: itemToUpdate.cookedCount
-            }
-          }),
+      mockUpdateItem({
+        itemId, 
+        newStatus: itemToUpdate.status,
+        newQuantity: itemToUpdate.quantity, 
+        newCookedCount: itemToUpdate.cookedCount
       });
 
-      if (!res.ok) throw new Error('Failed to update item status on server');
-      
       if (updatedOrder.status === 'completed') {
-          await fetch('/api/orders', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'updateOrderStatus', payload: { orderId, newStatus: 'completed' } }),
-          });
+        mockUpdateStatus({ orderId, newStatus: 'completed' });
       }
 
     } catch (error: any) {
         toast({ title: t('toast.error'), description: error.message || t('kds.toast.update_item_error'), variant: "destructive" });
-        // Revert to original state on failure
         setOrders(originalOrders);
     }
   }, [orders, toast, t]);
 
   const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
-    const originalOrders = [...orders];
+    const originalOrders = JSON.parse(JSON.stringify(orders)); // Deep copy for revert
     
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
@@ -171,18 +139,11 @@ export default function KdsPage() {
     setOrders(newOrders);
     // --- End Optimistic Update ---
 
+    // --- Mock Backend Call ---
     try {
-      await fetch('/api/orders', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'updateItemStatus', payload: { itemId, newStatus: 'New', newQuantity, newCookedCount } }),
-      });
+      mockUpdateItem({ itemId, newStatus: 'New', newQuantity, newCookedCount });
       if (order.status === 'completed') {
-        await fetch('/api/orders', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'updateOrderStatus', payload: { orderId, newStatus: 'pending' } }),
-        });
+        mockUpdateStatus({ orderId, newStatus: 'pending' });
       }
     } catch (error: any) {
       toast({ title: t('toast.error'), description: error.message || t('kds.toast.revert_item_error'), variant: "destructive" });
@@ -211,12 +172,6 @@ export default function KdsPage() {
         const pending = currentOrders.filter(o => o.status === 'pending' && !o.isPinned);
         const pinned = currentOrders.filter(o => o.status === 'pending' && o.isPinned);
         const completed = currentOrders.filter(o => o.status === 'completed');
-
-        const draggedOrder = pending.find(o => o.id === draggedOrderId);
-        if (!draggedOrder) {
-            handleDragEnd();
-            return currentOrders;
-        }
 
         const fromIndex = pending.findIndex(o => o.id === draggedOrderId);
         const toIndex = pending.findIndex(o => o.id === dropOrderId);
@@ -256,14 +211,9 @@ export default function KdsPage() {
     // Optimistic Update
     setOrders(currentOrders => currentOrders.map(o => o.id === orderId ? { ...o, isPinned: newPinState } : o));
 
+    // Mock backend call
     try {
-      const res = await fetch('/api/orders', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'togglePin', payload: { orderId, isPinned: newPinState } }),
-      });
-      if (!res.ok) throw new Error("Failed to update pin status on server");
-
+      mockTogglePin({ orderId, isPinned: newPinState });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('kds.toast.pin_error'), variant: "destructive" });
        setOrders(originalOrders);
