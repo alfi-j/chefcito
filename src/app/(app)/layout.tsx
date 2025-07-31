@@ -155,9 +155,8 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-          <Avatar className="h-10 w-10 border-2 border-primary/50">
-            <AvatarImage src="https://placehold.co/100x100.png" alt="@staff" data-ai-hint="user avatar" />
-            <AvatarFallback>S</AvatarFallback>
+          <Avatar className="h-10 w-10 border-2 border-primary/50 flex items-center justify-center">
+            <User className="h-5 w-5" />
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
