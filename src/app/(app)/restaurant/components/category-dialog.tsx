@@ -79,13 +79,18 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
     setEditingCategory(JSON.parse(JSON.stringify(category)));
   }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) {
-        setEditingCategory(null);
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+      if (editingCategory) {
+        handleUpdateCategory();
       }
-    }}>
+      setEditingCategory(null);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline">{t('restaurant.menu.manage_categories')}</Button>
       </DialogTrigger>
@@ -121,7 +126,6 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                        <Input
                         value={editingCategory.name}
                         onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                        onBlur={handleUpdateCategory}
                         onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategory()}
                         autoFocus
                         className="h-8"
@@ -168,7 +172,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
           </ScrollArea>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.close')}</Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>{t('dialog.close')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
