@@ -3,6 +3,8 @@ export type MenuItem = {
   id: string;
   name: string;
   price: number;
+  description?: string;
+  available?: boolean;
   category: string;
   imageUrl: string;
   aiHint?: string;

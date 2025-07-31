@@ -6,16 +6,16 @@ import { DateRange } from 'react-day-picker';
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: '', aiHint: 'pizza food' },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food' },
-  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: '', aiHint: 'pasta food' },
-  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food' },
-  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food' },
-  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink' },
-  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping' },
-  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping' },
-  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping' },
-  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat' },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Main Courses', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true },
+  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true },
+  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Main Courses', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true },
+  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true },
+  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true },
+  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true },
+  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping', description: 'Add extra cheese to your dish.', available: true },
+  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping', description: 'Add crispy bacon.', available: true },
+  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping', description: 'Add fresh avocado.', available: true },
+  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat', description: 'Add another juicy patty.', available: true },
 ];
 
 let categories: Category[] = [

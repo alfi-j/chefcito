@@ -87,11 +87,16 @@
                 "image": "Imagen",
                 "name": "Nombre",
                 "category": "Categoría",
+                "status": "Estado",
                 "price": "Precio",
                 "actions": "Acciones",
                 "toggle_menu": "Alternar menú",
                 "edit": "Editar",
                 "delete": "Eliminar"
+            },
+             "status": {
+                "available": "Disponible",
+                "unavailable": "No disponible"
             }
         },
         "payment_methods": {
@@ -116,12 +121,14 @@
             "edit_desc": "Realiza cambios en el artículo del menú aquí. Haz clic en guardar cuando termines.",
             "add_desc": "Añade un nuevo artículo a tu menú. Haz clic en crear cuando termines.",
             "name": "Nombre",
+            "description": "Descripción",
             "price": "Precio",
             "category": "Categoría",
             "select_category": "Selecciona una categoría",
             "linked_modifiers": "Modificadores Vinculados",
             "select_modifiers": "Seleccionar modificadores...",
-            "modifiers_desc": "Los modificadores estarán disponibles para este artículo en el TPV."
+            "modifiers_desc": "Los modificadores estarán disponibles para este artículo en el TPV.",
+            "available": "Disponible"
         },
         "category_dialog": {
             "title": "Gestionar Categorías",

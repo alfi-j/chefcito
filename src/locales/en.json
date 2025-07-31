@@ -87,11 +87,16 @@
                 "image": "Image",
                 "name": "Name",
                 "category": "Category",
+                "status": "Status",
                 "price": "Price",
                 "actions": "Actions",
                 "toggle_menu": "Toggle menu",
                 "edit": "Edit",
                 "delete": "Delete"
+            },
+            "status": {
+                "available": "Available",
+                "unavailable": "Unavailable"
             }
         },
         "payment_methods": {
@@ -116,12 +121,14 @@
             "edit_desc": "Make changes to the menu item here. Click save when you're done.",
             "add_desc": "Add a new item to your menu. Click save when you're done.",
             "name": "Name",
+            "description": "Description",
             "price": "Price",
             "category": "Category",
             "select_category": "Select a category",
             "linked_modifiers": "Linked Modifiers",
             "select_modifiers": "Select modifiers...",
-            "modifiers_desc": "Modifiers will be available for this item at the POS."
+            "modifiers_desc": "Modifiers will be available for this item at the POS.",
+            "available": "Available"
         },
         "category_dialog": {
             "title": "Manage Categories",

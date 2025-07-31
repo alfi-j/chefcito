@@ -23,6 +23,8 @@ import {
 import { type Category, type MenuItem } from "@/lib/types"
 import { useI18n } from '@/context/i18n-context'
 import { MultiSelect } from './multi-select'
+import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 
 
 export function MenuItemDialog({ 
@@ -41,6 +43,8 @@ export function MenuItemDialog({
   const { t } = useI18n();
 
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [available, setAvailable] = useState(true);
   const [price, setPrice] = useState<string | number>(0);
   const [category, setCategory] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -56,6 +60,8 @@ export function MenuItemDialog({
   useEffect(() => {
     if(isOpen) {
       setName(item?.name || '');
+      setDescription(item?.description || '');
+      setAvailable(item?.available ?? true);
       setPrice(item?.price || '');
       setCategory(item?.category || '');
       setImageUrl(item?.imageUrl || '');
@@ -73,6 +79,8 @@ export function MenuItemDialog({
 
     const itemData = {
       name,
+      description,
+      available,
       price: finalPrice,
       category,
       imageUrl,
@@ -90,7 +98,7 @@ export function MenuItemDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
           <DialogDescription>
@@ -101,6 +109,10 @@ export function MenuItemDialog({
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">{t('restaurant.item_dialog.name')}</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
+          </div>
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="description" className="text-right pt-2">{t('restaurant.item_dialog.description')}</Label>
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right">{t('restaurant.item_dialog.price')}</Label>
@@ -143,6 +155,10 @@ export function MenuItemDialog({
                 {t('restaurant.item_dialog.modifiers_desc')}
               </p>
             </div>
+          </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="available" className="text-right">{t('restaurant.item_dialog.available')}</Label>
+            <Switch id="available" checked={available} onCheckedChange={setAvailable} />
           </div>
         </div>
         <DialogFooter>

@@ -176,6 +176,7 @@ export default function RestaurantPage() {
                   </TableHead>
                   <TableHead>{t('restaurant.menu.table.name')}</TableHead>
                   <TableHead>{t('restaurant.menu.table.category')}</TableHead>
+                  <TableHead>{t('restaurant.menu.table.status')}</TableHead>
                   <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
                   <TableHead>
                     <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
@@ -186,7 +187,7 @@ export default function RestaurantPage() {
                 {menuItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="hidden sm:table-cell">
-                      {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
+                      {item.imageUrl ? (
                         <Image
                           alt={item.name}
                           className="aspect-square rounded-md object-cover"
@@ -204,6 +205,11 @@ export default function RestaurantPage() {
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{item.category}</Badge>
+                    </TableCell>
+                     <TableCell>
+                      <Badge variant={item.available ? "default" : "destructive"}>
+                        {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
                     <TableCell>
