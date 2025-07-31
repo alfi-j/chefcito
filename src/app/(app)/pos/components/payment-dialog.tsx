@@ -39,7 +39,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   useEffect(() => {
     if (isOpen) {
-      setSplits([{ id: 1, amount: totalAmount.toFixed(2) }]);
+      setSplits([{ id: Date.now(), amount: totalAmount.toFixed(2) }]);
       setPaymentMethod('card');
     }
   }, [isOpen, totalAmount]);
@@ -54,7 +54,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   };
   
   const addSplit = () => {
-    const newId = (splits.length > 0 ? Math.max(...splits.map(s => s.id)) : 0) + 1;
+    const newId = Date.now();
     const amountToPre-fill = remainingBalance > 0 ? remainingBalance.toFixed(2) : "0.00"
     setSplits(currentSplits => [...currentSplits, { id: newId, amount: amountToPre-fill }]);
   }
