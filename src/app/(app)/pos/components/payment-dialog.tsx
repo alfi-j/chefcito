@@ -105,7 +105,14 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   const handleSplitToggle = (checked: boolean) => {
     setIsSplittingBill(checked);
-    if (!checked) {
+    if (checked) {
+      const halfAmount = (totalAmount / 2).toFixed(2);
+      const remainingAmount = (totalAmount - parseFloat(halfAmount)).toFixed(2);
+      setSplits([
+        { id: Date.now(), amount: halfAmount },
+        { id: Date.now() + 1, amount: remainingAmount },
+      ]);
+    } else {
       resetSplits();
     }
   }
