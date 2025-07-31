@@ -29,7 +29,10 @@
             "cash": "Cash",
             "confirm": "Confirm Payment",
             "split_bill": "Split Bill",
-            "per_person": "per person"
+            "per_person": "per person",
+            "payment": "Payment",
+            "remaining_balance": "Remaining",
+            "add_payment": "Add Payment"
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",

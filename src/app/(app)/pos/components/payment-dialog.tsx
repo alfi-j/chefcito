@@ -14,9 +14,12 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useI18n } from '@/context/i18n-context';
-import { CreditCard, DollarSign, Users } from 'lucide-react';
+import { CreditCard, DollarSign, Users, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -27,25 +30,42 @@ interface PaymentDialogProps {
 
 export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPayment }: PaymentDialogProps) {
   const [paymentMethod, setPaymentMethod] = useState('card');
-  const [splitCount, setSplitCount] = useState(1);
+  const [splits, setSplits] = useState<Array<{id: number, amount: string}>>([]);
   const { t } = useI18n();
+  
+  const totalPaid = splits.reduce((acc, split) => acc + (parseFloat(split.amount) || 0), 0);
+  const remainingBalance = totalAmount - totalPaid;
+  const canConfirm = Math.abs(remainingBalance) < 0.001 && totalPaid > 0;
 
   useEffect(() => {
     if (isOpen) {
-        setSplitCount(1);
+      setSplits([{ id: 1, amount: totalAmount.toFixed(2) }]);
+      setPaymentMethod('card');
     }
-  }, [isOpen]);
+  }, [isOpen, totalAmount]);
 
-  const handleSplitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const count = parseInt(e.target.value, 10);
-    setSplitCount(count > 0 ? count : 1);
+  const handleSplitChange = (id: number, value: string) => {
+    // Allow only numbers and a single decimal point
+    if (/^\d*\.?\d{0,2}$/.test(value)) {
+        setSplits(currentSplits => 
+            currentSplits.map(split => split.id === id ? { ...split, amount: value } : split)
+        );
+    }
+  };
+  
+  const addSplit = () => {
+    const newId = (splits.length > 0 ? Math.max(...splits.map(s => s.id)) : 0) + 1;
+    const amountToPre-fill = remainingBalance > 0 ? remainingBalance.toFixed(2) : "0.00"
+    setSplits(currentSplits => [...currentSplits, { id: newId, amount: amountToPre-fill }]);
   }
-
-  const amountPerPerson = totalAmount / splitCount;
+  
+  const removeSplit = (id: number) => {
+    setSplits(currentSplits => currentSplits.filter(split => split.id !== id));
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">{t('pos.payment_dialog.title')}</DialogTitle>
           <DialogDescription>
@@ -88,30 +108,53 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           
           <Separator />
 
-          <div>
-            <Label htmlFor="split-bill" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
-            <div className="flex items-center gap-4 mt-2">
-                <Input
-                    id="split-bill"
-                    type="number"
-                    value={splitCount}
-                    onChange={handleSplitChange}
-                    className="w-24 text-center"
-                    min="1"
-                />
-                {splitCount > 1 && (
-                    <div className="text-lg font-bold">
-                        <span className="text-muted-foreground">{t('pos.payment_dialog.per_person')}: </span>
-                        <span className="text-primary">${amountPerPerson.toFixed(2)}</span>
-                    </div>
-                )}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+                <Label htmlFor="split-bill" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
+                <div className={cn(
+                    "text-lg font-bold",
+                    remainingBalance > 0 && "text-destructive",
+                    remainingBalance < 0 && "text-yellow-500",
+                    canConfirm && "text-green-600"
+                )}>
+                    {t('pos.payment_dialog.remaining_balance')}: ${remainingBalance.toFixed(2)}
+                </div>
             </div>
+             <ScrollArea className="h-40 w-full pr-4">
+                <div className="space-y-2">
+                    {splits.map((split, index) => (
+                        <div key={split.id} className="flex items-center gap-2">
+                            <Label className="w-20">{t('pos.payment_dialog.payment')} {index + 1}</Label>
+                            <Input
+                                type="text"
+                                value={split.amount}
+                                onChange={(e) => handleSplitChange(split.id, e.target.value)}
+                                className="text-right flex-1"
+                                placeholder="0.00"
+                            />
+                             <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-destructive/80 hover:text-destructive"
+                                onClick={() => removeSplit(split.id)}
+                                disabled={splits.length <= 1}
+                            >
+                                <Trash2 className="h-4 w-4"/>
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            </ScrollArea>
+            <Button variant="outline" size="sm" onClick={addSplit} disabled={remainingBalance <= 0}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t('pos.payment_dialog.add_payment')}
+            </Button>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-          <Button onClick={onConfirmPayment}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
+          <Button onClick={onConfirmPayment} disabled={!canConfirm}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

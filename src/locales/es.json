@@ -29,7 +29,10 @@
             "cash": "Efectivo",
             "confirm": "Confirmar Pago",
             "split_bill": "Dividir Cuenta",
-            "per_person": "por persona"
+            "per_person": "por persona",
+            "payment": "Pago",
+            "remaining_balance": "Restante",
+            "add_payment": "Añadir Pago"
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
