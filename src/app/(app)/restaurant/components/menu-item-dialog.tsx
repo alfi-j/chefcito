@@ -126,7 +126,7 @@ export function MenuItemDialog({
                 <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
