@@ -83,6 +83,9 @@
             "title": "Gestión de Menú",
             "add_item": "Añadir Artículo",
             "manage_categories": "Gestionar Categorías",
+            "search_placeholder": "Buscar artículos...",
+            "filter_by_category": "Filtrar por categoría",
+            "all_categories": "Todas las Categorías",
             "table": {
                 "image": "Imagen",
                 "name": "Nombre",

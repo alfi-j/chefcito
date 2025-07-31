@@ -83,6 +83,9 @@
             "title": "Menu Management",
             "add_item": "Add Item",
             "manage_categories": "Manage Categories",
+            "search_placeholder": "Search for items...",
+            "filter_by_category": "Filter by category",
+            "all_categories": "All Categories",
             "table": {
                 "image": "Image",
                 "name": "Name",

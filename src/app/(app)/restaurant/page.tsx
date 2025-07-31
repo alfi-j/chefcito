@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils, Search } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,9 +40,15 @@ import {
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
-import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 
 export default function RestaurantPage() {
@@ -50,6 +56,8 @@ export default function RestaurantPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const { toast } = useToast();
   const { t } = useI18n();
 
@@ -138,6 +146,14 @@ export default function RestaurantPage() {
     }
   }
 
+  const filteredMenuItems = useMemo(() => {
+    return menuItems.filter(item => {
+        const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
+  }, [menuItems, searchQuery, categoryFilter]);
+
 
   if (loading) {
     return (
@@ -153,17 +169,38 @@ export default function RestaurantPage() {
       
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-4 flex-wrap">
             <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
-            <div className="flex gap-2">
-              <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-              <MenuItemDialog onSave={handleSaveItem} categories={categories}>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {t('restaurant.menu.add_item')}
-                </Button>
-              </MenuItemDialog>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder={t('restaurant.menu.search_placeholder')}
+                  className="pl-8 sm:w-[300px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                  {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
+          </div>
+          <div className="flex justify-end mt-4 gap-2">
+            <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
+            <MenuItemDialog onSave={handleSaveItem} categories={categories}>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t('restaurant.menu.add_item')}
+              </Button>
+            </MenuItemDialog>
           </div>
         </CardHeader>
         <CardContent>
@@ -184,7 +221,7 @@ export default function RestaurantPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {menuItems.map((item) => (
+                {filteredMenuItems.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell className="hidden sm:table-cell">
                       {item.imageUrl ? (
