@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect, useCallback, type DragEvent } from 'react'
+import React, { useState, useEffect, type DragEvent } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -21,22 +21,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { type Category, type MenuItem, type PaymentMethod } from "@/lib/types"
+import { type MenuItem, type PaymentMethod } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { useToast } from '@/hooks/use-toast'
 import { useI18n } from '@/context/i18n-context'
 import { 
-  getMenuItems, 
-  getCategories, 
-  addMenuItem, 
-  updateMenuItem, 
-  deleteMenuItem,
-  deleteMenuItems,
-  getPaymentMethods,
-  updatePaymentMethod as mockUpdatePaymentMethod,
-  addPaymentMethod as mockAddPaymentMethod,
-  deletePaymentMethod as mockDeletePaymentMethod,
   updateMenuItemOrder,
 } from '@/lib/mock-data';
 import { MenuItemDialog } from './components/menu-item-dialog'
@@ -55,13 +44,10 @@ import { cn } from '@/lib/utils'
 import { MenuItemPreview } from './components/menu-item-preview'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
+import { useMenu } from '@/hooks/use-menu'
 
 
 export default function RestaurantPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -72,35 +58,31 @@ export default function RestaurantPage() {
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
-  const { toast } = useToast();
   const { t } = useI18n();
-
-  const fetchAllData = useCallback(async () => {
-    setLoading(true);
-    try {
-        const [menuData, categoryData, paymentData] = await Promise.all([
-            getMenuItems(),
-            getCategories(),
-            getPaymentMethods()
-        ]);
-        setMenuItems(menuData);
-        setCategories(categoryData);
-        setPaymentMethods(paymentData);
-    } catch (error) {
-       console.error("Failed to fetch data:", error);
-       toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
-    } finally {
-        setLoading(false);
+  
+  const {
+    menuItems,
+    categories,
+    paymentMethods,
+    loading,
+    handleSaveItem,
+    handleDeleteItem,
+    handleDeleteMultipleItems,
+    handleCategoriesUpdate,
+    handleSavePaymentMethod,
+    handleDeletePaymentMethod,
+    handlePaymentMethodToggle,
+    setMenuItems,
+  } = useMenu({
+    onItemsDeleted: (count) => {
+      setSelectedItemIds([]);
+      setPreviewItem(null);
     }
-  }, [toast, t]);
+  });
 
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
 
   const handleOpenItemDialog = (item?: MenuItem) => {
     setEditingItem(item);
-    setPreviewItem(item || {});
     setIsItemDialogOpen(true);
   };
   
@@ -146,7 +128,6 @@ export default function RestaurantPage() {
       await updateMenuItemOrder(orderedIds);
     } catch(error: any) {
        setMenuItems(originalItems); // Revert on error
-       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.reorder_error'), variant: "destructive" });
     } finally {
       handleDragEnd();
     }
@@ -158,94 +139,6 @@ export default function RestaurantPage() {
       setDragOverItemId(itemId);
     }
   };
-
-
-  const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
-    const isEditMode = 'id' in itemData;
-    try {
-      let savedItem;
-      if (isEditMode) {
-        savedItem = await updateMenuItem(itemData as MenuItem);
-      } else {
-        savedItem = await addMenuItem(itemData as Omit<MenuItem, 'id'>);
-      }
-      setIsItemDialogOpen(false);
-      await fetchAllData();
-      if (savedItem) {
-        setPreviewItem(savedItem); // Update preview to show saved item
-      }
-      toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), variant: "destructive" });
-    }
-  };
-
-  const handleDeleteItem = async (itemId: string) => {
-     try {
-      await deleteMenuItem(itemId);
-      await fetchAllData();
-      setSelectedItemIds(ids => ids.filter(id => id !== itemId));
-      setPreviewItem(null); // Clear preview after deleting
-      toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
-    } catch (error: any) {
-       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
-    }
-  };
-  
-  const handleDeleteMultipleItems = async () => {
-     try {
-      const count = selectedItemIds.length;
-      await deleteMenuItems(selectedItemIds);
-      await fetchAllData();
-      setSelectedItemIds([]);
-      setPreviewItem(null); // Clear preview after deleting
-      toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count }) });
-    } catch (error: any) {
-       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
-    }
-  }
-
-  const handleCategoriesUpdate = () => {
-    fetchAllData();
-  }
-
-  const handlePaymentMethodToggle = async (id: string, enabled: boolean) => {
-    try {
-      const method = paymentMethods.find(m => m.id === id);
-      if(method) {
-        await mockUpdatePaymentMethod({ ...method, enabled });
-        fetchAllData();
-        toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_updated') });
-      }
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_update_error'), variant: "destructive" });
-    }
-  }
-
-  const handleSavePaymentMethod = async (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
-     const isEditMode = 'id' in methodData;
-     try {
-        if (isEditMode) {
-          await mockUpdatePaymentMethod(methodData as PaymentMethod);
-        } else {
-          await mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
-        }
-        fetchAllData();
-        toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
-     } catch (error: any) {
-        toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error'), variant: "destructive" });
-     }
-  }
-
-  const handleDeletePaymentMethod = async (id: string) => {
-    try {
-      await mockDeletePaymentMethod(id);
-      fetchAllData();
-      toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_deleted') });
-    } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_delete_error'), variant: "destructive" });
-    }
-  }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -352,7 +245,7 @@ export default function RestaurantPage() {
                     {numSelected > 0 && (
                         <BatchActionsToolbar 
                           selectedCount={numSelected}
-                          onDelete={handleDeleteMultipleItems}
+                          onDelete={() => handleDeleteMultipleItems(selectedItemIds)}
                         />
                     )}
                     <div className="border rounded-lg">
