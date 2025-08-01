@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -83,7 +82,7 @@ export function KitchenReport({ data, loading }: KitchenReportProps) {
                 </Table>
             </div>
           ) : (
-            <p className="text-muted-foreground">{t('reports.no_data')}</p>
+            <p className="text-muted-foreground text-center py-4">{t('reports.no_data')}</p>
           )}
         </CardContent>
       </Card>
