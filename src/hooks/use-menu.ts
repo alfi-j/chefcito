@@ -42,7 +42,7 @@ export const useMenu = () => {
         setCustomers(customerData);
     } catch (error) {
        console.error("Failed to fetch data:", error);
-       toast.error(t('toast.error'), { description: t('restaurant.toast.fetch_error') });
+       toast.error(t('toast.error'), { description: t('restaurant.toast.fetch_error'), duration: 3000 });
     } finally {
         setLoading(false);
     }
@@ -61,9 +61,9 @@ export const useMenu = () => {
         await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
       await fetchAllData();
-      toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
+      toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added'), duration: 3000 });
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error') });
+      toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), duration: 3000 });
     }
   };
 
@@ -71,9 +71,9 @@ export const useMenu = () => {
      try {
       await deleteMenuItem(itemId);
       await fetchAllData();
-      toast.success(t('toast.success'), { description: t('restaurant.toast.item_deleted') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.item_deleted'), duration: 3000 });
     } catch (error: any) {
-       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error') });
+       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error'), duration: 3000 });
     }
   };
   
@@ -82,9 +82,9 @@ export const useMenu = () => {
       const count = itemIds.length;
       await deleteMenuItems(itemIds);
       await fetchAllData();
-      toast.success(t('toast.success'), { description: t('restaurant.toast.items_deleted', { count }) });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.items_deleted', { count }), duration: 3000 });
     } catch (error: any) {
-       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error') });
+       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error'), duration: 3000 });
     }
   }
 
@@ -98,10 +98,10 @@ export const useMenu = () => {
       if(method) {
         await mockUpdatePaymentMethod({ ...method, enabled });
         await fetchAllData();
-        toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_updated') });
+        toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_updated'), duration: 3000 });
       }
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_update_error') });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_update_error'), duration: 3000 });
     }
   }
 
@@ -114,9 +114,9 @@ export const useMenu = () => {
           await mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
         }
         await fetchAllData();
-        toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
+        toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added'), duration: 3000 });
      } catch (error: any) {
-        toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error') });
+        toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error'), duration: 3000 });
      }
   }
 
@@ -124,9 +124,9 @@ export const useMenu = () => {
     try {
       await mockDeletePaymentMethod(id);
       await fetchAllData();
-      toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_deleted') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_deleted'), duration: 3000 });
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_delete_error') });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_delete_error'), duration: 3000 });
     }
   }
 

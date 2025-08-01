@@ -22,6 +22,7 @@ export default function ProfilePage() {
     // In a real app, you would send this to your backend API
     toast.success(t('toast.success'), {
       description: t('profile.toast.profile_updated'),
+      duration: 3000,
     });
   }
   
@@ -29,12 +30,14 @@ export default function ProfilePage() {
     if (newPassword !== confirmPassword) {
       toast.error(t('toast.error'), {
         description: t('profile.toast.password_mismatch'),
+        duration: 3000,
       });
       return;
     }
     if (!newPassword || !currentPassword) {
        toast.error(t('toast.error'), {
         description: t('profile.toast.password_empty'),
+        duration: 3000,
       });
       return;
     }
@@ -42,6 +45,7 @@ export default function ProfilePage() {
     // In a real app, you would send this to your backend API
     toast.success(t('toast.success'), {
       description: t('profile.toast.password_updated'),
+      duration: 3000,
     });
     
     // Clear fields after submission

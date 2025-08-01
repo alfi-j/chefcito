@@ -34,6 +34,7 @@ export function LoginForm() {
         
         toast.success(t('userMenu.login_success_title'), {
             description: t('userMenu.login_success_desc'),
+            duration: 3000,
         });
         router.push("/pos")
     }

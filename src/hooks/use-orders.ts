@@ -31,7 +31,7 @@ export const useOrders = () => {
         setOrders(parseOrderDates(initialOrders));
         } catch (error) {
         console.error("Failed to fetch orders:", error);
-        toast.error(t('toast.error'), { description: t('kds.toast.fetch_error') });
+        toast.error(t('toast.error'), { description: t('kds.toast.fetch_error'), duration: 3000 });
         } finally {
         setLoading(false);
         }
@@ -99,7 +99,7 @@ export const useOrders = () => {
         }
 
         } catch (error: any) {
-            toast.error(t('toast.error'), { description: error.message || t('kds.toast.update_item_error') });
+            toast.error(t('toast.error'), { description: error.message || t('kds.toast.update_item_error'), duration: 3000 });
             setOrders(parseOrderDates(originalOrders));
         }
     }, [orders, t]);
@@ -138,7 +138,7 @@ export const useOrders = () => {
             await mockUpdateStatus({ orderId, newStatus: 'pending' });
         }
         } catch (error: any) {
-        toast.error(t('toast.error'), { description: error.message || t('kds.toast.revert_item_error') });
+        toast.error(t('toast.error'), { description: error.message || t('kds.toast.revert_item_error'), duration: 3000 });
         setOrders(parseOrderDates(originalOrders)); // Revert on error
         }
     }, [orders, t]);
@@ -157,7 +157,7 @@ export const useOrders = () => {
         try {
         await mockTogglePin({ orderId, isPinned: newPinState });
         } catch (error: any) {
-        toast.error(t('toast.error'), { description: error.message || t('kds.toast.pin_error') });
+        toast.error(t('toast.error'), { description: error.message || t('kds.toast.pin_error'), duration: 3000 });
         setOrders(originalOrders);
         }
     }, [orders, t]);

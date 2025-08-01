@@ -34,6 +34,7 @@ export default function ReportsPage() {
     // This is a mock export. In a real app, this would trigger a download.
     toast.info(t('reports.toast.export_title'), {
       description: t('reports.toast.export_desc'),
+      duration: 3000,
     });
   }
 

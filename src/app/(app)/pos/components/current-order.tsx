@@ -38,7 +38,7 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
         <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
-        <div className="grid grid-cols-2 gap-4 pb-4 border-b mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b mb-4">
             <div>
                 <Label htmlFor="table-select">{t('pos.current_order.table')}</Label>
                  <Select value={String(table)} onValueChange={(value) => setTable(Number(value))} name="table-select">
@@ -91,12 +91,12 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
-                        <MinusCircle className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                        <MinusCircle className="h-5 w-5" />
                       </Button>
                       <span className="font-bold w-4 text-center">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-                        <PlusCircle className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                        <PlusCircle className="h-5 w-5" />
                       </Button>
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => removeItem(item.id)}>
@@ -119,7 +119,7 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
         </ScrollArea>
       </CardContent>
       {items.length > 0 && (
-        <CardFooter className="flex-col !p-4 border-t">
+        <CardFooter className="flex-col !p-4 border-t sticky bottom-0 bg-card">
           <div className="w-full space-y-1 text-sm py-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>

@@ -26,7 +26,7 @@ export default function PosPage() {
 
   const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     order.addItem(item, quantity, selectedExtras);
-    toast.success(t('pos.toast.item_added', { item: item.name }));
+    toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 3000 });
     setSelectedItem(null);
   };
 
@@ -34,6 +34,7 @@ export default function PosPage() {
     if (order.items.length === 0) {
       toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_desc'),
+        duration: 3000,
       });
       return;
     }
@@ -46,11 +47,13 @@ export default function PosPage() {
       });
       toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
+        duration: 3000,
       });
       order.clearOrder();
     } catch (error: any) {
        toast.error(t('toast.error'), {
         description: error.message || t('pos.toast.send_error'),
+        duration: 3000,
       });
     }
   };
@@ -59,6 +62,7 @@ export default function PosPage() {
     if (order.items.length === 0) {
       toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_payment_desc'),
+        duration: 3000,
       });
       return;
     }
@@ -69,6 +73,7 @@ export default function PosPage() {
     setPaymentDialogOpen(false);
     toast.success(t('pos.toast.payment_success_title'), {
         description: t('pos.toast.payment_success_desc'),
+        duration: 3000,
     });
     order.clearOrder();
   }

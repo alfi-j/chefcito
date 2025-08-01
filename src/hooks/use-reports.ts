@@ -41,7 +41,7 @@ export const useReports = (dateRange?: DateRange) => {
         });
     } catch (error) {
        console.error("Failed to fetch report data:", error);
-       toast.error(t('toast.error'), { description: t('reports.toast.fetch_error') });
+       toast.error(t('toast.error'), { description: t('reports.toast.fetch_error'), duration: 3000 });
     } finally {
         setLoading(false);
     }

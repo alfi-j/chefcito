@@ -201,8 +201,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90vh]">
+        <DialogHeader className="p-6 pb-0">
           <DialogTitle className="font-headline text-2xl">{t('pos.payment_dialog.title')}</DialogTitle>
            <DialogDescription>
             {t('pos.payment_dialog.total_due')}: 
@@ -210,13 +210,14 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <ScrollArea className="overflow-y-auto">
+        <div className="py-2 px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Left Side: Payment and Bill Splitting */}
             <div className="space-y-4">
                  <div>
                     <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
                     <RadioGroup 
-                      className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2"
+                      className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2"
                       onValueChange={handleMethodChange}
                       value={selectedMethod?.id}
                     >
@@ -347,10 +348,10 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     </div>
                  )}
             </div>
-
         </div>
+        </ScrollArea>
 
-        <DialogFooter>
+        <DialogFooter className="p-6 pt-0 border-t sticky bottom-0 bg-background">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button onClick={onConfirmPayment} disabled={!canConfirm || (selectedMethod?.type === 'bank_transfer' && !selectedBank)}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
         </DialogFooter>

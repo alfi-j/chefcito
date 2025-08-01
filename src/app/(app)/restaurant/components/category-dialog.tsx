@@ -22,7 +22,7 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pencil, Trash2, Check } from "lucide-react"
 import { type Category } from "@/lib/types"
-import { useToast } from '@/hooks/use-toast'
+import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context'
 import { addCategory, updateCategory, deleteCategory as mockDeleteCategory, isCategoryInUse } from '@/lib/mock-data';
 import { Checkbox } from '@/components/ui/checkbox'
@@ -38,7 +38,6 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { toast } = useToast();
   const { t } = useI18n();
   
   const modifierGroups = useMemo(() => 
@@ -58,9 +57,9 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
       onUpdate();
       setNewCategoryName('');
       setIsNewCategoryModifier(false);
-      toast({ title: t('toast.success'), description: t('restaurant.toast.category_added') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.category_added'), duration: 3000 });
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.add_category_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.add_category_error'), duration: 3000 });
     }
   };
 
@@ -71,9 +70,9 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
       }
       await mockDeleteCategory(id);
       onUpdate();
-      toast({ title: t('toast.success'), description: t('restaurant.toast.category_deleted') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.category_deleted'), duration: 3000 });
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_category_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_category_error'), duration: 3000 });
     }
   };
 
@@ -83,9 +82,9 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
       await updateCategory(editingCategory);
       onUpdate();
       setEditingCategory(null);
-      toast({ title: t('toast.success'), description: t('restaurant.toast.category_updated') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.category_updated'), duration: 3000 });
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.update_category_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.update_category_error'), duration: 3000 });
     }
   };
   
