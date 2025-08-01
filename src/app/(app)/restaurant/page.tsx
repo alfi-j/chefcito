@@ -64,7 +64,6 @@ export default function RestaurantPage() {
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<Partial<MenuItem> | null>(null);
-  const [selectedItemForDialog, setSelectedItemForDialog] = useState<MenuItem | undefined>(undefined);
   
   const { toast } = useToast();
   const { t } = useI18n();
@@ -80,9 +79,6 @@ export default function RestaurantPage() {
         setMenuItems(menuData);
         setCategories(categoryData);
         setPaymentMethods(paymentData);
-        if (menuData.length > 0) {
-          setPreviewItem(menuData[0]);
-        }
     } catch (error) {
        console.error("Failed to fetch data:", error);
        toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
@@ -154,12 +150,14 @@ export default function RestaurantPage() {
   const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
     try {
+      let savedItem;
       if (isEditMode) {
-        await updateMenuItem(itemData as MenuItem);
+        savedItem = await updateMenuItem(itemData as MenuItem);
       } else {
-        await addMenuItem(itemData as Omit<MenuItem, 'id'>);
+        savedItem = await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
-      fetchAllData();
+      await fetchAllData();
+      setPreviewItem(savedItem); // Update preview to show saved item
       toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
     } catch(error: any) {
       toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), variant: "destructive" });
@@ -169,7 +167,8 @@ export default function RestaurantPage() {
   const handleDeleteItem = async (itemId: string) => {
      try {
       await deleteMenuItem(itemId);
-      fetchAllData();
+      await fetchAllData();
+      setPreviewItem(null); // Clear preview after deleting
       toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
@@ -237,11 +236,13 @@ export default function RestaurantPage() {
   
   const isSortingEnabled = !searchQuery && categoryFilter === 'all';
   
-  const handleEditClick = (item: MenuItem) => {
-    setSelectedItemForDialog(item);
-    setPreviewItem(item);
+  const handlePreviewItem = (item: Partial<MenuItem> | null) => {
+    if (item && Object.keys(item).length === 0) { // Check for empty object from dialog close
+      setPreviewItem(null);
+    } else {
+      setPreviewItem(item);
+    }
   }
-
 
   if (loading) {
     return (
@@ -278,18 +279,18 @@ export default function RestaurantPage() {
                         </SelectTrigger>
                         <SelectContent>
                         <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                        {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                        {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     </div>
                 </div>
                 <div className="flex justify-end mt-4 gap-2">
                     <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-                    <MenuItemDialog onSave={handleSaveItem} categories={categories} onDataChange={setPreviewItem}>
-                    <Button>
+                    <MenuItemDialog onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
+                      <Button onClick={() => handlePreviewItem({})}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         {t('restaurant.menu.add_item')}
-                    </Button>
+                      </Button>
                     </MenuItemDialog>
                 </div>
                 </CardHeader>
@@ -321,8 +322,9 @@ export default function RestaurantPage() {
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, item.id)}
                             onDragEnter={(e) => handleDragEnter(e, item.id)}
+                            onClick={() => setPreviewItem(item)}
                             className={cn(
-                                "transition-all",
+                                "transition-all cursor-pointer",
                                 isSortingEnabled && "cursor-grab",
                                 draggedItemId === item.id && "opacity-50",
                                 dragOverItemId === item.id && "bg-primary/10"
@@ -361,15 +363,15 @@ export default function RestaurantPage() {
                             <div className="flex justify-end">
                                 <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                                     <MoreHorizontal className="h-4 w-4" />
                                     <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                                    <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories} onDataChange={setPreviewItem}>
-                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleEditClick(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                                    <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
+                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
                                     </MenuItemDialog>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
@@ -473,5 +475,3 @@ export default function RestaurantPage() {
     </div>
   )
 }
-
-    

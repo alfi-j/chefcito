@@ -103,17 +103,18 @@ export function MenuItemDialog({
   
   useEffect(() => {
     if (onDataChange) {
-      const liveData = {
+      const liveData: Partial<MenuItem> = {
         name,
         price,
         imageUrl,
         category,
         description,
-        available
+        available,
+        aiHint: item?.aiHint
       };
       onDataChange(liveData);
     }
-  }, [name, price, imageUrl, category, description, available, onDataChange]);
+  }, [name, price, imageUrl, category, description, available, onDataChange, item]);
 
 
   const handleSubmit = () => {
@@ -133,7 +134,7 @@ export function MenuItemDialog({
       linkedModifiers,
     };
     if (isEditMode) {
-      onSave({ id: item!.id, ...itemData });
+      onSave({ id: item!.id, ...itemData, sortIndex: item.sortIndex });
     } else {
       onSave(itemData);
     }
@@ -142,14 +143,14 @@ export function MenuItemDialog({
   
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open) {
-        onDataChange && onDataChange({}); // Clear preview on close
+    if (!open && onDataChange) {
+        onDataChange({}); // Clear preview on close by passing empty object
     }
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild onClick={() => item && onDataChange?.(item)}>{children}</DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
@@ -190,7 +191,7 @@ export function MenuItemDialog({
                 <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
-                {renderedCategories.map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
+                {renderedCategories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -221,5 +222,3 @@ export function MenuItemDialog({
     </Dialog>
   );
 }
-
-    
