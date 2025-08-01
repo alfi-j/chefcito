@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect, useCallback, useMemo, type DragEvent } from 'react'
+import React, { useState, useEffect, useCallback, type DragEvent } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -237,25 +237,6 @@ export default function RestaurantPage() {
     }
   }
 
-  const filteredMenuItems = useMemo(() => {
-    const baseItems = searchQuery || categoryFilter !== 'all' 
-      ? menuItems.filter(item => {
-          const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-          const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-          return matchesCategory && matchesSearch;
-        })
-      : [...menuItems];
-
-    if (!searchQuery && categoryFilter === 'all') {
-      return baseItems;
-    }
-    
-    return baseItems.sort((a,b) => a.name.localeCompare(b.name));
-
-  }, [menuItems, searchQuery, categoryFilter]);
-  
-  const isSortingEnabled = !searchQuery && categoryFilter === 'all';
-  
   const handlePreviewItem = (item: Partial<MenuItem> | null) => {
     if (item && Object.keys(item).length === 0) { // Check for empty object from dialog close
       setPreviewItem(null);
@@ -280,19 +261,32 @@ export default function RestaurantPage() {
     }
   }
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setSelectedItemIds([]);
+  };
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
+    setSelectedItemIds([]);
+  };
+  
+  const isSortingEnabled = !searchQuery && categoryFilter === 'all';
+
+  const filteredMenuItems = menuItems.filter(item => {
+    const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  if (!isSortingEnabled) {
+    filteredMenuItems.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   const numSelected = selectedItemIds.length;
   const numVisible = filteredMenuItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setSelectedItemIds([]);
-  }, []);
-
-  const handleCategoryFilterChange = useCallback((value: string) => {
-    setCategoryFilter(value);
-    setSelectedItemIds([]);
-  }, []);
 
   if (loading) {
     return (
