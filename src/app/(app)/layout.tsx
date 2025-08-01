@@ -5,7 +5,7 @@ import {
   ChefHat,
   LayoutGrid,
   ClipboardList,
-  Building,
+  Utensils,
   LogOut,
   User,
   Moon,
@@ -65,12 +65,16 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/restaurant", label: t('restaurant.title'), icon: Building },
+    { href: "/restaurant", label: t('restaurant.menu.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ]
   
   const getPageTitle = () => {
+    // Handle special case for restaurant page being called "Menu"
+    if (pathname.startsWith('/restaurant')) {
+      return t('restaurant.menu.title');
+    }
     const currentItem = menuItems.find((item) => pathname.startsWith(item.href));
     if (currentItem) {
       return currentItem.label;

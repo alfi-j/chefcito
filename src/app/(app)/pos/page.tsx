@@ -1,46 +1,25 @@
 
 "use client"
-import React, { useState, useEffect, useCallback } from 'react';
-import { type OrderItem, type MenuItem, type Category } from '@/lib/types';
+import React, { useState, useCallback } from 'react';
+import { type OrderItem, type MenuItem } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
-import { getMenuItems, getCategories, addOrder } from '@/lib/mock-data';
+import { addOrder } from '@/lib/mock-data';
 import { PaymentProcessing } from './components/payment-processing';
+import { useMenu } from '@/hooks/use-menu';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const { toast } = useToast();
   const { t } = useI18n();
   const [isPaymentProcessing, setPaymentProcessing] = useState(false);
+  
+  const { menuItems, categories, loading } = useMenu();
 
-  const fetchMenuData = useCallback(async () => {
-    setLoading(true);
-    try {
-        const [menuData, categoryData] = await Promise.all([
-            getMenuItems(),
-            getCategories()
-        ]);
-        setMenuItems(menuData);
-        setCategories(categoryData);
-    } catch(error) {
-        console.error("Failed to fetch menu data:", error);
-        toast({ title: t('toast.error'), description: t('pos.toast.fetch_error'), variant: "destructive" });
-    } finally {
-        setLoading(false);
-    }
-  }, [toast, t]);
-  
-  useEffect(() => {
-    fetchMenuData();
-  }, [fetchMenuData]);
-  
   const handleSelectItem = (item: MenuItem) => {
     setSelectedItem(item);
   };
