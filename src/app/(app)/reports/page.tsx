@@ -27,8 +27,9 @@ export default function ReportsPage() {
   const { reports, loading, fetchAllReports } = useReports(date);
 
   useEffect(() => {
+    // Fetch reports whenever the date range changes or on initial load.
     fetchAllReports();
-  }, [date, fetchAllReports]);
+  }, [date]);
 
   const handleExport = () => {
     // This is a mock export. In a real app, this would trigger a download.
