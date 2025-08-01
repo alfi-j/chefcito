@@ -35,7 +35,6 @@ export function MenuItemDialog({
   item,
   onSave,
   categories,
-  onDataChange,
   isOpen,
   onOpenChange,
 }: { 
@@ -43,7 +42,6 @@ export function MenuItemDialog({
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
   categories: Category[],
-  onDataChange?: (data: Partial<MenuItem>) => void,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
 }) {
@@ -104,22 +102,6 @@ export function MenuItemDialog({
     }
   }, [isOpen, item]);
   
-  useEffect(() => {
-    if (onDataChange) {
-      const liveData: Partial<MenuItem> = {
-        name,
-        price,
-        imageUrl,
-        category,
-        description,
-        available,
-        aiHint: item?.aiHint
-      };
-      onDataChange(liveData);
-    }
-  }, [name, price, imageUrl, category, description, available, onDataChange, item]);
-
-
   const handleSubmit = () => {
     const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
     if (isNaN(finalPrice)) {
@@ -143,17 +125,8 @@ export function MenuItemDialog({
     }
     onOpenChange(false);
   };
-  
-  const handleOpenChange = (open: boolean) => {
-    onOpenChange(open);
-    if (!open && onDataChange) {
-        onDataChange({}); // Clear preview on close by passing empty object
-    }
-  }
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+  const dialogContent = (
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
@@ -218,10 +191,16 @@ export function MenuItemDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>{t('dialog.cancel')}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
+  );
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+      {dialogContent}
     </Dialog>
   );
 }

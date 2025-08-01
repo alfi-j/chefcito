@@ -247,14 +247,6 @@ export default function RestaurantPage() {
     }
   }
 
-  const handlePreviewItem = (item: Partial<MenuItem> | null) => {
-    if (item && Object.keys(item).length === 0) { // Check for empty object from dialog close
-      setPreviewItem(null);
-    } else {
-      setPreviewItem(item);
-    }
-  }
-
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedItemIds(filteredItems.map(item => item.id));
@@ -305,7 +297,6 @@ export default function RestaurantPage() {
           item={editingItem}
           onSave={handleSaveItem}
           categories={categories}
-          onDataChange={handlePreviewItem}
         />
       )}
 
