@@ -284,15 +284,15 @@ export default function RestaurantPage() {
   const numVisible = filteredMenuItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setSelectedItemIds([]);
-  }
+  }, []);
 
-  const handleCategoryFilterChange = (value: string) => {
+  const handleCategoryFilterChange = useCallback((value: string) => {
     setCategoryFilter(value);
     setSelectedItemIds([]);
-  }
+  }, []);
 
   if (loading) {
     return (
@@ -547,3 +547,5 @@ export default function RestaurantPage() {
     </div>
   )
 }
+
+    
