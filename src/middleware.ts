@@ -1,9 +1,28 @@
 
 import { type NextRequest, NextResponse } from 'next/server'
 
-// This middleware is currently not performing any logic.
-// It can be extended to handle authentication checks for a real backend.
+// This middleware checks if the user is authenticated.
 export function middleware(request: NextRequest) {
+  const isAuthenticated = request.cookies.has('chefcito-auth');
+  const isLoginPage = request.nextUrl.pathname.startsWith('/login');
+
+  if (isLoginPage) {
+    // If the user is authenticated and tries to access the login page,
+    // redirect them to the POS page.
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL('/pos', request.url));
+    }
+    // Otherwise, allow access to the login page.
+    return NextResponse.next();
+  }
+
+  // If the user is not authenticated and trying to access a protected page,
+  // redirect them to the login page.
+  if (!isAuthenticated) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  
+  // If the user is authenticated, allow access to the requested page.
   return NextResponse.next()
 }
 

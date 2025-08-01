@@ -244,6 +244,11 @@
     },
     "userMenu": {
         "staff_member": "Staff Member",
+        "email": "Email",
+        "password": "Password",
+        "login": "Login",
+        "login_success_title": "Login Successful",
+        "login_success_desc": "Welcome back!",
         "profile": "Profile",
         "logout": "Logout",
         "theme": {
@@ -275,5 +280,3 @@
         "error": "Error"
     }
 }
-
-    

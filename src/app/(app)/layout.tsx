@@ -50,6 +50,11 @@ import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { I18nProvider, useI18n } from "@/context/i18n-context"
 
+// Simple cookie utility
+const eraseCookie = (name: string) => {   
+    document.cookie = name+'=; Max-Age=-99999999; path=/;';  
+}
+
 
 function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -76,7 +81,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const currentPage = getPageTitle();
   
   const handleLogout = async () => {
-    // In a real app, this would call an API to invalidate a session
+    eraseCookie("chefcito-auth");
     router.push('/login')
   }
 

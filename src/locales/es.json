@@ -244,6 +244,11 @@
     },
     "userMenu": {
         "staff_member": "Miembro del Personal",
+        "email": "Correo Electrónico",
+        "password": "Contraseña",
+        "login": "Iniciar Sesión",
+        "login_success_title": "Inicio de Sesión Exitoso",
+        "login_success_desc": "¡Bienvenido de nuevo!",
         "profile": "Perfil",
         "logout": "Cerrar Sesión",
         "theme": {
@@ -275,5 +280,3 @@
         "error": "Error"
     }
 }
-
-    
