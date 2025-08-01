@@ -88,15 +88,15 @@ export function PaymentMethodDialog({
             {isEditMode ? t('restaurant.payment_method_dialog.edit_desc') : t('restaurant.payment_method_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">{t('restaurant.payment_method_dialog.name')}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">{t('restaurant.payment_method_dialog.name')}</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="type" className="text-right">{t('restaurant.payment_method_dialog.type')}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="type">{t('restaurant.payment_method_dialog.type')}</Label>
             <Select value={type} onValueChange={(value) => setType(value as any)}>
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger id="type">
                 <SelectValue placeholder={t('restaurant.payment_method_dialog.select_type')} />
               </SelectTrigger>
               <SelectContent>
@@ -108,9 +108,9 @@ export function PaymentMethodDialog({
           </div>
 
           {type === 'bank_transfer' && (
-            <div className="grid grid-cols-4 items-start gap-4">
-                <Label className="text-right pt-2">{t('restaurant.payment_method_dialog.banks')}</Label>
-                <div className="col-span-3 space-y-2">
+            <div className="space-y-2">
+                <Label>{t('restaurant.payment_method_dialog.banks')}</Label>
+                <div className="space-y-2">
                     {banks.map(bank => (
                         <div key={bank} className="flex items-center gap-2">
                             <Input value={bank} readOnly className="flex-1"/>
