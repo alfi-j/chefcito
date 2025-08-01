@@ -1,4 +1,6 @@
 
+'use server'
+
 import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
@@ -98,7 +100,7 @@ export const isCategoryInUse = async (name: string) => {
 // Menu Items
 export const getMenuItems = async (): Promise<MenuItem[]> => {
     const items = await readData<MenuItem[]>('menu-items.json');
-    return items.sort((a, b) => a.sortIndex - b.sortIndex);
+    return items.sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0));
 };
 
 export const addMenuItem = async (item: Omit<MenuItem, 'id' | 'sortIndex'>) => {

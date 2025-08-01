@@ -25,7 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getPaymentMethods } from '@/lib/mock-data';
-import { PaymentMethod, type OrderItem, type BillSplit } from '@/lib/types';
+import { type PaymentMethod, type OrderItem, type BillSplit } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
