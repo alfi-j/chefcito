@@ -200,45 +200,45 @@ export default function RestaurantPage() {
           <div className="lg:col-span-2 space-y-8">
               <Card>
                   <CardHeader>
-                    <div className="flex justify-between items-center gap-4 flex-wrap">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                         <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
                         <div className="flex items-center gap-2">
-                          <div className="relative">
-                              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                              <Input
-                              type="search"
-                              placeholder={t('restaurant.menu.search_placeholder')}
-                              className="pl-8 sm:w-[300px]"
-                              value={searchQuery}
-                              onChange={(e) => {
-                                  setSearchQuery(e.target.value);
-                                  setSelectedItemIds([]);
-                              }}
-                              />
-                          </div>
-                          <Select
-                              value={categoryFilter}
-                              onValueChange={(value) => {
-                                  setCategoryFilter(value);
-                                  setSelectedItemIds([]);
-                              }}
-                          >
-                              <SelectTrigger className="w-[180px]">
-                              <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                              <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                              {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                              </SelectContent>
-                          </Select>
+                          <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
+                          <Button onClick={() => handleOpenItemDialog()}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {t('restaurant.menu.add_item')}
+                          </Button>
                         </div>
                     </div>
-                    <div className="flex justify-end mt-4 gap-2">
-                        <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-                        <Button onClick={() => handleOpenItemDialog()}>
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          {t('restaurant.menu.add_item')}
-                        </Button>
+                     <div className="mt-4 flex flex-col sm:flex-row items-center gap-2">
+                        <div className="relative w-full sm:flex-1">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            type="search"
+                            placeholder={t('restaurant.menu.search_placeholder')}
+                            className="pl-8 w-full"
+                            value={searchQuery}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setSelectedItemIds([]);
+                            }}
+                            />
+                        </div>
+                        <Select
+                            value={categoryFilter}
+                            onValueChange={(value) => {
+                                setCategoryFilter(value);
+                                setSelectedItemIds([]);
+                            }}
+                        >
+                            <SelectTrigger className="w-full sm:w-[220px]">
+                            <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                            {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
                   </CardHeader>
                   <CardContent>

@@ -43,9 +43,9 @@ export default function ReportsPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h1 className="text-3xl font-headline font-bold">{t('reports.title')}</h1>
-        <div className="flex gap-2 items-center">
-          <DateRangePicker date={date} onDateChange={setDate} />
-          <Button variant="outline" onClick={handleExport}>
+        <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center w-full sm:w-auto">
+          <DateRangePicker date={date} onDateChange={setDate} className="w-full sm:w-auto" />
+          <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
             <File className="mr-2 h-4 w-4" />
             {t('reports.export')}
           </Button>
