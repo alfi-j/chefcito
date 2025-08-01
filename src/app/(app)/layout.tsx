@@ -137,7 +137,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
           <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
         </header>
-        <main className={cn("flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/30", `font-size-${fontSize}`)}>
+        <main className={cn("flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-muted/30", `font-size-${fontSize}`)}>
           {children}
         </main>
       </SidebarInset>
