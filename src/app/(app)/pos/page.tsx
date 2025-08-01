@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState } from 'react';
-import { type OrderItem, type MenuItem } from '@/lib/types';
+import { type MenuItem } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
@@ -10,59 +10,31 @@ import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
 import { addOrder } from '@/lib/mock-data';
 import { useMenu } from '@/hooks/use-menu';
+import { useCurrentOrder } from '@/hooks/use-current-order';
 
 export default function PosPage() {
-  const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useI18n();
   
-  const { menuItems, categories, loading } = useMenu();
+  const { menuItems, categories, loading: menuLoading } = useMenu();
+  const order = useCurrentOrder();
 
   const handleSelectItem = (item: MenuItem) => {
     setSelectedItem(item);
   };
 
   const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
-    setCurrentOrderItems(prev => {
-      const newItem: OrderItem = { 
-        id: `${item.id}-${Date.now()}`, 
-        menuItem: item, 
-        quantity, 
-        cookedCount: 0, 
-        status: 'New',
-        selectedExtras
-      };
-      return [...prev, newItem];
-    });
+    order.addItem(item, quantity, selectedExtras);
     toast({
       title: t('pos.toast.item_added', { item: item.name }),
     });
     setSelectedItem(null);
   };
 
-
-  const handleRemoveItem = (itemId: string) => {
-    setCurrentOrderItems(prev => prev.filter(item => item.id !== itemId));
-  };
-  
-  const handleUpdateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      handleRemoveItem(itemId);
-      return;
-    }
-    setCurrentOrderItems(prev => prev.map(item => 
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ));
-  };
-
-  const handleClearOrder = () => {
-    setCurrentOrderItems([]);
-  };
-
   const handleSendToKitchen = async () => {
-    if (currentOrderItems.length === 0) {
+    if (order.items.length === 0) {
       toast({
         title: t('pos.toast.empty_order_title'),
         description: t('pos.toast.empty_order_desc'),
@@ -74,13 +46,13 @@ export default function PosPage() {
     try {
       await addOrder({
         table: 4, // Mock table number
-        items: currentOrderItems,
+        items: order.items,
       });
       toast({
         title: t('pos.toast.order_sent_title'),
         description: t('pos.toast.order_sent_desc'),
       });
-      handleClearOrder();
+      order.clearOrder();
     } catch (error: any) {
        toast({
         title: t('toast.error'),
@@ -91,7 +63,7 @@ export default function PosPage() {
   };
 
   const handleOpenPaymentDialog = () => {
-    if (currentOrderItems.length === 0) {
+    if (order.items.length === 0) {
       toast({
         title: t('pos.toast.empty_order_title'),
         description: t('pos.toast.empty_order_payment_desc'),
@@ -108,23 +80,16 @@ export default function PosPage() {
       title: t('pos.toast.payment_success_title'),
       description: t('pos.toast.payment_success_desc'),
     });
-    handleClearOrder();
+    order.clearOrder();
   }
   
-  if (loading) {
+  if (menuLoading) {
      return (
         <div className="flex justify-center items-center h-full">
             <p>{t('pos.loading')}</p>
         </div>
     )
   }
-
-  const subtotal = currentOrderItems.reduce((acc, item) => {
-    const extrasPrice = item.selectedExtras?.reduce((extraAcc, extra) => extraAcc + extra.price, 0) || 0;
-    return acc + (item.menuItem.price + extrasPrice) * item.quantity;
-  }, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal + tax;
   
   const displayCategories = categories.filter(c => !c.isModifierGroup).map(c => c.name);
   const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
@@ -143,8 +108,8 @@ export default function PosPage() {
       <PaymentDialog
         isOpen={isPaymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        orderItems={currentOrderItems}
-        totalAmount={total}
+        orderItems={order.items}
+        totalAmount={order.total}
         onConfirmPayment={handlePaymentSuccess}
       />
       
@@ -154,15 +119,15 @@ export default function PosPage() {
         </div>
         <div className="lg:col-span-1 h-full">
           <CurrentOrder 
-            items={currentOrderItems} 
-            onUpdateQuantity={handleUpdateQuantity} 
-            onRemoveItem={handleRemoveItem}
-            onClearOrder={handleClearOrder}
+            items={order.items} 
+            onUpdateQuantity={order.updateQuantity} 
+            onRemoveItem={order.removeItem}
+            onClearOrder={order.clearOrder}
             onSendToKitchen={handleSendToKitchen}
             onPayment={handleOpenPaymentDialog}
-            subtotal={subtotal}
-            tax={tax}
-            total={total}
+            subtotal={order.subtotal}
+            tax={order.tax}
+            total={order.total}
           />
         </div>
       </div>
