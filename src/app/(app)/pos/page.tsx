@@ -86,7 +86,7 @@ export default function PosPage() {
     )
   }
   
-  const displayCategories = categories.filter(c => !c.isModifierGroup).map(c => c.name);
+  const displayCategories = categories.filter(c => !c.isModifierGroup);
   const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
 
   return (
