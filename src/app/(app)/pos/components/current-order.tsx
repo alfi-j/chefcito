@@ -9,6 +9,13 @@ import { type OrderItem } from '@/lib/types'
 import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface CurrentOrderProps {
   order: ReturnType<typeof useCurrentOrder>;
@@ -18,13 +25,29 @@ interface CurrentOrderProps {
 
 export function CurrentOrder({ order, onSendToKitchen, onPayment }: CurrentOrderProps) {
   const { t } = useI18n();
-  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder } = order;
+  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder, table, setTable } = order;
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
-        <CardDescription>{t('pos.current_order.table', { table: 4 })}</CardDescription>
+        <div className="flex justify-between items-center">
+          <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
+          <div className="w-32">
+            <Select value={String(table)} onValueChange={(value) => setTable(Number(value))}>
+              <SelectTrigger>
+                <SelectValue placeholder={t('pos.current_order.select_table')} />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => (
+                  <SelectItem key={tableNum} value={String(tableNum)}>
+                    {t('pos.current_order.table')} {tableNum}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <CardDescription>{t('pos.current_order.table')} {table}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-grow">

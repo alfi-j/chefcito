@@ -45,7 +45,7 @@ export default function PosPage() {
 
     try {
       await addOrder({
-        table: 4, // Mock table number
+        table: order.table,
         items: order.items,
       });
       toast({

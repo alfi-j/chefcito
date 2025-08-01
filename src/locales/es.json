@@ -5,7 +5,8 @@
         "loading": "Cargando menú...",
         "current_order": {
             "title": "Orden Actual",
-            "table": "Mesa {{table}}",
+            "table": "Mesa",
+            "select_table": "Seleccionar Mesa",
             "no_items": "No hay artículos en la orden.",
             "select_items": "Selecciona artículos del menú para comenzar.",
             "subtotal": "Subtotal",

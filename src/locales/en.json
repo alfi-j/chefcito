@@ -5,7 +5,8 @@
         "loading": "Loading menu...",
         "current_order": {
             "title": "Current Order",
-            "table": "Table {{table}}",
+            "table": "Table",
+            "select_table": "Select Table",
             "no_items": "No items in order.",
             "select_items": "Select items from the menu to get started.",
             "subtotal": "Subtotal",
