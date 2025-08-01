@@ -7,15 +7,24 @@ import path from 'path';
 
 const dataDir = path.join(process.cwd(), 'src', 'data');
 
+// Simple in-memory cache
+const cache: { [key: string]: any } = {};
+
 export async function readData<T>(filename: string): Promise<T> {
+  if (cache[filename]) {
+    // Return a deep copy to prevent modifying the cache directly
+    return JSON.parse(JSON.stringify(cache[filename]));
+  }
+
   const filePath = path.join(dataDir, filename);
   try {
     const fileContents = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(fileContents);
+    const data = JSON.parse(fileContents);
+    cache[filename] = data;
+    // Return a deep copy
+    return JSON.parse(JSON.stringify(data));
   } catch (error) {
     console.error(`Error reading data file ${filename}:`, error);
-    // Depending on the use case, you might want to return a default value
-    // or re-throw the error. For this mock setup, we'll return an empty array.
     return [] as T;
   }
 }
@@ -24,9 +33,17 @@ export async function writeData(filename: string, data: any): Promise<void> {
   const filePath = path.join(dataDir, filename);
   try {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
+    // Invalidate cache for this file
+    delete cache[filename];
   } catch (error) {
     console.error(`Error writing data file ${filename}:`, error);
-    // Handle the error appropriately
     throw error;
   }
+}
+
+// Function to clear the entire cache if needed, e.g., for testing
+export function clearCache() {
+    for (const key in cache) {
+        delete cache[key];
+    }
 }
