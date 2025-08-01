@@ -42,7 +42,7 @@ export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, on
               items.map(item => (
                 <div key={item.id}>
                   <div className="flex items-center gap-4">
-                    {item.menuItem.imageUrl && !item.menuItem.imageUrl.startsWith("https://placehold.co") ? (
+                    {item.menuItem.imageUrl ? (
                       <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
                     ) : (
                        <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
