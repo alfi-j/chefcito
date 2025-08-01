@@ -134,7 +134,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
           
           <div className="p-1 pt-0 flex-1">
             <Separator className="mb-1" />
-            <div className="space-y-1 h-full">
+            <CardContent className="space-y-1 h-full p-0">
               {orderedCategories.map((category, index) => (
                 <div key={category}>
                   {index > 0 && <Separator className="my-2"/>}
@@ -146,7 +146,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                   </div>
                 </div>
               ))}
-            </div>
+            </CardContent>
           </div>
       </Card>
     </div>

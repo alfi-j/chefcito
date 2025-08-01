@@ -4,7 +4,7 @@ import { useState, useMemo, type DragEvent } from "react";
 import { OrderCard } from "./components/order-card";
 import { type Order } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/context/i18n-context";
 import { useOrders } from "@/hooks/use-orders";
 
@@ -119,15 +119,15 @@ export default function KdsPage() {
 
   return (
     <Card>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4 sm:p-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="pending">{t('kds.tabs.pending')} ({pendingOrders.length})</TabsTrigger>
           <TabsTrigger value="completed">{t('kds.tabs.completed')} ({completedOrders.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="pending" className="pt-4">
+        <TabsContent value="pending" className="pt-4 sm:pt-6">
           {renderOrderList(pendingOrders)}
         </TabsContent>
-        <TabsContent value="completed" className="pt-4">
+        <TabsContent value="completed" className="pt-4 sm:pt-6">
           {renderOrderList(completedOrders)}
         </TabsContent>
       </Tabs>
