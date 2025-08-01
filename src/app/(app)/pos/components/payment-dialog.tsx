@@ -67,17 +67,20 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   useEffect(() => {
     if (isOpen) {
-      const methods = getPaymentMethods().filter(m => m.enabled);
-      setPaymentMethods(methods);
-      if (methods.length > 0) {
-        const defaultMethod = methods[0];
-        setSelectedMethod(defaultMethod);
-        if (defaultMethod.type === 'bank_transfer' && defaultMethod.banks && defaultMethod.banks.length > 0) {
-          setSelectedBank(defaultMethod.banks[0]);
-        } else {
-          setSelectedBank('');
-        }
+      const fetchMethods = async () => {
+          const methods = (await getPaymentMethods()).filter(m => m.enabled);
+          setPaymentMethods(methods);
+          if (methods.length > 0) {
+            const defaultMethod = methods[0];
+            setSelectedMethod(defaultMethod);
+            if (defaultMethod.type === 'bank_transfer' && defaultMethod.banks && defaultMethod.banks.length > 0) {
+              setSelectedBank(defaultMethod.banks[0]);
+            } else {
+              setSelectedBank('');
+            }
+          }
       }
+      fetchMethods();
       setIsSplittingBill(false);
       setSplits([]);
       setActiveSplitIndex(0);
@@ -316,5 +319,3 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     </Dialog>
   );
 }
-
-    

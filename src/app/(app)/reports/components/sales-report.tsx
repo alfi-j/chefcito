@@ -33,10 +33,13 @@ export function SalesReport({ dateRange }: SalesReportProps) {
   const { t } = useI18n();
 
   useEffect(() => {
-    setLoading(true);
-    const data = getSalesReport(dateRange);
-    setReportData(data);
-    setLoading(false);
+    const fetchReport = async () => {
+      setLoading(true);
+      const data = await getSalesReport(dateRange);
+      setReportData(data);
+      setLoading(false);
+    }
+    fetchReport();
   }, [dateRange]);
 
   if (loading) {

@@ -20,11 +20,15 @@ export default function PosPage() {
   const { t } = useI18n();
   const [isPaymentProcessing, setPaymentProcessing] = useState(false);
 
-  const fetchMenuData = useCallback(() => {
+  const fetchMenuData = useCallback(async () => {
     setLoading(true);
     try {
-        setMenuItems(getMenuItems());
-        setCategories(getCategories());
+        const [menuData, categoryData] = await Promise.all([
+            getMenuItems(),
+            getCategories()
+        ]);
+        setMenuItems(menuData);
+        setCategories(categoryData);
     } catch(error) {
         console.error("Failed to fetch menu data:", error);
         toast({ title: t('toast.error'), description: t('pos.toast.fetch_error'), variant: "destructive" });
@@ -78,7 +82,7 @@ export default function PosPage() {
     setCurrentOrderItems([]);
   };
 
-  const handleSendToKitchen = () => {
+  const handleSendToKitchen = async () => {
     if (currentOrderItems.length === 0) {
       toast({
         title: t('pos.toast.empty_order_title'),
@@ -89,7 +93,7 @@ export default function PosPage() {
     }
 
     try {
-      addOrder({
+      await addOrder({
         table: 4, // Mock table number
         items: currentOrderItems,
       });

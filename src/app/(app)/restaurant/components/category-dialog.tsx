@@ -48,10 +48,13 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
     [categories]
   );
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
     try {
-      addCategory(newCategoryName, isNewCategoryModifier);
+      await addCategory({
+        name: newCategoryName, 
+        isModifierGroup: isNewCategoryModifier
+      });
       onUpdate();
       setNewCategoryName('');
       setIsNewCategoryModifier(false);
@@ -61,12 +64,12 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
     }
   };
 
-  const handleDeleteCategory = (id: number, name: string) => {
+  const handleDeleteCategory = async (id: number, name: string) => {
     try {
-      if (isCategoryInUse(name)) {
+      if (await isCategoryInUse(name)) {
         throw new Error(`Cannot delete category "${name}" because it is still in use.`);
       }
-      mockDeleteCategory(id);
+      await mockDeleteCategory(id);
       onUpdate();
       toast({ title: t('toast.success'), description: t('restaurant.toast.category_deleted') });
     } catch(error: any) {
@@ -74,10 +77,10 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
     }
   };
 
-  const handleUpdateCategory = () => {
+  const handleUpdateCategory = async () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
     try {
-      updateCategory(editingCategory.id, editingCategory.name, editingCategory.isModifierGroup, editingCategory.linkedModifiers, editingCategory.parentId);
+      await updateCategory(editingCategory);
       onUpdate();
       setEditingCategory(null);
       toast({ title: t('toast.success'), description: t('restaurant.toast.category_updated') });

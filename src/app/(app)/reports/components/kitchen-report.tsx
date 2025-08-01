@@ -31,10 +31,13 @@ export function KitchenReport({ dateRange }: KitchenReportProps) {
   const { t } = useI18n();
 
   useEffect(() => {
-    setLoading(true);
-    const data = getKitchenPerformanceReport(dateRange);
-    setReportData(data);
-    setLoading(false);
+    const fetchReport = async () => {
+      setLoading(true);
+      const data = await getKitchenPerformanceReport(dateRange);
+      setReportData(data);
+      setLoading(false);
+    }
+    fetchReport();
   }, [dateRange]);
 
   if (loading) {

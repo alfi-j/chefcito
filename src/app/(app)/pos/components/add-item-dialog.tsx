@@ -32,27 +32,33 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItem
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   
-  const availableModifierGroups = useMemo(() => {
-    if (!item) return {};
+  const [availableModifierGroups, setAvailableModifierGroups] = useState<Record<string, MenuItem[]>>({});
 
-    const allCategories = getCategories();
-    const allItems = getMenuItems();
-    const itemCategory = allCategories.find(c => c.name === item.category);
+  useEffect(() => {
+    const fetchModifiers = async () => {
+      if (!item) return;
 
-    const modifierCategoryNames = new Set([
-      ...(item.linkedModifiers || []),
-      ...(itemCategory?.linkedModifiers || [])
-    ]);
-    
-    const groups: Record<string, MenuItem[]> = {};
-    
-    modifierCategoryNames.forEach(catName => {
-        groups[catName] = allItems.filter(i => i.category === catName);
-    });
+      const allCategories = await getCategories();
+      const allItems = await getMenuItems();
+      const itemCategory = allCategories.find(c => c.name === item.category);
 
-    return groups;
+      const modifierCategoryNames = new Set([
+        ...(item.linkedModifiers || []),
+        ...(itemCategory?.linkedModifiers || [])
+      ]);
+      
+      const groups: Record<string, MenuItem[]> = {};
+      
+      modifierCategoryNames.forEach(catName => {
+          groups[catName] = allItems.filter(i => i.category === catName);
+      });
 
-  }, [item]);
+      setAvailableModifierGroups(groups);
+    }
+    if (isOpen) {
+      fetchModifiers();
+    }
+  }, [item, isOpen]);
 
   useEffect(() => {
     if (isOpen) {

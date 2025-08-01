@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from "@/context/i18n-context";
-import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin, getNewOrders } from "@/lib/mock-data";
+import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
 
 
 const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
@@ -30,12 +30,18 @@ export default function KdsPage() {
   const { toast } = useToast();
   const { t } = useI18n();
 
-  const fetchOrders = useCallback(() => {
-    // In a real app, you'd fetch from an API
-    const initialOrders = getInitialOrders();
-    setOrders(parseOrderDates(initialOrders));
-    setLoading(false);
-  }, []);
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const initialOrders = await getInitialOrders();
+      setOrders(parseOrderDates(initialOrders));
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+      toast({ title: t('toast.error'), description: t('kds.toast.fetch_error'), variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }, [toast, t]);
 
 
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function KdsPage() {
     if (!itemToUpdate) return;
     
     try {
-      mockUpdateItem({
+      await mockUpdateItem({
         itemId, 
         newStatus: itemToUpdate.status,
         newQuantity: itemToUpdate.quantity, 
@@ -96,7 +102,7 @@ export default function KdsPage() {
       });
 
       if (updatedOrder.status === 'completed') {
-        mockUpdateStatus({ orderId, newStatus: 'completed' });
+        await mockUpdateStatus({ orderId, newStatus: 'completed' });
       }
 
     } catch (error: any) {
@@ -134,9 +140,9 @@ export default function KdsPage() {
 
     // --- Mock Backend Call ---
     try {
-      mockUpdateItem({ itemId, newStatus: 'New', newQuantity, newCookedCount });
+      await mockUpdateItem({ itemId, newStatus: 'New', newQuantity, newCookedCount });
       if (order.status === 'completed') {
-        mockUpdateStatus({ orderId, newStatus: 'pending' });
+        await mockUpdateStatus({ orderId, newStatus: 'pending' });
       }
     } catch (error: any) {
       toast({ title: t('toast.error'), description: error.message || t('kds.toast.revert_item_error'), variant: "destructive" });
@@ -206,7 +212,7 @@ export default function KdsPage() {
 
     // Mock backend call
     try {
-      mockTogglePin({ orderId, isPinned: newPinState });
+      await mockTogglePin({ orderId, isPinned: newPinState });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('kds.toast.pin_error'), variant: "destructive" });
        setOrders(originalOrders);
@@ -221,7 +227,7 @@ export default function KdsPage() {
   }, [orders]);
 
   const completedOrders = useMemo(() => {
-      return orders.filter(o => o.status === 'completed').sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime());
+      return orders.filter(o => o.status === 'completed').sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders]);
   
   const renderOrderList = (orderList: Order[]) => {

@@ -31,10 +31,13 @@ export function ItemReport({ dateRange }: ItemReportProps) {
   const { t } = useI18n();
 
   useEffect(() => {
-    setLoading(true);
-    const data = getItemSalesReport(dateRange);
-    setReportData(data);
-    setLoading(false);
+    const fetchReport = async () => {
+      setLoading(true);
+      const data = await getItemSalesReport(dateRange);
+      setReportData(data);
+      setLoading(false);
+    }
+    fetchReport();
   }, [dateRange]);
 
   const renderTable = (items: ItemSale[], title: string) => (

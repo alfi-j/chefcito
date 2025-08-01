@@ -65,12 +65,17 @@ export default function RestaurantPage() {
   const { toast } = useToast();
   const { t } = useI18n();
 
-  const fetchAllData = useCallback(() => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-        setMenuItems(getMenuItems());
-        setCategories(getCategories());
-        setPaymentMethods(getPaymentMethods());
+        const [menuData, categoryData, paymentData] = await Promise.all([
+            getMenuItems(),
+            getCategories(),
+            getPaymentMethods()
+        ]);
+        setMenuItems(menuData);
+        setCategories(categoryData);
+        setPaymentMethods(paymentData);
     } catch (error) {
        console.error("Failed to fetch data:", error);
        toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
@@ -97,7 +102,7 @@ export default function RestaurantPage() {
     e.preventDefault();
   };
 
-  const handleDrop = (e: DragEvent<HTMLTableRowElement>, dropItemId: string) => {
+  const handleDrop = async (e: DragEvent<HTMLTableRowElement>, dropItemId: string) => {
     e.preventDefault();
     if (draggedItemId === null || draggedItemId === dropItemId) {
       handleDragEnd();
@@ -122,7 +127,7 @@ export default function RestaurantPage() {
     const orderedIds = reorderedItems.map(item => item.id);
     
     try {
-      updateMenuItemOrder(orderedIds);
+      await updateMenuItemOrder(orderedIds);
     } catch(error: any) {
        setMenuItems(originalItems); // Revert on error
        toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.reorder_error'), variant: "destructive" });
@@ -139,13 +144,13 @@ export default function RestaurantPage() {
   };
 
 
-  const handleSaveItem = (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
+  const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
     try {
       if (isEditMode) {
-        updateMenuItem(itemData as MenuItem);
+        await updateMenuItem(itemData as MenuItem);
       } else {
-        addMenuItem(itemData as Omit<MenuItem, 'id'>);
+        await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
       fetchAllData();
       toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
@@ -154,9 +159,9 @@ export default function RestaurantPage() {
     }
   };
 
-  const handleDeleteItem = (itemId: string) => {
+  const handleDeleteItem = async (itemId: string) => {
      try {
-      deleteMenuItem(itemId);
+      await deleteMenuItem(itemId);
       fetchAllData();
       toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
     } catch (error: any) {
@@ -168,11 +173,11 @@ export default function RestaurantPage() {
     fetchAllData();
   }
 
-  const handlePaymentMethodToggle = (id: string, enabled: boolean) => {
+  const handlePaymentMethodToggle = async (id: string, enabled: boolean) => {
     try {
       const method = paymentMethods.find(m => m.id === id);
       if(method) {
-        mockUpdatePaymentMethod({ ...method, enabled });
+        await mockUpdatePaymentMethod({ ...method, enabled });
         fetchAllData();
         toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_updated') });
       }
@@ -181,13 +186,13 @@ export default function RestaurantPage() {
     }
   }
 
-  const handleSavePaymentMethod = (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
+  const handleSavePaymentMethod = async (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
      const isEditMode = 'id' in methodData;
      try {
         if (isEditMode) {
-          mockUpdatePaymentMethod(methodData as PaymentMethod);
+          await mockUpdatePaymentMethod(methodData as PaymentMethod);
         } else {
-          mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
+          await mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
         }
         fetchAllData();
         toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
@@ -196,9 +201,9 @@ export default function RestaurantPage() {
      }
   }
 
-  const handleDeletePaymentMethod = (id: string) => {
+  const handleDeletePaymentMethod = async (id: string) => {
     try {
-      mockDeletePaymentMethod(id);
+      await mockDeletePaymentMethod(id);
       fetchAllData();
       toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_deleted') });
     } catch(error: any) {
@@ -443,5 +448,3 @@ export default function RestaurantPage() {
     </div>
   )
 }
-
-    
