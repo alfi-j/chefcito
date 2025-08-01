@@ -162,6 +162,7 @@
             "item_added": "Menu item added.",
             "update_item_error": "Failed to update item.",
             "add_item_error": "Failed to add item.",
+            "reorder_error": "Failed to reorder items.",
             "item_deleted": "Menu item deleted.",
             "delete_item_error": "Failed to delete item.",
             "category_added": "Category added.",
@@ -274,3 +275,5 @@
         "error": "Error"
     }
 }
+
+    

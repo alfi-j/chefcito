@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, type DragEvent } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils, Search } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils, Search, GripVertical } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,7 @@ import {
   updatePaymentMethod as mockUpdatePaymentMethod,
   addPaymentMethod as mockAddPaymentMethod,
   deletePaymentMethod as mockDeletePaymentMethod,
+  updateMenuItemOrder,
 } from '@/lib/mock-data';
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
@@ -49,6 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { cn } from '@/lib/utils'
 
 
 export default function RestaurantPage() {
@@ -58,6 +60,8 @@ export default function RestaurantPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const { toast } = useToast();
   const { t } = useI18n();
 
@@ -78,6 +82,62 @@ export default function RestaurantPage() {
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
+  
+  const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
+    setDraggedItemId(itemId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItemId(null);
+    setDragOverItemId(null);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLTableRowElement>) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: DragEvent<HTMLTableRowElement>, dropItemId: string) => {
+    e.preventDefault();
+    if (draggedItemId === null || draggedItemId === dropItemId) {
+      handleDragEnd();
+      return;
+    }
+    
+    const originalItems = [...menuItems];
+    const fromIndex = originalItems.findIndex(item => item.id === draggedItemId);
+    const toIndex = originalItems.findIndex(item => item.id === dropItemId);
+    
+    if (fromIndex === -1 || toIndex === -1) {
+      handleDragEnd();
+      return;
+    }
+
+    const reorderedItems = [...originalItems];
+    const [removed] = reorderedItems.splice(fromIndex, 1);
+    reorderedItems.splice(toIndex, 0, removed);
+    
+    setMenuItems(reorderedItems); // Optimistic update
+    
+    const orderedIds = reorderedItems.map(item => item.id);
+    
+    try {
+      updateMenuItemOrder(orderedIds);
+    } catch(error: any) {
+       setMenuItems(originalItems); // Revert on error
+       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.reorder_error'), variant: "destructive" });
+    } finally {
+      handleDragEnd();
+    }
+  };
+  
+  const handleDragEnter = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
+    e.preventDefault();
+    if (draggedItemId !== itemId) {
+      setDragOverItemId(itemId);
+    }
+  };
+
 
   const handleSaveItem = (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
@@ -147,12 +207,25 @@ export default function RestaurantPage() {
   }
 
   const filteredMenuItems = useMemo(() => {
-    return menuItems.filter(item => {
-        const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    const baseItems = searchQuery || categoryFilter !== 'all' 
+      ? menuItems.filter(item => {
+          const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+          const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+          return matchesCategory && matchesSearch;
+        })
+      : [...menuItems]; // Use a copy if no filters are active
+
+    // If no filter or search is active, we can rely on the default sortIndex
+    if (!searchQuery && categoryFilter === 'all') {
+      return baseItems;
+    }
+    
+    // If filtering, we don't apply drag-and-drop sorting, just alphabetical
+    return baseItems.sort((a,b) => a.name.localeCompare(b.name));
+
   }, [menuItems, searchQuery, categoryFilter]);
+  
+  const isSortingEnabled = !searchQuery && categoryFilter === 'all';
 
 
   if (loading) {
@@ -208,7 +281,8 @@ export default function RestaurantPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden w-[100px] sm:table-cell">
+                   <TableHead className="w-8"></TableHead>
+                   <TableHead className="hidden w-[100px] sm:table-cell">
                     {t('restaurant.menu.table.image')}
                   </TableHead>
                   <TableHead>{t('restaurant.menu.table.name')}</TableHead>
@@ -222,9 +296,26 @@ export default function RestaurantPage() {
               </TableHeader>
               <TableBody>
                 {filteredMenuItems.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow 
+                    key={item.id}
+                    draggable={isSortingEnabled}
+                    onDragStart={(e) => handleDragStart(e, item.id)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, item.id)}
+                    onDragEnter={(e) => handleDragEnter(e, item.id)}
+                    className={cn(
+                      "transition-all",
+                      isSortingEnabled && "cursor-grab",
+                      draggedItemId === item.id && "opacity-50",
+                      dragOverItemId === item.id && "bg-primary/10"
+                    )}
+                   >
+                    <TableCell className="w-8">
+                       {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
+                    </TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {item.imageUrl ? (
+                      {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
                         <Image
                           alt={item.name}
                           className="aspect-square rounded-md object-cover"
@@ -352,3 +443,5 @@ export default function RestaurantPage() {
     </div>
   )
 }
+
+    

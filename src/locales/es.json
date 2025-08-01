@@ -162,6 +162,7 @@
             "item_added": "Artículo del menú añadido.",
             "update_item_error": "Error al actualizar el artículo.",
             "add_item_error": "Error al añadir el artículo.",
+            "reorder_error": "Error al reordenar los artículos.",
             "item_deleted": "Artículo del menú eliminado.",
             "delete_item_error": "Error al eliminar el artículo.",
             "category_added": "Categoría añadida.",
@@ -274,3 +275,5 @@
         "error": "Error"
     }
 }
+
+    
