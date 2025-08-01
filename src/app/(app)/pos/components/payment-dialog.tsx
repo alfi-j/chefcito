@@ -201,7 +201,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] p-0 max-h-[90vh]">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="font-headline text-2xl">{t('pos.payment_dialog.title')}</DialogTitle>
            <DialogDescription>
@@ -210,148 +210,148 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="overflow-y-auto">
-        <div className="py-2 px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Side: Payment and Bill Splitting */}
-            <div className="space-y-4">
-                 <div>
-                    <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
-                    <RadioGroup 
-                      className="mt-2 grid grid-cols-1 md:grid-cols-3 gap-2"
-                      onValueChange={handleMethodChange}
-                      value={selectedMethod?.id}
-                    >
-                      {paymentMethods.map(method => (
-                        <div key={method.id}>
-                          <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
-                          <Label
-                            htmlFor={method.id}
-                            className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                          >
-                            {getIconForMethod(method.type)}
-                            <span className="font-semibold">{method.name}</span>
-                            <Check className="h-5 w-5 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                </div>
+        <div className="flex-1 overflow-y-auto px-6">
+          <div className="py-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Left Side: Payment and Bill Splitting */}
+              <div className="space-y-4">
+                  <div>
+                      <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
+                      <RadioGroup 
+                        className="mt-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"
+                        onValueChange={handleMethodChange}
+                        value={selectedMethod?.id}
+                      >
+                        {paymentMethods.map(method => (
+                          <div key={method.id}>
+                            <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
+                            <Label
+                              htmlFor={method.id}
+                              className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                            >
+                              {getIconForMethod(method.type)}
+                              <span className="font-semibold">{method.name}</span>
+                              <Check className="h-5 w-5 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                  </div>
 
-                {selectedMethod?.type === 'bank_transfer' && (
-                    <div className="space-y-2">
-                        <Label htmlFor="bank" className="font-semibold">{t('pos.payment_dialog.bank')}</Label>
-                        <Select value={selectedBank} onValueChange={setSelectedBank}>
-                        <SelectTrigger id="bank">
-                            <SelectValue placeholder={t('pos.payment_dialog.select_bank')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {selectedMethod.banks?.map(bank => (
-                            <SelectItem key={bank} value={bank}>{bank}</SelectItem>
-                            ))}
-                        </SelectContent>
-                        </Select>
-                    </div>
-                )}
-                
-                <Separator />
-                
-                <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-2">
-                            <Switch id="split-bill-switch" checked={isSplittingBill} onCheckedChange={handleSplitToggle} />
-                            <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
-                        </div>
-                    </div>
-                    {isSplittingBill && (
-                        <div>
-                             <ScrollArea className="h-40 border rounded-md p-2">
-                                <div className="space-y-2">
-                                {splits.map((split, index) => (
-                                    <div 
-                                        key={split.id}
-                                        className={cn(
-                                            "flex justify-between items-center p-2 rounded-md cursor-pointer",
-                                            activeSplitId === split.id ? "bg-primary/10 border border-primary" : "hover:bg-muted/50"
-                                        )}
-                                        onClick={() => setActiveSplitId(split.id)}
-                                    >
-                                        <div className="font-semibold">
-                                            {t('pos.payment_dialog.bill')} {index + 1}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-primary">${split.total.toFixed(2)}</span>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-6 w-6 text-destructive/70 hover:text-destructive"
-                                                onClick={(e) => { e.stopPropagation(); removeSplit(split.id); }}
-                                                disabled={splits.length <= 1}
-                                            >
-                                                <Trash2 className="h-4 w-4"/>
-                                            </Button>
-                                        </div>
-                                    </div>
-                                ))}
-                                </div>
-                            </ScrollArea>
-                            <Button variant="outline" size="sm" onClick={addSplit} className="mt-2">
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                {t('pos.payment_dialog.add_bill')}
-                            </Button>
-                        </div>
-                    )}
-                </div>
-            </div>
+                  {selectedMethod?.type === 'bank_transfer' && (
+                      <div className="space-y-2">
+                          <Label htmlFor="bank" className="font-semibold">{t('pos.payment_dialog.bank')}</Label>
+                          <Select value={selectedBank} onValueChange={setSelectedBank}>
+                          <SelectTrigger id="bank">
+                              <SelectValue placeholder={t('pos.payment_dialog.select_bank')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {selectedMethod.banks?.map(bank => (
+                              <SelectItem key={bank} value={bank}>{bank}</SelectItem>
+                              ))}
+                          </SelectContent>
+                          </Select>
+                      </div>
+                  )}
+                  
+                  <Separator />
+                  
+                  <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                          <div className="flex items-center space-x-2">
+                              <Switch id="split-bill-switch" checked={isSplittingBill} onCheckedChange={handleSplitToggle} />
+                              <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
+                          </div>
+                      </div>
+                      {isSplittingBill && (
+                          <div>
+                              <ScrollArea className="h-40 border rounded-md p-2">
+                                  <div className="space-y-2">
+                                  {splits.map((split, index) => (
+                                      <div 
+                                          key={split.id}
+                                          className={cn(
+                                              "flex justify-between items-center p-2 rounded-md cursor-pointer",
+                                              activeSplitId === split.id ? "bg-primary/10 border border-primary" : "hover:bg-muted/50"
+                                          )}
+                                          onClick={() => setActiveSplitId(split.id)}
+                                      >
+                                          <div className="font-semibold">
+                                              {t('pos.payment_dialog.bill')} {index + 1}
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                              <span className="font-bold text-primary">${split.total.toFixed(2)}</span>
+                                              <Button
+                                                  variant="ghost"
+                                                  size="icon"
+                                                  className="h-6 w-6 text-destructive/70 hover:text-destructive"
+                                                  onClick={(e) => { e.stopPropagation(); removeSplit(split.id); }}
+                                                  disabled={splits.length <= 1}
+                                              >
+                                                  <Trash2 className="h-4 w-4"/>
+                                              </Button>
+                                          </div>
+                                      </div>
+                                  ))}
+                                  </div>
+                              </ScrollArea>
+                              <Button variant="outline" size="sm" onClick={addSplit} className="mt-2">
+                                  <PlusCircle className="mr-2 h-4 w-4" />
+                                  {t('pos.payment_dialog.add_bill')}
+                              </Button>
+                          </div>
+                      )}
+                  </div>
+              </div>
 
-            {/* Right Side: Item Assignment */}
-            <div className="space-y-4">
-                {isSplittingBill ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label className="font-semibold">{t('pos.payment_dialog.items_in_bill')} {activeSplitIndex + 1}</Label>
-                      <ScrollArea className="h-48 border rounded-md p-2">
-                        {renderItemList(activeSplitItems, true)}
+              {/* Right Side: Item Assignment */}
+              <div className="space-y-4">
+                  {isSplittingBill ? (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="font-semibold">{t('pos.payment_dialog.items_in_bill')} {activeSplitIndex + 1}</Label>
+                        <ScrollArea className="h-48 border rounded-md p-2">
+                          {renderItemList(activeSplitItems, true)}
+                        </ScrollArea>
+                      </div>
+                      <Separator />
+                      <div className="space-y-2">
+                        <Label className="font-semibold">{t('pos.payment_dialog.unassigned_items')}</Label>
+                        <ScrollArea className="h-32 border rounded-md p-2">
+                          {renderItemList(unassignedItems, false)}
+                        </ScrollArea>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Label className="font-semibold">{t('pos.payment_dialog.order_summary')}</Label>
+                      <ScrollArea className="h-[26.5rem] border rounded-md p-2">
+                          <div className="space-y-3">
+                              {items.map(item => (
+                                  <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                                      <Label className="flex-1 flex justify-between items-center">
+                                          <span>{item.quantity}x {item.menuItem.name}</span>
+                                          <span>${calculateItemTotal(item).toFixed(2)}</span>
+                                      </Label>
+                                  </div>
+                              ))}
+                          </div>
                       </ScrollArea>
-                    </div>
-                    <Separator />
-                    <div className="space-y-2">
-                      <Label className="font-semibold">{t('pos.payment_dialog.unassigned_items')}</Label>
-                      <ScrollArea className="h-32 border rounded-md p-2">
-                        {renderItemList(unassignedItems, false)}
-                      </ScrollArea>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Label className="font-semibold">{t('pos.payment_dialog.order_summary')}</Label>
-                    <ScrollArea className="h-[26.5rem] border rounded-md p-2">
-                        <div className="space-y-3">
-                            {items.map(item => (
-                                <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                                    <Label className="flex-1 flex justify-between items-center">
-                                        <span>{item.quantity}x {item.menuItem.name}</span>
-                                        <span>${calculateItemTotal(item).toFixed(2)}</span>
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                  </>
-                )}
-                 {isSplittingBill && (
-                    <div className={cn(
-                        "flex items-center gap-2 text-sm font-medium pt-2",
-                        allItemsAssigned ? "text-green-600" : "text-destructive"
-                    )}>
-                        {allItemsAssigned ? <CheckCircle className="h-4 w-4"/> : <CircleDashed className="h-4 w-4"/>}
-                        <span>{allItemsAssigned ? t('pos.payment_dialog.all_items_assigned') : t('pos.payment_dialog.items_unassigned')}</span>
-                    </div>
-                 )}
-            </div>
+                    </>
+                  )}
+                  {isSplittingBill && (
+                      <div className={cn(
+                          "flex items-center gap-2 text-sm font-medium pt-2",
+                          allItemsAssigned ? "text-green-600" : "text-destructive"
+                      )}>
+                          {allItemsAssigned ? <CheckCircle className="h-4 w-4"/> : <CircleDashed className="h-4 w-4"/>}
+                          <span>{allItemsAssigned ? t('pos.payment_dialog.all_items_assigned') : t('pos.payment_dialog.items_unassigned')}</span>
+                      </div>
+                  )}
+              </div>
+          </div>
         </div>
-        </ScrollArea>
 
-        <DialogFooter className="p-6 pt-4 border-t !flex-row !justify-between items-center sticky bottom-0 bg-background">
+        <DialogFooter className="p-6 pt-4 border-t !flex-row !justify-between items-center bg-background">
           <div className="text-lg font-bold">
               {t('pos.payment_dialog.total_due')}: <span className="text-primary">${totalAmount.toFixed(2)}</span>
           </div>
