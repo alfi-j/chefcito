@@ -12,12 +12,11 @@ import { useI18n } from '@/context/i18n-context';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { File } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useReports } from '@/hooks/use-reports';
 
 export default function ReportsPage() {
   const { t } = useI18n();
-  const { toast } = useToast();
 
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
@@ -33,8 +32,7 @@ export default function ReportsPage() {
 
   const handleExport = () => {
     // This is a mock export. In a real app, this would trigger a download.
-    toast({
-      title: t('reports.toast.export_title'),
+    toast.info(t('reports.toast.export_title'), {
       description: t('reports.toast.export_desc'),
     });
   }

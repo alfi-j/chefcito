@@ -3,7 +3,7 @@
 
 import { useState, useCallback } from 'react';
 import { type DateRange } from 'react-day-picker';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { useI18n } from '@/context/i18n-context';
 import { 
   getSalesReport, 
@@ -24,7 +24,6 @@ export const useReports = (dateRange?: DateRange) => {
     kitchen: null,
   });
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const { t } = useI18n();
 
   const fetchAllReports = useCallback(async () => {
@@ -42,11 +41,11 @@ export const useReports = (dateRange?: DateRange) => {
         });
     } catch (error) {
        console.error("Failed to fetch report data:", error);
-       toast({ title: t('toast.error'), description: t('reports.toast.fetch_error'), variant: "destructive" });
+       toast.error(t('toast.error'), { description: t('reports.toast.fetch_error') });
     } finally {
         setLoading(false);
     }
-  }, [dateRange, toast, t]);
+  }, [dateRange, t]);
   
   return {
     reports,

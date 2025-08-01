@@ -6,12 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useI18n } from '@/context/i18n-context'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from "sonner"
 import { Separator } from '@/components/ui/separator'
 
 export default function ProfilePage() {
   const { t } = useI18n()
-  const { toast } = useToast()
   const [name, setName] = useState("Staff Member")
   const email = "staff@chefcito.com" // Typically this would come from user data
   
@@ -21,33 +20,27 @@ export default function ProfilePage() {
 
   const handleSaveChanges = () => {
     // In a real app, you would send this to your backend API
-    toast({
-      title: t('toast.success'),
+    toast.success(t('toast.success'), {
       description: t('profile.toast.profile_updated'),
     });
   }
   
   const handleChangePassword = () => {
     if (newPassword !== confirmPassword) {
-      toast({
-        title: t('toast.error'),
+      toast.error(t('toast.error'), {
         description: t('profile.toast.password_mismatch'),
-        variant: "destructive",
       });
       return;
     }
     if (!newPassword || !currentPassword) {
-       toast({
-        title: t('toast.error'),
+       toast.error(t('toast.error'), {
         description: t('profile.toast.password_empty'),
-        variant: "destructive",
       });
       return;
     }
     
     // In a real app, you would send this to your backend API
-    toast({
-      title: t('toast.success'),
+    toast.success(t('toast.success'), {
       description: t('profile.toast.password_updated'),
     });
     

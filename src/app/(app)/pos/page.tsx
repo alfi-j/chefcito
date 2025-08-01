@@ -6,7 +6,7 @@ import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
 import { PaymentDialog } from './components/payment-dialog';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context';
 import { addOrder } from '@/lib/mock-data';
 import { useMenu } from '@/hooks/use-menu';
@@ -15,7 +15,6 @@ import { useCurrentOrder } from '@/hooks/use-current-order';
 export default function PosPage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const { toast } = useToast();
   const { t } = useI18n();
   
   const { menuItems, categories, customers, loading: menuLoading } = useMenu();
@@ -27,18 +26,14 @@ export default function PosPage() {
 
   const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     order.addItem(item, quantity, selectedExtras);
-    toast({
-      title: t('pos.toast.item_added', { item: item.name }),
-    });
+    toast.success(t('pos.toast.item_added', { item: item.name }));
     setSelectedItem(null);
   };
 
   const handleSendToKitchen = async () => {
     if (order.items.length === 0) {
-      toast({
-        title: t('pos.toast.empty_order_title'),
+      toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_desc'),
-        variant: "destructive"
       });
       return;
     }
@@ -49,26 +44,21 @@ export default function PosPage() {
         items: order.items,
         customerId: order.customerId,
       });
-      toast({
-        title: t('pos.toast.order_sent_title'),
+      toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
       });
       order.clearOrder();
     } catch (error: any) {
-       toast({
-        title: t('toast.error'),
+       toast.error(t('toast.error'), {
         description: error.message || t('pos.toast.send_error'),
-        variant: "destructive"
       });
     }
   };
 
   const handleOpenPaymentDialog = () => {
     if (order.items.length === 0) {
-      toast({
-        title: t('pos.toast.empty_order_title'),
+      toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_payment_desc'),
-        variant: "destructive"
       });
       return;
     }
@@ -77,9 +67,8 @@ export default function PosPage() {
 
   const handlePaymentSuccess = () => {
     setPaymentDialogOpen(false);
-    toast({
-      title: t('pos.toast.payment_success_title'),
-      description: t('pos.toast.payment_success_desc'),
+    toast.success(t('pos.toast.payment_success_title'), {
+        description: t('pos.toast.payment_success_desc'),
     });
     order.clearOrder();
   }

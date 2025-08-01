@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useI18n } from '@/context/i18n-context';
-import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark, CheckCircle, CircleDashed, Plus, Minus } from 'lucide-react';
+import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark, CheckCircle, CircleDashed, Plus, Minus, Check } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -165,9 +165,9 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
   const getIconForMethod = (type: PaymentMethod['type']) => {
     switch (type) {
-      case 'card': return <CreditCard className="mb-3 h-6 w-6" />;
-      case 'cash': return <DollarSign className="mb-3 h-6 w-6" />;
-      case 'bank_transfer': return <Landmark className="mb-3 h-6 w-6" />;
+      case 'card': return <CreditCard className="h-5 w-5" />;
+      case 'cash': return <DollarSign className="h-5 w-5" />;
+      case 'bank_transfer': return <Landmark className="h-5 w-5" />;
       default: return null;
     }
   }
@@ -216,22 +216,23 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                  <div>
                     <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
                     <RadioGroup 
-                    className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-3"
-                    onValueChange={handleMethodChange}
-                    value={selectedMethod?.id}
+                      className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2"
+                      onValueChange={handleMethodChange}
+                      value={selectedMethod?.id}
                     >
-                    {paymentMethods.map(method => (
+                      {paymentMethods.map(method => (
                         <div key={method.id}>
-                        <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
-                        <Label
+                          <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
+                          <Label
                             htmlFor={method.id}
-                            className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                        >
+                            className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                          >
                             {getIconForMethod(method.type)}
-                            {method.name}
-                        </Label>
+                            <span className="font-semibold">{method.name}</span>
+                            <Check className="h-5 w-5 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
+                          </Label>
                         </div>
-                    ))}
+                      ))}
                     </RadioGroup>
                 </div>
 

@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context';
 import { 
   getMenuItems, 
@@ -25,7 +25,6 @@ export const useMenu = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
   const { t } = useI18n();
 
   const fetchAllData = useCallback(async () => {
@@ -43,11 +42,11 @@ export const useMenu = () => {
         setCustomers(customerData);
     } catch (error) {
        console.error("Failed to fetch data:", error);
-       toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
+       toast.error(t('toast.error'), { description: t('restaurant.toast.fetch_error') });
     } finally {
         setLoading(false);
     }
-  }, [toast, t]);
+  }, [t]);
 
   useEffect(() => {
     fetchAllData();
@@ -62,9 +61,9 @@ export const useMenu = () => {
         await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
       await fetchAllData();
-      toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
+      toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error') });
     }
   };
 
@@ -72,9 +71,9 @@ export const useMenu = () => {
      try {
       await deleteMenuItem(itemId);
       await fetchAllData();
-      toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.item_deleted') });
     } catch (error: any) {
-       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
+       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error') });
     }
   };
   
@@ -83,9 +82,9 @@ export const useMenu = () => {
       const count = itemIds.length;
       await deleteMenuItems(itemIds);
       await fetchAllData();
-      toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count }) });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.items_deleted', { count }) });
     } catch (error: any) {
-       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
+       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error') });
     }
   }
 
@@ -99,10 +98,10 @@ export const useMenu = () => {
       if(method) {
         await mockUpdatePaymentMethod({ ...method, enabled });
         await fetchAllData();
-        toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_updated') });
+        toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_updated') });
       }
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_update_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_update_error') });
     }
   }
 
@@ -115,9 +114,9 @@ export const useMenu = () => {
           await mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
         }
         await fetchAllData();
-        toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
+        toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added') });
      } catch (error: any) {
-        toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error'), variant: "destructive" });
+        toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error') });
      }
   }
 
@@ -125,9 +124,9 @@ export const useMenu = () => {
     try {
       await mockDeletePaymentMethod(id);
       await fetchAllData();
-      toast({ title: t('toast.success'), description: t('restaurant.toast.payment_method_deleted') });
+      toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_deleted') });
     } catch(error: any) {
-      toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.payment_method_delete_error'), variant: "destructive" });
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_delete_error') });
     }
   }
 

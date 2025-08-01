@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context"
 
 // Simple cookie utility
@@ -22,7 +22,6 @@ const setCookie = (name: string, value: string, days: number) => {
 
 export function LoginForm() {
     const router = useRouter()
-    const { toast } = useToast();
     const { t } = useI18n();
     const [email, setEmail] = useState("staff@chefcito.com");
     const [password, setPassword] = useState("password");
@@ -33,8 +32,7 @@ export function LoginForm() {
         // For this mock, we just set a cookie to simulate a session
         setCookie("chefcito-auth", "true", 1);
         
-        toast({
-            title: t('userMenu.login_success_title'),
+        toast.success(t('userMenu.login_success_title'), {
             description: t('userMenu.login_success_desc'),
         });
         router.push("/pos")

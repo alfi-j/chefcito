@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { type Order, type OrderItem } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context";
 import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
 
@@ -22,7 +22,6 @@ const isOrderCompleted = (order: Order) => order.items.every(item => item.quanti
 export const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
-    const { toast } = useToast();
     const { t } = useI18n();
 
     const fetchOrders = useCallback(async () => {
@@ -32,11 +31,11 @@ export const useOrders = () => {
         setOrders(parseOrderDates(initialOrders));
         } catch (error) {
         console.error("Failed to fetch orders:", error);
-        toast({ title: t('toast.error'), description: t('kds.toast.fetch_error'), variant: "destructive" });
+        toast.error(t('toast.error'), { description: t('kds.toast.fetch_error') });
         } finally {
         setLoading(false);
         }
-    }, [toast, t]);
+    }, [t]);
 
     useEffect(() => {
         fetchOrders();
@@ -100,10 +99,10 @@ export const useOrders = () => {
         }
 
         } catch (error: any) {
-            toast({ title: t('toast.error'), description: error.message || t('kds.toast.update_item_error'), variant: "destructive" });
+            toast.error(t('toast.error'), { description: error.message || t('kds.toast.update_item_error') });
             setOrders(parseOrderDates(originalOrders));
         }
-    }, [orders, toast, t]);
+    }, [orders, t]);
 
     const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
         const originalOrders = JSON.parse(JSON.stringify(orders)); // Deep copy for revert
@@ -139,10 +138,10 @@ export const useOrders = () => {
             await mockUpdateStatus({ orderId, newStatus: 'pending' });
         }
         } catch (error: any) {
-        toast({ title: t('toast.error'), description: error.message || t('kds.toast.revert_item_error'), variant: "destructive" });
+        toast.error(t('toast.error'), { description: error.message || t('kds.toast.revert_item_error') });
         setOrders(parseOrderDates(originalOrders)); // Revert on error
         }
-    }, [orders, toast, t]);
+    }, [orders, t]);
     
     const togglePinOrder = useCallback(async (orderId: number) => {
         const originalOrders = [...orders];
@@ -158,10 +157,10 @@ export const useOrders = () => {
         try {
         await mockTogglePin({ orderId, isPinned: newPinState });
         } catch (error: any) {
-        toast({ title: t('toast.error'), description: error.message || t('kds.toast.pin_error'), variant: "destructive" });
+        toast.error(t('toast.error'), { description: error.message || t('kds.toast.pin_error') });
         setOrders(originalOrders);
         }
-    }, [orders, toast, t]);
+    }, [orders, t]);
 
     return {
         orders,
