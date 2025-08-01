@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState } from 'react';
-import { type MenuItem } from '@/lib/types';
+import { type MenuItem, type Customer } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
@@ -18,7 +18,7 @@ export default function PosPage() {
   const { toast } = useToast();
   const { t } = useI18n();
   
-  const { menuItems, categories, loading: menuLoading } = useMenu();
+  const { menuItems, categories, customers, loading: menuLoading } = useMenu();
   const order = useCurrentOrder();
 
   const handleSelectItem = (item: MenuItem) => {
@@ -47,6 +47,7 @@ export default function PosPage() {
       await addOrder({
         table: order.table,
         items: order.items,
+        customerId: order.customerId,
       });
       toast({
         title: t('pos.toast.order_sent_title'),
@@ -122,6 +123,7 @@ export default function PosPage() {
         <div className="lg:col-span-1 h-full">
           <CurrentOrder 
             order={order}
+            customers={customers}
             onSendToKitchen={handleSendToKitchen}
             onPayment={handleOpenPaymentDialog}
           />

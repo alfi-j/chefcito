@@ -7,6 +7,7 @@ import { type OrderItem, type MenuItem } from '@/lib/types';
 export const useCurrentOrder = () => {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [table, setTable] = useState(1);
+  const [customerId, setCustomerId] = useState<string | undefined>(undefined);
 
   const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     setItems(prev => {
@@ -39,6 +40,7 @@ export const useCurrentOrder = () => {
   const clearOrder = useCallback(() => {
     setItems([]);
     setTable(1);
+    setCustomerId(undefined);
   }, []);
 
   const { subtotal, tax, total } = useMemo(() => {
@@ -55,6 +57,8 @@ export const useCurrentOrder = () => {
     items,
     table,
     setTable,
+    customerId,
+    setCustomerId,
     addItem,
     removeItem,
     updateQuantity,

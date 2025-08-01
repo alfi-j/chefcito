@@ -5,8 +5,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { type OrderItem } from '@/lib/types'
-import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils } from 'lucide-react'
+import { type OrderItem, type Customer } from '@/lib/types'
+import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils, UserPlus } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
 import {
@@ -16,45 +16,64 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Combobox } from '@/components/ui/combobox'
+import { Label } from '@/components/ui/label'
 
 interface CurrentOrderProps {
   order: ReturnType<typeof useCurrentOrder>;
+  customers: Customer[];
   onSendToKitchen: () => void;
   onPayment: () => void;
 }
 
-export function CurrentOrder({ order, onSendToKitchen, onPayment }: CurrentOrderProps) {
+export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: CurrentOrderProps) {
   const { t } = useI18n();
-  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder, table, setTable } = order;
+  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder, table, setTable, customerId, setCustomerId } = order;
+  
+  const customerOptions = customers.map(c => ({ value: c.id, label: c.name }));
+  const selectedCustomerName = customers.find(c => c.id === customerId)?.name;
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <div className="flex justify-between items-center">
-          <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
-          <div className="w-32">
-            <Select value={String(table)} onValueChange={(value) => setTable(Number(value))}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('pos.current_order.select_table')} />
-              </SelectTrigger>
-              <SelectContent>
-                {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => (
-                  <SelectItem key={tableNum} value={String(tableNum)}>
-                    {t('pos.current_order.table')} {tableNum}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
+        <div className="grid grid-cols-2 gap-4 pt-2">
+            <div>
+                <Label>{t('pos.current_order.table')}</Label>
+                 <Select value={String(table)} onValueChange={(value) => setTable(Number(value))}>
+                    <SelectTrigger>
+                        <SelectValue placeholder={t('pos.current_order.select_table')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => (
+                        <SelectItem key={tableNum} value={String(tableNum)}>
+                            {t('pos.current_order.table')} {tableNum}
+                        </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+            <div>
+                <Label>{t('pos.current_order.customer')}</Label>
+                <Combobox 
+                    options={customerOptions}
+                    value={customerId}
+                    onChange={(value) => setCustomerId(value || undefined)}
+                    placeholder={t('pos.current_order.select_customer')}
+                    searchPlaceholder={t('pos.current_order.search_customer')}
+                    noResultsMessage={t('pos.current_order.no_customer_found')}
+                />
+            </div>
         </div>
-        <CardDescription>{t('pos.current_order.table')} {table}</CardDescription>
+        {selectedCustomerName && <CardDescription className="pt-2">{t('pos.current_order.customer')}: {selectedCustomerName}</CardDescription>}
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
         <ScrollArea className="flex-grow">
           <div className="space-y-4 pr-4">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
-                <p>{t('pos.current_order.no_items')}</p>
+                <Utensils className="w-12 h-12 mb-4" />
+                <p className="font-semibold">{t('pos.current_order.no_items')}</p>
                 <p className="text-sm">{t('pos.current_order.select_items')}</p>
               </div>
             ) : (

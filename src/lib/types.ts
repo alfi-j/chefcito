@@ -30,6 +30,7 @@ export type Order = {
   completedAt?: Date;
   table: number;
   isPinned?: boolean;
+  customerId?: string;
 };
 
 export type Category = {
@@ -52,5 +53,11 @@ export type BillSplit = {
   id: number;
   total: number;
 }
+
+export type Customer = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

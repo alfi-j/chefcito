@@ -7,6 +7,10 @@
             "title": "Current Order",
             "table": "Table",
             "select_table": "Select Table",
+            "customer": "Customer",
+            "select_customer": "Select a customer",
+            "search_customer": "Search customer...",
+            "no_customer_found": "No customer found.",
             "no_items": "No items in order.",
             "select_items": "Select items from the menu to get started.",
             "subtotal": "Subtotal",
@@ -298,7 +302,3 @@
         "error": "Error"
     }
 }
-
-    
-
-    

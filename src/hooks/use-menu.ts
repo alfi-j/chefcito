@@ -15,13 +15,15 @@ import {
   updatePaymentMethod as mockUpdatePaymentMethod,
   addPaymentMethod as mockAddPaymentMethod,
   deletePaymentMethod as mockDeletePaymentMethod,
+  getCustomers,
 } from '@/lib/mock-data';
-import { type Category, type MenuItem, type PaymentMethod } from "@/lib/types"
+import { type Category, type MenuItem, type PaymentMethod, type Customer } from "@/lib/types"
 
 export const useMenu = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { t } = useI18n();
@@ -29,14 +31,16 @@ export const useMenu = () => {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-        const [menuData, categoryData, paymentData] = await Promise.all([
+        const [menuData, categoryData, paymentData, customerData] = await Promise.all([
             getMenuItems(),
             getCategories(),
-            getPaymentMethods()
+            getPaymentMethods(),
+            getCustomers(),
         ]);
         setMenuItems(menuData);
         setCategories(categoryData);
         setPaymentMethods(paymentData);
+        setCustomers(customerData);
     } catch (error) {
        console.error("Failed to fetch data:", error);
        toast({ title: t('toast.error'), description: t('restaurant.toast.fetch_error'), variant: "destructive" });
@@ -131,6 +135,7 @@ export const useMenu = () => {
     menuItems,
     categories,
     paymentMethods,
+    customers,
     loading,
     setMenuItems, // for optimistic updates like drag-n-drop
     fetchAllData,

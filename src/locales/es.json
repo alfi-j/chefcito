@@ -7,6 +7,10 @@
             "title": "Orden Actual",
             "table": "Mesa",
             "select_table": "Seleccionar Mesa",
+            "customer": "Cliente",
+            "select_customer": "Seleccionar un cliente",
+            "search_customer": "Buscar cliente...",
+            "no_customer_found": "No se encontró ningún cliente.",
             "no_items": "No hay artículos en la orden.",
             "select_items": "Selecciona artículos del menú para comenzar.",
             "subtotal": "Subtotal",
@@ -298,7 +302,3 @@
         "error": "Error"
     }
 }
-
-    
-
-    

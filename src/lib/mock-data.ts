@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData } from './data-utils';
@@ -43,6 +43,11 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 
 
 // Functions to interact with mock data
+
+// Customers
+export const getCustomers = async (): Promise<Customer[]> => {
+    return await readData<Customer[]>('customers.json');
+};
 
 // Categories
 export const getCategories = async (): Promise<Category[]> => {
@@ -177,7 +182,7 @@ export const getInitialOrders = async (): Promise<Order[]> => {
     return inflatedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export const addOrder = async (orderData: { table: number, items: OrderItem[] }) => {
+export const addOrder = async (orderData: { table: number, items: OrderItem[], customerId?: string }) => {
     const orders = await readData<any[]>('orders.json');
     const nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
     let nextItemIdCounter = Date.now();
@@ -188,6 +193,7 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[] })
         status: 'pending',
         createdAt: new Date().toISOString(),
         isPinned: false,
+        customerId: orderData.customerId,
         items: orderData.items.map(item => ({
             id: String(nextItemIdCounter++),
             menuItemId: item.menuItem.id,
