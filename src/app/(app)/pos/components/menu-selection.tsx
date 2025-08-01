@@ -3,11 +3,15 @@
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type MenuItem, type Category } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Utensils } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+interface RenderedCategory extends Category {
+  depth: number;
+}
 
 interface MenuSelectionProps {
   menuItems: MenuItem[];
@@ -18,12 +22,30 @@ interface MenuSelectionProps {
 export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectionProps) {
   const { t } = useI18n();
 
-  const topLevelCategories = useMemo(() => {
-    const categoryMap = new Map(categories.map(c => [c.id, c]));
-    return categories.filter(c => !c.parentId || !categoryMap.has(c.parentId));
+  const renderedCategories = useMemo(() => {
+    const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const roots: Category[] = [];
+
+    categories.forEach(category => {
+        if (category.parentId && categoryMap.has(category.parentId)) {
+            (categoryMap.get(category.parentId) as any).children.push(category);
+        } else {
+            roots.push(category);
+        }
+    });
+    
+    const flattened: RenderedCategory[] = [];
+    const traverse = (category: Category, depth: number) => {
+        flattened.push({ ...category, depth });
+        const children = (categoryMap.get(category.id) as any)?.children || [];
+        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
+    };
+
+    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    return flattened;
   }, [categories]);
 
-  const [activeTab, setActiveTab] = useState(topLevelCategories[0]?.name || '')
+  const [activeCategoryName, setActiveCategoryName] = useState(renderedCategories[0]?.name || 'all');
 
   const categoryMap = useMemo(() => {
     const map = new Map<number, Category>();
@@ -67,18 +89,18 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     return names;
   }
 
-  const itemsForActiveTab = useMemo(() => {
-    if (!activeTab) return [];
+  const itemsForActiveCategory = useMemo(() => {
+    if (activeCategoryName === 'all') return menuItems;
     
-    const activeCategory = categories.find(c => c.name === activeTab);
+    const activeCategory = categories.find(c => c.name === activeCategoryName);
     if (!activeCategory) return [];
 
     const relevantCategoryNames = getDescendantCategoryNames(activeCategory.id);
     
     return menuItems.filter(item => relevantCategoryNames.includes(item.category));
-  }, [activeTab, menuItems, categories, categoryMap, categoryChildrenMap]);
+  }, [activeCategoryName, menuItems, categories, categoryMap, categoryChildrenMap]);
   
-  if (topLevelCategories.length === 0) {
+  if (categories.filter(c => !c.isModifierGroup).length === 0) {
     return (
        <Card className="h-full flex flex-col items-center justify-center">
         <CardHeader>
@@ -94,21 +116,27 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
   
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
+      <CardHeader className="flex-row items-center justify-between">
         <CardTitle className="font-headline">{t('pos.menu_selection.title')}</CardTitle>
+        <Select value={activeCategoryName} onValueChange={setActiveCategoryName}>
+          <SelectTrigger className="w-full sm:w-[280px]">
+            <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+            {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
+              <SelectItem key={cat.id} value={cat.name}>
+                <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col min-h-0">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
-          <TabsList className="flex flex-wrap h-auto">
-            {topLevelCategories.map(category => (
-              <TabsTrigger key={category.id} value={category.name}>{category.name}</TabsTrigger>
-            ))}
-          </TabsList>
-          
           <div className="flex-grow relative mt-4">
             <ScrollArea className="absolute inset-0">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-1">
-                {itemsForActiveTab.map(item => (
+                {itemsForActiveCategory.map(item => (
                   <Card 
                     key={item.id} 
                     className="cursor-pointer hover:shadow-lg hover:border-primary transition-all flex flex-col overflow-hidden"
@@ -130,7 +158,6 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
               </div>
             </ScrollArea>
           </div>
-        </Tabs>
       </CardContent>
     </Card>
   )
