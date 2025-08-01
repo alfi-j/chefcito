@@ -36,14 +36,17 @@ export function MenuItemDialog({
   onSave,
   categories,
   onDataChange,
+  isOpen,
+  onOpenChange,
 }: { 
   children: React.ReactNode, 
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
   categories: Category[],
   onDataChange?: (data: Partial<MenuItem>) => void,
+  isOpen: boolean,
+  onOpenChange: (open: boolean) => void,
 }) {
-  const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!item;
   const { t } = useI18n();
 
@@ -138,11 +141,11 @@ export function MenuItemDialog({
     } else {
       onSave(itemData);
     }
-    setIsOpen(false);
+    onOpenChange(false);
   };
   
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+    onOpenChange(open);
     if (!open && onDataChange) {
         onDataChange({}); // Clear preview on close by passing empty object
     }
