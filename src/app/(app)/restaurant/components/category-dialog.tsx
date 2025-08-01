@@ -168,7 +168,7 @@ export function CategoryDialog({ categories, onUpdate }: { categories: Category[
                        <Input
                         value={editingCategory.name}
                         onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
-                        onKeyDown={(e) => e.key === 'Enter' && handleUpdateCategory()}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { handleUpdateCategory(); e.preventDefault(); e.stopPropagation(); } }}
                         autoFocus
                         className="h-8"
                       />

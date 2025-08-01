@@ -114,7 +114,7 @@ export function MenuItemDialog({
       linkedModifiers,
     };
     if (isEditMode) {
-      onSave({ id: item.id, ...itemData });
+      onSave({ id: item!.id, ...itemData });
     } else {
       onSave(itemData);
     }
