@@ -28,12 +28,12 @@ export function KitchenReport({ data, loading }: KitchenReportProps) {
   const { t } = useI18n();
 
   if (loading) {
-    return <div>{t('reports.loading')}</div>;
+    return <div className="flex justify-center items-center h-full min-h-[400px]"><p>{t('reports.loading')}</p></div>;
   }
 
-  if (!data || (data.avgPrepTime === 0 && data.mostDelayed.length === 0)) {
+  if (!data) {
     return (
-        <div className="flex items-center justify-center h-full text-muted-foreground py-10">
+        <div className="flex items-center justify-center h-full min-h-[400px] text-muted-foreground">
           <p>{t('reports.no_data')}</p>
         </div>
     )

@@ -305,6 +305,8 @@ export const getSalesReport = async (dateRange?: DateRange) => {
         return completedAt >= dateRange.from && completedAt <= to;
     });
 
+    if (completedOrders.length === 0) return null;
+
     const totalRevenue = completedOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
     const totalOrders = completedOrders.length;
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -344,6 +346,8 @@ export const getItemSalesReport = async (dateRange?: DateRange) => {
         return completedAt >= dateRange.from && completedAt <= to;
     });
 
+    if (completedOrders.length === 0) return null;
+
     const itemSales: { [key: string]: { name: string, quantity: number, total: number } } = {};
 
     completedOrders.forEach(order => {
@@ -364,6 +368,8 @@ export const getItemSalesReport = async (dateRange?: DateRange) => {
             });
         });
     });
+    
+    if (Object.keys(itemSales).length === 0) return null;
 
     const allItems = Object.values(itemSales).sort((a, b) => b.quantity - a.quantity);
 
@@ -383,13 +389,9 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
         return completedAt >= dateRange.from && completedAt <= to;
     });
 
-    if (completedOrders.length === 0) {
-        return { avgPrepTime: 0, mostDelayed: [] };
-    }
-    
     const validOrders = completedOrders.filter(o => o.completedAt);
     if (validOrders.length === 0) {
-        return { avgPrepTime: 0, mostDelayed: [] };
+        return null;
     }
 
     const prepTimes = validOrders.map(o => differenceInMinutes(new Date(o.completedAt!), new Date(o.createdAt)));
@@ -400,7 +402,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
         const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push(prepTime);
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
