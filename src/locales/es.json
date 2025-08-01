@@ -102,6 +102,15 @@
                 "unavailable": "No disponible"
             }
         },
+        "batch_actions": {
+            "selected": "{{count}} seleccionados",
+            "delete": "Eliminar"
+        },
+        "delete_dialog": {
+            "title": "¿Eliminar {{count}} artículos?",
+            "desc": "Esta acción no se puede deshacer. Esto eliminará permanentemente los artículos de menú seleccionados.",
+            "confirm": "Sí, eliminar"
+        },
         "payment_methods": {
             "title": "Métodos de Pago",
             "desc": "Gestiona las opciones de pago disponibles en la caja.",
@@ -164,6 +173,7 @@
             "fetch_error": "No se pudieron cargar los datos.",
             "item_updated": "Artículo del menú actualizado.",
             "item_added": "Artículo del menú añadido.",
+            "items_deleted": "{{count}} artículos del menú eliminados.",
             "update_item_error": "Error al actualizar el artículo.",
             "add_item_error": "Error al añadir el artículo.",
             "reorder_error": "Error al reordenar los artículos.",

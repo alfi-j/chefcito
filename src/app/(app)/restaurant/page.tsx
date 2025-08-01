@@ -32,6 +32,7 @@ import {
   addMenuItem, 
   updateMenuItem, 
   deleteMenuItem,
+  deleteMenuItems,
   getPaymentMethods,
   updatePaymentMethod as mockUpdatePaymentMethod,
   addPaymentMethod as mockAddPaymentMethod,
@@ -52,6 +53,8 @@ import {
 } from "@/components/ui/select"
 import { cn } from '@/lib/utils'
 import { MenuItemPreview } from './components/menu-item-preview'
+import { Checkbox } from '@/components/ui/checkbox'
+import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 
 
 export default function RestaurantPage() {
@@ -64,6 +67,7 @@ export default function RestaurantPage() {
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<Partial<MenuItem> | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   const { toast } = useToast();
   const { t } = useI18n();
@@ -168,6 +172,7 @@ export default function RestaurantPage() {
      try {
       await deleteMenuItem(itemId);
       await fetchAllData();
+      setSelectedItemIds(ids => ids.filter(id => id !== itemId));
       setPreviewItem(null); // Clear preview after deleting
       toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
     } catch (error: any) {
@@ -175,6 +180,18 @@ export default function RestaurantPage() {
     }
   };
   
+  const handleDeleteMultipleItems = async (itemIds: string[]) => {
+     try {
+      await deleteMenuItems(itemIds);
+      await fetchAllData();
+      setSelectedItemIds([]);
+      setPreviewItem(null); // Clear preview after deleting
+      toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count: itemIds.length }) });
+    } catch (error: any) {
+       toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
+    }
+  }
+
   const handleCategoriesUpdate = () => {
     fetchAllData();
   }
@@ -244,6 +261,30 @@ export default function RestaurantPage() {
     }
   }
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItemIds(filteredMenuItems.map(item => item.id));
+    } else {
+      setSelectedItemIds([]);
+    }
+  }
+
+  const handleRowSelect = (itemId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItemIds(prev => [...prev, itemId]);
+    } else {
+      setSelectedItemIds(prev => prev.filter(id => id !== itemId));
+    }
+  }
+
+  const numSelected = selectedItemIds.length;
+  const numVisible = filteredMenuItems.length;
+  const isAllSelected = numVisible > 0 && numSelected === numVisible;
+
+  useEffect(() => {
+    setSelectedItemIds([]);
+  }, [searchQuery, categoryFilter]);
+
   if (loading) {
     return (
         <div className="flex justify-center items-center h-full">
@@ -260,130 +301,152 @@ export default function RestaurantPage() {
         <div className="lg:col-span-2 space-y-8">
             <Card>
                 <CardHeader>
-                <div className="flex justify-between items-center gap-4 flex-wrap">
-                    <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
-                    <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                        type="search"
-                        placeholder={t('restaurant.menu.search_placeholder')}
-                        className="pl-8 sm:w-[300px]"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                        {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    </div>
-                </div>
-                <div className="flex justify-end mt-4 gap-2">
-                    <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-                    <MenuItemDialog onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
-                      <Button onClick={() => handlePreviewItem({})}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        {t('restaurant.menu.add_item')}
-                      </Button>
-                    </MenuItemDialog>
-                </div>
+                  <div className="flex justify-between items-center gap-4 flex-wrap">
+                      <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                            type="search"
+                            placeholder={t('restaurant.menu.search_placeholder')}
+                            className="pl-8 sm:w-[300px]"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                            <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                            {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                      </div>
+                  </div>
+                  <div className="flex justify-end mt-4 gap-2">
+                      <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
+                      <MenuItemDialog onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
+                        <Button onClick={() => handlePreviewItem({})}>
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          {t('restaurant.menu.add_item')}
+                        </Button>
+                      </MenuItemDialog>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                <div className="border rounded-lg">
-                    <Table>
-                    <TableHeader>
-                        <TableRow>
-                        <TableHead className="w-8"></TableHead>
-                        <TableHead className="hidden w-[100px] sm:table-cell">
-                            {t('restaurant.menu.table.image')}
-                        </TableHead>
-                        <TableHead>{t('restaurant.menu.table.name')}</TableHead>
-                        <TableHead>{t('restaurant.menu.table.category')}</TableHead>
-                        <TableHead>{t('restaurant.menu.table.status')}</TableHead>
-                        <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
-                        <TableHead>
-                            <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
-                        </TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filteredMenuItems.map((item) => (
-                        <TableRow 
-                            key={item.id}
-                            draggable={isSortingEnabled}
-                            onDragStart={(e) => handleDragStart(e, item.id)}
-                            onDragEnd={handleDragEnd}
-                            onDragOver={handleDragOver}
-                            onDrop={(e) => handleDrop(e, item.id)}
-                            onDragEnter={(e) => handleDragEnter(e, item.id)}
-                            onClick={() => setPreviewItem(item)}
-                            className={cn(
-                                "transition-all cursor-pointer",
-                                isSortingEnabled && "cursor-grab",
-                                draggedItemId === item.id && "opacity-50",
-                                dragOverItemId === item.id && "bg-primary/10"
-                            )}
-                        >
-                            <TableCell className="w-8">
-                            {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
-                            </TableCell>
-                            <TableCell className="hidden sm:table-cell">
-                            {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
-                                <Image
-                                alt={item.name}
-                                className="aspect-square rounded-md object-cover"
-                                height="64"
-                                src={item.imageUrl}
-                                width="64"
-                                data-ai-hint={item.aiHint}
+                  {numSelected > 0 && (
+                      <BatchActionsToolbar 
+                        selectedCount={numSelected}
+                        onDelete={() => handleDeleteMultipleItems(selectedItemIds)}
+                      />
+                  )}
+                  <div className="border rounded-lg">
+                      <Table>
+                      <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12">
+                               <Checkbox
+                                checked={isAllSelected}
+                                onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                                aria-label="Select all"
+                              />
+                            </TableHead>
+                            <TableHead className="w-8"></TableHead>
+                            <TableHead className="hidden w-[100px] sm:table-cell">
+                                {t('restaurant.menu.table.image')}
+                            </TableHead>
+                            <TableHead>{t('restaurant.menu.table.name')}</TableHead>
+                            <TableHead>{t('restaurant.menu.table.category')}</TableHead>
+                            <TableHead>{t('restaurant.menu.table.status')}</TableHead>
+                            <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
+                            <TableHead>
+                                <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                            </TableHead>
+                          </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                          {filteredMenuItems.map((item) => (
+                          <TableRow 
+                              key={item.id}
+                              data-state={selectedItemIds.includes(item.id) && "selected"}
+                              draggable={isSortingEnabled}
+                              onDragStart={(e) => handleDragStart(e, item.id)}
+                              onDragEnd={handleDragEnd}
+                              onDragOver={handleDragOver}
+                              onDrop={(e) => handleDrop(e, item.id)}
+                              onDragEnter={(e) => handleDragEnter(e, item.id)}
+                              onClick={() => setPreviewItem(item)}
+                              className={cn(
+                                  "transition-all cursor-pointer",
+                                  isSortingEnabled && "cursor-grab",
+                                  draggedItemId === item.id && "opacity-50",
+                                  dragOverItemId === item.id && "bg-primary/10"
+                              )}
+                          >
+                              <TableCell>
+                                <Checkbox
+                                  checked={selectedItemIds.includes(item.id)}
+                                  onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
+                                  aria-label="Select row"
+                                  onClick={(e) => e.stopPropagation()}
                                 />
-                            ) : (
-                                <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                                <Utensils className="w-8 h-8 text-muted-foreground" />
-                                </div>
-                            )}
-                            </TableCell>
-                            <TableCell className="font-medium">{item.name}</TableCell>
-                            <TableCell>
-                            <Badge variant="secondary">{item.category}</Badge>
-                            </TableCell>
-                            <TableCell>
-                            <Badge variant={item.available ? "default" : "destructive"}>
-                                {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
-                            </Badge>
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
-                            <TableCell>
-                            <div className="flex justify-end">
-                                <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                                    <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
-                                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
-                                    </MenuItemDialog>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
-                                </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                            </TableCell>
-                        </TableRow>
-                        ))}
-                    </TableBody>
-                    </Table>
-                </div>
+                              </TableCell>
+                              <TableCell className="w-8">
+                              {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
+                              </TableCell>
+                              <TableCell className="hidden sm:table-cell">
+                              {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
+                                  <Image
+                                  alt={item.name}
+                                  className="aspect-square rounded-md object-cover"
+                                  height="64"
+                                  src={item.imageUrl}
+                                  width="64"
+                                  data-ai-hint={item.aiHint}
+                                  />
+                              ) : (
+                                  <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                                  <Utensils className="w-8 h-8 text-muted-foreground" />
+                                  </div>
+                              )}
+                              </TableCell>
+                              <TableCell className="font-medium">{item.name}</TableCell>
+                              <TableCell>
+                              <Badge variant="secondary">{item.category}</Badge>
+                              </TableCell>
+                              <TableCell>
+                              <Badge variant={item.available ? "default" : "destructive"}>
+                                  {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
+                              </Badge>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
+                              <TableCell>
+                              <div className="flex justify-end">
+                                  <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                      <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                      <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                                      </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                                      <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                                      <MenuItemDialog item={item} onSave={handleSaveItem} categories={categories} onDataChange={handlePreviewItem}>
+                                          <DropdownMenuItem onSelect={(e) => { e.preventDefault(); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                                      </MenuItemDialog>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                  </DropdownMenu>
+                              </div>
+                              </TableCell>
+                          </TableRow>
+                          ))}
+                      </TableBody>
+                      </Table>
+                  </div>
                 </CardContent>
             </Card>
       

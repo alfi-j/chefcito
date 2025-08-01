@@ -102,6 +102,15 @@
                 "unavailable": "Unavailable"
             }
         },
+        "batch_actions": {
+            "selected": "{{count}} selected",
+            "delete": "Delete"
+        },
+        "delete_dialog": {
+            "title": "Delete {{count}} items?",
+            "desc": "This action cannot be undone. This will permanently delete the selected menu items.",
+            "confirm": "Yes, delete"
+        },
         "payment_methods": {
             "title": "Payment Methods",
             "desc": "Manage the payment options available at checkout.",
@@ -164,6 +173,7 @@
             "fetch_error": "Could not fetch data.",
             "item_updated": "Menu item updated.",
             "item_added": "Menu item added.",
+            "items_deleted": "{{count}} menu items deleted.",
             "update_item_error": "Failed to update item.",
             "add_item_error": "Failed to add item.",
             "reorder_error": "Failed to reorder items.",
