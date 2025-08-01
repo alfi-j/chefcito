@@ -40,7 +40,10 @@
             "order_summary": "Order Summary",
             "assign_items_for": "Assign items for",
             "all_items_assigned": "All items assigned.",
-            "items_unassigned": "There are unassigned items."
+            "items_unassigned": "There are unassigned items.",
+            "unassigned_items": "Unassigned Items",
+            "items_in_bill": "Items in Bill",
+            "no_items_in_bill": "No items added to this bill yet."
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",
@@ -294,5 +297,7 @@
         "error": "Error"
     }
 }
+
+    
 
     

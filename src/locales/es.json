@@ -40,7 +40,10 @@
             "order_summary": "Resumen de la Orden",
             "assign_items_for": "Asignar artículos para",
             "all_items_assigned": "Todos los artículos asignados.",
-            "items_unassigned": "Hay artículos sin asignar."
+            "items_unassigned": "Hay artículos sin asignar.",
+            "unassigned_items": "Artículos no Asignados",
+            "items_in_bill": "Artículos en la Cuenta",
+            "no_items_in_bill": "No se han añadido artículos a esta cuenta."
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
@@ -294,5 +297,7 @@
         "error": "Error"
     }
 }
+
+    
 
     

@@ -20,14 +20,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useI18n } from '@/context/i18n-context';
-import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark, CheckCircle, CircleDashed } from 'lucide-react';
+import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark, CheckCircle, CircleDashed, Plus, Minus } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getPaymentMethods } from '@/lib/mock-data';
 import { type PaymentMethod, type OrderItem, type BillSplit } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 
@@ -122,36 +121,39 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     });
   }
 
-  const handleItemToggle = (item: OrderItem, checked: boolean) => {
+  const handleItemToggle = (item: OrderItem, assign: boolean) => {
     setSplits(currentSplits => {
-      const newSplits = [...currentSplits];
-
-      // Remove item from any split it might be in
-      for (const split of newSplits) {
-        const itemIndex = split.items.findIndex(i => i.id === item.id);
-        if (itemIndex > -1) {
-          split.items.splice(itemIndex, 1);
+        const newSplits = [...currentSplits];
+        const activeSplit = newSplits[activeSplitIndex];
+        
+        if (assign) {
+            activeSplit.items.push(item);
+        } else {
+            const itemIndex = activeSplit.items.findIndex(i => i.id === item.id);
+            if (itemIndex > -1) {
+                activeSplit.items.splice(itemIndex, 1);
+            }
         }
-      }
-
-      // Add item to the active split if checked
-      if (checked) {
-        newSplits[activeSplitIndex].items.push(item);
-      }
-      
-      // Recalculate totals
-      return newSplits.map(split => ({
-        ...split,
-        total: split.items.reduce((acc, currentItem) => acc + calculateItemTotal(currentItem), 0)
-      }));
+        
+        // Recalculate total for the active split
+        activeSplit.total = activeSplit.items.reduce((acc, currentItem) => acc + calculateItemTotal(currentItem), 0);
+        
+        return newSplits;
     });
   };
 
-  const allItemsAssigned = useMemo(() => {
-    if (!isSplittingBill) return true; // Not splitting, so all items are covered
-    const assignedItemIds = new Set(splits.flatMap(s => s.items.map(i => i.id)));
-    return orderItems.length === assignedItemIds.size;
-  }, [splits, orderItems, isSplittingBill]);
+  const assignedItems = useMemo(() => {
+    if (!isSplittingBill) return [];
+    return splits.flatMap(s => s.items);
+  }, [isSplittingBill, splits]);
+
+  const unassignedItems = useMemo(() => {
+    if (!isSplittingBill) return [];
+    const assignedIds = new Set(assignedItems.map(i => i.id));
+    return orderItems.filter(item => !assignedIds.has(item.id));
+  }, [isSplittingBill, assignedItems, orderItems]);
+
+  const allItemsAssigned = isSplittingBill && unassignedItems.length === 0;
   
   const canConfirm = !isSplittingBill || allItemsAssigned;
 
@@ -163,6 +165,33 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
       default: return null;
     }
   }
+
+  const activeSplitItems = useMemo(() => {
+    if (!isSplittingBill || splits.length === 0) return [];
+    return splits[activeSplitIndex]?.items || [];
+  }, [isSplittingBill, splits, activeSplitIndex]);
+
+  const renderItemList = (items: OrderItem[], isAssignedList: boolean) => (
+    <div className="space-y-2">
+      {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{isAssignedList ? t('pos.payment_dialog.no_items_in_bill') : t('pos.payment_dialog.all_items_assigned')}</p>}
+      {items.map(item => (
+        <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+          <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center">
+            <span>{item.quantity}x {item.menuItem.name}</span>
+            <span>${calculateItemTotal(item).toFixed(2)}</span>
+          </Label>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-7 w-7"
+            onClick={() => handleItemToggle(item, !isAssignedList)}
+          >
+            {isAssignedList ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -268,39 +297,42 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
             {/* Right Side: Item Assignment */}
             <div className="space-y-4">
-                <Label className="font-semibold">{isSplittingBill ? `${t('pos.payment_dialog.assign_items_for')} ${t('pos.payment_dialog.bill')} ${activeSplitIndex + 1}` : t('pos.payment_dialog.order_summary')}</Label>
-                <ScrollArea className="h-64 border rounded-md p-2">
-                    <div className="space-y-3">
-                        {orderItems.map(item => {
-                            const itemIsInActiveSplit = splits[activeSplitIndex]?.items.some(i => i.id === item.id);
-                            const itemIsAssignedToAnotherSplit = splits.some((split, index) => index !== activeSplitIndex && split.items.some(i => i.id === item.id));
-
-                            return (
-                                <div key={item.id} className="flex items-center gap-3">
-                                    <Checkbox
-                                        id={`item-${item.id}`}
-                                        checked={itemIsInActiveSplit}
-                                        onCheckedChange={(checked) => handleItemToggle(item, !!checked)}
-                                        disabled={!isSplittingBill || itemIsAssignedToAnotherSplit}
-                                    />
-                                    <Label 
-                                        htmlFor={`item-${item.id}`}
-                                        className={cn(
-                                            "flex-1 flex justify-between items-center cursor-pointer",
-                                            (!isSplittingBill || itemIsAssignedToAnotherSplit) && "cursor-not-allowed opacity-50"
-                                        )}
-                                    >
+                {isSplittingBill ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="font-semibold">{t('pos.payment_dialog.items_in_bill')} {activeSplitIndex + 1}</Label>
+                      <ScrollArea className="h-48 border rounded-md p-2">
+                        {renderItemList(activeSplitItems, true)}
+                      </ScrollArea>
+                    </div>
+                    <Separator />
+                    <div className="space-y-2">
+                      <Label className="font-semibold">{t('pos.payment_dialog.unassigned_items')}</Label>
+                      <ScrollArea className="h-32 border rounded-md p-2">
+                        {renderItemList(unassignedItems, false)}
+                      </ScrollArea>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Label className="font-semibold">{t('pos.payment_dialog.order_summary')}</Label>
+                    <ScrollArea className="h-[26.5rem] border rounded-md p-2">
+                        <div className="space-y-3">
+                            {orderItems.map(item => (
+                                <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                                    <Label className="flex-1 flex justify-between items-center">
                                         <span>{item.quantity}x {item.menuItem.name}</span>
                                         <span>${calculateItemTotal(item).toFixed(2)}</span>
                                     </Label>
                                 </div>
-                            );
-                        })}
-                    </div>
-                </ScrollArea>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                  </>
+                )}
                  {isSplittingBill && (
                     <div className={cn(
-                        "flex items-center gap-2 text-sm font-medium",
+                        "flex items-center gap-2 text-sm font-medium pt-2",
                         allItemsAssigned ? "text-green-600" : "text-destructive"
                     )}>
                         {allItemsAssigned ? <CheckCircle className="h-4 w-4"/> : <CircleDashed className="h-4 w-4"/>}
@@ -319,3 +351,5 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     </Dialog>
   );
 }
+
+    
