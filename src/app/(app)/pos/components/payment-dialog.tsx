@@ -43,25 +43,25 @@ const calculateItemTotal = (item: OrderItem) => {
     return (item.menuItem.price + extrasPrice) * item.quantity;
 };
 
-export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPayment, orderItems }: PaymentDialogProps) {
+export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPayment, orderItems: originalOrderItems }: PaymentDialogProps) {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
   const [selectedBank, setSelectedBank] = useState<string>('');
   const [isSplittingBill, setIsSplittingBill] = useState(false);
   
   const [splits, setSplits] = useState<BillSplit[]>([]);
-  const [activeSplitIndex, setActiveSplitIndex] = useState(0);
+  const [activeSplitId, setActiveSplitId] = useState<number | null>(null);
+  const [items, setItems] = useState<OrderItem[]>([]);
 
   const { t } = useI18n();
   
   const initializeSplits = (count: number) => {
      const newSplits = Array.from({ length: count }, (_, i) => ({
       id: Date.now() + i,
-      items: [],
       total: 0,
     }));
     setSplits(newSplits);
-    setActiveSplitIndex(0);
+    setActiveSplitId(newSplits[0].id);
   }
 
   useEffect(() => {
@@ -82,9 +82,10 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
       fetchMethods();
       setIsSplittingBill(false);
       setSplits([]);
-      setActiveSplitIndex(0);
+      setActiveSplitId(null);
+      setItems(JSON.parse(JSON.stringify(originalOrderItems))); // Deep copy for local manipulation
     }
-  }, [isOpen, totalAmount]);
+  }, [isOpen, originalOrderItems]);
   
   const handleMethodChange = (value: string) => {
     const method = paymentMethods.find(m => m.id === value);
@@ -104,57 +105,62 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
       initializeSplits(2);
     } else {
       setSplits([]);
+      setActiveSplitId(null);
+      // Clear splitId from all items
+      setItems(currentItems => currentItems.map(it => ({ ...it, splitId: undefined })));
     }
   }
 
   const addSplit = () => {
-    setSplits(s => [...s, { id: Date.now(), items: [], total: 0 }]);
+    const newSplit = { id: Date.now(), total: 0 };
+    setSplits(s => [...s, newSplit]);
   }
 
   const removeSplit = (id: number) => {
     setSplits(s => {
       const newSplits = s.filter(split => split.id !== id);
-      if (activeSplitIndex >= newSplits.length) {
-        setActiveSplitIndex(Math.max(0, newSplits.length - 1));
+      if (activeSplitId === id) {
+        setActiveSplitId(newSplits.length > 0 ? newSplits[0].id : null);
       }
       return newSplits;
     });
+    // Unassign items from the removed split
+    setItems(currentItems => currentItems.map(item => item.splitId === id ? { ...item, splitId: undefined } : item));
   }
 
   const handleItemToggle = (item: OrderItem, assign: boolean) => {
-    setSplits(currentSplits => {
-        const newSplits = [...currentSplits];
-        const activeSplit = newSplits[activeSplitIndex];
-        
-        if (assign) {
-            activeSplit.items.push(item);
-        } else {
-            const itemIndex = activeSplit.items.findIndex(i => i.id === item.id);
-            if (itemIndex > -1) {
-                activeSplit.items.splice(itemIndex, 1);
-            }
+    setItems(currentItems =>
+      currentItems.map(i => {
+        if (i.id === item.id) {
+          return { ...i, splitId: assign ? activeSplitId! : undefined };
         }
-        
-        // Recalculate total for the active split
-        activeSplit.total = activeSplit.items.reduce((acc, currentItem) => acc + calculateItemTotal(currentItem), 0);
-        
-        return newSplits;
-    });
+        return i;
+      })
+    );
   };
-
-  const assignedItems = useMemo(() => {
-    if (!isSplittingBill) return [];
-    return splits.flatMap(s => s.items);
-  }, [isSplittingBill, splits]);
-
-  const unassignedItems = useMemo(() => {
-    if (!isSplittingBill) return [];
-    const assignedIds = new Set(assignedItems.map(i => i.id));
-    return orderItems.filter(item => !assignedIds.has(item.id));
-  }, [isSplittingBill, assignedItems, orderItems]);
-
-  const allItemsAssigned = isSplittingBill && unassignedItems.length === 0;
   
+  const unassignedItems = useMemo(() => {
+    return items.filter(item => !item.splitId);
+  }, [items]);
+
+  const activeSplitItems = useMemo(() => {
+    return items.filter(item => item.splitId === activeSplitId);
+  }, [items, activeSplitId]);
+
+  // Recalculate split totals whenever items change
+  useEffect(() => {
+    if (!isSplittingBill) return;
+
+    setSplits(currentSplits => {
+      return currentSplits.map(split => {
+        const splitItems = items.filter(item => item.splitId === split.id);
+        const total = splitItems.reduce((acc, currentItem) => acc + calculateItemTotal(currentItem), 0);
+        return { ...split, total };
+      });
+    });
+  }, [items, isSplittingBill]);
+  
+  const allItemsAssigned = isSplittingBill && unassignedItems.length === 0;
   const canConfirm = !isSplittingBill || allItemsAssigned;
 
   const getIconForMethod = (type: PaymentMethod['type']) => {
@@ -166,15 +172,15 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     }
   }
 
-  const activeSplitItems = useMemo(() => {
-    if (!isSplittingBill || splits.length === 0) return [];
-    return splits[activeSplitIndex]?.items || [];
-  }, [isSplittingBill, splits, activeSplitIndex]);
+  const activeSplitIndex = useMemo(() => {
+    if (!activeSplitId) return -1;
+    return splits.findIndex(s => s.id === activeSplitId);
+  }, [splits, activeSplitId]);
 
-  const renderItemList = (items: OrderItem[], isAssignedList: boolean) => (
+  const renderItemList = (itemList: OrderItem[], isAssignedList: boolean) => (
     <div className="space-y-2">
-      {items.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{isAssignedList ? t('pos.payment_dialog.no_items_in_bill') : t('pos.payment_dialog.all_items_assigned')}</p>}
-      {items.map(item => (
+      {itemList.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{isAssignedList ? t('pos.payment_dialog.no_items_in_bill') : t('pos.payment_dialog.all_items_assigned')}</p>}
+      {itemList.map(item => (
         <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
           <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center">
             <span>{item.quantity}x {item.menuItem.name}</span>
@@ -263,9 +269,9 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                                         key={split.id}
                                         className={cn(
                                             "flex justify-between items-center p-2 rounded-md cursor-pointer",
-                                            activeSplitIndex === index ? "bg-primary/10 border border-primary" : "hover:bg-muted/50"
+                                            activeSplitId === split.id ? "bg-primary/10 border border-primary" : "hover:bg-muted/50"
                                         )}
-                                        onClick={() => setActiveSplitIndex(index)}
+                                        onClick={() => setActiveSplitId(split.id)}
                                     >
                                         <div className="font-semibold">
                                             {t('pos.payment_dialog.bill')} {index + 1}
@@ -318,7 +324,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     <Label className="font-semibold">{t('pos.payment_dialog.order_summary')}</Label>
                     <ScrollArea className="h-[26.5rem] border rounded-md p-2">
                         <div className="space-y-3">
-                            {orderItems.map(item => (
+                            {items.map(item => (
                                 <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
                                     <Label className="flex-1 flex justify-between items-center">
                                         <span>{item.quantity}x {item.menuItem.name}</span>
@@ -351,5 +357,3 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
     </Dialog>
   );
 }
-
-    

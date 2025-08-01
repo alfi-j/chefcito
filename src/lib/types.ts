@@ -19,6 +19,7 @@ export type OrderItem = {
   cookedCount: number;
   status: 'New' | 'Cooking' | 'Cooked';
   selectedExtras?: MenuItem[];
+  splitId?: number; // Add this to track which split the item belongs to
 };
 
 export type Order = {
@@ -49,7 +50,6 @@ export type PaymentMethod = {
 
 export type BillSplit = {
   id: number;
-  items: OrderItem[];
   total: number;
 }
 
