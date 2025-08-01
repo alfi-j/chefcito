@@ -284,9 +284,15 @@ export default function RestaurantPage() {
   const numVisible = filteredMenuItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
-  useEffect(() => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
     setSelectedItemIds([]);
-  }, [searchQuery, categoryFilter]);
+  }
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
+    setSelectedItemIds([]);
+  }
 
   if (loading) {
     return (
@@ -314,10 +320,10 @@ export default function RestaurantPage() {
                             placeholder={t('restaurant.menu.search_placeholder')}
                             className="pl-8 sm:w-[300px]"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={handleSearchChange}
                             />
                         </div>
-                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                        <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
                             <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
                             </SelectTrigger>
