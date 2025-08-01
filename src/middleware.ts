@@ -3,6 +3,10 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 // This middleware checks if the user is authenticated.
 export function middleware(request: NextRequest) {
+  // Development mode: Bypassing authentication.
+  return NextResponse.next();
+
+  /*
   const isAuthenticated = request.cookies.has('chefcito-auth');
   const isLoginPage = request.nextUrl.pathname.startsWith('/login');
 
@@ -24,6 +28,7 @@ export function middleware(request: NextRequest) {
   
   // If the user is authenticated, allow access to the requested page.
   return NextResponse.next()
+  */
 }
 
 export const config = {
