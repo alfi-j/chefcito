@@ -1,12 +1,12 @@
 
 "use client"
 import Image from 'next/image'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem, type Customer } from '@/lib/types'
-import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils, UserPlus } from 'lucide-react'
+import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
 import {
@@ -31,17 +31,18 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
   const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder, table, setTable, customerId, setCustomerId } = order;
   
   const customerOptions = customers.map(c => ({ value: c.id, label: c.name }));
-  const selectedCustomerName = customers.find(c => c.id === customerId)?.name;
 
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
         <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
-        <div className="grid grid-cols-2 gap-4 pt-2">
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col min-h-0">
+        <div className="grid grid-cols-2 gap-4 pb-4 border-b mb-4">
             <div>
-                <Label>{t('pos.current_order.table')}</Label>
-                 <Select value={String(table)} onValueChange={(value) => setTable(Number(value))}>
-                    <SelectTrigger>
+                <Label htmlFor="table-select">{t('pos.current_order.table')}</Label>
+                 <Select value={String(table)} onValueChange={(value) => setTable(Number(value))} name="table-select">
+                    <SelectTrigger id="table-select">
                         <SelectValue placeholder={t('pos.current_order.select_table')} />
                     </SelectTrigger>
                     <SelectContent>
@@ -54,7 +55,7 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
                 </Select>
             </div>
             <div>
-                <Label>{t('pos.current_order.customer')}</Label>
+                <Label htmlFor="customer-select">{t('pos.current_order.customer')}</Label>
                 <Combobox 
                     options={customerOptions}
                     value={customerId}
@@ -65,11 +66,9 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
                 />
             </div>
         </div>
-        {selectedCustomerName && <CardDescription className="pt-2">{t('pos.current_order.customer')}: {selectedCustomerName}</CardDescription>}
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col min-h-0">
-        <ScrollArea className="flex-grow">
-          <div className="space-y-4 pr-4">
+
+        <ScrollArea className="flex-grow pr-4">
+          <div className="space-y-4">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
                 <Utensils className="w-12 h-12 mb-4" />

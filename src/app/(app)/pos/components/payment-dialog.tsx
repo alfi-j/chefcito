@@ -182,7 +182,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
       {itemList.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">{isAssignedList ? t('pos.payment_dialog.no_items_in_bill') : t('pos.payment_dialog.all_items_assigned')}</p>}
       {itemList.map(item => (
         <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-          <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center">
+          <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center cursor-pointer">
             <span>{item.quantity}x {item.menuItem.name}</span>
             <span>${calculateItemTotal(item).toFixed(2)}</span>
           </Label>
