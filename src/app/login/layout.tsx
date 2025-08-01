@@ -2,14 +2,14 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Utensils } from "lucide-react"
+import { ChefHat } from "lucide-react"
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-6">
-            <Utensils className="h-12 w-12 text-primary" />
+            <ChefHat className="h-12 w-12 text-primary" />
         </div>
         <Card>
           <CardHeader className="text-center">
