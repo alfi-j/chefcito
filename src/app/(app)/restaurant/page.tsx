@@ -306,10 +306,7 @@ export default function RestaurantPage() {
           onSave={handleSaveItem}
           categories={categories}
           onDataChange={handlePreviewItem}
-        >
-          {/* This children prop is required but we trigger dialog programmatically */}
-          <></>
-        </MenuItemDialog>
+        />
       )}
 
       <div className="space-y-8">

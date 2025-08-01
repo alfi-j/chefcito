@@ -150,15 +150,10 @@ export function MenuItemDialog({
         onDataChange({}); // Clear preview on close by passing empty object
     }
   }
-  
-  const DialogTriggerWrapper = children ? DialogTrigger : React.Fragment;
-  const triggerProps = children ? { asChild: true } : {};
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTriggerWrapper {...triggerProps}>
-        {children}
-      </DialogTriggerWrapper>
+      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
