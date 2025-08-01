@@ -351,9 +351,14 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
         </div>
         </ScrollArea>
 
-        <DialogFooter className="p-6 pt-0 border-t sticky bottom-0 bg-background">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-          <Button onClick={onConfirmPayment} disabled={!canConfirm || (selectedMethod?.type === 'bank_transfer' && !selectedBank)}>{t('pos.payment_dialog.confirm')} ${totalAmount.toFixed(2)}</Button>
+        <DialogFooter className="p-6 pt-4 border-t !flex-row !justify-between items-center sticky bottom-0 bg-background">
+          <div className="text-lg font-bold">
+              {t('pos.payment_dialog.total_due')}: <span className="text-primary">${totalAmount.toFixed(2)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
+            <Button onClick={onConfirmPayment} disabled={!canConfirm || (selectedMethod?.type === 'bank_transfer' && !selectedBank)}>{t('pos.payment_dialog.confirm')}</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
