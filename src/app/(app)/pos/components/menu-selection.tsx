@@ -2,7 +2,7 @@
 "use client"
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type MenuItem, type Category } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
