@@ -202,9 +202,9 @@ export default function RestaurantPage() {
                   <CardHeader>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                         <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-center gap-2">
                           <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-                          <Button onClick={() => handleOpenItemDialog()}>
+                          <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             {t('restaurant.menu.add_item')}
                           </Button>
@@ -264,8 +264,8 @@ export default function RestaurantPage() {
                                   {t('restaurant.menu.table.image')}
                               </TableHead>
                               <TableHead>{t('restaurant.menu.table.name')}</TableHead>
-                              <TableHead>{t('restaurant.menu.table.category')}</TableHead>
-                              <TableHead>{t('restaurant.menu.table.status')}</TableHead>
+                              <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
+                              <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
                               <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
                               <TableHead>
                                   <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
@@ -319,10 +319,10 @@ export default function RestaurantPage() {
                                 )}
                                 </TableCell>
                                 <TableCell className="font-medium">{item.name}</TableCell>
-                                <TableCell>
+                                <TableCell className="hidden md:table-cell">
                                 <Badge variant="secondary">{item.category}</Badge>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="hidden sm:table-cell">
                                 <Badge variant={item.available ? "default" : "destructive"}>
                                     {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
                                 </Badge>
@@ -387,8 +387,14 @@ export default function RestaurantPage() {
                           <TableRow key={method.id}>
                               <TableCell className="font-medium">
                                   {method.name}
-                                  <div className="text-sm text-muted-foreground sm:hidden">
-                                  {t(`restaurant.payment_methods.types.${method.type}`)}
+                                  <div className="mt-1 flex items-center gap-2 sm:hidden">
+                                      <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
+                                      <Switch 
+                                        id={`enabled-switch-mobile-${method.id}`}
+                                        checked={method.enabled} 
+                                        onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                                        aria-label={`Enable ${method.name}`}
+                                      />
                                   </div>
                               </TableCell>
                               <TableCell className="hidden sm:table-cell">
@@ -403,14 +409,6 @@ export default function RestaurantPage() {
                               </TableCell>
                               <TableCell>
                               <div className="flex justify-end items-center gap-2">
-                                  <div className="flex items-center gap-2 sm:hidden">
-                                      <Label htmlFor={`enabled-switch-${method.id}`} className="text-sm">Enabled</Label>
-                                      <Switch 
-                                      id={`enabled-switch-${method.id}`}
-                                      checked={method.enabled} 
-                                      onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
-                                      />
-                                  </div>
                                   <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
                                       <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                                   </PaymentMethodDialog>

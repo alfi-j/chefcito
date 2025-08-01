@@ -99,7 +99,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
       >
           <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
             <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab invisible" />
-            <div className="flex-grow flex justify-center items-center gap-x-2">
+            <div className="flex-grow flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />
                 <span>{order.id}</span>
