@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, type DragEvent } from 'react'
+import React, { useState, useMemo, type DragEvent } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { type MenuItem, type PaymentMethod } from "@/lib/types"
+import { type MenuItem, type PaymentMethod, type Category } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/context/i18n-context'
@@ -159,16 +159,73 @@ export default function RestaurantPage() {
   }
   
   const isSortingEnabled = !searchQuery && categoryFilter === 'all';
+  
+  const categoryMap = useMemo(() => {
+    const map = new Map<number, Category>();
+    categories.forEach(c => map.set(c.id, c));
+    return map;
+  }, [categories]);
 
-  const filteredItems = menuItems.filter(item => {
-    const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const categoryChildrenMap = useMemo(() => {
+    const map = new Map<number, number[]>();
+    categories.forEach(c => {
+        if (c.parentId) {
+            if (!map.has(c.parentId)) {
+                map.set(c.parentId, []);
+            }
+            map.get(c.parentId)!.push(c.id);
+        }
+    });
+    return map;
+  }, [categories]);
 
-  if (!isSortingEnabled) {
-    filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+  const getDescendantCategoryNames = (categoryId: number): string[] => {
+    const names: string[] = [];
+    const queue: number[] = [categoryId];
+    const visited = new Set<number>();
+
+    while(queue.length > 0) {
+        const currentId = queue.shift()!;
+        if (visited.has(currentId)) continue;
+        visited.add(currentId);
+        
+        const category = categoryMap.get(currentId);
+        if (category) {
+            names.push(category.name);
+        }
+
+        const children = categoryChildrenMap.get(currentId);
+        if (children) {
+            queue.push(...children);
+        }
+    }
+    return names;
   }
+
+  const filteredItems = useMemo(() => {
+    let items = [...menuItems];
+    
+    if (categoryFilter !== 'all') {
+      const selectedCategory = categories.find(c => c.name === categoryFilter);
+      if (selectedCategory) {
+        const relevantCategoryNames = getDescendantCategoryNames(selectedCategory.id);
+        items = items.filter(item => relevantCategoryNames.includes(item.category));
+      } else {
+        items = [];
+      }
+    }
+
+    if (searchQuery) {
+      items = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    if (!isSortingEnabled) {
+      items.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return items;
+  }, [menuItems, categoryFilter, searchQuery, isSortingEnabled, categories, categoryMap, categoryChildrenMap]);
+
 
   const numSelected = selectedItemIds.length;
   const numVisible = filteredItems.length;
@@ -199,7 +256,7 @@ export default function RestaurantPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
               <Card>
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                         <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -236,12 +293,12 @@ export default function RestaurantPage() {
                             </SelectTrigger>
                             <SelectContent>
                             <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                            {categories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                            {categories.filter(c => !c.isModifierGroup && !c.parentId).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
                             </SelectContent>
                         </Select>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                     {numSelected > 0 && (
                         <BatchActionsToolbar 
                           selectedCount={numSelected}
@@ -355,7 +412,7 @@ export default function RestaurantPage() {
               </Card>
         
               <Card>
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
                       <div className="space-y-1">
                       <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
@@ -369,7 +426,7 @@ export default function RestaurantPage() {
                       </PaymentMethodDialog>
                   </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                   <div className="border rounded-lg">
                       <Table>
                       <TableHeader>
@@ -427,11 +484,11 @@ export default function RestaurantPage() {
           </div>
           <div className="lg:col-span-1">
               <Card className="sticky top-8">
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                       <CardTitle className="font-headline">{t('restaurant.preview.title')}</CardTitle>
                       <CardDescription>{t('restaurant.preview.desc')}</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
                       <MenuItemPreview item={previewItem} />
                   </CardContent>
               </Card>
@@ -439,5 +496,5 @@ export default function RestaurantPage() {
         </div>
       </div>
     </>
-  )
+  );
 }
