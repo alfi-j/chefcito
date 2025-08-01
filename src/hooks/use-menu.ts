@@ -18,11 +18,7 @@ import {
 } from '@/lib/mock-data';
 import { type Category, type MenuItem, type PaymentMethod } from "@/lib/types"
 
-interface UseMenuProps {
-    onItemsDeleted?: (count: number) => void;
-}
-
-export const useMenu = (props?: UseMenuProps) => {
+export const useMenu = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
@@ -72,7 +68,6 @@ export const useMenu = (props?: UseMenuProps) => {
      try {
       await deleteMenuItem(itemId);
       await fetchAllData();
-      props?.onItemsDeleted?.(1);
       toast({ title: t('toast.success'), description: t('restaurant.toast.item_deleted') });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
@@ -84,7 +79,6 @@ export const useMenu = (props?: UseMenuProps) => {
       const count = itemIds.length;
       await deleteMenuItems(itemIds);
       await fetchAllData();
-      props?.onItemsDeleted?.(count);
       toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count }) });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });

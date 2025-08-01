@@ -1,22 +1,22 @@
 
 "use client"
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { type OrderItem, type MenuItem } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
+import { PaymentDialog } from './components/payment-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { useI18n } from '@/context/i18n-context';
 import { addOrder } from '@/lib/mock-data';
-import { PaymentProcessing } from './components/payment-processing';
 import { useMenu } from '@/hooks/use-menu';
 
 export default function PosPage() {
   const [currentOrderItems, setCurrentOrderItems] = useState<OrderItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
   const { t } = useI18n();
-  const [isPaymentProcessing, setPaymentProcessing] = useState(false);
   
   const { menuItems, categories, loading } = useMenu();
 
@@ -90,16 +90,7 @@ export default function PosPage() {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    toast({
-      title: t('pos.toast.payment_success_title'),
-      description: t('pos.toast.payment_success_desc'),
-    });
-    handleClearOrder();
-    setPaymentProcessing(false);
-  }
-  
-  const handleOpenPayment = () => {
+  const handleOpenPaymentDialog = () => {
     if (currentOrderItems.length === 0) {
       toast({
         title: t('pos.toast.empty_order_title'),
@@ -108,9 +99,18 @@ export default function PosPage() {
       });
       return;
     }
-    setPaymentProcessing(true);
+    setPaymentDialogOpen(true);
   }
 
+  const handlePaymentSuccess = () => {
+    setPaymentDialogOpen(false);
+    toast({
+      title: t('pos.toast.payment_success_title'),
+      description: t('pos.toast.payment_success_desc'),
+    });
+    handleClearOrder();
+  }
+  
   if (loading) {
      return (
         <div className="flex justify-center items-center h-full">
@@ -140,33 +140,32 @@ export default function PosPage() {
         />
       )}
       
-      {isPaymentProcessing ? (
-          <PaymentProcessing 
-            orderItems={currentOrderItems}
-            totalAmount={total}
-            onPaymentSuccess={handlePaymentSuccess}
-            onCancel={() => setPaymentProcessing(false)}
-          />
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
-          <div className="lg:col-span-2 h-full">
-            <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
-          </div>
-          <div className="lg:col-span-1 h-full">
-            <CurrentOrder 
-              items={currentOrderItems} 
-              onUpdateQuantity={handleUpdateQuantity} 
-              onRemoveItem={handleRemoveItem}
-              onClearOrder={handleClearOrder}
-              onSendToKitchen={handleSendToKitchen}
-              onPayment={handleOpenPayment}
-              subtotal={subtotal}
-              tax={tax}
-              total={total}
-            />
-          </div>
+      <PaymentDialog
+        isOpen={isPaymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        orderItems={currentOrderItems}
+        totalAmount={total}
+        onConfirmPayment={handlePaymentSuccess}
+      />
+      
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[calc(100vh-120px)]">
+        <div className="lg:col-span-2 h-full">
+          <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
         </div>
-      )}
+        <div className="lg:col-span-1 h-full">
+          <CurrentOrder 
+            items={currentOrderItems} 
+            onUpdateQuantity={handleUpdateQuantity} 
+            onRemoveItem={handleRemoveItem}
+            onClearOrder={handleClearOrder}
+            onSendToKitchen={handleSendToKitchen}
+            onPayment={handleOpenPaymentDialog}
+            subtotal={subtotal}
+            tax={tax}
+            total={total}
+          />
+        </div>
+      </div>
     </>
   );
 }

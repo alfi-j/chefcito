@@ -8,7 +8,6 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
-  DialogTrigger
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,14 +30,12 @@ interface RenderedCategory extends Category {
 }
 
 export function MenuItemDialog({ 
-  children, 
   item,
   onSave,
   categories,
   isOpen,
   onOpenChange,
 }: { 
-  children?: React.ReactNode, 
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
   categories: Category[],
@@ -126,7 +123,8 @@ export function MenuItemDialog({
     onOpenChange(false);
   };
 
-  const dialogContent = (
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
@@ -195,12 +193,6 @@ export function MenuItemDialog({
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
-  );
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
-      {dialogContent}
     </Dialog>
   );
 }

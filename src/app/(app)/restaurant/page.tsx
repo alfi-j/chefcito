@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState, useEffect, type DragEvent } from 'react'
+import React, { useState, type DragEvent } from 'react'
 import Image from 'next/image'
 import {
   Table,
@@ -73,12 +73,7 @@ export default function RestaurantPage() {
     handleDeletePaymentMethod,
     handlePaymentMethodToggle,
     setMenuItems,
-  } = useMenu({
-    onItemsDeleted: (count) => {
-      setSelectedItemIds([]);
-      setPreviewItem(null);
-    }
-  });
+  } = useMenu();
 
 
   const handleOpenItemDialog = (item?: MenuItem) => {
@@ -139,6 +134,12 @@ export default function RestaurantPage() {
       setDragOverItemId(itemId);
     }
   };
+  
+  const onDeleteMultiple = async () => {
+    await handleDeleteMultipleItems(selectedItemIds);
+    setSelectedItemIds([]);
+    setPreviewItem(null);
+  };
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -183,16 +184,14 @@ export default function RestaurantPage() {
 
   return (
     <>
-      {isItemDialogOpen && (
-        <MenuItemDialog
-          isOpen={isItemDialogOpen}
-          onOpenChange={setIsItemDialogOpen}
-          item={editingItem}
-          onSave={handleSaveItem}
-          categories={categories}
-        />
-      )}
-
+      <MenuItemDialog
+        isOpen={isItemDialogOpen}
+        onOpenChange={setIsItemDialogOpen}
+        item={editingItem}
+        onSave={handleSaveItem}
+        categories={categories}
+      />
+      
       <div className="space-y-8">
         <h1 className="text-3xl font-headline font-bold">{t('restaurant.title')}</h1>
         
@@ -245,7 +244,7 @@ export default function RestaurantPage() {
                     {numSelected > 0 && (
                         <BatchActionsToolbar 
                           selectedCount={numSelected}
-                          onDelete={() => handleDeleteMultipleItems(selectedItemIds)}
+                          onDelete={onDeleteMultiple}
                         />
                     )}
                     <div className="border rounded-lg">
