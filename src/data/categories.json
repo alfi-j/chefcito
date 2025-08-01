@@ -37,6 +37,7 @@
   {
     "id": 7,
     "name": "Pastas",
-    "parentId": 2
+    "parentId": 2,
+    "depth": 1
   }
 ]

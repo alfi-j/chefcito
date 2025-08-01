@@ -46,6 +46,9 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { useMenu } from '@/hooks/use-menu'
 
+interface RenderedCategory extends Category {
+  depth: number;
+}
 
 export default function RestaurantPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,8 +164,16 @@ export default function RestaurantPage() {
   const isSortingEnabled = !searchQuery && categoryFilter === 'all';
   
   const categoryMap = useMemo(() => {
-    const map = new Map<number, Category>();
-    categories.forEach(c => map.set(c.id, c));
+    const map = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const roots: Category[] = [];
+
+    categories.forEach(category => {
+        if (category.parentId && map.has(category.parentId)) {
+            map.get(category.parentId)!.children.push(category as any);
+        } else {
+            roots.push(category);
+        }
+    });
     return map;
   }, [categories]);
 
@@ -201,6 +212,28 @@ export default function RestaurantPage() {
     }
     return names;
   }
+  
+  const renderedCategories = useMemo(() => {
+    const roots: Category[] = [];
+    const categoryIdMap = new Map(categories.map(c => [c.id, c]));
+
+    categories.forEach(category => {
+        if (!category.parentId || !categoryIdMap.has(category.parentId)) {
+            roots.push(category);
+        }
+    });
+    
+    const flattened: RenderedCategory[] = [];
+    const traverse = (category: Category, depth: number) => {
+        flattened.push({ ...category, depth });
+        const children = categories.filter(c => c.parentId === category.id)
+        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+    };
+
+    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    return flattened;
+  }, [categories]);
+
 
   const filteredItems = useMemo(() => {
     let items = [...menuItems];
@@ -292,8 +325,12 @@ export default function RestaurantPage() {
                             <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
                             </SelectTrigger>
                             <SelectContent>
-                            <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                            {categories.filter(c => !c.isModifierGroup && !c.parentId).map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                              <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                              {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
+                                <SelectItem key={cat.id} value={cat.name}>
+                                  <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                         </Select>
                     </div>
