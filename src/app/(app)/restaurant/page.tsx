@@ -202,7 +202,7 @@ export default function RestaurantPage() {
                   <CardHeader>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                         <CardTitle className="font-headline text-2xl">{t('restaurant.menu.title')}</CardTitle>
-                        <div className="flex flex-col sm:flex-row items-center gap-2">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
                           <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
                             <PlusCircle className="mr-2 h-4 w-4" />

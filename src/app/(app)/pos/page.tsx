@@ -110,7 +110,7 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:h-[calc(100vh-120px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:h-full md:max-h-[calc(100vh-120px)]">
         <div className="lg:col-span-2 h-full min-h-[400px] lg:min-h-0">
           <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
         </div>

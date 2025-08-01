@@ -44,7 +44,7 @@ export function SalesReport({ data, loading }: SalesReportProps) {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>{t('reports.sales.total_revenue')}</CardTitle>
+            <CardTitle className="font-headline">{t('reports.sales.total_revenue')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">${data.totalRevenue.toFixed(2)}</p>
@@ -52,7 +52,7 @@ export function SalesReport({ data, loading }: SalesReportProps) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{t('reports.sales.total_orders')}</CardTitle>
+            <CardTitle className="font-headline">{t('reports.sales.total_orders')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">{data.totalOrders}</p>
@@ -60,7 +60,7 @@ export function SalesReport({ data, loading }: SalesReportProps) {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{t('reports.sales.avg_order_value')}</CardTitle>
+            <CardTitle className="font-headline">{t('reports.sales.avg_order_value')}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-4xl font-bold">${data.avgOrderValue.toFixed(2)}</p>

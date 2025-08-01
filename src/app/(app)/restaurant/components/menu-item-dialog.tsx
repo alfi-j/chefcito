@@ -132,17 +132,17 @@ export function MenuItemDialog({
             {isEditMode ? t('restaurant.item_dialog.edit_desc') : t('restaurant.item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">{t('restaurant.item_dialog.name')}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="description" className="text-right pt-2">{t('restaurant.item_dialog.description')}</Label>
-            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" />
+           <div className="space-y-2">
+            <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
+            <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="price" className="text-right">{t('restaurant.item_dialog.price')}</Label>
+          <div className="space-y-2">
+            <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
             <Input 
               id="price" 
               type="text" 
@@ -155,13 +155,12 @@ export function MenuItemDialog({
                     setPrice(value);
                 }
               }} 
-              className="col-span-3" 
             />
           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="category" className="text-right">{t('restaurant.item_dialog.category')}</Label>
+           <div className="space-y-2">
+            <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger>
                 <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
               </SelectTrigger>
               <SelectContent>
@@ -169,23 +168,21 @@ export function MenuItemDialog({
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="modifiers" className="text-right pt-2">{t('restaurant.item_dialog.linked_modifiers')}</Label>
-            <div className="col-span-3">
-               <MultiSelect
-                options={modifierGroups}
-                selected={linkedModifiers}
-                onChange={setLinkedModifiers}
-                placeholder={t('restaurant.item_dialog.select_modifiers')}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                {t('restaurant.item_dialog.modifiers_desc')}
-              </p>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="modifiers">{t('restaurant.item_dialog.linked_modifiers')}</Label>
+             <MultiSelect
+              options={modifierGroups}
+              selected={linkedModifiers}
+              onChange={setLinkedModifiers}
+              placeholder={t('restaurant.item_dialog.select_modifiers')}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t('restaurant.item_dialog.modifiers_desc')}
+            </p>
           </div>
-           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="available" className="text-right">{t('restaurant.item_dialog.available')}</Label>
+           <div className="flex items-center space-x-2">
             <Switch id="available" checked={available} onCheckedChange={setAvailable} />
+            <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
           </div>
         </div>
         <DialogFooter>
