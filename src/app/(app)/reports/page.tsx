@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "./components/date-range-picker";
@@ -13,6 +13,7 @@ import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { File } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useReports } from '@/hooks/use-reports';
 
 export default function ReportsPage() {
   const { t } = useI18n();
@@ -22,6 +23,12 @@ export default function ReportsPage() {
     from: addDays(new Date(), -7),
     to: new Date(),
   });
+  
+  const { reports, loading, fetchAllReports } = useReports(date);
+
+  useEffect(() => {
+    fetchAllReports();
+  }, [date, fetchAllReports]);
 
   const handleExport = () => {
     // This is a mock export. In a real app, this would trigger a download.
@@ -50,13 +57,13 @@ export default function ReportsPage() {
           <TabsTrigger value="kitchen">{t('reports.tabs.kitchen')}</TabsTrigger>
         </TabsList>
         <TabsContent value="sales">
-          <SalesReport dateRange={date} />
+          <SalesReport data={reports.sales} loading={loading} />
         </TabsContent>
         <TabsContent value="items">
-          <ItemReport dateRange={date} />
+          <ItemReport data={reports.items} loading={loading} />
         </TabsContent>
         <TabsContent value="kitchen">
-          <KitchenReport dateRange={date} />
+          <KitchenReport data={reports.kitchen} loading={loading} />
         </TabsContent>
       </Tabs>
     </div>

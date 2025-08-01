@@ -1,7 +1,7 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -11,40 +11,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type DateRange } from 'react-day-picker';
-import { getKitchenPerformanceReport } from '@/lib/mock-data';
 import { useI18n } from '@/context/i18n-context';
 import { Badge } from '@/components/ui/badge';
-
-interface KitchenReportProps {
-  dateRange?: DateRange;
-}
 
 interface PerformanceData {
   avgPrepTime: number;
   mostDelayed: { name: string; avgTime: number }[];
 }
 
-export function KitchenReport({ dateRange }: KitchenReportProps) {
-  const [reportData, setReportData] = useState<PerformanceData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { t } = useI18n();
+interface KitchenReportProps {
+  data: PerformanceData | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      setLoading(true);
-      const data = await getKitchenPerformanceReport(dateRange);
-      setReportData(data);
-      setLoading(false);
-    }
-    fetchReport();
-  }, [dateRange]);
+export function KitchenReport({ data, loading }: KitchenReportProps) {
+  const { t } = useI18n();
 
   if (loading) {
     return <div>{t('reports.loading')}</div>;
   }
 
-  if (!reportData || (reportData.avgPrepTime === 0 && reportData.mostDelayed.length === 0)) {
+  if (!data || (data.avgPrepTime === 0 && data.mostDelayed.length === 0)) {
     return (
         <div className="flex items-center justify-center h-full text-muted-foreground py-10">
           <p>{t('reports.no_data')}</p>
@@ -65,7 +52,7 @@ export function KitchenReport({ dateRange }: KitchenReportProps) {
           <CardDescription>{t('reports.kitchen.avg_prep_time_desc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-4xl font-bold">{formatTime(reportData.avgPrepTime)}</p>
+          <p className="text-4xl font-bold">{formatTime(data.avgPrepTime)}</p>
         </CardContent>
       </Card>
       <Card>
@@ -74,7 +61,7 @@ export function KitchenReport({ dateRange }: KitchenReportProps) {
           <CardDescription>{t('reports.kitchen.most_delayed_desc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          {reportData.mostDelayed.length > 0 ? (
+          {data.mostDelayed.length > 0 ? (
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>
@@ -84,7 +71,7 @@ export function KitchenReport({ dateRange }: KitchenReportProps) {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {reportData.mostDelayed.map((item, index) => (
+                        {data.mostDelayed.map((item, index) => (
                             <TableRow key={index}>
                                 <TableCell className="font-medium">{item.name}</TableCell>
                                 <TableCell className="text-right">

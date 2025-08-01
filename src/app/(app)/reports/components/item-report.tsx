@@ -1,8 +1,8 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -11,13 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { type DateRange } from 'react-day-picker';
-import { getItemSalesReport } from '@/lib/mock-data';
 import { useI18n } from '@/context/i18n-context';
-
-interface ItemReportProps {
-  dateRange?: DateRange;
-}
 
 interface ItemSale {
   name: string;
@@ -25,20 +19,16 @@ interface ItemSale {
   total: number;
 }
 
-export function ItemReport({ dateRange }: ItemReportProps) {
-  const [reportData, setReportData] = useState<{ bestSelling: ItemSale[], leastSelling: ItemSale[] }>({ bestSelling: [], leastSelling: [] });
-  const [loading, setLoading] = useState(false);
-  const { t } = useI18n();
+interface ItemReportProps {
+  data: {
+    bestSelling: ItemSale[];
+    leastSelling: ItemSale[];
+  } | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
-    const fetchReport = async () => {
-      setLoading(true);
-      const data = await getItemSalesReport(dateRange);
-      setReportData(data);
-      setLoading(false);
-    }
-    fetchReport();
-  }, [dateRange]);
+export function ItemReport({ data, loading }: ItemReportProps) {
+  const { t } = useI18n();
 
   const renderTable = (items: ItemSale[], title: string) => (
     <Card>
@@ -77,11 +67,15 @@ export function ItemReport({ dateRange }: ItemReportProps) {
   if (loading) {
     return <div>{t('reports.loading')}</div>;
   }
+  
+  if (!data) {
+     return <div className="flex items-center justify-center h-full text-muted-foreground py-10"><p>{t('reports.no_data')}</p></div>
+  }
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {renderTable(reportData.bestSelling, t('reports.items.best_selling'))}
-      {renderTable(reportData.leastSelling, t('reports.items.least_selling'))}
+      {renderTable(data.bestSelling, t('reports.items.best_selling'))}
+      {renderTable(data.leastSelling, t('reports.items.least_selling'))}
     </div>
   );
 }

@@ -1,10 +1,8 @@
 
 "use client"
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { getSalesReport } from '@/lib/mock-data';
-import { type DateRange } from 'react-day-picker';
 import {
   BarChart,
   Bar,
@@ -17,36 +15,23 @@ import {
 import { useI18n } from '@/context/i18n-context';
 
 interface SalesReportProps {
-  dateRange?: DateRange;
+  data: {
+    totalRevenue: number;
+    totalOrders: number;
+    avgOrderValue: number;
+    dailySales: { date: string; total: number }[];
+  } | null;
+  loading: boolean;
 }
 
-interface ReportData {
-  totalRevenue: number;
-  totalOrders: number;
-  avgOrderValue: number;
-  dailySales: { date: string; total: number }[];
-}
-
-export function SalesReport({ dateRange }: SalesReportProps) {
-  const [reportData, setReportData] = useState<ReportData | null>(null);
-  const [loading, setLoading] = useState(false);
+export function SalesReport({ data, loading }: SalesReportProps) {
   const { t } = useI18n();
-
-  useEffect(() => {
-    const fetchReport = async () => {
-      setLoading(true);
-      const data = await getSalesReport(dateRange);
-      setReportData(data);
-      setLoading(false);
-    }
-    fetchReport();
-  }, [dateRange]);
 
   if (loading) {
     return <div>{t('reports.loading')}</div>;
   }
 
-  if (!reportData || reportData.totalOrders === 0) {
+  if (!data || data.totalOrders === 0) {
      return (
         <div className="flex items-center justify-center h-full text-muted-foreground py-10">
           <p>{t('reports.no_data')}</p>
@@ -62,7 +47,7 @@ export function SalesReport({ dateRange }: SalesReportProps) {
             <CardTitle>{t('reports.sales.total_revenue')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">${reportData.totalRevenue.toFixed(2)}</p>
+            <p className="text-4xl font-bold">${data.totalRevenue.toFixed(2)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -70,7 +55,7 @@ export function SalesReport({ dateRange }: SalesReportProps) {
             <CardTitle>{t('reports.sales.total_orders')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{reportData.totalOrders}</p>
+            <p className="text-4xl font-bold">{data.totalOrders}</p>
           </CardContent>
         </Card>
         <Card>
@@ -78,7 +63,7 @@ export function SalesReport({ dateRange }: SalesReportProps) {
             <CardTitle>{t('reports.sales.avg_order_value')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">${reportData.avgOrderValue.toFixed(2)}</p>
+            <p className="text-4xl font-bold">${data.avgOrderValue.toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>
@@ -91,7 +76,7 @@ export function SalesReport({ dateRange }: SalesReportProps) {
         <CardContent>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={reportData.dailySales}>
+              <BarChart data={data.dailySales}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis
