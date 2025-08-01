@@ -156,6 +156,10 @@
             "banks": "Banks",
             "add_bank": "Add a new bank"
         },
+        "preview": {
+            "title": "Live Preview",
+            "desc": "See how the item will appear on the POS menu."
+        },
         "toast": {
             "fetch_error": "Could not fetch data.",
             "item_updated": "Menu item updated.",
@@ -280,3 +284,5 @@
         "error": "Error"
     }
 }
+
+    

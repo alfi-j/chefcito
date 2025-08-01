@@ -156,6 +156,10 @@
             "banks": "Bancos",
             "add_bank": "Añadir un nuevo banco"
         },
+        "preview": {
+            "title": "Vista Previa en Vivo",
+            "desc": "Mira cómo aparecerá el artículo en el menú del TPV."
+        },
         "toast": {
             "fetch_error": "No se pudieron cargar los datos.",
             "item_updated": "Artículo del menú actualizado.",
@@ -280,3 +284,5 @@
         "error": "Error"
     }
 }
+
+    

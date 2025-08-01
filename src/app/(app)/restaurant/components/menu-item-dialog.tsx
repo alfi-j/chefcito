@@ -34,12 +34,14 @@ export function MenuItemDialog({
   children, 
   item,
   onSave,
-  categories
+  categories,
+  onDataChange,
 }: { 
   children: React.ReactNode, 
   item?: MenuItem,
   onSave: (item: MenuItem | Omit<MenuItem, 'id'>) => void,
   categories: Category[],
+  onDataChange?: (data: Partial<MenuItem>) => void,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!item;
@@ -82,9 +84,8 @@ export function MenuItemDialog({
     roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
     return flattened;
   }, [categories]);
-
-  useEffect(() => {
-    if(isOpen) {
+  
+  const resetState = () => {
       setName(item?.name || '');
       setDescription(item?.description || '');
       setAvailable(item?.available ?? true);
@@ -92,14 +93,32 @@ export function MenuItemDialog({
       setCategory(item?.category || '');
       setImageUrl(item?.imageUrl || '');
       setLinkedModifiers(item?.linkedModifiers || []);
+  }
+
+  useEffect(() => {
+    if(isOpen) {
+      resetState();
     }
   }, [isOpen, item]);
+  
+  useEffect(() => {
+    if (onDataChange) {
+      const liveData = {
+        name,
+        price,
+        imageUrl,
+        category,
+        description,
+        available
+      };
+      onDataChange(liveData);
+    }
+  }, [name, price, imageUrl, category, description, available, onDataChange]);
 
 
   const handleSubmit = () => {
     const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
     if (isNaN(finalPrice)) {
-      // You might want to add user feedback here, e.g., a toast notification
       return;
     }
 
@@ -121,9 +140,16 @@ export function MenuItemDialog({
     setIsOpen(false);
   };
   
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    if (!open) {
+        onDataChange && onDataChange({}); // Clear preview on close
+    }
+  }
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild onClick={() => item && onDataChange?.(item)}>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
@@ -188,10 +214,12 @@ export function MenuItemDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.cancel')}</Button>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
+
+    
