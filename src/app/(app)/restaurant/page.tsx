@@ -247,7 +247,7 @@ export default function RestaurantPage() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedItemIds(filteredMenuItems.map(item => item.id));
+      setSelectedItemIds(filteredItems.map(item => item.id));
     } else {
       setSelectedItemIds([]);
     }
@@ -260,31 +260,21 @@ export default function RestaurantPage() {
       setSelectedItemIds(prev => prev.filter(id => id !== itemId));
     }
   }
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setSelectedItemIds([]);
-  };
-
-  const handleCategoryFilterChange = (value: string) => {
-    setCategoryFilter(value);
-    setSelectedItemIds([]);
-  };
   
   const isSortingEnabled = !searchQuery && categoryFilter === 'all';
 
-  const filteredMenuItems = menuItems.filter(item => {
+  const filteredItems = menuItems.filter(item => {
     const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   if (!isSortingEnabled) {
-    filteredMenuItems.sort((a, b) => a.name.localeCompare(b.name));
+    filteredItems.sort((a, b) => a.name.localeCompare(b.name));
   }
 
   const numSelected = selectedItemIds.length;
-  const numVisible = filteredMenuItems.length;
+  const numVisible = filteredItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
 
@@ -314,10 +304,19 @@ export default function RestaurantPage() {
                             placeholder={t('restaurant.menu.search_placeholder')}
                             className="pl-8 sm:w-[300px]"
                             value={searchQuery}
-                            onChange={handleSearchChange}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setSelectedItemIds([]);
+                            }}
                             />
                         </div>
-                        <Select value={categoryFilter} onValueChange={handleCategoryFilterChange}>
+                        <Select
+                            value={categoryFilter}
+                            onValueChange={(value) => {
+                                setCategoryFilter(value);
+                                setSelectedItemIds([]);
+                            }}
+                        >
                             <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
                             </SelectTrigger>
@@ -370,7 +369,7 @@ export default function RestaurantPage() {
                           </TableRow>
                       </TableHeader>
                       <TableBody>
-                          {filteredMenuItems.map((item) => (
+                          {filteredItems.map((item) => (
                           <TableRow 
                               key={item.id}
                               data-state={selectedItemIds.includes(item.id) && "selected"}
@@ -541,5 +540,3 @@ export default function RestaurantPage() {
     </div>
   )
 }
-
-    
