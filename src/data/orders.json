@@ -1,0 +1,36 @@
+
+[
+    { 
+        "id": 1, 
+        "table": 3, 
+        "status": "pending", 
+        "createdAt": "2024-01-01T10:00:00Z", 
+        "isPinned": false,
+        "items": [
+            { "id": "1-1", "menuItemId": "1", "quantity": 1, "cookedCount": 0, "status": "New", "selectedExtraIds": ["extra-1"] },
+            { "id": "1-2", "menuItemId": "3", "quantity": 1, "cookedCount": 0, "status": "New", "selectedExtraIds": [] }
+        ]
+    },
+    { 
+        "id": 2, 
+        "table": 5, 
+        "status": "pending", 
+        "createdAt": "2024-01-01T09:50:00Z", 
+        "isPinned": true,
+        "items": [
+            { "id": "2-1", "menuItemId": "2", "quantity": 2, "cookedCount": 0, "status": "New", "selectedExtraIds": [] },
+            { "id": "2-2", "menuItemId": "6", "quantity": 2, "cookedCount": 0, "status": "New", "selectedExtraIds": [] }
+        ]
+    },
+     { 
+        "id": 3, 
+        "table": 1, 
+        "status": "completed", 
+        "createdAt": "2024-01-01T09:30:00Z",
+        "completedAt": "2024-01-01T09:40:00Z",
+        "isPinned": false,
+        "items": [
+            { "id": "3-1", "menuItemId": "4", "quantity": 0, "cookedCount": 1, "status": "Cooked", "selectedExtraIds": [] }
+        ]
+    }
+]

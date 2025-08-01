@@ -1,109 +1,124 @@
 
 import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod } from './types';
-import { subDays, eachDayOfInterval, format, differenceInMinutes, startOfDay } from 'date-fns';
+import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
+// The data is now intended to be sourced from JSON files.
+// These in-memory arrays will act as a cache. We will populate them
+// from the files in a later step.
+let menuItems: MenuItem[] = [];
+let categories: Category[] = [];
+let orders: Order[] = [];
+let paymentMethods: PaymentMethod[] = [];
 
-// Using let for mutable mock data
-let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Pizzas', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true, sortIndex: 0 },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true, sortIndex: 1 },
-  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Pastas', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true, sortIndex: 2 },
-  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true, sortIndex: 3 },
-  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true, sortIndex: 4 },
-  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true, sortIndex: 5 },
-  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping', description: 'Add extra cheese to your dish.', available: true, sortIndex: 6 },
-  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping', description: 'Add crispy bacon.', available: true, sortIndex: 7 },
-  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping', description: 'Add fresh avocado.', available: true, sortIndex: 8 },
-  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat', description: 'Add another juicy patty.', available: true, sortIndex: 9 },
-];
 
-let categories: Category[] = [
-  { id: 1, name: 'Appetizers', parentId: null },
-  { id: 2, name: 'Main Courses', linkedModifiers: ['Extras'], parentId: null },
-  { id: 3, name: 'Desserts', parentId: null },
-  { id: 4, name: 'Beverages', parentId: null },
-  { id: 5, name: 'Extras', isModifierGroup: true, parentId: null },
-  { id: 6, name: 'Pizzas', parentId: 2 },
-  { id: 7, name: 'Pastas', parentId: 2 },
-];
+// Initializing with some data to prevent the app from breaking before full implementation
+// This will be replaced with file loading logic.
+const tempInitialize = () => {
+  if (menuItems.length === 0) {
+    menuItems = [
+      { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Pizzas', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true, sortIndex: 0 },
+      { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true, sortIndex: 1 },
+      { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Pastas', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true, sortIndex: 2 },
+      { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true, sortIndex: 3 },
+      { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true, sortIndex: 4 },
+      { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true, sortIndex: 5 },
+      { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping', description: 'Add extra cheese to your dish.', available: true, sortIndex: 6 },
+      { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping', description: 'Add crispy bacon.', available: true, sortIndex: 7 },
+      { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping', description: 'Add fresh avocado.', available: true, sortIndex: 8 },
+      { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat', description: 'Add another juicy patty.', available: true, sortIndex: 9 },
+    ];
+  }
+   if (categories.length === 0) {
+     categories = [
+        { id: 1, name: 'Appetizers', parentId: null },
+        { id: 2, name: 'Main Courses', linkedModifiers: ['Extras'], parentId: null },
+        { id: 3, name: 'Desserts', parentId: null },
+        { id: 4, name: 'Beverages', parentId: null },
+        { id: 5, name: 'Extras', isModifierGroup: true, parentId: null },
+        { id: 6, name: 'Pizzas', parentId: 2 },
+        { id: 7, name: 'Pastas', parentId: 2 },
+     ];
+   }
+   if (orders.length === 0) {
+    orders = [
+        { 
+            id: 1, 
+            table: 3, 
+            status: 'pending', 
+            createdAt: new Date(Date.now() - 5 * 60 * 1000), 
+            isPinned: false,
+            items: [
+                { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New', selectedExtras: [menuItems.find(m => m.id === 'extra-1')!] },
+                { id: '1-2', menuItem: menuItems[2], quantity: 1, cookedCount: 0, status: 'New' },
+            ]
+        },
+        { 
+            id: 2, 
+            table: 5, 
+            status: 'pending', 
+            createdAt: new Date(Date.now() - 15 * 60 * 1000), 
+            isPinned: true,
+            items: [
+                { id: '2-1', menuItem: menuItems[1], quantity: 2, cookedCount: 0, status: 'New' },
+                { id: '2-2', menuItem: menuItems[5], quantity: 2, cookedCount: 0, status: 'New' },
+            ]
+        },
+        { 
+            id: 3, 
+            table: 1, 
+            status: 'completed', 
+            createdAt: new Date(Date.now() - 30 * 60 * 1000),
+            completedAt: new Date(Date.now() - 20 * 60 * 1000),
+            isPinned: false,
+            items: [
+                { id: '3-1', menuItem: menuItems[3], quantity: 0, cookedCount: 1, status: 'Cooked' },
+            ]
+        },
+    ];
+     // Generate more historical completed orders for reporting
+    for (let i = 0; i < 50; i++) {
+        const createdAt = subDays(new Date(), Math.floor(Math.random() * 30));
+        const prepTime = Math.floor(Math.random() * 20) + 5; // 5 to 25 minutes
+        const completedAt = new Date(createdAt.getTime() + prepTime * 60 * 1000);
+        const numItems = Math.floor(Math.random() * 4) + 1;
+        const orderItems: OrderItem[] = [];
 
-let orders: Order[] = [
-    { 
-        id: 1, 
-        table: 3, 
-        status: 'pending', 
-        createdAt: new Date(Date.now() - 5 * 60 * 1000), 
-        isPinned: false,
-        items: [
-            { id: '1-1', menuItem: menuItems[0], quantity: 1, cookedCount: 0, status: 'New', selectedExtras: [menuItems.find(m => m.id === 'extra-1')!] },
-            { id: '1-2', menuItem: menuItems[2], quantity: 1, cookedCount: 0, status: 'New' },
-        ]
-    },
-    { 
-        id: 2, 
-        table: 5, 
-        status: 'pending', 
-        createdAt: new Date(Date.now() - 15 * 60 * 1000), 
-        isPinned: true,
-        items: [
-            { id: '2-1', menuItem: menuItems[1], quantity: 2, cookedCount: 0, status: 'New' },
-            { id: '2-2', menuItem: menuItems[5], quantity: 2, cookedCount: 0, status: 'New' },
-        ]
-    },
-     { 
-        id: 3, 
-        table: 1, 
-        status: 'completed', 
-        createdAt: new Date(Date.now() - 30 * 60 * 1000),
-        completedAt: new Date(Date.now() - 20 * 60 * 1000),
-        isPinned: false,
-        items: [
-            { id: '3-1', menuItem: menuItems[3], quantity: 0, cookedCount: 1, status: 'Cooked' },
-        ]
-    },
-];
+        for (let j = 0; j < numItems; j++) {
+            const menuItem = menuItems[Math.floor(Math.random() * menuItems.length)];
+            const quantity = Math.floor(Math.random() * 2) + 1;
+            orderItems.push({
+                id: `h-${i}-${j}`,
+                menuItem: menuItem,
+                quantity: 0,
+                cookedCount: quantity,
+                status: 'Cooked'
+            });
+        }
 
-// Generate more historical completed orders for reporting
-for (let i = 0; i < 50; i++) {
-    const createdAt = subDays(new Date(), Math.floor(Math.random() * 30));
-    const prepTime = Math.floor(Math.random() * 20) + 5; // 5 to 25 minutes
-    const completedAt = new Date(createdAt.getTime() + prepTime * 60 * 1000);
-    const numItems = Math.floor(Math.random() * 4) + 1;
-    const orderItems: OrderItem[] = [];
-
-    for (let j = 0; j < numItems; j++) {
-        const menuItem = menuItems[Math.floor(Math.random() * menuItems.length)];
-        const quantity = Math.floor(Math.random() * 2) + 1;
-        orderItems.push({
-            id: `h-${i}-${j}`,
-            menuItem: menuItem,
-            quantity: 0,
-            cookedCount: quantity,
-            status: 'Cooked'
+        orders.push({
+            id: 100 + i,
+            table: Math.floor(Math.random() * 10) + 1,
+            status: 'completed',
+            createdAt,
+            completedAt,
+            items: orderItems,
         });
     }
-
-    orders.push({
-        id: 100 + i,
-        table: Math.floor(Math.random() * 10) + 1,
-        status: 'completed',
-        createdAt,
-        completedAt,
-        items: orderItems,
-    });
-}
-
-
-let paymentMethods: PaymentMethod[] = [
-    { id: 'pm-1', name: 'Cash', type: 'cash', enabled: true },
-    { id: 'pm-2', name: 'Card', type: 'card', enabled: true },
-    { id: 'pm-3', name: 'Bank Transfer', type: 'bank_transfer', enabled: true, banks: ['Bank A', 'Bank B', 'Bank C'] },
-    { id: 'pm-4', name: 'Gift Card', type: 'card', enabled: false },
-];
+   }
+   if (paymentMethods.length === 0) {
+        paymentMethods = [
+            { id: 'pm-1', name: 'Cash', type: 'cash', enabled: true },
+            { id: 'pm-2', name: 'Card', type: 'card', enabled: true },
+            { id: 'pm-3', name: 'Bank Transfer', type: 'bank_transfer', enabled: true, banks: ['Bank A', 'Bank B', 'Bank C'] },
+            { id: 'pm-4', name: 'Gift Card', type: 'card', enabled: false },
+        ];
+   }
+};
+tempInitialize();
 
 
-let nextOrderId = orders.length + 1;
+let nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
 let nextItemId = 1000;
 
 // Functions to interact with mock data
