@@ -102,6 +102,8 @@ export default function PosPage() {
           isOpen={!!selectedItem}
           onOpenChange={(open) => !open && setSelectedItem(null)}
           onAddItem={handleAddItemToOrder}
+          menuItems={menuItems}
+          categories={categories}
         />
       )}
       

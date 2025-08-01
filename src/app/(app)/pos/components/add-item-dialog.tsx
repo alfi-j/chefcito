@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from '@/context/i18n-context';
 import { type MenuItem, type Category } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
-import { getCategories, getMenuItems } from '@/lib/mock-data';
 import { Separator } from '@/components/ui/separator';
 
 interface AddItemDialogProps {
@@ -25,47 +24,39 @@ interface AddItemDialogProps {
   onOpenChange: (open: boolean) => void;
   item: MenuItem;
   onAddItem: (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => void;
+  menuItems: MenuItem[];
+  categories: Category[];
 }
 
-export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItemDialogProps) {
+export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems, categories }: AddItemDialogProps) {
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   
-  const [availableModifierGroups, setAvailableModifierGroups] = useState<Record<string, MenuItem[]>>({});
+  const availableModifierGroups = useMemo(() => {
+    if (!item) return {};
 
-  useEffect(() => {
-    const fetchModifiers = async () => {
-      if (!item) return;
+    const itemCategory = categories.find(c => c.name === item.category);
+    const modifierCategoryNames = new Set([
+      ...(item.linkedModifiers || []),
+      ...(itemCategory?.linkedModifiers || [])
+    ]);
 
-      const allCategories = await getCategories();
-      const allItems = await getMenuItems();
-      const itemCategory = allCategories.find(c => c.name === item.category);
+    const groups: Record<string, MenuItem[]> = {};
+    
+    modifierCategoryNames.forEach(catName => {
+        groups[catName] = menuItems.filter(i => i.category === catName);
+    });
 
-      const modifierCategoryNames = new Set([
-        ...(item.linkedModifiers || []),
-        ...(itemCategory?.linkedModifiers || [])
-      ]);
-      
-      const groups: Record<string, MenuItem[]> = {};
-      
-      modifierCategoryNames.forEach(catName => {
-          groups[catName] = allItems.filter(i => i.category === catName);
-      });
-
-      setAvailableModifierGroups(groups);
-    }
-    if (isOpen) {
-      fetchModifiers();
-    }
-  }, [item, isOpen]);
+    return groups;
+  }, [item, categories, menuItems]);
 
   useEffect(() => {
     if (isOpen) {
       setQuantity(1);
       setSelectedExtras([]);
     }
-  }, [isOpen, item]);
+  }, [isOpen]);
   
   const handleExtraChange = (extra: MenuItem, checked: boolean) => {
     setSelectedExtras(prev => 
@@ -79,6 +70,8 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem }: AddItem
   
   const extrasPrice = selectedExtras.reduce((acc, extra) => acc + extra.price, 0);
   const totalItemPrice = (item.price + extrasPrice) * quantity;
+
+  if (!item) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
