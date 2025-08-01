@@ -111,12 +111,11 @@ let nextItemId = 1000;
 // Categories
 export const getCategories = () => [...categories].sort((a,b) => a.name.localeCompare(b.name));
 
-export const addCategory = (name: string, isModifierGroup?: boolean, linkedModifiers?: string[], parentId?: number | null) => {
+export const addCategory = (name: string, isModifierGroup?: boolean, parentId?: number | null) => {
     const newCategory: Category = { 
         id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, 
         name, 
         isModifierGroup,
-        linkedModifiers,
         parentId
     };
     categories.push(newCategory);
@@ -375,10 +374,10 @@ export const getKitchenPerformanceReport = (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     completedOrders.forEach(order => {
-        const prepTime = differenceInMinutes(order.completedAt!, order.createdAt);
+        const prepTime = differenceInMinutes(order.completedAt!, o.createdAt);
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push(prepTime);
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
