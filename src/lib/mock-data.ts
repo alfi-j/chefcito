@@ -6,16 +6,16 @@ import { DateRange } from 'react-day-picker';
 
 // Using let for mutable mock data
 let menuItems: MenuItem[] = [
-  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Pizzas', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true },
-  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true },
-  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Pastas', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true },
-  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true },
-  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true },
-  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true },
-  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping', description: 'Add extra cheese to your dish.', available: true },
-  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping', description: 'Add crispy bacon.', available: true },
-  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping', description: 'Add fresh avocado.', available: true },
-  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat', description: 'Add another juicy patty.', available: true },
+  { id: '1', name: 'Margherita Pizza', price: 12.99, category: 'Pizzas', imageUrl: '', aiHint: 'pizza food', description: 'Classic pizza with fresh basil and mozzarella.', available: true, sortIndex: 0 },
+  { id: '2', name: 'Caesar Salad', price: 8.99, category: 'Appetizers', imageUrl: '', aiHint: 'salad food', description: 'Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.', available: true, sortIndex: 1 },
+  { id: '3', name: 'Spaghetti Carbonara', price: 15.50, category: 'Pastas', imageUrl: '', aiHint: 'pasta food', description: 'Pasta with eggs, cheese, pancetta, and black pepper.', available: true, sortIndex: 2 },
+  { id: '4', name: 'Tiramisu', price: 6.50, category: 'Desserts', imageUrl: '', aiHint: 'tiramisu food', description: 'Coffee-flavoured Italian dessert.', available: true, sortIndex: 3 },
+  { id: '5', name: 'Bruschetta', price: 7.00, category: 'Appetizers', imageUrl: '', aiHint: 'bruschetta food', description: 'Grilled bread with garlic, topped with tomato and basil.', available: true, sortIndex: 4 },
+  { id: '6', name: 'Coca-Cola', price: 2.50, category: 'Beverages', imageUrl: '', aiHint: 'soda drink', description: 'A classic refreshing soda.', available: true, sortIndex: 5 },
+  { id: 'extra-1', name: 'Extra Cheese', price: 1.50, category: 'Extras', imageUrl: '', aiHint: 'cheese topping', description: 'Add extra cheese to your dish.', available: true, sortIndex: 6 },
+  { id: 'extra-2', name: 'Bacon', price: 2.00, category: 'Extras', imageUrl: '', aiHint: 'bacon topping', description: 'Add crispy bacon.', available: true, sortIndex: 7 },
+  { id: 'extra-3', name: 'Avocado', price: 2.50, category: 'Extras', imageUrl: '', aiHint: 'avocado topping', description: 'Add fresh avocado.', available: true, sortIndex: 8 },
+  { id: 'extra-4', name: 'Extra Patty', price: 4.00, category: 'Extras', imageUrl: '', aiHint: 'burger meat', description: 'Add another juicy patty.', available: true, sortIndex: 9 },
 ];
 
 let categories: Category[] = [
@@ -155,10 +155,11 @@ export const isCategoryInUse = (name: string) => {
 }
 
 // Menu Items
-export const getMenuItems = () => [...menuItems].sort((a, b) => a.name.localeCompare(b.name));
+export const getMenuItems = () => [...menuItems].sort((a, b) => a.sortIndex - b.sortIndex);
 
 export const addMenuItem = (item: Omit<MenuItem, 'id'>) => {
-    const newItem: MenuItem = { id: String(Date.now()), ...item };
+    const maxSortIndex = menuItems.length > 0 ? Math.max(...menuItems.map(i => i.sortIndex)) : -1;
+    const newItem: MenuItem = { id: String(Date.now()), ...item, sortIndex: maxSortIndex + 1 };
     menuItems.push(newItem);
     return newItem;
 };
@@ -166,10 +167,33 @@ export const addMenuItem = (item: Omit<MenuItem, 'id'>) => {
 export const updateMenuItem = (item: MenuItem) => {
     const index = menuItems.findIndex(i => i.id === item.id);
     if (index > -1) {
-        menuItems[index] = item;
+        menuItems[index] = { ...menuItems[index], ...item };
         return item;
     }
     return null;
+};
+
+export const updateMenuItemOrder = (orderedIds: string[]) => {
+    const newMenuItems: MenuItem[] = [];
+    const itemMap = new Map(menuItems.map(item => [item.id, item]));
+
+    orderedIds.forEach((id, index) => {
+        const item = itemMap.get(id);
+        if (item) {
+            item.sortIndex = index;
+            newMenuItems.push(item);
+        }
+    });
+
+    // Add any items not in orderedIds back to the list (though this shouldn't happen in a proper implementation)
+    menuItems.forEach(item => {
+        if (!orderedIds.includes(item.id)) {
+            newMenuItems.push(item);
+        }
+    });
+
+    menuItems = newMenuItems.sort((a,b) => a.sortIndex - b.sortIndex);
+    return true;
 };
 
 export const deleteMenuItem = (id: string) => {
@@ -377,7 +401,7 @@ export const getKitchenPerformanceReport = (dateRange?: DateRange) => {
         const prepTime = differenceInMinutes(order.completedAt!, o.createdAt);
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push(prepTime);
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);

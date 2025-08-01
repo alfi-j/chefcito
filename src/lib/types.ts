@@ -9,6 +9,7 @@ export type MenuItem = {
   imageUrl: string;
   aiHint?: string;
   linkedModifiers?: string[]; // Names of modifier categories
+  sortIndex: number;
 };
 
 export type OrderItem = {
