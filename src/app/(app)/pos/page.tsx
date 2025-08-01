@@ -121,15 +121,9 @@ export default function PosPage() {
         </div>
         <div className="lg:col-span-1 h-full">
           <CurrentOrder 
-            items={order.items} 
-            onUpdateQuantity={order.updateQuantity} 
-            onRemoveItem={order.removeItem}
-            onClearOrder={order.clearOrder}
+            order={order}
             onSendToKitchen={handleSendToKitchen}
             onPayment={handleOpenPaymentDialog}
-            subtotal={order.subtotal}
-            tax={order.tax}
-            total={order.total}
           />
         </div>
       </div>

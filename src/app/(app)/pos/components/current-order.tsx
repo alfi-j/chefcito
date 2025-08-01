@@ -8,21 +8,17 @@ import { Separator } from '@/components/ui/separator'
 import { type OrderItem } from '@/lib/types'
 import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
+import type { useCurrentOrder } from '@/hooks/use-current-order'
 
 interface CurrentOrderProps {
-  items: OrderItem[];
-  subtotal: number;
-  tax: number;
-  total: number;
-  onUpdateQuantity: (itemId: string, newQuantity: number) => void;
-  onRemoveItem: (itemId: string) => void;
-  onClearOrder: () => void;
+  order: ReturnType<typeof useCurrentOrder>;
   onSendToKitchen: () => void;
   onPayment: () => void;
 }
 
-export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, onRemoveItem, onClearOrder, onSendToKitchen, onPayment }: CurrentOrderProps) {
+export function CurrentOrder({ order, onSendToKitchen, onPayment }: CurrentOrderProps) {
   const { t } = useI18n();
+  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder } = order;
 
   return (
     <Card className="h-full flex flex-col">
@@ -54,15 +50,15 @@ export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, on
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
                         <MinusCircle className="h-4 w-4" />
                       </Button>
                       <span className="font-bold w-4 text-center">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
                         <PlusCircle className="h-4 w-4" />
                       </Button>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => onRemoveItem(item.id)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => removeItem(item.id)}>
                       <Trash2 className="h-4 w-4"/>
                     </Button>
                   </div>
@@ -99,7 +95,7 @@ export function CurrentOrder({ items, subtotal, tax, total, onUpdateQuantity, on
           </div>
           <Separator className="my-2" />
           <div className="w-full grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={onClearOrder}>{t('pos.current_order.clear_order')}</Button>
+            <Button variant="outline" onClick={clearOrder}>{t('pos.current_order.clear_order')}</Button>
             <Button variant="secondary" onClick={onPayment}>
               <CreditCard className="mr-2 h-4 w-4" />
               {t('pos.current_order.payment')}
