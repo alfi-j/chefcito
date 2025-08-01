@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { type MenuItem } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Utensils } from 'lucide-react'
+import { useI18n } from '@/context/i18n-context'
 
 interface MenuSelectionProps {
   menuItems: MenuItem[];
@@ -16,16 +17,17 @@ interface MenuSelectionProps {
 
 export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectionProps) {
   const [activeTab, setActiveTab] = useState(categories[0] || '')
+  const { t } = useI18n()
   
   if (categories.length === 0) {
     return (
        <Card className="h-full flex flex-col items-center justify-center">
         <CardHeader>
-          <CardTitle className="font-headline">Menu</CardTitle>
+          <CardTitle className="font-headline">{t('pos.menu_selection.no_categories_title')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>No menu categories found.</p>
-          <p className="text-sm text-muted-foreground">Add categories and items on the Menu page.</p>
+          <p>{t('pos.menu_selection.no_categories_desc_1')}</p>
+          <p className="text-sm text-muted-foreground">{t('pos.menu_selection.no_categories_desc_2')}</p>
         </CardContent>
        </Card>
     )
@@ -34,7 +36,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
   return (
     <Card className="h-full flex flex-col">
       <CardHeader>
-        <CardTitle className="font-headline">Menu</CardTitle>
+        <CardTitle className="font-headline">{t('pos.menu_selection.title')}</CardTitle>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-grow flex flex-col">
