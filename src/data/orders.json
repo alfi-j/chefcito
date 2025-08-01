@@ -31,7 +31,7 @@
     "table": 5,
     "status": "pending",
     "createdAt": "2024-01-01T09:50:00Z",
-    "isPinned": true,
+    "isPinned": false,
     "items": [
       {
         "id": "2-1",

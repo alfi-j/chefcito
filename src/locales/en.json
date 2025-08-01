@@ -80,7 +80,7 @@
         "title": "Restaurant",
         "loading": "Loading data...",
         "menu": {
-            "title": "Menu Management",
+            "title": "Menu",
             "add_item": "Add Item",
             "manage_categories": "Manage Categories",
             "search_placeholder": "Search for items...",

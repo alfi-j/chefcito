@@ -80,7 +80,7 @@
         "title": "Restaurante",
         "loading": "Cargando datos...",
         "menu": {
-            "title": "Gestión de Menú",
+            "title": "Menú",
             "add_item": "Añadir Artículo",
             "manage_categories": "Gestionar Categorías",
             "search_placeholder": "Buscar artículos...",

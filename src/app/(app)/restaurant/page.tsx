@@ -78,6 +78,7 @@ export default function RestaurantPage() {
 
   const handleOpenItemDialog = (item?: MenuItem) => {
     setEditingItem(item);
+    setPreviewItem(item || {});
     setIsItemDialogOpen(true);
   };
   

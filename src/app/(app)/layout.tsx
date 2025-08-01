@@ -65,16 +65,12 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/restaurant", label: t('restaurant.menu.title'), icon: Utensils },
+    { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ]
   
   const getPageTitle = () => {
-    // Handle special case for restaurant page being called "Menu"
-    if (pathname.startsWith('/restaurant')) {
-      return t('restaurant.menu.title');
-    }
     const currentItem = menuItems.find((item) => pathname.startsWith(item.href));
     if (currentItem) {
       return currentItem.label;
@@ -105,6 +101,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
+                  size="lg"
                   isActive={pathname.startsWith(item.href)}
                   tooltip={{children: item.label}}
                 >
@@ -120,7 +117,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} asChild tooltip={{children: t('userMenu.logout')}}>
+              <SidebarMenuButton onClick={handleLogout} asChild size="lg" tooltip={{children: t('userMenu.logout')}}>
                 <div>
                   <LogOut />
                   <span>{t('userMenu.logout')}</span>
