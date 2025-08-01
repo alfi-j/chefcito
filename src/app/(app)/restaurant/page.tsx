@@ -161,7 +161,9 @@ export default function RestaurantPage() {
         savedItem = await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
       await fetchAllData();
-      setPreviewItem(savedItem); // Update preview to show saved item
+      if (savedItem) {
+        setPreviewItem(savedItem); // Update preview to show saved item
+      }
       toast({ title: t('toast.success'), description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added') });
     } catch(error: any) {
       toast({ title: t('toast.error'), description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), variant: "destructive" });
@@ -180,13 +182,14 @@ export default function RestaurantPage() {
     }
   };
   
-  const handleDeleteMultipleItems = async (itemIds: string[]) => {
+  const handleDeleteMultipleItems = async () => {
      try {
-      await deleteMenuItems(itemIds);
+      const count = selectedItemIds.length;
+      await deleteMenuItems(selectedItemIds);
       await fetchAllData();
       setSelectedItemIds([]);
       setPreviewItem(null); // Clear preview after deleting
-      toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count: itemIds.length }) });
+      toast({ title: t('toast.success'), description: t('restaurant.toast.items_deleted', { count }) });
     } catch (error: any) {
        toast({ title: t('toast.error'), description: error.message || t('restaurant.toast.delete_item_error'), variant: "destructive" });
     }
@@ -339,7 +342,7 @@ export default function RestaurantPage() {
                   {numSelected > 0 && (
                       <BatchActionsToolbar 
                         selectedCount={numSelected}
-                        onDelete={() => handleDeleteMultipleItems(selectedItemIds)}
+                        onDelete={handleDeleteMultipleItems}
                       />
                   )}
                   <div className="border rounded-lg">

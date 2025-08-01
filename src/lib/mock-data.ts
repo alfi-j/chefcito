@@ -161,6 +161,13 @@ export const deleteMenuItem = async (id: string) => {
     return true;
 };
 
+export const deleteMenuItems = async (ids: string[]) => {
+    let menuItems = await readData<MenuItem[]>('menu-items.json');
+    menuItems = menuItems.filter(i => !ids.includes(i.id));
+    await writeData('menu-items.json', menuItems);
+    return true;
+};
+
 
 // Orders
 export const getInitialOrders = async (): Promise<Order[]> => {
