@@ -203,7 +203,8 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[], c
             quantity: item.quantity,
             cookedCount: 0,
             status: 'New',
-            selectedExtraIds: item.selectedExtras?.map(e => e.id) || []
+            selectedExtraIds: item.selectedExtras?.map(e => e.id) || [],
+            notes: item.notes || '',
         }))
     };
     orders.push(newOrder);
@@ -481,4 +482,5 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     return { avgPrepTime, mostDelayed };
 };
+
 

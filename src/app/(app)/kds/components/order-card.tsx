@@ -138,7 +138,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                 <div className="p-2 mb-1 border-l-4 border-primary bg-primary/10">
                     <div className="flex items-start gap-2">
                         <StickyNote className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                        <p className="text-sm font-semibold text-primary-foreground/90 whitespace-pre-wrap">{order.notes}</p>
+                        <p className="text-sm font-semibold text-primary whitespace-pre-wrap">{order.notes}</p>
                     </div>
                 </div>
             )}

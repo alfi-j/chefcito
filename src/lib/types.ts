@@ -20,6 +20,7 @@ export type OrderItem = {
   status: 'New' | 'Cooking' | 'Cooked';
   selectedExtras?: MenuItem[];
   splitId?: number;
+  notes?: string;
 };
 
 export type OrderStatusUpdate = {
