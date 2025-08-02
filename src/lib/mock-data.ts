@@ -185,7 +185,6 @@ export const getInitialOrders = async (): Promise<Order[]> => {
 export const addOrder = async (orderData: { table: number, items: OrderItem[], customerId?: string, notes?: string }) => {
     const orders = await readData<any[]>('orders.json');
     const nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
-    let nextItemIdCounter = Date.now();
     
     const now = new Date().toISOString();
     const newOrder = {
@@ -195,11 +194,11 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[], c
         createdAt: now,
         isPinned: false,
         customerId: orderData.customerId,
-        notes: orderData.notes,
+        notes: orderData.notes || '',
         staffName: "Staff Member", // Mock staff name
         statusHistory: [{ status: "pending", timestamp: now }],
         items: orderData.items.map(item => ({
-            id: String(nextItemIdCounter++),
+            id: item.id,
             menuItemId: item.menuItem.id,
             quantity: item.quantity,
             cookedCount: 0,
@@ -465,7 +464,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
         const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push( prepTime );
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
@@ -482,3 +481,4 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     return { avgPrepTime, mostDelayed };
 };
+
