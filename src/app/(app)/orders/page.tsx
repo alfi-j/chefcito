@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils'
 import { useOrderHistory } from '@/hooks/use-order-history'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
+import { OrderDetailsDialog } from './components/order-details-dialog'
 
 const getStatusVariant = (status: Order['status']) => {
   switch (status) {
@@ -40,18 +41,28 @@ const getStatusVariant = (status: Order['status']) => {
   }
 }
 
-const getOrderTotal = (order: Order) => {
+export const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
+        // Correctly calculate total price for all units of the item, including its own quantity and any already cooked.
+        const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
         const mainItemPrice = item.menuItem.price + extrasTotal;
-        return total + (mainItemPrice * (item.cookedCount + item.quantity));
+        return total + (mainItemPrice * totalUnits);
     }, 0);
 };
+
 
 export default function OrdersPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('all');
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { orders, loading } = useOrderHistory();
+
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
+  }
 
   const filteredOrders = useMemo(() => {
     if (activeTab === 'all') return orders;
@@ -87,7 +98,7 @@ export default function OrdersPage() {
           </TableHeader>
           <TableBody>
             {orderList.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
                 <TableCell className="font-medium">#{order.id}</TableCell>
                 <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
                 <TableCell className="hidden md:table-cell">{t('pos.current_order.table')} {order.table}</TableCell>
@@ -100,14 +111,14 @@ export default function OrdersPage() {
                   <div className="flex justify-end">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                        <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">{t('orders.table.toggle_menu')}</span>
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
-                        <DropdownMenuItem>{t('orders.table.view_details')}</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleViewDetails(order)}>{t('orders.table.view_details')}</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -121,23 +132,30 @@ export default function OrdersPage() {
   }
 
   return (
-    <Card>
-        <CardHeader>
-            <CardTitle className="font-headline">{t('orders.title')}</CardTitle>
-            <CardDescription>{t('orders.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-3 mb-4">
-                <TabsTrigger value="all">{t('orders.tabs.all')}</TabsTrigger>
-                <TabsTrigger value="pending">{t('orders.tabs.pending')}</TabsTrigger>
-                <TabsTrigger value="completed">{t('orders.tabs.completed')}</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all">{renderOrders(filteredOrders)}</TabsContent>
-                <TabsContent value="pending">{renderOrders(filteredOrders)}</TabsContent>
-                <TabsContent value="completed">{renderOrders(filteredOrders)}</TabsContent>
-            </Tabs>
-        </CardContent>
-    </Card>
+    <>
+      <OrderDetailsDialog 
+        isOpen={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        order={selectedOrder}
+      />
+      <Card>
+          <CardHeader>
+              <CardTitle className="font-headline">{t('orders.title')}</CardTitle>
+              <CardDescription>{t('orders.description')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="all">{t('orders.tabs.all')}</TabsTrigger>
+                  <TabsTrigger value="pending">{t('orders.tabs.pending')}</TabsTrigger>
+                  <TabsTrigger value="completed">{t('orders.tabs.completed')}</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="all">{renderOrders(filteredOrders)}</TabsContent>
+                  <TabsContent value="pending">{renderOrders(filteredOrders)}</TabsContent>
+                  <TabsContent value="completed">{renderOrders(filteredOrders)}</TabsContent>
+              </Tabs>
+          </CardContent>
+      </Card>
+    </>
   );
 }

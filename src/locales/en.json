@@ -112,6 +112,12 @@
             "toggle_menu": "Toggle menu",
             "view_details": "View Details"
         },
+        "details": {
+            "title": "Order Details",
+            "description": "Review the complete details of this order.",
+            "items": "Items",
+            "status_history": "Status History"
+        },
         "toast": {
             "fetch_error": "Could not fetch order history."
         }
