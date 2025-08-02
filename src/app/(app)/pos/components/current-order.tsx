@@ -104,12 +104,10 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment }: C
                     </Button>
                   </div>
                   {item.selectedExtras && item.selectedExtras.length > 0 && (
-                    <div className="pl-16 mt-1 text-sm text-muted-foreground">
-                      <ul className="list-disc list-inside">
+                     <div className="pl-16 mt-1 text-sm text-muted-foreground">
                         {item.selectedExtras.map(extra => (
-                           <li key={extra.id}>{extra.name} (+${extra.price.toFixed(2)})</li>
+                           <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
                         ))}
-                      </ul>
                     </div>
                   )}
                 </div>

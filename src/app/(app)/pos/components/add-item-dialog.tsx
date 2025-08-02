@@ -45,7 +45,10 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
     const groups: Record<string, MenuItem[]> = {};
     
     modifierCategoryNames.forEach(catName => {
-        groups[catName] = menuItems.filter(i => i.category === catName);
+        const category = categories.find(c => c.name === catName && c.isModifierGroup);
+        if (category) {
+            groups[catName] = menuItems.filter(i => i.category === catName);
+        }
     });
 
     return groups;
@@ -84,7 +87,9 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
         </DialogHeader>
 
         <div className="py-4 space-y-6">
-            {Object.entries(availableModifierGroups).map(([groupName, modifiers]) => (
+            {Object.entries(availableModifierGroups).map(([groupName, modifiers]) => {
+              if (modifiers.length === 0) return null;
+              return (
                 <div key={groupName} className="space-y-2">
                     <Label className="font-semibold">{groupName}</Label>
                     <div className="space-y-2">
@@ -105,7 +110,8 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
                         ))}
                     </div>
                 </div>
-            ))}
+              )
+            })}
             
             <Separator />
             
