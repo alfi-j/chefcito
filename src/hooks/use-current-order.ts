@@ -10,7 +10,7 @@ export const useCurrentOrder = () => {
   const [customerId, setCustomerId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState('');
 
-  const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
+  const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => {
       const newItem: OrderItem = {
         id: `${item.id}-${Date.now()}`,
@@ -18,16 +18,17 @@ export const useCurrentOrder = () => {
         quantity,
         cookedCount: 0,
         status: 'New',
-        selectedExtras
+        selectedExtras,
+        notes,
       };
       return [...prev, newItem];
     });
   }, []);
 
-  const updateItem = useCallback((itemId: string, newQuantity: number, newSelectedExtras: MenuItem[]) => {
+  const updateItem = useCallback((itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => prev.map(item =>
       item.id === itemId
-        ? { ...item, quantity: newQuantity, selectedExtras: newSelectedExtras }
+        ? { ...item, quantity: newQuantity, selectedExtras: newSelectedExtras, notes }
         : item
     ));
   }, []);
@@ -35,16 +36,6 @@ export const useCurrentOrder = () => {
   const removeItem = useCallback((itemId: string) => {
     setItems(prev => prev.filter(item => item.id !== itemId));
   }, []);
-
-  const updateQuantity = useCallback((itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(itemId);
-    } else {
-       setItems(prev => prev.map(item =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      ));
-    }
-  }, [removeItem]);
 
   const clearOrder = useCallback(() => {
     setItems([]);
@@ -74,7 +65,6 @@ export const useCurrentOrder = () => {
     addItem,
     updateItem,
     removeItem,
-    updateQuantity,
     clearOrder,
     subtotal,
     tax,

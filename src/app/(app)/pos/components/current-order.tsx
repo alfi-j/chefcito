@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem, type Customer } from '@/lib/types'
-import { MinusCircle, PlusCircle, Trash2, Send, CreditCard, Utensils, Pencil } from 'lucide-react'
+import { Send, CreditCard, Utensils, StickyNote } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
 import {
@@ -30,7 +30,7 @@ interface CurrentOrderProps {
 
 export function CurrentOrder({ order, customers, onSendToKitchen, onPayment, onEditItem }: CurrentOrderProps) {
   const { t } = useI18n();
-  const { items, subtotal, tax, total, updateQuantity, removeItem, clearOrder, table, setTable, customerId, setCustomerId, notes, setNotes } = order;
+  const { items, subtotal, tax, total, clearOrder, table, setTable, customerId, setCustomerId, notes, setNotes } = order;
   
   const customerOptions = customers.map(c => ({ value: c.id, label: c.name }));
 
@@ -91,7 +91,7 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment, onE
               </div>
             ) : (
               items.map(item => (
-                <div key={item.id}>
+                <div key={item.id} onClick={() => onEditItem(item)} className="p-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer">
                   <div className="flex items-center gap-2">
                     {item.menuItem.imageUrl ? (
                       <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
@@ -101,32 +101,22 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment, onE
                       </div>
                     )}
                     <div className="flex-grow">
-                      <p className="font-semibold">{item.menuItem.name}</p>
+                      <p className="font-semibold">{item.quantity}x {item.menuItem.name}</p>
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, item.quantity - 1)}>
-                        <MinusCircle className="h-5 w-5" />
-                      </Button>
-                      <span className="font-bold w-4 text-center text-sm">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, item.quantity + 1)}>
-                        <PlusCircle className="h-5 w-5" />
-                      </Button>
-                    </div>
-                     <div className="flex items-center gap-1">
-                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEditItem(item)}>
-                          <Pencil className="h-4 w-4"/>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/80 hover:text-destructive" onClick={() => removeItem(item.id)}>
-                          <Trash2 className="h-4 w-4"/>
-                        </Button>
-                    </div>
+                    
                   </div>
-                  {item.selectedExtras && item.selectedExtras.length > 0 && (
+                   {item.selectedExtras && item.selectedExtras.length > 0 && (
                      <div className="pl-14 mt-1 text-sm text-muted-foreground">
                         {item.selectedExtras.map(extra => (
                            <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
                         ))}
+                    </div>
+                  )}
+                  {item.notes && (
+                    <div className="pl-14 mt-1 text-sm text-muted-foreground flex items-start gap-1.5">
+                      <StickyNote className="w-3.5 h-3.5 mt-0.5 text-primary/80"/>
+                      <p className="italic">{item.notes}</p>
                     </div>
                   )}
                 </div>

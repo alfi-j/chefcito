@@ -16,23 +16,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useI18n } from '@/context/i18n-context';
 import { type MenuItem, type Category, type OrderItem } from '@/lib/types';
-import { MinusCircle, PlusCircle } from 'lucide-react';
+import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 
 interface AddItemDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem;
   orderItem?: OrderItem | null;
-  onSave: (quantity: number, selectedExtras: MenuItem[]) => void;
+  onSave: (quantity: number, selectedExtras: MenuItem[], notes: string) => void;
+  onRemove?: (itemId: string) => void;
   menuItems: MenuItem[];
   categories: Category[];
 }
 
-export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, menuItems, categories }: AddItemDialogProps) {
+export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, onRemove, menuItems, categories }: AddItemDialogProps) {
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
+  const [notes, setNotes] = useState('');
   
   const isEditMode = !!orderItem;
 
@@ -61,6 +64,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, m
     if (isOpen) {
       setQuantity(orderItem?.quantity || 1);
       setSelectedExtras(orderItem?.selectedExtras || []);
+      setNotes(orderItem?.notes || '');
     }
   }, [isOpen, orderItem]);
   
@@ -75,8 +79,15 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, m
   }
 
   const handleConfirm = () => {
-    onSave(quantity, selectedExtras);
+    onSave(quantity, selectedExtras, notes);
   };
+  
+  const handleRemove = () => {
+    if (onRemove && orderItem) {
+      onRemove(orderItem.id);
+    }
+    onOpenChange(false);
+  }
   
   const extrasPrice = selectedExtras.reduce((acc, extra) => acc + extra.price, 0);
   const totalItemPrice = (item.price + extrasPrice) * quantity;
@@ -122,6 +133,11 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, m
             })}
             
             <Separator />
+
+             <div className="space-y-2">
+                <Label className="font-semibold" htmlFor="item-notes">{t('pos.add_item_dialog.item_notes')}</Label>
+                <Textarea id="item-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('pos.add_item_dialog.item_notes_placeholder')} />
+            </div>
             
              <div className="space-y-2">
                 <Label className="font-semibold">{t('pos.add_item_dialog.quantity')}</Label>
@@ -138,8 +154,16 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, m
         </div>
 
         <DialogFooter className="!flex-row !justify-between items-center">
-            <div className="text-lg font-bold">
-                Total: <span className="text-primary">${totalItemPrice.toFixed(2)}</span>
+            <div className="flex items-center gap-2">
+                 {isEditMode && onRemove && (
+                    <Button variant="destructive" size="icon" onClick={handleRemove}>
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">{t('pos.add_item_dialog.remove_item')}</span>
+                    </Button>
+                 )}
+                 <div className="text-lg font-bold">
+                    Total: <span className="text-primary">${totalItemPrice.toFixed(2)}</span>
+                </div>
             </div>
             <div className="flex gap-2">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>

@@ -59,7 +59,10 @@
             "update_item": "Update Item",
             "add_to_order": "Add to Order",
             "extras": "Extras",
-            "quantity": "Quantity"
+            "quantity": "Quantity",
+            "item_notes": "Item Notes",
+            "item_notes_placeholder": "Special instructions for this item...",
+            "remove_item": "Remove Item"
         },
         "toast": {
             "item_added": "{{item}} added",

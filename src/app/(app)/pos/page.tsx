@@ -29,14 +29,14 @@ export default function PosPage() {
     setEditingOrderItem(orderItem);
   };
 
-  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
-    order.addItem(item, quantity, selectedExtras);
+  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes: string) => {
+    order.addItem(item, quantity, selectedExtras, notes);
     toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 3000 });
     setSelectedItem(null);
   };
   
-  const handleUpdateItemInOrder = (item: OrderItem, quantity: number, selectedExtras: MenuItem[]) => {
-     order.updateItem(item.id, quantity, selectedExtras);
+  const handleUpdateItemInOrder = (item: OrderItem, quantity: number, selectedExtras: MenuItem[], notes: string) => {
+     order.updateItem(item.id, quantity, selectedExtras, notes);
      toast.success(t('pos.toast.item_updated', { item: item.menuItem.name }), { duration: 3000 });
      setEditingOrderItem(null);
   }
@@ -110,11 +110,11 @@ export default function PosPage() {
     setEditingOrderItem(null);
   }
 
-  const handleDialogSave = (quantity: number, selectedExtras: MenuItem[]) => {
+  const handleDialogSave = (quantity: number, selectedExtras: MenuItem[], notes: string) => {
     if (isEditDialog && editingOrderItem) {
-      handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras);
+      handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras, notes);
     } else if (isAddDialog && selectedItem) {
-      handleAddItemToOrder(selectedItem, quantity, selectedExtras);
+      handleAddItemToOrder(selectedItem, quantity, selectedExtras, notes);
     }
   }
 
@@ -128,6 +128,7 @@ export default function PosPage() {
           item={dialogItem}
           orderItem={editingOrderItem}
           onSave={handleDialogSave}
+          onRemove={order.removeItem}
           menuItems={menuItems}
           categories={categories}
         />
