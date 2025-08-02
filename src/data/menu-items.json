@@ -17,10 +17,13 @@
     "price": 12.99,
     "category": "Pizzas",
     "imageUrl": "",
-    "aiHint": "pizza food",
+    "aiHint": "Margherita Pizza food",
     "description": "Classic pizza with fresh basil and mozzarella.",
     "available": true,
-    "sortIndex": 1
+    "sortIndex": 1,
+    "linkedModifiers": [
+      "Extras"
+    ]
   },
   {
     "id": "3",
