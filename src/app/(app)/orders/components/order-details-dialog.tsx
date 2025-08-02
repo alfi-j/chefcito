@@ -17,13 +17,14 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { getOrderTotal } from "../page"
-import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass } from "lucide-react"
+import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt } from "lucide-react"
 import { MdOutlineTableRestaurant } from "react-icons/md"
 
 interface OrderDetailsDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   order: Order | null
+  onViewReceipt: (order: Order) => void
 }
 
 const getItemTotal = (item: OrderItem) => {
@@ -32,7 +33,7 @@ const getItemTotal = (item: OrderItem) => {
     return (item.menuItem.price + extrasPrice) * totalUnits;
 }
 
-export function OrderDetailsDialog({ isOpen, onOpenChange, order }: OrderDetailsDialogProps) {
+export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt }: OrderDetailsDialogProps) {
   const { t } = useI18n()
 
   if (!order) return null
@@ -49,6 +50,11 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order }: OrderDetails
         return <ClipboardList className="h-4 w-4 text-muted-foreground" />;
     }
   };
+  
+  const handleReceiptClick = () => {
+    onViewReceipt(order);
+    onOpenChange(false);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -132,6 +138,12 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order }: OrderDetails
         </div>
 
         <DialogFooter>
+          {order.status === 'completed' && (
+            <Button variant="secondary" onClick={handleReceiptClick}>
+              <Receipt className="mr-2 h-4 w-4" />
+              {t('orders.details.view_receipt')}
+            </Button>
+          )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.close')}</Button>
         </DialogFooter>
       </DialogContent>

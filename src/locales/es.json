@@ -116,7 +116,17 @@
             "title": "Detalles de la Orden",
             "description": "Revisa los detalles completos de esta orden.",
             "items": "Artículos",
-            "status_history": "Historial de Estado"
+            "status_history": "Historial de Estado",
+            "view_receipt": "Ver Recibo"
+        },
+        "receipt": {
+            "thank_you": "¡Gracias por su visita!",
+            "print": "Imprimir",
+            "download": "Descargar",
+            "print_toast_title": "Imprimiendo Recibo",
+            "print_toast_desc": "Enviado a la impresora.",
+            "download_toast_title": "Descargando Recibo",
+            "download_toast_desc": "Su recibo se descargará en breve."
         },
         "toast": {
             "fetch_error": "No se pudo cargar el historial de órdenes."

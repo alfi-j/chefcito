@@ -116,7 +116,17 @@
             "title": "Order Details",
             "description": "Review the complete details of this order.",
             "items": "Items",
-            "status_history": "Status History"
+            "status_history": "Status History",
+            "view_receipt": "View Receipt"
+        },
+        "receipt": {
+            "thank_you": "Thank you for your visit!",
+            "print": "Print",
+            "download": "Download",
+            "print_toast_title": "Printing Receipt",
+            "print_toast_desc": "Sent to printer.",
+            "download_toast_title": "Downloading Receipt",
+            "download_toast_desc": "Your receipt will download shortly."
         },
         "toast": {
             "fetch_error": "Could not fetch order history."

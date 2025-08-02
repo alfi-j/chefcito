@@ -29,6 +29,7 @@ import { useOrderHistory } from '@/hooks/use-order-history'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
 import { OrderDetailsDialog } from './components/order-details-dialog'
+import { ReceiptDialog } from './components/receipt-dialog'
 
 const getStatusVariant = (status: Order['status']) => {
   switch (status) {
@@ -56,12 +57,18 @@ export default function OrdersPage() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('all');
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const { orders, loading } = useOrderHistory();
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailsOpen(true);
+  }
+
+  const handleViewReceipt = (order: Order) => {
+    setSelectedOrder(order);
+    setIsReceiptOpen(true);
   }
 
   const filteredOrders = useMemo(() => {
@@ -119,6 +126,9 @@ export default function OrdersPage() {
                       <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => handleViewDetails(order)}>{t('orders.table.view_details')}</DropdownMenuItem>
+                        {order.status === 'completed' && (
+                            <DropdownMenuItem onSelect={() => handleViewReceipt(order)}>{t('orders.details.view_receipt')}</DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -136,6 +146,12 @@ export default function OrdersPage() {
       <OrderDetailsDialog 
         isOpen={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
+        order={selectedOrder}
+        onViewReceipt={handleViewReceipt}
+      />
+      <ReceiptDialog
+        isOpen={isReceiptOpen}
+        onOpenChange={setIsReceiptOpen}
         order={selectedOrder}
       />
       <Card>
