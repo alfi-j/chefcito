@@ -13,6 +13,7 @@ const parseOrderDates = (orders: Order[]): Order[] => {
   return orders.map(order => ({
     ...order,
     createdAt: new Date(order.createdAt),
+    completedAt: order.completedAt ? new Date(order.completedAt) : undefined,
   }));
 };
 
@@ -166,6 +167,7 @@ export const useOrders = () => {
         orders,
         setOrders, // Expose for drag-and-drop optimistic updates
         loading,
+        fetchOrders,
         updateItemStatus,
         revertItemStatus,
         togglePinOrder

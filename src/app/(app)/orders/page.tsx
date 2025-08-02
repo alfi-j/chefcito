@@ -25,7 +25,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useI18n } from '@/context/i18n-context'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { useOrderHistory } from '@/hooks/use-order-history'
+import { useOrders } from '@/hooks/use-orders'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
 import { OrderDetailsDialog } from './components/order-details-dialog'
@@ -60,7 +60,7 @@ export default function OrdersPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const { orders, loading } = useOrderHistory();
+  const { orders, loading } = useOrders();
 
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
