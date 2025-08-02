@@ -30,11 +30,11 @@ export const useCurrentOrder = () => {
   const updateQuantity = useCallback((itemId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(itemId);
-      return;
+    } else {
+       setItems(prev => prev.map(item =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      ));
     }
-    setItems(prev => prev.map(item =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    ));
   }, [removeItem]);
 
   const clearOrder = useCallback(() => {
