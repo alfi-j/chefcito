@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { type MenuItem, type PaymentMethod, type Category } from "@/lib/types"
+import { type MenuItem, type PaymentMethod, type Category, type InventoryItem } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useI18n } from '@/context/i18n-context'
@@ -43,12 +43,72 @@ import { cn } from '@/lib/utils'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { useMenu } from '@/hooks/use-menu'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface RenderedCategory extends Category {
   depth: number;
 }
 
-export default function RestaurantPage() {
+function InventoryList({ items }: { items: InventoryItem[] }) {
+    const { t } = useI18n();
+    
+    const getStatusVariant = (item: InventoryItem) => {
+        if (item.quantity <= 0) return 'destructive';
+        if (item.quantity < item.reorderThreshold) return 'secondary';
+        return 'default';
+    }
+
+    const getStatusText = (item: InventoryItem) => {
+        if (item.quantity <= 0) return t('restaurant.inventory.status.out_of_stock');
+        if (item.quantity < item.reorderThreshold) return t('restaurant.inventory.status.low_stock');
+        return t('restaurant.inventory.status.in_stock');
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline">{t('restaurant.inventory.title')}</CardTitle>
+                <CardDescription>{t('restaurant.inventory.desc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="border rounded-lg">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{t('restaurant.inventory.table.name')}</TableHead>
+                                <TableHead className="text-right">{t('restaurant.inventory.table.in_stock')}</TableHead>
+                                <TableHead className="hidden md:table-cell">{t('restaurant.inventory.table.unit')}</TableHead>
+                                <TableHead className="hidden sm:table-cell">{t('restaurant.inventory.table.status')}</TableHead>
+                                <TableHead>
+                                    <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {items.map((item) => (
+                                <TableRow key={item.id}>
+                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                    <TableCell className="text-right font-semibold">{item.quantity}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{item.unit}</TableCell>
+                                    <TableCell className="hidden sm:table-cell">
+                                        <Badge variant={getStatusVariant(item)}>{getStatusText(item)}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex justify-end">
+                                            {/* Actions will be added in a future step */}
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], categories: Category[], onUpdate: () => void }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -59,19 +119,10 @@ export default function RestaurantPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
   const { t } = useI18n();
-  
-  const {
-    menuItems,
-    categories,
-    paymentMethods,
-    loading,
+   const {
     handleSaveItem,
     handleDeleteItem,
     handleDeleteMultipleItems,
-    handleCategoriesUpdate,
-    handleSavePaymentMethod,
-    handleDeletePaymentMethod,
-    handlePaymentMethodToggle,
     setMenuItems,
   } = useMenu();
 
@@ -177,7 +228,7 @@ export default function RestaurantPage() {
     return map;
   }, [categories]);
 
-  const getDescendantCategoryNames = (categoryId: number): string[] => {
+  const getDescendantCategoryNames = useCallback((categoryId: number): string[] => {
     const names: string[] = [];
     const queue: number[] = [categoryId];
     const visited = new Set<number>();
@@ -198,7 +249,7 @@ export default function RestaurantPage() {
         }
     }
     return names;
-  }
+  }, [categoryMap, categoryChildrenMap]);
   
   const renderedCategories = useMemo(() => {
     const categoryIdMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
@@ -253,15 +304,6 @@ export default function RestaurantPage() {
   const numVisible = filteredItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
-
-  if (loading) {
-    return (
-        <div className="flex justify-center items-center h-full">
-            <p>{t('restaurant.loading')}</p>
-        </div>
-    )
-  }
-
   return (
     <>
       <MenuItemDialog
@@ -272,237 +314,286 @@ export default function RestaurantPage() {
         categories={categories}
       />
       
-      <div className="space-y-8">
-        <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-            <div>
-              <h1 className="text-3xl font-headline font-bold">{t('restaurant.menu.title')}</h1>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+            <div className="relative w-full sm:flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder={t('restaurant.menu.search_placeholder')}
+                className="pl-8 w-full"
+                value={searchQuery}
+                onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setSelectedItemIds([]);
+                }}
+                />
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <CategoryDialog categories={categories} onUpdate={handleCategoriesUpdate} />
-              <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t('restaurant.menu.add_item')}
-              </Button>
-            </div>
+            <Select
+                value={categoryFilter}
+                onValueChange={(value) => {
+                    setCategoryFilter(value);
+                    setSelectedItemIds([]);
+                }}
+            >
+                <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                  {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
+                    <SelectItem key={cat.id} value={cat.name}>
+                      <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+            </Select>
+            <CategoryDialog categories={categories} onUpdate={onUpdate} />
+            <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              {t('restaurant.menu.add_item')}
+            </Button>
         </div>
-        
-        <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-center gap-2">
-                  <div className="relative w-full sm:flex-1">
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                      type="search"
-                      placeholder={t('restaurant.menu.search_placeholder')}
-                      className="pl-8 w-full"
-                      value={searchQuery}
-                      onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setSelectedItemIds([]);
-                      }}
+
+        {numSelected > 0 && (
+            <BatchActionsToolbar 
+              selectedCount={numSelected}
+              onDelete={onDeleteMultiple}
+            />
+        )}
+        <div className="border rounded-lg">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead className="w-8"></TableHead>
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                      {t('restaurant.menu.table.image')}
+                  </TableHead>
+                  <TableHead>{t('restaurant.menu.table.name')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
+                  <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
+                  <TableHead>
+                      <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                  </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {filteredItems.map((item) => (
+                <TableRow 
+                    key={item.id}
+                    data-state={selectedItemIds.includes(item.id) && "selected"}
+                    draggable={isSortingEnabled}
+                    onDragStart={(e) => handleDragStart(e, item.id)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, item.id)}
+                    onDragEnter={(e) => handleDragEnter(e, item.id)}
+                    className={cn(
+                        "transition-all",
+                        isSortingEnabled && "cursor-grab",
+                        draggedItemId === item.id && "opacity-50",
+                        dragOverItemId === item.id && "bg-primary/10"
+                    )}
+                >
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedItemIds.includes(item.id)}
+                        onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
+                        aria-label="Select row"
+                        onClick={(e) => e.stopPropagation()}
                       />
-                  </div>
-                  <Select
-                      value={categoryFilter}
-                      onValueChange={(value) => {
-                          setCategoryFilter(value);
-                          setSelectedItemIds([]);
-                      }}
-                  >
-                      <SelectTrigger className="w-full sm:w-[220px]">
-                      <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                        {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
-                          <SelectItem key={cat.id} value={cat.name}>
-                            <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                  </Select>
-              </div>
-
-              {numSelected > 0 && (
-                  <BatchActionsToolbar 
-                    selectedCount={numSelected}
-                    onDelete={onDeleteMultiple}
-                  />
-              )}
-              <div className="border rounded-lg">
-                  <Table>
-                  <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={isAllSelected}
-                            onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                            aria-label="Select all"
-                          />
-                        </TableHead>
-                        <TableHead className="w-8"></TableHead>
-                        <TableHead className="hidden w-[100px] sm:table-cell">
-                            {t('restaurant.menu.table.image')}
-                        </TableHead>
-                        <TableHead>{t('restaurant.menu.table.name')}</TableHead>
-                        <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
-                        <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
-                        <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
-                        <TableHead>
-                            <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
-                        </TableHead>
-                      </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                      {filteredItems.map((item) => (
-                      <TableRow 
-                          key={item.id}
-                          data-state={selectedItemIds.includes(item.id) && "selected"}
-                          draggable={isSortingEnabled}
-                          onDragStart={(e) => handleDragStart(e, item.id)}
-                          onDragEnd={handleDragEnd}
-                          onDragOver={handleDragOver}
-                          onDrop={(e) => handleDrop(e, item.id)}
-                          onDragEnter={(e) => handleDragEnter(e, item.id)}
-                          className={cn(
-                              "transition-all",
-                              isSortingEnabled && "cursor-grab",
-                              draggedItemId === item.id && "opacity-50",
-                              dragOverItemId === item.id && "bg-primary/10"
-                          )}
-                      >
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedItemIds.includes(item.id)}
-                              onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
-                              aria-label="Select row"
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                          </TableCell>
-                          <TableCell className="w-8">
-                          {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                          {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
-                              <Image
-                              alt={item.name}
-                              className="aspect-square rounded-md object-cover"
-                              height="64"
-                              src={item.imageUrl}
-                              width="64"
-                              data-ai-hint={item.aiHint}
-                              />
-                          ) : (
-                              <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                              <Utensils className="w-8 h-8 text-muted-foreground" />
-                              </div>
-                          )}
-                          </TableCell>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                          <TableCell className="hidden md:table-cell">
-                          <Badge variant="secondary">{item.category}</Badge>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                          <Badge variant={item.available ? "default" : "destructive"}>
-                              {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
-                          </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
-                          <TableCell>
-                          <div className="flex justify-end">
-                              <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                  <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
-                                  </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                                  <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                                  <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
-                              </DropdownMenuContent>
-                              </DropdownMenu>
-                          </div>
-                          </TableCell>
-                      </TableRow>
-                      ))}
-                  </TableBody>
-                  </Table>
-              </div>
-
-              <Card>
-                  <CardHeader className="p-4 sm:p-6">
-                  <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
-                      <div className="space-y-1">
-                      <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
-                      <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
-                      </div>
-                      <PaymentMethodDialog onSave={handleSavePaymentMethod}>
-                      <Button>
-                          <PlusCircle className="mr-2 h-4 w-4" />
-                          {t('restaurant.payment_methods.add_method')}
-                      </Button>
-                      </PaymentMethodDialog>
-                  </div>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                  <div className="border rounded-lg">
-                      <Table>
-                      <TableHeader>
-                          <TableRow>
-                          <TableHead>{t('restaurant.payment_methods.table.name')}</TableHead>
-                          <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.type')}</TableHead>
-                          <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.enabled')}</TableHead>
-                          <TableHead>
-                              <span className="sr-only">{t('restaurant.payment_methods.table.actions')}</span>
-                          </TableHead>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                          {paymentMethods.map((method) => (
-                          <TableRow key={method.id}>
-                              <TableCell className="font-medium">
-                                  {method.name}
-                                  <div className="mt-1 flex items-center gap-2 sm:hidden">
-                                      <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
-                                      <Switch 
-                                        id={`enabled-switch-mobile-${method.id}`}
-                                        checked={method.enabled} 
-                                        onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
-                                        aria-label={`Enable ${method.name}`}
-                                      />
-                                  </div>
-                              </TableCell>
-                              <TableCell className="hidden sm:table-cell">
-                              <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
-                              </TableCell>
-                              <TableCell className="hidden sm:table-cell">
-                              <Switch 
-                                  checked={method.enabled} 
-                                  onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
-                                  aria-label={`Enable ${method.name}`}
-                              />
-                              </TableCell>
-                              <TableCell>
-                              <div className="flex justify-end items-center gap-2">
-                                  <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
-                                      <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
-                                  </PaymentMethodDialog>
-                                  <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
-                                      <Trash2 className="h-4 w-4" />
-                                  </Button>
-                              </div>
-                              </TableCell>
-                          </TableRow>
-                          ))}
-                      </TableBody>
-                      </Table>
-                  </div>
-                  </CardContent>
-              </Card>
+                    </TableCell>
+                    <TableCell className="w-8">
+                    {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                    {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
+                        <Image
+                        alt={item.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={item.imageUrl}
+                        width="64"
+                        data-ai-hint={item.aiHint}
+                        />
+                    ) : (
+                        <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <Utensils className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                    )}
+                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                    <Badge variant="secondary">{item.category}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                    <Badge variant={item.available ? "default" : "destructive"}>
+                        {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
+                    </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
         </div>
       </div>
     </>
+  )
+}
+
+
+function PaymentMethods() {
+    const { 
+        paymentMethods, 
+        handleSavePaymentMethod, 
+        handleDeletePaymentMethod,
+        handlePaymentMethodToggle
+    } = useMenu();
+    const { t } = useI18n();
+    
+    return (
+        <Card>
+            <CardHeader className="p-4 sm:p-6">
+            <div className="flex flex-col gap-2 md:flex-row md:justify-between md:items-center">
+                <div className="space-y-1">
+                <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
+                <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
+                </div>
+                <PaymentMethodDialog onSave={handleSavePaymentMethod}>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t('restaurant.payment_methods.add_method')}
+                </Button>
+                </PaymentMethodDialog>
+            </div>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+            <div className="border rounded-lg">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>{t('restaurant.payment_methods.table.name')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.type')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('restaurant.payment_methods.table.enabled')}</TableHead>
+                    <TableHead>
+                        <span className="sr-only">{t('restaurant.payment_methods.table.actions')}</span>
+                    </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {paymentMethods.map((method) => (
+                    <TableRow key={method.id}>
+                        <TableCell className="font-medium">
+                            {method.name}
+                            <div className="mt-1 flex items-center gap-2 sm:hidden">
+                                <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
+                                <Switch 
+                                  id={`enabled-switch-mobile-${method.id}`}
+                                  checked={method.enabled} 
+                                  onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                                  aria-label={`Enable ${method.name}`}
+                                />
+                            </div>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                        <Badge variant="secondary">{t(`restaurant.payment_methods.types.${method.type}`)}</Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                        <Switch 
+                            checked={method.enabled} 
+                            onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                            aria-label={`Enable ${method.name}`}
+                        />
+                        </TableCell>
+                        <TableCell>
+                        <div className="flex justify-end items-center gap-2">
+                            <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
+                                <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
+                            </PaymentMethodDialog>
+                            <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+export default function RestaurantPage() {
+  const { t } = useI18n();
+  
+  const {
+    menuItems,
+    categories,
+    inventoryItems,
+    loading,
+    handleCategoriesUpdate,
+  } = useMenu();
+
+
+  if (loading) {
+    return (
+        <div className="flex justify-center items-center h-full">
+            <p>{t('restaurant.loading')}</p>
+        </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-headline font-bold">{t('restaurant.title')}</h1>
+        </div>
+
+        <Tabs defaultValue="menu">
+            <TabsList>
+                <TabsTrigger value="menu">{t('restaurant.menu.title')}</TabsTrigger>
+                <TabsTrigger value="inventory">{t('restaurant.inventory.title')}</TabsTrigger>
+                <TabsTrigger value="payment">{t('restaurant.payment_methods.title')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="menu" className="pt-4">
+                 <MenuList menuItems={menuItems} categories={categories} onUpdate={handleCategoriesUpdate} />
+            </TabsContent>
+            <TabsContent value="inventory" className="pt-4">
+                <InventoryList items={inventoryItems} />
+            </TabsContent>
+             <TabsContent value="payment" className="pt-4">
+                <PaymentMethods />
+            </TabsContent>
+        </Tabs>
+      </div>
   );
 }

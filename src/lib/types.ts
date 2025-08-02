@@ -60,4 +60,16 @@ export type Customer = {
   email: string;
 };
 
+export type InventoryItem = {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: "kg" | "g" | "L" | "ml" | "pcs" | string;
+  reorderThreshold: number;
+  lastRestocked: string; // ISO date string
+  linkedItemIds: string[];
+  category?: string;
+};
+
+
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

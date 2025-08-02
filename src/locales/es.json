@@ -110,6 +110,22 @@
                 "unavailable": "No disponible"
             }
         },
+        "inventory": {
+            "title": "Inventario",
+            "desc": "Controla los niveles de stock, gestiona las reposiciones y supervisa el uso.",
+            "table": {
+                "name": "Nombre",
+                "in_stock": "En Stock",
+                "unit": "Unidad",
+                "status": "Estado",
+                "actions": "Acciones"
+            },
+            "status": {
+                "in_stock": "En Stock",
+                "low_stock": "Stock Bajo",
+                "out_of_stock": "Agotado"
+            }
+        },
         "batch_actions": {
             "selected": "{{count}} seleccionados",
             "delete": "Eliminar"

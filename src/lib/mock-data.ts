@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData } from './data-utils';
@@ -289,6 +289,11 @@ export const deletePaymentMethod = async (id: string) => {
     paymentMethods = paymentMethods.filter(i => i.id !== id);
     await writeData('payment-methods.json', paymentMethods);
     return true;
+};
+
+// Inventory
+export const getInventoryItems = async (): Promise<InventoryItem[]> => {
+    return await readData<InventoryItem[]>('inventory.json');
 };
 
 

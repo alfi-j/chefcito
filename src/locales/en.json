@@ -110,6 +110,22 @@
                 "unavailable": "Unavailable"
             }
         },
+         "inventory": {
+            "title": "Inventory",
+            "desc": "Track stock levels, manage restocks, and monitor usage.",
+            "table": {
+                "name": "Name",
+                "in_stock": "In Stock",
+                "unit": "Unit",
+                "status": "Status",
+                "actions": "Actions"
+            },
+            "status": {
+                "in_stock": "In Stock",
+                "low_stock": "Low Stock",
+                "out_of_stock": "Out of Stock"
+            }
+        },
         "batch_actions": {
             "selected": "{{count}} selected",
             "delete": "Delete"
