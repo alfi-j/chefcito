@@ -14,7 +14,7 @@ import { type Order, type OrderItem } from "@/lib/types"
 import { useI18n } from "@/context/i18n-context"
 import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
-import { getOrderTotal } from "../page"
+import { getOrderTotal, getItemTotal } from "../page"
 import { ChefHat, Printer, Download } from "lucide-react"
 import { toast } from "sonner"
 
@@ -22,12 +22,6 @@ interface ReceiptDialogProps {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   order: Order | null
-}
-
-const getItemTotal = (item: OrderItem) => {
-    const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-    return (item.menuItem.price + extrasPrice) * totalUnits;
 }
 
 export function ReceiptDialog({ isOpen, onOpenChange, order }: ReceiptDialogProps) {

@@ -19,7 +19,7 @@ export type OrderItem = {
   cookedCount: number;
   status: 'New' | 'Cooking' | 'Cooked';
   selectedExtras?: MenuItem[];
-  splitId?: number; // Add this to track which aplit the item belongs to
+  splitId?: number;
 };
 
 export type OrderStatusUpdate = {

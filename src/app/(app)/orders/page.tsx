@@ -20,7 +20,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { type Order } from "@/lib/types"
+import { type Order, type OrderItem } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { useI18n } from '@/context/i18n-context'
 import { Input } from '@/components/ui/input'
@@ -45,11 +45,16 @@ const getStatusVariant = (status: Order['status']) => {
 export const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-        // Correctly calculate total price for all units of the item, including its own quantity and any already cooked.
         const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
         const mainItemPrice = item.menuItem.price + extrasTotal;
         return total + (mainItemPrice * totalUnits);
     }, 0);
+};
+
+export const getItemTotal = (item: OrderItem) => {
+    const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
+    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
+    return (item.menuItem.price + extrasPrice) * totalUnits;
 };
 
 
@@ -83,7 +88,7 @@ export default function OrdersPage() {
         filtered = filtered.filter(order => String(order.id).includes(searchQuery));
     }
     
-    return filtered;
+    return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders, activeTab, searchQuery]);
   
   const renderOrders = (orderList: Order[]) => {

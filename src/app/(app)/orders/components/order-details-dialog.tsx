@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { getOrderTotal } from "../page"
+import { getOrderTotal, getItemTotal } from "../page"
 import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt } from "lucide-react"
 import { MdOutlineTableRestaurant } from "react-icons/md"
 
@@ -25,12 +25,6 @@ interface OrderDetailsDialogProps {
   onOpenChange: (open: boolean) => void
   order: Order | null
   onViewReceipt: (order: Order) => void
-}
-
-const getItemTotal = (item: OrderItem) => {
-    const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-    return (item.menuItem.price + extrasPrice) * totalUnits;
 }
 
 export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt }: OrderDetailsDialogProps) {
