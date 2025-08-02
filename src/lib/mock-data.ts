@@ -296,13 +296,12 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     return await readData<InventoryItem[]>('inventory.json');
 };
 
-export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>) => {
+export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
     const inventory = await readData<InventoryItem[]>('inventory.json');
     const newItem: InventoryItem = {
         id: `inv_${Date.now()}`,
         ...itemData,
         lastRestocked: new Date().toISOString(),
-        linkedItemIds: []
     };
     inventory.push(newItem);
     await writeData('inventory.json', inventory);
@@ -319,6 +318,20 @@ export const updateInventoryItem = async (item: InventoryItem) => {
     }
     return null;
 };
+
+export const adjustInventoryStock = async (itemId: string, adjustment: number) => {
+    const inventory = await readData<InventoryItem[]>('inventory.json');
+    const index = inventory.findIndex(i => i.id === itemId);
+    if (index > -1) {
+        inventory[index].quantity = Math.max(0, inventory[index].quantity + adjustment);
+        if (adjustment > 0) {
+            inventory[index].lastRestocked = new Date().toISOString();
+        }
+        await writeData('inventory.json', inventory);
+        return inventory[index];
+    }
+    return null;
+}
 
 
 // Reporting

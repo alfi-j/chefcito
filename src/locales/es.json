@@ -137,7 +137,10 @@
                 "quantity": "Cantidad",
                 "unit": "Unidad",
                 "reorder_threshold": "Umbral de Pedido",
-                "category": "Categoría"
+                "category": "Categoría",
+                "linked_items": "Artículos del Menú Vinculados",
+                "select_items": "Seleccionar artículos del menú...",
+                "linked_items_desc": "Vincular a artículos del menú para rastrear el uso de ingredientes automáticamente."
             }
         },
         "batch_actions": {
@@ -228,7 +231,8 @@
             "inventory_item_updated": "Artículo de inventario actualizado.",
             "inventory_item_update_error": "Error al actualizar el artículo de inventario.",
             "inventory_item_added": "Artículo de inventario añadido.",
-            "inventory_item_add_error": "Error al añadir el artículo de inventario."
+            "inventory_item_add_error": "Error al añadir el artículo de inventario.",
+            "inventory_stock_update_error": "Error al actualizar el stock del inventario."
         }
     },
     "reports": {

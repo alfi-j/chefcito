@@ -19,6 +19,7 @@ import {
   getInventoryItems,
   addInventoryItem as mockAddInventoryItem,
   updateInventoryItem as mockUpdateInventoryItem,
+  adjustInventoryStock,
 } from '@/lib/mock-data';
 import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types"
 
@@ -136,13 +137,13 @@ export const useMenu = () => {
     }
   }
 
-  const handleSaveInventoryItem = async (itemData: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>) => {
+  const handleSaveInventoryItem = async (itemData: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
     const isEditMode = 'id' in itemData;
     try {
       if (isEditMode) {
         await mockUpdateInventoryItem(itemData as InventoryItem);
       } else {
-        await mockAddInventoryItem(itemData as Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>);
+        await mockAddInventoryItem(itemData as Omit<InventoryItem, 'id' | 'lastRestocked'>);
       }
       await fetchAllData();
       toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.inventory_item_updated' : 'restaurant.toast.inventory_item_added'), duration: 3000 });
@@ -150,6 +151,24 @@ export const useMenu = () => {
       toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.inventory_item_update_error' : 'restaurant.toast.inventory_item_add_error'), duration: 3000 });
     }
   };
+  
+  const handleAdjustInventoryStock = async (itemId: string, adjustment: number) => {
+    try {
+      await adjustInventoryStock(itemId, adjustment);
+      // Optimistic update for responsiveness
+      setInventoryItems(prevItems =>
+        prevItems.map(item =>
+          item.id === itemId
+            ? { ...item, quantity: Math.max(0, item.quantity + adjustment) }
+            : item
+        )
+      );
+      // No toast for quick adjustments to avoid spamming user
+    } catch (error: any) {
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.inventory_stock_update_error'), duration: 3000 });
+      await fetchAllData(); // Re-fetch to correct state on error
+    }
+  }
 
   return {
     menuItems,
@@ -167,6 +186,7 @@ export const useMenu = () => {
     handleSavePaymentMethod,
     handleDeletePaymentMethod,
     handlePaymentMethodToggle,
-    handleSaveInventoryItem
+    handleSaveInventoryItem,
+    handleAdjustInventoryStock,
   };
 };

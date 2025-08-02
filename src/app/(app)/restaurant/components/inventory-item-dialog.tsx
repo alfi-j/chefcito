@@ -12,19 +12,22 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { type InventoryItem } from "@/lib/types"
+import { type InventoryItem, type MenuItem } from "@/lib/types"
 import { useI18n } from '@/context/i18n-context'
+import { MultiSelect } from './multi-select'
 
 export function InventoryItemDialog({ 
   item,
   onSave,
   isOpen,
   onOpenChange,
+  menuItems,
 }: { 
   item?: InventoryItem,
-  onSave: (item: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>) => void,
+  onSave: (item: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked'>) => void,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
+  menuItems: MenuItem[],
 }) {
   const isEditMode = !!item;
   const { t } = useI18n();
@@ -34,6 +37,9 @@ export function InventoryItemDialog({
   const [unit, setUnit] = useState('');
   const [reorderThreshold, setReorderThreshold] = useState<string | number>('');
   const [category, setCategory] = useState('');
+  const [linkedItemIds, setLinkedItemIds] = useState<string[]>([]);
+  
+  const menuItemOptions = menuItems.map(mi => ({ value: mi.id, label: mi.name }));
   
   const resetState = () => {
       setName(item?.name || '');
@@ -41,6 +47,7 @@ export function InventoryItemDialog({
       setUnit(item?.unit || '');
       setReorderThreshold(item?.reorderThreshold ?? '');
       setCategory(item?.category || '');
+      setLinkedItemIds(item?.linkedItemIds || []);
   }
 
   useEffect(() => {
@@ -64,13 +71,13 @@ export function InventoryItemDialog({
       unit,
       reorderThreshold: finalReorderThreshold,
       category,
+      linkedItemIds,
     };
     
     if (isEditMode) {
       onSave({ 
         id: item!.id, 
         lastRestocked: item!.lastRestocked,
-        linkedItemIds: item!.linkedItemIds,
         ...itemData 
       });
     } else {
@@ -131,6 +138,18 @@ export function InventoryItemDialog({
               <Label htmlFor="category">{t('restaurant.inventory.dialog.category')}</Label>
               <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
             </div>
+          </div>
+           <div className="space-y-2">
+            <Label htmlFor="linkedItems">{t('restaurant.inventory.dialog.linked_items')}</Label>
+            <MultiSelect
+              options={menuItemOptions}
+              selected={linkedItemIds}
+              onChange={setLinkedItemIds}
+              placeholder={t('restaurant.inventory.dialog.select_items')}
+            />
+             <p className="text-xs text-muted-foreground">
+              {t('restaurant.inventory.dialog.linked_items_desc')}
+            </p>
           </div>
         </div>
         <DialogFooter>

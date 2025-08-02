@@ -67,7 +67,7 @@ export type InventoryItem = {
   unit: "kg" | "g" | "L" | "ml" | "pcs" | string;
   reorderThreshold: number;
   lastRestocked: string; // ISO date string
-  linkedItemIds: string[];
+  linkedItemIds?: string[];
   category?: string;
 };
 

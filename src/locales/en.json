@@ -137,7 +137,10 @@
                 "quantity": "Quantity",
                 "unit": "Unit",
                 "reorder_threshold": "Reorder Threshold",
-                "category": "Category"
+                "category": "Category",
+                "linked_items": "Linked Menu Items",
+                "select_items": "Select menu items...",
+                "linked_items_desc": "Link to menu items to track ingredient usage automatically."
             }
         },
         "batch_actions": {
@@ -228,7 +231,8 @@
             "inventory_item_updated": "Inventory item updated.",
             "inventory_item_update_error": "Failed to update inventory item.",
             "inventory_item_added": "Inventory item added.",
-            "inventory_item_add_error": "Failed to add inventory item."
+            "inventory_item_add_error": "Failed to add inventory item.",
+            "inventory_stock_update_error": "Failed to update inventory stock."
         }
     },
     "reports": {
