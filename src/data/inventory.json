@@ -1,4 +1,3 @@
-
 [
   {
     "id": "inv_1",
@@ -6,8 +5,10 @@
     "quantity": 20,
     "unit": "kg",
     "reorderThreshold": 5,
-    "lastRestocked": "2024-07-01T10:00:00Z",
-    "linkedItemIds": ["1"],
+    "lastRestocked": "2025-08-02T20:11:09.181Z",
+    "linkedItemIds": [
+      "1"
+    ],
     "category": "Dairy"
   },
   {
@@ -17,7 +18,9 @@
     "unit": "kg",
     "reorderThreshold": 10,
     "lastRestocked": "2024-07-01T10:00:00Z",
-    "linkedItemIds": ["3"],
+    "linkedItemIds": [
+      "3"
+    ],
     "category": "Dry Goods"
   },
   {
@@ -27,17 +30,21 @@
     "unit": "kg",
     "reorderThreshold": 4,
     "lastRestocked": "2024-07-02T11:00:00Z",
-    "linkedItemIds": ["5"],
+    "linkedItemIds": [
+      "5"
+    ],
     "category": "Produce"
   },
-   {
+  {
     "id": "inv_4",
     "name": "Romaine Lettuce",
     "quantity": 3,
     "unit": "kg",
     "reorderThreshold": 2,
     "lastRestocked": "2024-07-02T11:00:00Z",
-    "linkedItemIds": ["2"],
+    "linkedItemIds": [
+      "2"
+    ],
     "category": "Produce"
   },
   {
@@ -47,17 +54,21 @@
     "unit": "kg",
     "reorderThreshold": 2,
     "lastRestocked": "2024-06-28T09:00:00Z",
-    "linkedItemIds": ["4"],
+    "linkedItemIds": [
+      "4"
+    ],
     "category": "Dry Goods"
   },
-   {
+  {
     "id": "inv_6",
     "name": "Cola Syrup",
     "quantity": 5,
     "unit": "L",
     "reorderThreshold": 2,
     "lastRestocked": "2024-06-30T14:00:00Z",
-    "linkedItemIds": ["6"],
+    "linkedItemIds": [
+      "6"
+    ],
     "category": "Beverages"
   },
   {
@@ -67,7 +78,9 @@
     "unit": "kg",
     "reorderThreshold": 3,
     "lastRestocked": "2024-06-25T10:00:00Z",
-    "linkedItemIds": ["extra-2"],
+    "linkedItemIds": [
+      "extra-2"
+    ],
     "category": "Meat"
   }
 ]

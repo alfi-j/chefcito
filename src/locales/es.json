@@ -86,6 +86,36 @@
             "pin_error": "Error al actualizar el estado de anclaje."
         }
     },
+    "orders": {
+        "title": "Órdenes",
+        "description": "Ver y gestionar todas las órdenes de los clientes.",
+        "loading": "Cargando historial de órdenes...",
+        "no_orders_found": "No se encontraron órdenes.",
+        "no_orders_description": "Las nuevas órdenes aparecerán aquí a medida que se creen.",
+        "tabs": {
+            "all": "Todas",
+            "pending": "Pendientes",
+            "completed": "Completadas"
+        },
+        "status": {
+            "pending": "Pendiente",
+            "completed": "Completada"
+        },
+        "table": {
+            "order_id": "ID de Orden",
+            "date": "Fecha",
+            "table": "Mesa",
+            "staff": "Personal",
+            "status": "Estado",
+            "total": "Total",
+            "actions": "Acciones",
+            "toggle_menu": "Alternar menú",
+            "view_details": "Ver Detalles"
+        },
+        "toast": {
+            "fetch_error": "No se pudo cargar el historial de órdenes."
+        }
+    },
     "restaurant": {
         "title": "Restaurante",
         "loading": "Cargando datos...",

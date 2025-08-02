@@ -19,7 +19,12 @@ export type OrderItem = {
   cookedCount: number;
   status: 'New' | 'Cooking' | 'Cooked';
   selectedExtras?: MenuItem[];
-  splitId?: number; // Add this to track which split the item belongs to
+  splitId?: number; // Add this to track which aplit the item belongs to
+};
+
+export type OrderStatusUpdate = {
+  status: string;
+  timestamp: string;
 };
 
 export type Order = {
@@ -31,6 +36,8 @@ export type Order = {
   table: number;
   isPinned?: boolean;
   customerId?: string;
+  staffName?: string;
+  statusHistory?: OrderStatusUpdate[];
 };
 
 export type Category = {

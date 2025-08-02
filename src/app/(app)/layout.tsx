@@ -14,6 +14,7 @@ import {
   Languages,
   Settings,
   BarChart3,
+  History,
 } from "lucide-react"
 import {
   SidebarProvider,
@@ -65,6 +66,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
+    { href: "/orders", label: t('orders.title'), icon: History },
     { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },

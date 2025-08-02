@@ -86,6 +86,36 @@
             "pin_error": "Failed to update pin status."
         }
     },
+    "orders": {
+        "title": "Orders",
+        "description": "View and manage all customer orders.",
+        "loading": "Loading order history...",
+        "no_orders_found": "No orders found.",
+        "no_orders_description": "New orders will appear here as they are created.",
+        "tabs": {
+            "all": "All",
+            "pending": "Pending",
+            "completed": "Completed"
+        },
+        "status": {
+            "pending": "Pending",
+            "completed": "Completed"
+        },
+        "table": {
+            "order_id": "Order ID",
+            "date": "Date",
+            "table": "Table",
+            "staff": "Staff",
+            "status": "Status",
+            "total": "Total",
+            "actions": "Actions",
+            "toggle_menu": "Toggle menu",
+            "view_details": "View Details"
+        },
+        "toast": {
+            "fetch_error": "Could not fetch order history."
+        }
+    },
     "restaurant": {
         "title": "Restaurant",
         "loading": "Loading data...",
