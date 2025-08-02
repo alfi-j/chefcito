@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { getOrderTotal, getItemTotal } from "../page"
-import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt } from "lucide-react"
+import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt, StickyNote } from "lucide-react"
 import { MdOutlineTableRestaurant } from "react-icons/md"
 
 interface OrderDetailsDialogProps {
@@ -79,6 +79,16 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
         </div>
 
         <Separator />
+        
+        {order.notes && (
+             <div>
+                <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <StickyNote className="h-4 w-4" />
+                    {t('pos.current_order.order_notes')}
+                </h3>
+                <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md whitespace-pre-wrap">{order.notes}</p>
+            </div>
+        )}
 
         <div className="space-y-4">
             <div>

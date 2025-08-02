@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/types"
 import { cn } from "@/lib/utils"
-import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff } from 'lucide-react'
+import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyNote } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
 import { useTimeAgo } from "@/hooks/use-time-ago"
@@ -134,6 +134,14 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
           
           <div className="p-1 pt-0 flex-1">
             <Separator className="mb-1" />
+            {order.notes && (
+                <div className="p-2 mb-1 border-l-4 border-primary bg-primary/10">
+                    <div className="flex items-start gap-2">
+                        <StickyNote className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <p className="text-sm font-semibold text-primary-foreground/90 whitespace-pre-wrap">{order.notes}</p>
+                    </div>
+                </div>
+            )}
             <CardContent className="space-y-1 h-full p-0">
               {orderedCategories.map((category, index) => (
                 <div key={category}>
