@@ -24,7 +24,9 @@
             "title": "Menú",
             "no_categories_title": "Menú",
             "no_categories_desc_1": "No se encontraron categorías de menú.",
-            "no_categories_desc_2": "Agrega categorías y artículos en la página de Menú."
+            "no_categories_desc_2": "Agrega categorías y artículos en la página de Menú.",
+            "filter_by_category": "Filtrar por categoría",
+            "all_categories": "Todas las Categorías"
         },
         "payment_dialog": {
             "title": "Procesar Pago",
@@ -113,6 +115,7 @@
         "inventory": {
             "title": "Inventario",
             "desc": "Controla los niveles de stock, gestiona las reposiciones y supervisa el uso.",
+            "add_item": "Añadir Artículo",
             "table": {
                 "name": "Nombre",
                 "in_stock": "En Stock",
@@ -124,6 +127,17 @@
                 "in_stock": "En Stock",
                 "low_stock": "Stock Bajo",
                 "out_of_stock": "Agotado"
+            },
+            "dialog": {
+                "edit_title": "Editar Artículo de Inventario",
+                "add_title": "Añadir Nuevo Artículo al Inventario",
+                "edit_desc": "Realiza cambios en el artículo del inventario aquí.",
+                "add_desc": "Añade un nuevo artículo a tu inventario.",
+                "name": "Nombre del Artículo",
+                "quantity": "Cantidad",
+                "unit": "Unidad",
+                "reorder_threshold": "Umbral de Pedido",
+                "category": "Categoría"
             }
         },
         "batch_actions": {
@@ -210,7 +224,11 @@
             "payment_method_added": "Método de pago añadido.",
             "payment_method_add_error": "Error al añadir el método de pago.",
             "payment_method_deleted": "Método de pago eliminado.",
-            "payment_method_delete_error": "Error al eliminar el método de pago."
+            "payment_method_delete_error": "Error al eliminar el método de pago.",
+            "inventory_item_updated": "Artículo de inventario actualizado.",
+            "inventory_item_update_error": "Error al actualizar el artículo de inventario.",
+            "inventory_item_added": "Artículo de inventario añadido.",
+            "inventory_item_add_error": "Error al añadir el artículo de inventario."
         }
     },
     "reports": {

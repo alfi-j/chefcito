@@ -296,6 +296,30 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     return await readData<InventoryItem[]>('inventory.json');
 };
 
+export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>) => {
+    const inventory = await readData<InventoryItem[]>('inventory.json');
+    const newItem: InventoryItem = {
+        id: `inv_${Date.now()}`,
+        ...itemData,
+        lastRestocked: new Date().toISOString(),
+        linkedItemIds: []
+    };
+    inventory.push(newItem);
+    await writeData('inventory.json', inventory);
+    return newItem;
+};
+
+export const updateInventoryItem = async (item: InventoryItem) => {
+    const inventory = await readData<InventoryItem[]>('inventory.json');
+    const index = inventory.findIndex(i => i.id === item.id);
+    if (index > -1) {
+        inventory[index] = { ...inventory[index], ...item };
+        await writeData('inventory.json', inventory);
+        return item;
+    }
+    return null;
+};
+
 
 // Reporting
 const getOrderTotal = (order: Order) => {

@@ -24,7 +24,9 @@
             "title": "Menu",
             "no_categories_title": "Menu",
             "no_categories_desc_1": "No menu categories found.",
-            "no_categories_desc_2": "Add categories and items on the Menu page."
+            "no_categories_desc_2": "Add categories and items on the Menu page.",
+            "filter_by_category": "Filter by category",
+            "all_categories": "All Categories"
         },
         "payment_dialog": {
             "title": "Process Payment",
@@ -113,6 +115,7 @@
          "inventory": {
             "title": "Inventory",
             "desc": "Track stock levels, manage restocks, and monitor usage.",
+            "add_item": "Add Item",
             "table": {
                 "name": "Name",
                 "in_stock": "In Stock",
@@ -124,6 +127,17 @@
                 "in_stock": "In Stock",
                 "low_stock": "Low Stock",
                 "out_of_stock": "Out of Stock"
+            },
+            "dialog": {
+                "edit_title": "Edit Inventory Item",
+                "add_title": "Add New Inventory Item",
+                "edit_desc": "Make changes to the inventory item here.",
+                "add_desc": "Add a new item to your inventory.",
+                "name": "Item Name",
+                "quantity": "Quantity",
+                "unit": "Unit",
+                "reorder_threshold": "Reorder Threshold",
+                "category": "Category"
             }
         },
         "batch_actions": {
@@ -210,7 +224,11 @@
             "payment_method_added": "Payment method added.",
             "payment_method_add_error": "Failed to add payment method.",
             "payment_method_deleted": "Payment method deleted.",
-            "payment_method_delete_error": "Failed to delete payment method."
+            "payment_method_delete_error": "Failed to delete payment method.",
+            "inventory_item_updated": "Inventory item updated.",
+            "inventory_item_update_error": "Failed to update inventory item.",
+            "inventory_item_added": "Inventory item added.",
+            "inventory_item_add_error": "Failed to add inventory item."
         }
     },
     "reports": {

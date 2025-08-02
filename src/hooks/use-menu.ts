@@ -17,6 +17,8 @@ import {
   deletePaymentMethod as mockDeletePaymentMethod,
   getCustomers,
   getInventoryItems,
+  addInventoryItem as mockAddInventoryItem,
+  updateInventoryItem as mockUpdateInventoryItem,
 } from '@/lib/mock-data';
 import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types"
 
@@ -134,6 +136,21 @@ export const useMenu = () => {
     }
   }
 
+  const handleSaveInventoryItem = async (itemData: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>) => {
+    const isEditMode = 'id' in itemData;
+    try {
+      if (isEditMode) {
+        await mockUpdateInventoryItem(itemData as InventoryItem);
+      } else {
+        await mockAddInventoryItem(itemData as Omit<InventoryItem, 'id' | 'lastRestocked' | 'linkedItemIds'>);
+      }
+      await fetchAllData();
+      toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.inventory_item_updated' : 'restaurant.toast.inventory_item_added'), duration: 3000 });
+    } catch (error: any) {
+      toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.inventory_item_update_error' : 'restaurant.toast.inventory_item_add_error'), duration: 3000 });
+    }
+  };
+
   return {
     menuItems,
     categories,
@@ -149,6 +166,7 @@ export const useMenu = () => {
     handleCategoriesUpdate,
     handleSavePaymentMethod,
     handleDeletePaymentMethod,
-    handlePaymentMethodToggle
+    handlePaymentMethodToggle,
+    handleSaveInventoryItem
   };
 };
