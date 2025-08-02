@@ -103,23 +103,31 @@ export default function PosPage() {
   
   const isAddDialog = !!selectedItem;
   const isEditDialog = !!editingOrderItem;
-  const isDialogItem = selectedItem || editingOrderItem?.menuItem;
+  const dialogItem = selectedItem || editingOrderItem?.menuItem;
+  
+  const closeDialog = () => {
+    setSelectedItem(null);
+    setEditingOrderItem(null);
+  }
+
+  const handleDialogSave = (quantity: number, selectedExtras: MenuItem[]) => {
+    if (isEditDialog && editingOrderItem) {
+      handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras);
+    } else if (isAddDialog && selectedItem) {
+      handleAddItemToOrder(selectedItem, quantity, selectedExtras);
+    }
+  }
+
 
   return (
     <>
-      {(isAddDialog || isEditDialog) && isDialogItem && (
+      {(isAddDialog || isEditDialog) && dialogItem && (
         <AddItemDialog
-          item={isDialogItem}
-          orderItem={editingOrderItem}
           isOpen={isAddDialog || isEditDialog}
-          onOpenChange={(open) => {
-            if (!open) {
-                setSelectedItem(null);
-                setEditingOrderItem(null);
-            }
-          }}
-          onAddItem={handleAddItemToOrder}
-          onUpdateItem={handleUpdateItemInOrder}
+          onOpenChange={(open) => !open && closeDialog()}
+          item={dialogItem}
+          orderItem={editingOrderItem}
+          onSave={handleDialogSave}
           menuItems={menuItems}
           categories={categories}
         />

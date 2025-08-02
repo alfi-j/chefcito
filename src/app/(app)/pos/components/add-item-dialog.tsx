@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { useI18n } from '@/context/i18n-context';
-import { type MenuItem, type Category } from '@/lib/types';
+import { type MenuItem, type Category, type OrderItem } from '@/lib/types';
 import { MinusCircle, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
@@ -23,16 +23,19 @@ interface AddItemDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem;
-  onAddItem: (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => void;
+  orderItem?: OrderItem | null;
+  onSave: (quantity: number, selectedExtras: MenuItem[]) => void;
   menuItems: MenuItem[];
   categories: Category[];
 }
 
-export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems, categories }: AddItemDialogProps) {
+export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, menuItems, categories }: AddItemDialogProps) {
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   
+  const isEditMode = !!orderItem;
+
   const availableModifierGroups = useMemo(() => {
     if (!item) return {};
 
@@ -56,19 +59,23 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
 
   useEffect(() => {
     if (isOpen) {
-      setQuantity(1);
-      setSelectedExtras([]);
+      setQuantity(orderItem?.quantity || 1);
+      setSelectedExtras(orderItem?.selectedExtras || []);
     }
-  }, [isOpen]);
+  }, [isOpen, orderItem]);
   
   const handleExtraChange = (extra: MenuItem, checked: boolean) => {
     setSelectedExtras(prev => 
       checked ? [...prev, extra] : prev.filter(e => e.id !== extra.id)
     );
   };
+  
+  const isExtraSelected = (extraId: string) => {
+    return selectedExtras.some(e => e.id === extraId);
+  }
 
   const handleConfirm = () => {
-    onAddItem(item, quantity, selectedExtras);
+    onSave(quantity, selectedExtras);
   };
   
   const extrasPrice = selectedExtras.reduce((acc, extra) => acc + extra.price, 0);
@@ -82,7 +89,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">{item.name}</DialogTitle>
           <DialogDescription>
-            {t('pos.add_item_dialog.customize')}
+            {isEditMode ? t('pos.add_item_dialog.update_item') : t('pos.add_item_dialog.customize')}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,6 +104,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
                              <div key={modifier.id} className="flex items-center space-x-2">
                                 <Checkbox
                                     id={`extra-${modifier.id}`}
+                                    checked={isExtraSelected(modifier.id)}
                                     onCheckedChange={(checked) => handleExtraChange(modifier, !!checked)}
                                 />
                                 <label
@@ -135,7 +143,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, onAddItem, menuItems
             </div>
             <div className="flex gap-2">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-                <Button onClick={handleConfirm}>{t('pos.add_item_dialog.add_to_order')}</Button>
+                <Button onClick={handleConfirm}>{isEditMode ? t('dialog.save') : t('pos.add_item_dialog.add_to_order')}</Button>
             </div>
         </DialogFooter>
       </DialogContent>
