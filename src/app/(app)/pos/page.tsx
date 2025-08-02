@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState } from 'react';
-import { type MenuItem, type Customer } from '@/lib/types';
+import { type MenuItem, type OrderItem, type Customer } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
@@ -14,6 +14,7 @@ import { useCurrentOrder } from '@/hooks/use-current-order';
 
 export default function PosPage() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [editingOrderItem, setEditingOrderItem] = useState<OrderItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
   
@@ -23,12 +24,22 @@ export default function PosPage() {
   const handleSelectItem = (item: MenuItem) => {
     setSelectedItem(item);
   };
+  
+  const handleEditItem = (orderItem: OrderItem) => {
+    setEditingOrderItem(orderItem);
+  };
 
   const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     order.addItem(item, quantity, selectedExtras);
     toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 3000 });
     setSelectedItem(null);
   };
+  
+  const handleUpdateItemInOrder = (item: OrderItem, quantity: number, selectedExtras: MenuItem[]) => {
+     order.updateItem(item.id, quantity, selectedExtras);
+     toast.success(t('pos.toast.item_updated', { item: item.menuItem.name }), { duration: 3000 });
+     setEditingOrderItem(null);
+  }
 
   const handleSendToKitchen = async () => {
     if (order.items.length === 0) {
@@ -44,6 +55,7 @@ export default function PosPage() {
         table: order.table,
         items: order.items,
         customerId: order.customerId,
+        notes: order.notes,
       });
       toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
@@ -88,15 +100,26 @@ export default function PosPage() {
   
   const displayCategories = categories.filter(c => !c.isModifierGroup);
   const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
+  
+  const isAddDialog = !!selectedItem;
+  const isEditDialog = !!editingOrderItem;
+  const isDialogItem = selectedItem || editingOrderItem?.menuItem;
 
   return (
     <>
-      {selectedItem && (
+      {(isAddDialog || isEditDialog) && isDialogItem && (
         <AddItemDialog
-          item={selectedItem}
-          isOpen={!!selectedItem}
-          onOpenChange={(open) => !open && setSelectedItem(null)}
+          item={isDialogItem}
+          orderItem={editingOrderItem}
+          isOpen={isAddDialog || isEditDialog}
+          onOpenChange={(open) => {
+            if (!open) {
+                setSelectedItem(null);
+                setEditingOrderItem(null);
+            }
+          }}
           onAddItem={handleAddItemToOrder}
+          onUpdateItem={handleUpdateItemInOrder}
           menuItems={menuItems}
           categories={categories}
         />
@@ -120,6 +143,7 @@ export default function PosPage() {
             customers={customers}
             onSendToKitchen={handleSendToKitchen}
             onPayment={handleOpenPaymentDialog}
+            onEditItem={handleEditItem}
           />
         </div>
       </div>

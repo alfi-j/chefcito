@@ -13,6 +13,8 @@
             "no_customer_found": "No customer found.",
             "no_items": "No items in order.",
             "select_items": "Select items from the menu to get started.",
+            "order_notes": "Order Notes",
+            "order_notes_placeholder": "Add any special instructions for the kitchen...",
             "subtotal": "Subtotal",
             "tax": "Tax (8%)",
             "total": "Total",
@@ -54,12 +56,14 @@
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",
+            "update_item": "Update Item",
+            "add_to_order": "Add to Order",
             "extras": "Extras",
-            "quantity": "Quantity",
-            "add_to_order": "Add to Order"
+            "quantity": "Quantity"
         },
         "toast": {
             "item_added": "{{item}} added",
+            "item_updated": "{{item}} updated",
             "empty_order_title": "Empty Order",
             "empty_order_desc": "Cannot send an empty order to the kitchen.",
             "empty_order_payment_desc": "Cannot process payment for an empty order.",

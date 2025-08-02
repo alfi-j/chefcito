@@ -8,6 +8,7 @@ export const useCurrentOrder = () => {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [table, setTable] = useState(1);
   const [customerId, setCustomerId] = useState<string | undefined>(undefined);
+  const [notes, setNotes] = useState('');
 
   const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[]) => {
     setItems(prev => {
@@ -21,6 +22,14 @@ export const useCurrentOrder = () => {
       };
       return [...prev, newItem];
     });
+  }, []);
+
+  const updateItem = useCallback((itemId: string, newQuantity: number, newSelectedExtras: MenuItem[]) => {
+    setItems(prev => prev.map(item =>
+      item.id === itemId
+        ? { ...item, quantity: newQuantity, selectedExtras: newSelectedExtras }
+        : item
+    ));
   }, []);
 
   const removeItem = useCallback((itemId: string) => {
@@ -41,6 +50,7 @@ export const useCurrentOrder = () => {
     setItems([]);
     setTable(1);
     setCustomerId(undefined);
+    setNotes('');
   }, []);
 
   const { subtotal, tax, total } = useMemo(() => {
@@ -59,7 +69,10 @@ export const useCurrentOrder = () => {
     setTable,
     customerId,
     setCustomerId,
+    notes,
+    setNotes,
     addItem,
+    updateItem,
     removeItem,
     updateQuantity,
     clearOrder,

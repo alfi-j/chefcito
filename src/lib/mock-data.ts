@@ -182,7 +182,7 @@ export const getInitialOrders = async (): Promise<Order[]> => {
     return inflatedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export const addOrder = async (orderData: { table: number, items: OrderItem[], customerId?: string }) => {
+export const addOrder = async (orderData: { table: number, items: OrderItem[], customerId?: string, notes?: string }) => {
     const orders = await readData<any[]>('orders.json');
     const nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
     let nextItemIdCounter = Date.now();
@@ -195,6 +195,7 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[], c
         createdAt: now,
         isPinned: false,
         customerId: orderData.customerId,
+        notes: orderData.notes,
         staffName: "Staff Member", // Mock staff name
         statusHistory: [{ status: "pending", timestamp: now }],
         items: orderData.items.map(item => ({

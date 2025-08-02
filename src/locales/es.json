@@ -13,6 +13,8 @@
             "no_customer_found": "No se encontró ningún cliente.",
             "no_items": "No hay artículos en la orden.",
             "select_items": "Selecciona artículos del menú para comenzar.",
+            "order_notes": "Notas de la Orden",
+            "order_notes_placeholder": "Añade cualquier instrucción especial para la cocina...",
             "subtotal": "Subtotal",
             "tax": "Impuesto (8%)",
             "total": "Total",
@@ -54,12 +56,14 @@
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
+            "update_item": "Actualizar Artículo",
+            "add_to_order": "Añadir a la Orden",
             "extras": "Extras",
-            "quantity": "Cantidad",
-            "add_to_order": "Añadir a la Orden"
+            "quantity": "Cantidad"
         },
         "toast": {
             "item_added": "{{item}} agregado",
+            "item_updated": "{{item}} actualizado",
             "empty_order_title": "Orden Vacía",
             "empty_order_desc": "No se puede enviar una orden vacía a la cocina.",
             "empty_order_payment_desc": "No se puede procesar el pago de una orden vacía.",

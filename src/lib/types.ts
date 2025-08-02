@@ -38,6 +38,7 @@ export type Order = {
   customerId?: string;
   staffName?: string;
   statusHistory?: OrderStatusUpdate[];
+  notes?: string;
 };
 
 export type Category = {
