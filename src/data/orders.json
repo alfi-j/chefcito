@@ -93,5 +93,46 @@
         "selectedExtraIds": []
       }
     ]
+  },
+  {
+    "id": 4,
+    "table": 1,
+    "status": "pending",
+    "createdAt": "2025-08-02T21:36:17.607Z",
+    "isPinned": false,
+    "notes": "",
+    "staffName": "Staff Member",
+    "statusHistory": [
+      {
+        "status": "pending",
+        "timestamp": "2025-08-02T21:36:17.607Z"
+      }
+    ],
+    "items": [
+      {
+        "id": "1754170577607",
+        "menuItemId": "5",
+        "quantity": 1,
+        "cookedCount": 0,
+        "status": "New",
+        "selectedExtraIds": []
+      },
+      {
+        "id": "1754170577608",
+        "menuItemId": "1",
+        "quantity": 1,
+        "cookedCount": 0,
+        "status": "New",
+        "selectedExtraIds": []
+      },
+      {
+        "id": "1754170577609",
+        "menuItemId": "3",
+        "quantity": 1,
+        "cookedCount": 0,
+        "status": "New",
+        "selectedExtraIds": []
+      }
+    ]
   }
 ]

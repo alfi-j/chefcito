@@ -54,13 +54,13 @@ export const useCurrentOrder = () => {
   }, []);
 
   const { subtotal, tax, total } = useMemo(() => {
-    const subtotal = items.reduce((acc, item) => {
+    const currentSubtotal = items.reduce((acc, item) => {
       const extrasPrice = item.selectedExtras?.reduce((extraAcc, extra) => extraAcc + extra.price, 0) || 0;
       return acc + (item.menuItem.price + extrasPrice) * item.quantity;
     }, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal + tax;
-    return { subtotal, tax, total };
+    const currentTax = currentSubtotal * 0.08;
+    const currentTotal = currentSubtotal + currentTax;
+    return { subtotal: currentSubtotal, tax: currentTax, total: currentTotal };
   }, [items]);
 
   return {
