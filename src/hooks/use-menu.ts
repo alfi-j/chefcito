@@ -19,7 +19,9 @@ import {
   getInventoryItems,
   addInventoryItem as mockAddInventoryItem,
   updateInventoryItem as mockUpdateInventoryItem,
-  adjustInventoryStock,
+  adjustInventoryStock as mockAdjustInventoryStock,
+  deleteInventoryItem as mockDeleteInventoryItem,
+  updateMenuItemOrder,
 } from '@/lib/mock-data';
 import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types"
 
@@ -95,6 +97,18 @@ export const useMenu = () => {
     }
   }
 
+  const handleReorderItems = async (reorderedItems: MenuItem[]) => {
+    const originalItems = [...menuItems];
+    setMenuItems(reorderedItems); // Optimistic update
+    const orderedIds = reorderedItems.map(item => item.id);
+    try {
+      await updateMenuItemOrder(orderedIds);
+    } catch(error: any) {
+       setMenuItems(originalItems); // Revert on error
+       toast.error(t('toast.error'), { description: t('restaurant.toast.reorder_error'), duration: 3000 });
+    }
+  }
+
   const handleCategoriesUpdate = () => {
     fetchAllData();
   }
@@ -154,7 +168,7 @@ export const useMenu = () => {
   
   const handleAdjustInventoryStock = async (itemId: string, adjustment: number) => {
     try {
-      await adjustInventoryStock(itemId, adjustment);
+      await mockAdjustInventoryStock(itemId, adjustment);
       // Optimistic update for responsiveness
       setInventoryItems(prevItems =>
         prevItems.map(item =>
@@ -170,6 +184,16 @@ export const useMenu = () => {
     }
   }
 
+  const handleDeleteInventoryItem = async (itemId: string) => {
+     try {
+      await mockDeleteInventoryItem(itemId);
+      await fetchAllData();
+      toast.success(t('toast.success'), { description: t('restaurant.toast.inventory_item_deleted'), duration: 3000 });
+    } catch (error: any) {
+       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.inventory_item_delete_error'), duration: 3000 });
+    }
+  }
+
   return {
     menuItems,
     categories,
@@ -177,16 +201,17 @@ export const useMenu = () => {
     customers,
     inventoryItems,
     loading,
-    setMenuItems, // for optimistic updates like drag-n-drop
     fetchAllData,
     handleSaveItem,
     handleDeleteItem,
     handleDeleteMultipleItems,
+    handleReorderItems,
     handleCategoriesUpdate,
     handleSavePaymentMethod,
     handleDeletePaymentMethod,
     handlePaymentMethodToggle,
     handleSaveInventoryItem,
     handleAdjustInventoryStock,
+    handleDeleteInventoryItem,
   };
 };

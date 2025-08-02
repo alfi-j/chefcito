@@ -50,7 +50,19 @@ interface RenderedCategory extends Category {
   depth: number;
 }
 
-function InventoryList({ items, menuItems, onSave, onAdjustStock }: { items: InventoryItem[], menuItems: MenuItem[], onSave: (item: InventoryItem | Omit<InventoryItem, "id" | "lastRestocked">) => Promise<void>, onAdjustStock: (itemId: string, adjustment: number) => Promise<void>}) {
+function InventoryList({ 
+  items, 
+  menuItems, 
+  onSave, 
+  onAdjustStock,
+  onDeleteItem,
+}: { 
+  items: InventoryItem[], 
+  menuItems: MenuItem[], 
+  onSave: (item: InventoryItem | Omit<InventoryItem, "id" | "lastRestocked">) => Promise<void>, 
+  onAdjustStock: (itemId: string, adjustment: number) => Promise<void>,
+  onDeleteItem: (itemId: string) => Promise<void>
+}) {
     const { t } = useI18n();
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<InventoryItem | undefined>(undefined);
@@ -177,7 +189,7 @@ function InventoryList({ items, menuItems, onSave, onAdjustStock }: { items: Inv
                                                         <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
                                                         <DropdownMenuItem onSelect={() => handleOpenItemDialog(item)}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
                                                         <DropdownMenuSeparator />
-                                                        <DropdownMenuItem className="text-destructive">{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => onDeleteItem(item.id)} className="text-destructive">{t('restaurant.menu.table.delete')}</DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
@@ -187,7 +199,7 @@ function InventoryList({ items, menuItems, onSave, onAdjustStock }: { items: Inv
                            ) : (
                                 <TableRow>
                                     <TableCell colSpan={5} className="h-24 text-center">
-                                        No results found.
+                                        {t('orders.no_orders_found')}
                                     </TableCell>
                                 </TableRow>
                            )}
@@ -200,7 +212,23 @@ function InventoryList({ items, menuItems, onSave, onAdjustStock }: { items: Inv
     )
 }
 
-function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], categories: Category[], onUpdate: () => void }) {
+function MenuList({ 
+  menuItems, 
+  categories, 
+  onUpdateCategories,
+  onSaveItem,
+  onDeleteItem,
+  onDeleteMultipleItems,
+  onReorderItems
+}: { 
+  menuItems: MenuItem[], 
+  categories: Category[], 
+  onUpdateCategories: () => void,
+  onSaveItem: (item: MenuItem | Omit<MenuItem, "id">) => Promise<void>,
+  onDeleteItem: (id: string) => Promise<void>,
+  onDeleteMultipleItems: (ids: string[]) => Promise<void>,
+  onReorderItems: (items: MenuItem[]) => void,
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
@@ -211,13 +239,6 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
   const { t } = useI18n();
-   const {
-    handleSaveItem,
-    handleDeleteItem,
-    handleDeleteMultipleItems,
-    setMenuItems,
-  } = useMenu();
-
 
   const handleOpenItemDialog = (item?: MenuItem) => {
     setEditingItem(item);
@@ -245,30 +266,21 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
       return;
     }
     
-    const originalItems = [...menuItems];
-    const fromIndex = originalItems.findIndex(item => item.id === draggedItemId);
-    const toIndex = originalItems.findIndex(item => item.id === dropItemId);
+    const fromIndex = menuItems.findIndex(item => item.id === draggedItemId);
+    const toIndex = menuItems.findIndex(item => item.id === dropItemId);
     
     if (fromIndex === -1 || toIndex === -1) {
       handleDragEnd();
       return;
     }
 
-    const reorderedItems = [...originalItems];
+    const reorderedItems = [...menuItems];
     const [removed] = reorderedItems.splice(fromIndex, 1);
     reorderedItems.splice(toIndex, 0, removed);
     
-    setMenuItems(reorderedItems); // Optimistic update
+    onReorderItems(reorderedItems); // Optimistic update via prop
     
-    const orderedIds = reorderedItems.map(item => item.id);
-    
-    try {
-      await updateMenuItemOrder(orderedIds);
-    } catch(error: any) {
-       setMenuItems(originalItems); // Revert on error
-    } finally {
-      handleDragEnd();
-    }
+    handleDragEnd();
   };
   
   const handleDragEnter = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
@@ -279,7 +291,7 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
   };
   
   const onDeleteMultiple = async () => {
-    await handleDeleteMultipleItems(selectedItemIds);
+    await onDeleteMultipleItems(selectedItemIds);
     setSelectedItemIds([]);
   };
 
@@ -431,7 +443,7 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
                 ))}
               </SelectContent>
           </Select>
-          <CategoryDialog categories={categories} onUpdate={onUpdate} />
+          <CategoryDialog categories={categories} onUpdate={onUpdateCategories} />
           <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
             <PlusCircle className="mr-2 h-4 w-4" />
             {t('restaurant.menu.add_item')}
@@ -442,7 +454,7 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
         isOpen={isItemDialogOpen}
         onOpenChange={setIsItemDialogOpen}
         item={editingItem}
-        onSave={handleSaveItem}
+        onSave={onSaveItem}
         categories={categories}
       />
 
@@ -544,7 +556,7 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
                           <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
                           <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
                       </DropdownMenuContent>
                       </DropdownMenu>
                   </div>
@@ -559,13 +571,17 @@ function MenuList({ menuItems, categories, onUpdate }: { menuItems: MenuItem[], 
 }
 
 
-function PaymentMethods() {
-    const { 
-        paymentMethods, 
-        handleSavePaymentMethod, 
-        handleDeletePaymentMethod,
-        handlePaymentMethodToggle
-    } = useMenu();
+function PaymentMethods({
+  paymentMethods,
+  onSave,
+  onDelete,
+  onToggle,
+}: {
+  paymentMethods: PaymentMethod[],
+  onSave: (method: PaymentMethod | Omit<PaymentMethod, 'id'>) => Promise<void>,
+  onDelete: (id: string) => Promise<void>,
+  onToggle: (id: string, enabled: boolean) => Promise<void>,
+}) {
     const { t } = useI18n();
     
     return (
@@ -576,7 +592,7 @@ function PaymentMethods() {
                 <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
                 <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
                 </div>
-                <PaymentMethodDialog onSave={handleSavePaymentMethod}>
+                <PaymentMethodDialog onSave={onSave}>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t('restaurant.payment_methods.add_method')}
@@ -607,7 +623,7 @@ function PaymentMethods() {
                                 <Switch 
                                   id={`enabled-switch-mobile-${method.id}`}
                                   checked={method.enabled} 
-                                  onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                                  onCheckedChange={(checked) => onToggle(method.id, checked)}
                                   aria-label={`Enable ${method.name}`}
                                 />
                             </div>
@@ -618,16 +634,16 @@ function PaymentMethods() {
                         <TableCell className="hidden sm:table-cell">
                         <Switch 
                             checked={method.enabled} 
-                            onCheckedChange={(checked) => handlePaymentMethodToggle(method.id, checked)}
+                            onCheckedChange={(checked) => onToggle(method.id, checked)}
                             aria-label={`Enable ${method.name}`}
                         />
                         </TableCell>
                         <TableCell>
                         <div className="flex justify-end items-center gap-2">
-                            <PaymentMethodDialog method={method} onSave={handleSavePaymentMethod}>
+                            <PaymentMethodDialog method={method} onSave={onSave}>
                                 <Button variant="ghost" size="icon"><Pencil className="h-4 w-4" /></Button>
                             </PaymentMethodDialog>
-                            <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => handleDeletePaymentMethod(method.id)}>
+                            <Button variant="ghost" size="icon" className="text-destructive/80 hover:text-destructive" onClick={() => onDelete(method.id)}>
                                 <Trash2 className="h-4 w-4" />
                             </Button>
                         </div>
@@ -649,10 +665,19 @@ export default function RestaurantPage() {
     menuItems,
     categories,
     inventoryItems,
+    paymentMethods,
     loading,
     handleCategoriesUpdate,
     handleSaveInventoryItem,
     handleAdjustInventoryStock,
+    handleDeleteInventoryItem,
+    handleSaveItem,
+    handleDeleteItem,
+    handleDeleteMultipleItems,
+    handleReorderItems,
+    handleSavePaymentMethod,
+    handleDeletePaymentMethod,
+    handlePaymentMethodToggle,
   } = useMenu();
 
 
@@ -677,13 +702,32 @@ export default function RestaurantPage() {
                 <TabsTrigger value="payment">{t('restaurant.payment_methods.title')}</TabsTrigger>
             </TabsList>
             <TabsContent value="menu" className="pt-0">
-                 <MenuList menuItems={menuItems} categories={categories} onUpdate={handleCategoriesUpdate} />
+                 <MenuList 
+                    menuItems={menuItems} 
+                    categories={categories} 
+                    onUpdateCategories={handleCategoriesUpdate} 
+                    onSaveItem={handleSaveItem}
+                    onDeleteItem={handleDeleteItem}
+                    onDeleteMultipleItems={handleDeleteMultipleItems}
+                    onReorderItems={handleReorderItems}
+                 />
             </TabsContent>
             <TabsContent value="inventory" className="pt-0">
-                <InventoryList items={inventoryItems} menuItems={menuItems} onSave={handleSaveInventoryItem} onAdjustStock={handleAdjustInventoryStock} />
+                <InventoryList 
+                    items={inventoryItems} 
+                    menuItems={menuItems} 
+                    onSave={handleSaveInventoryItem} 
+                    onAdjustStock={handleAdjustInventoryStock}
+                    onDeleteItem={handleDeleteInventoryItem}
+                />
             </TabsContent>
              <TabsContent value="payment" className="pt-0">
-                <PaymentMethods />
+                <PaymentMethods 
+                    paymentMethods={paymentMethods}
+                    onSave={handleSavePaymentMethod}
+                    onDelete={handleDeletePaymentMethod}
+                    onToggle={handlePaymentMethodToggle}
+                />
             </TabsContent>
         </Tabs>
       </div>

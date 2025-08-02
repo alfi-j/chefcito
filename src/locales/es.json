@@ -278,7 +278,9 @@
             "inventory_item_update_error": "Error al actualizar el artículo de inventario.",
             "inventory_item_added": "Artículo de inventario añadido.",
             "inventory_item_add_error": "Error al añadir el artículo de inventario.",
-            "inventory_stock_update_error": "Error al actualizar el stock del inventario."
+            "inventory_stock_update_error": "Error al actualizar el stock del inventario.",
+            "inventory_item_deleted": "Artículo de inventario eliminado.",
+            "inventory_item_delete_error": "Error al eliminar el artículo de inventario."
         }
     },
     "reports": {

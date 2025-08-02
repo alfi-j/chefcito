@@ -187,13 +187,16 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[], c
     const nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
     let nextItemIdCounter = Date.now();
     
+    const now = new Date().toISOString();
     const newOrder = {
         id: nextOrderId,
         table: orderData.table,
         status: 'pending',
-        createdAt: new Date().toISOString(),
+        createdAt: now,
         isPinned: false,
         customerId: orderData.customerId,
+        staffName: "Staff Member", // Mock staff name
+        statusHistory: [{ status: "pending", timestamp: now }],
         items: orderData.items.map(item => ({
             id: String(nextItemIdCounter++),
             menuItemId: item.menuItem.id,
@@ -221,7 +224,9 @@ export const updateOrderItemStatus = async (payload: { itemId: string, newStatus
             if (order.items.every((i: any) => i.quantity === 0 && i.cookedCount > 0)) {
                  if (order.status === 'pending') {
                     order.status = 'completed';
-                    order.completedAt = new Date().toISOString();
+                    const now = new Date().toISOString();
+                    order.completedAt = now;
+                    order.statusHistory.push({ status: 'completed', timestamp: now });
                  }
             }
             orderModified = true;
@@ -239,9 +244,11 @@ export const updateOrderStatus = async (payload: { orderId: number; newStatus: '
     const order = orders.find(o => o.id === payload.orderId);
     if (order) {
         order.status = payload.newStatus;
+        const now = new Date().toISOString();
         if(payload.newStatus === 'completed' && !order.completedAt) {
-            order.completedAt = new Date().toISOString();
+            order.completedAt = now;
         }
+        order.statusHistory.push({ status: payload.newStatus, timestamp: now });
         await writeData('orders.json', orders);
         return true;
     }
@@ -318,6 +325,13 @@ export const updateInventoryItem = async (item: InventoryItem) => {
     }
     return null;
 };
+
+export const deleteInventoryItem = async (id: string) => {
+    let inventory = await readData<InventoryItem[]>('inventory.json');
+    inventory = inventory.filter(i => i.id !== id);
+    await writeData('inventory.json', inventory);
+    return true;
+}
 
 export const adjustInventoryStock = async (itemId: string, adjustment: number) => {
     const inventory = await readData<InventoryItem[]>('inventory.json');
@@ -447,12 +461,12 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
                 itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
             }
-            itemPrepTimes[item.menuItem.id].times.push(prepTime);
+            itemPrepTimes[item.menuItem.id].times.push( prepTime );
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
         });
     });
