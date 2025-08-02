@@ -54,7 +54,7 @@
   {
     "id": 3,
     "table": 1,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T09:30:00Z",
     "completedAt": "2025-08-01T01:11:43.879Z",
     "isPinned": false,
@@ -62,9 +62,9 @@
       {
         "id": "3-1",
         "menuItemId": "4",
-        "quantity": 0,
-        "cookedCount": 1,
-        "status": "Cooked",
+        "quantity": 1,
+        "cookedCount": 0,
+        "status": "New",
         "selectedExtraIds": []
       }
     ]

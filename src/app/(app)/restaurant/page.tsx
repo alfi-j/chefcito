@@ -31,7 +31,6 @@ import {
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
-import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -41,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { cn } from '@/lib/utils'
-import { MenuItemPreview } from './components/menu-item-preview'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { useMenu } from '@/hooks/use-menu'
@@ -55,7 +53,6 @@ export default function RestaurantPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
-  const [previewItem, setPreviewItem] = useState<Partial<MenuItem> | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
@@ -81,7 +78,6 @@ export default function RestaurantPage() {
 
   const handleOpenItemDialog = (item?: MenuItem) => {
     setEditingItem(item);
-    setPreviewItem(item || {});
     setIsItemDialogOpen(true);
   };
   
@@ -142,7 +138,6 @@ export default function RestaurantPage() {
   const onDeleteMultiple = async () => {
     await handleDeleteMultipleItems(selectedItemIds);
     setSelectedItemIds([]);
-    setPreviewItem(null);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -164,16 +159,8 @@ export default function RestaurantPage() {
   const isSortingEnabled = !searchQuery && categoryFilter === 'all';
   
   const categoryMap = useMemo(() => {
-    const map = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
-    const roots: Category[] = [];
-
-    categories.forEach(category => {
-        if (category.parentId && map.has(category.parentId)) {
-            map.get(category.parentId)!.children.push(category as any);
-        } else {
-            roots.push(category);
-        }
-    });
+    const map = new Map<number, Category>();
+    categories.forEach(c => map.set(c.id, c));
     return map;
   }, [categories]);
 
@@ -214,11 +201,13 @@ export default function RestaurantPage() {
   }
   
   const renderedCategories = useMemo(() => {
+    const categoryIdMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
     const roots: Category[] = [];
-    const categoryIdMap = new Map(categories.map(c => [c.id, c]));
 
     categories.forEach(category => {
-        if (!category.parentId || !categoryIdMap.has(category.parentId)) {
+        if (category.parentId && categoryIdMap.has(category.parentId)) {
+            categoryIdMap.get(category.parentId)!.children.push(category as any);
+        } else {
             roots.push(category);
         }
     });
@@ -226,7 +215,7 @@ export default function RestaurantPage() {
     const flattened: RenderedCategory[] = [];
     const traverse = (category: Category, depth: number) => {
         flattened.push({ ...category, depth });
-        const children = categories.filter(c => c.parentId === category.id)
+        const children = categoryIdMap.get(category.id)?.children || [];
         children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
     };
 
@@ -257,7 +246,7 @@ export default function RestaurantPage() {
     }
 
     return items;
-  }, [menuItems, categoryFilter, searchQuery, isSortingEnabled, categories, categoryMap, categoryChildrenMap]);
+  }, [menuItems, categoryFilter, searchQuery, isSortingEnabled, categories, getDescendantCategoryNames]);
 
 
   const numSelected = selectedItemIds.length;
@@ -286,8 +275,7 @@ export default function RestaurantPage() {
       <div className="space-y-8">
         <h1 className="text-3xl font-headline font-bold">{t('restaurant.title')}</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="space-y-8">
               <Card>
                   <CardHeader className="p-4 sm:p-6">
                     <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
@@ -377,9 +365,8 @@ export default function RestaurantPage() {
                                 onDragOver={handleDragOver}
                                 onDrop={(e) => handleDrop(e, item.id)}
                                 onDragEnter={(e) => handleDragEnter(e, item.id)}
-                                onClick={() => setPreviewItem(item)}
                                 className={cn(
-                                    "transition-all cursor-pointer",
+                                    "transition-all",
                                     isSortingEnabled && "cursor-grab",
                                     draggedItemId === item.id && "opacity-50",
                                     dragOverItemId === item.id && "bg-primary/10"
@@ -518,18 +505,6 @@ export default function RestaurantPage() {
                   </div>
                   </CardContent>
               </Card>
-          </div>
-          <div className="lg:col-span-1">
-              <Card className="sticky top-8">
-                  <CardHeader className="p-4 sm:p-6">
-                      <CardTitle className="font-headline">{t('restaurant.preview.title')}</CardTitle>
-                      <CardDescription>{t('restaurant.preview.desc')}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-                      <MenuItemPreview item={previewItem} />
-                  </CardContent>
-              </Card>
-          </div>
         </div>
       </div>
     </>

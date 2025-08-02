@@ -5,10 +5,11 @@
     "price": 8.99,
     "category": "Appetizers",
     "imageUrl": "",
-    "aiHint": "salad food",
+    "aiHint": "Caesar Salad food",
     "description": "Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.",
     "available": true,
-    "sortIndex": 0
+    "sortIndex": 0,
+    "linkedModifiers": []
   },
   {
     "id": "1",
