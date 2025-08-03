@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useCallback } from 'react';
@@ -16,15 +15,15 @@ export const useCurrentOrder = () => {
   });
 
   const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
-    setItems(prev => {
-      const existingItemIndex = prev.findIndex(i => 
+    setItems(prevItems => {
+      const existingItemIndex = prevItems.findIndex(i => 
         i.menuItem.id === item.id && 
         JSON.stringify(i.selectedExtras?.map(e => e.id).sort()) === JSON.stringify(selectedExtras.map(e => e.id).sort()) &&
         i.notes === (notes || undefined)
       );
 
       if (existingItemIndex > -1) {
-        const newItems = [...prev];
+        const newItems = [...prevItems];
         newItems[existingItemIndex].quantity += quantity;
         return newItems;
       } else {
@@ -37,7 +36,7 @@ export const useCurrentOrder = () => {
           selectedExtras,
           notes,
         };
-        return [...prev, newItem];
+        return [...prevItems, newItem];
       }
     });
   }, []);
