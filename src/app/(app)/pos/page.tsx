@@ -13,7 +13,6 @@ import { useMenu } from '@/hooks/use-menu';
 import { useCurrentOrder } from '@/hooks/use-current-order';
 
 export default function PosPage() {
-  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [editingOrderItem, setEditingOrderItem] = useState<OrderItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
@@ -22,19 +21,14 @@ export default function PosPage() {
   const order = useCurrentOrder();
 
   const handleSelectItem = (item: MenuItem) => {
-    setSelectedItem(item);
+    order.addItem(item, 1, []);
+    toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 2000 });
   };
   
   const handleEditItem = (orderItem: OrderItem) => {
     setEditingOrderItem(orderItem);
   };
 
-  const handleAddItemToOrder = (item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes: string) => {
-    order.addItem(item, quantity, selectedExtras, notes);
-    toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 3000 });
-    setSelectedItem(null);
-  };
-  
   const handleUpdateItemInOrder = (item: OrderItem, quantity: number, selectedExtras: MenuItem[], notes: string) => {
      order.updateItem(item.id, quantity, selectedExtras, notes);
      toast.success(t('pos.toast.item_updated', { item: item.menuItem.name }), { duration: 3000 });
@@ -102,29 +96,25 @@ export default function PosPage() {
   const displayCategories = categories.filter(c => !c.isModifierGroup);
   const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
   
-  const isAddDialog = !!selectedItem;
   const isEditDialog = !!editingOrderItem;
-  const dialogItem = selectedItem || editingOrderItem?.menuItem;
+  const dialogItem = editingOrderItem?.menuItem;
   
   const closeDialog = () => {
-    setSelectedItem(null);
     setEditingOrderItem(null);
   }
 
   const handleDialogSave = (quantity: number, selectedExtras: MenuItem[], notes: string) => {
     if (isEditDialog && editingOrderItem) {
       handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras, notes);
-    } else if (isAddDialog && selectedItem) {
-      handleAddItemToOrder(selectedItem, quantity, selectedExtras, notes);
     }
   }
 
 
   return (
     <>
-      {(isAddDialog || isEditDialog) && dialogItem && (
+      {isEditDialog && dialogItem && (
         <AddItemDialog
-          isOpen={isAddDialog || isEditDialog}
+          isOpen={isEditDialog}
           onOpenChange={(open) => !open && closeDialog()}
           item={dialogItem}
           orderItem={editingOrderItem}
@@ -143,11 +133,11 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start h-full">
-        <div className="xl:col-span-2 h-full">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-start h-full">
+        <div className="xl:col-span-3 h-full">
           <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
         </div>
-        <div className="xl:col-span-1 h-full">
+        <div className="xl:col-span-2 h-full">
           <CurrentOrder 
             order={order}
             onSendToKitchen={handleSendToKitchen}
