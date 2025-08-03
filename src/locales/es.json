@@ -154,6 +154,7 @@
         "loading": "Cargando datos...",
         "menu": {
             "title": "Menú",
+            "desc": "Gestiona los artículos, categorías y modificadores de tu menú.",
             "add_item": "Añadir Artículo",
             "manage_categories": "Gestionar Categorías",
             "search_placeholder": "Buscar artículos...",

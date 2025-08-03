@@ -154,6 +154,7 @@
         "loading": "Loading data...",
         "menu": {
             "title": "Menu",
+            "desc": "Manage your menu items, categories, and modifiers.",
             "add_item": "Add Item",
             "manage_categories": "Manage Categories",
             "search_placeholder": "Search for items...",
