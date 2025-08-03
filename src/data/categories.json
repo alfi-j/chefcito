@@ -35,9 +35,7 @@
     "name": "Pizzas",
     "parentId": 2,
     "depth": 1,
-    "linkedModifiers": [
-      "Extras"
-    ]
+    "linkedModifiers": []
   },
   {
     "id": 7,

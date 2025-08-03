@@ -28,6 +28,14 @@ export type OrderStatusUpdate = {
   timestamp: string;
 };
 
+export type OrderType = 'dine-in' | 'delivery';
+
+export type DeliveryInfo = {
+  name: string;
+  address: string;
+  phone: string;
+};
+
 export type Order = {
   id: number;
   items: OrderItem[];
@@ -40,6 +48,8 @@ export type Order = {
   staffName?: string;
   statusHistory?: OrderStatusUpdate[];
   notes?: string;
+  orderType: OrderType;
+  deliveryInfo?: DeliveryInfo;
 };
 
 export type Category = {

@@ -2,13 +2,18 @@
 "use client"
 
 import { useState, useMemo, useCallback } from 'react';
-import { type OrderItem, type MenuItem } from '@/lib/types';
+import { type OrderItem, type MenuItem, type OrderType, type DeliveryInfo } from '@/lib/types';
 
 export const useCurrentOrder = () => {
   const [items, setItems] = useState<OrderItem[]>([]);
   const [table, setTable] = useState(1);
-  const [customerId, setCustomerId] = useState<string | undefined>(undefined);
   const [notes, setNotes] = useState('');
+  const [orderType, setOrderType] = useState<OrderType>('dine-in');
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo>({
+    name: '',
+    address: '',
+    phone: ''
+  });
 
   const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => {
@@ -40,8 +45,9 @@ export const useCurrentOrder = () => {
   const clearOrder = useCallback(() => {
     setItems([]);
     setTable(1);
-    setCustomerId(undefined);
     setNotes('');
+    setOrderType('dine-in');
+    setDeliveryInfo({ name: '', address: '', phone: '' });
   }, []);
 
   const { subtotal, tax, total } = useMemo(() => {
@@ -58,10 +64,12 @@ export const useCurrentOrder = () => {
     items,
     table,
     setTable,
-    customerId,
-    setCustomerId,
     notes,
     setNotes,
+    orderType,
+    setOrderType,
+    deliveryInfo,
+    setDeliveryInfo,
     addItem,
     updateItem,
     removeItem,

@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData } from './data-utils';
@@ -182,7 +182,13 @@ export const getInitialOrders = async (): Promise<Order[]> => {
     return inflatedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-export const addOrder = async (orderData: { table: number, items: OrderItem[], customerId?: string, notes?: string }) => {
+export const addOrder = async (orderData: { 
+    table: number, 
+    items: OrderItem[], 
+    notes?: string,
+    orderType: OrderType,
+    deliveryInfo?: DeliveryInfo,
+}) => {
     const orders = await readData<any[]>('orders.json');
     const nextOrderId = orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1;
     
@@ -193,8 +199,9 @@ export const addOrder = async (orderData: { table: number, items: OrderItem[], c
         status: 'pending',
         createdAt: now,
         isPinned: false,
-        customerId: orderData.customerId,
         notes: orderData.notes || '',
+        orderType: orderData.orderType,
+        deliveryInfo: orderData.deliveryInfo,
         staffName: "Staff Member", // Mock staff name
         statusHistory: [{ status: "pending", timestamp: now }],
         items: orderData.items.map(item => ({
