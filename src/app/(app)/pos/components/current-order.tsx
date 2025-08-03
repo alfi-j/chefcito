@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/select"
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
 interface CurrentOrderProps {
@@ -45,67 +44,69 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
         <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
-        <Tabs value={orderType} onValueChange={(value) => setOrderType(value as OrderType)} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="dine-in">
-                    <PersonStanding className="mr-2 h-4 w-4"/>
-                    {t('pos.order_type.dine_in')}
-                </TabsTrigger>
-                <TabsTrigger value="delivery">
-                    <Package className="mr-2 h-4 w-4"/>
-                    {t('pos.order_type.delivery')}
-                </TabsTrigger>
-            </TabsList>
-            <TabsContent value="dine-in" className="pt-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="table-select">{t('pos.current_order.table')}</Label>
-                    <Select value={String(table)} onValueChange={(value) => setTable(Number(value))} name="table-select">
-                        <SelectTrigger id="table-select">
-                            <SelectValue placeholder={t('pos.current_order.select_table')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => (
-                            <SelectItem key={tableNum} value={String(tableNum)}>
-                                {t('pos.current_order.table')} {tableNum}
-                            </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </TabsContent>
-            <TabsContent value="delivery" className="pt-4">
-                <div className="space-y-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="customer-name">{t('pos.delivery.name')}</Label>
-                        <Input id="customer-name" value={deliveryInfo.name} onChange={(e) => setDeliveryInfo(d => ({...d, name: e.target.value}))} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="customer-address">{t('pos.delivery.address')}</Label>
-                        <Input id="customer-address" value={deliveryInfo.address} onChange={(e) => setDeliveryInfo(d => ({...d, address: e.target.value}))} />
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="customer-phone">{t('pos.delivery.phone')}</Label>
-                        <Input id="customer-phone" type="tel" value={deliveryInfo.phone} onChange={(e) => setDeliveryInfo(d => ({...d, phone: e.target.value}))} />
-                    </div>
-                </div>
-            </TabsContent>
-        </Tabs>
-        
-         <div className="mt-6">
-            <Label htmlFor="order-notes">{t('pos.current_order.order_notes')}</Label>
-            <Textarea 
-                id="order-notes"
-                placeholder={t('pos.current_order.order_notes_placeholder')}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="mt-1"
-            />
+        <div>
+          <Tabs value={orderType} onValueChange={(value) => setOrderType(value as OrderType)} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="dine-in">
+                      <PersonStanding className="mr-2 h-4 w-4"/>
+                      {t('pos.order_type.dine_in')}
+                  </TabsTrigger>
+                  <TabsTrigger value="delivery">
+                      <Package className="mr-2 h-4 w-4"/>
+                      {t('pos.order_type.delivery')}
+                  </TabsTrigger>
+              </TabsList>
+              <TabsContent value="dine-in" className="pt-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="table-select">{t('pos.current_order.table')}</Label>
+                      <Select value={String(table)} onValueChange={(value) => setTable(Number(value))} name="table-select">
+                          <SelectTrigger id="table-select">
+                              <SelectValue placeholder={t('pos.current_order.select_table')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                              {Array.from({ length: 20 }, (_, i) => i + 1).map(tableNum => (
+                              <SelectItem key={tableNum} value={String(tableNum)}>
+                                  {t('pos.current_order.table')} {tableNum}
+                              </SelectItem>
+                              ))}
+                          </SelectContent>
+                      </Select>
+                  </div>
+              </TabsContent>
+              <TabsContent value="delivery" className="pt-4">
+                  <div className="space-y-4">
+                      <div className="space-y-2">
+                          <Label htmlFor="customer-name">{t('pos.delivery.name')}</Label>
+                          <Input id="customer-name" value={deliveryInfo.name} onChange={(e) => setDeliveryInfo(d => ({...d, name: e.target.value}))} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="customer-address">{t('pos.delivery.address')}</Label>
+                          <Input id="customer-address" value={deliveryInfo.address} onChange={(e) => setDeliveryInfo(d => ({...d, address: e.target.value}))} />
+                      </div>
+                      <div className="space-y-2">
+                          <Label htmlFor="customer-phone">{t('pos.delivery.phone')}</Label>
+                          <Input id="customer-phone" type="tel" value={deliveryInfo.phone} onChange={(e) => setDeliveryInfo(d => ({...d, phone: e.target.value}))} />
+                      </div>
+                  </div>
+              </TabsContent>
+          </Tabs>
+          
+          <div className="mt-6">
+              <Label htmlFor="order-notes">{t('pos.current_order.order_notes')}</Label>
+              <Textarea 
+                  id="order-notes"
+                  placeholder={t('pos.current_order.order_notes_placeholder')}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="mt-1"
+              />
+          </div>
         </div>
         
         <Separator className="my-4" />
 
-        <ScrollArea className="flex-grow pr-4">
-          <div className="space-y-4">
+        <ScrollArea className="flex-grow pr-4 -mr-4">
+          <div className="space-y-4 pr-4">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
                 <Utensils className="w-12 h-12 mb-4" />
