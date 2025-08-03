@@ -98,6 +98,119 @@ function InventoryList({
             return matchesCategory && matchesSearch;
         });
     }, [items, searchQuery, categoryFilter]);
+    
+    const renderContent = () => {
+         if (filteredItems.length === 0) {
+            return (
+                <div className="text-center text-muted-foreground py-10">
+                    <p>{t('orders.no_orders_found')}</p>
+                </div>
+            )
+        }
+        
+        return (
+            <>
+                {/* Mobile View */}
+                <div className="md:hidden space-y-4">
+                    {filteredItems.map(item => (
+                        <Card key={item.id}>
+                            <CardContent className="p-4 flex flex-col gap-4">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <p className="font-bold">{item.name}</p>
+                                        <p className="text-sm text-muted-foreground">{item.unit}</p>
+                                    </div>
+                                     <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                                <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                                            <DropdownMenuItem onSelect={() => handleOpenItemDialog(item)}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onSelect={() => onDeleteItem(item.id)} className="text-destructive">{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                 <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-2">
+                                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => onAdjustStock(item.id, -1)}>
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                        <span className="font-semibold w-8 text-center">{item.quantity}</span>
+                                        <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => onAdjustStock(item.id, 1)}>
+                                            <Plus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <Badge variant={getStatusVariant(item)}>{getStatusText(item)}</Badge>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+
+                {/* Desktop View */}
+                <div className="hidden md:block border rounded-lg">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>{t('restaurant.inventory.table.name')}</TableHead>
+                                <TableHead>{t('restaurant.inventory.table.unit')}</TableHead>
+                                <TableHead>{t('restaurant.inventory.table.status')}</TableHead>
+                                <TableHead className="text-right w-[200px]">{t('restaurant.inventory.table.in_stock')}</TableHead>
+                                <TableHead className="w-[100px]">
+                                    <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                                </TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredItems.map((item) => (
+                                <TableRow key={item.id}>
+                                    <TableCell className="font-medium">{item.name}</TableCell>
+                                    <TableCell>{item.unit}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={getStatusVariant(item)}>{getStatusText(item)}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onAdjustStock(item.id, -1)}>
+                                                <Minus className="h-4 w-4" />
+                                            </Button>
+                                            <span className="font-semibold w-8 text-center">{item.quantity}</span>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onAdjustStock(item.id, 1)}>
+                                                <Plus className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex justify-end">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                        <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                                                    <DropdownMenuItem onSelect={() => handleOpenItemDialog(item)}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem onSelect={() => onDeleteItem(item.id)} className="text-destructive">{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            </>
+        )
+    }
 
     return (
         <>
@@ -145,69 +258,7 @@ function InventoryList({
                 </div>
             </CardHeader>
             <CardContent>
-                 <div className="border rounded-lg">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t('restaurant.inventory.table.name')}</TableHead>
-                                <TableHead className="text-right">{t('restaurant.inventory.table.in_stock')}</TableHead>
-                                <TableHead className="hidden md:table-cell">{t('restaurant.inventory.table.unit')}</TableHead>
-                                <TableHead className="hidden sm:table-cell">{t('restaurant.inventory.table.status')}</TableHead>
-                                <TableHead>
-                                    <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
-                                </TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                           {filteredItems.length > 0 ? (
-                                filteredItems.map((item) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell className="font-medium">{item.name}</TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onAdjustStock(item.id, -1)}>
-                                                    <Minus className="h-4 w-4" />
-                                                </Button>
-                                                <span className="font-semibold w-8 text-center">{item.quantity}</span>
-                                                 <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onAdjustStock(item.id, 1)}>
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">{item.unit}</TableCell>
-                                        <TableCell className="hidden sm:table-cell">
-                                            <Badge variant={getStatusVariant(item)}>{getStatusText(item)}</Badge>
-                                        </TableCell>
-                                        <TableCell>
-                                            <div className="flex justify-end">
-                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                            <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                                                        <DropdownMenuItem onSelect={() => handleOpenItemDialog(item)}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
-                                                        <DropdownMenuSeparator />
-                                                        <DropdownMenuItem onSelect={() => onDeleteItem(item.id)} className="text-destructive">{t('restaurant.menu.table.delete')}</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                           ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
-                                        {t('orders.no_orders_found')}
-                                    </TableCell>
-                                </TableRow>
-                           )}
-                        </TableBody>
-                    </Table>
-                </div>
+                 {renderContent()}
             </CardContent>
         </Card>
         </>
