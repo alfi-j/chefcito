@@ -56,12 +56,13 @@
             "bill": "Bill",
             "add_bill": "Add Bill",
             "order_summary": "Order Summary",
-            "assign_items_for": "Assign items for",
+            "assign_items_for": "Assign items to bills",
             "all_items_assigned": "All items assigned.",
             "items_unassigned": "There are unassigned items.",
-            "unassigned_items": "Unassigned Items",
+            "unassigned_items": "Unassigned",
             "items_in_bill": "Items in Bill",
-            "no_items_in_bill": "No items added to this bill yet."
+            "no_items_in_bill": "No items added to this bill yet.",
+            "bill_summary": "Bill Totals"
         },
         "add_item_dialog": {
             "customize": "Customize your item and add it to the order.",

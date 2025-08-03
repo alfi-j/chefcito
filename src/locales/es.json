@@ -56,12 +56,13 @@
             "bill": "Cuenta",
             "add_bill": "Añadir Cuenta",
             "order_summary": "Resumen de la Orden",
-            "assign_items_for": "Asignar artículos para",
+            "assign_items_for": "Asignar artículos a cuentas",
             "all_items_assigned": "Todos los artículos asignados.",
             "items_unassigned": "Hay artículos sin asignar.",
-            "unassigned_items": "Artículos no Asignados",
+            "unassigned_items": "Sin Asignar",
             "items_in_bill": "Artículos en la Cuenta",
-            "no_items_in_bill": "No se han añadido artículos a esta cuenta."
+            "no_items_in_bill": "No se han añadido artículos a esta cuenta.",
+            "bill_summary": "Totales de Cuentas"
         },
         "add_item_dialog": {
             "customize": "Personaliza tu artículo y añádelo a la orden.",
