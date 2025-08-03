@@ -22,6 +22,15 @@
             "payment": "Payment",
             "send_to_kitchen": "Send to Kitchen"
         },
+        "order_type": {
+            "dine_in": "Dine-in",
+            "delivery": "Delivery"
+        },
+        "delivery": {
+            "name": "Customer Name",
+            "address": "Address",
+            "phone": "Phone"
+        },
         "menu_selection": {
             "title": "Menu",
             "no_categories_title": "Menu",

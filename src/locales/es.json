@@ -22,6 +22,15 @@
             "payment": "Pago",
             "send_to_kitchen": "Enviar a Cocina"
         },
+        "order_type": {
+            "dine_in": "Para Servir",
+            "delivery": "A Domicilio"
+        },
+        "delivery": {
+            "name": "Nombre del Cliente",
+            "address": "Dirección",
+            "phone": "Teléfono"
+        },
         "menu_selection": {
             "title": "Menú",
             "no_categories_title": "Menú",
