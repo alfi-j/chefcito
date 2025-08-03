@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { type OrderItem, type OrderType } from '@/lib/types'
+import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
 import { Send, CreditCard, Utensils, StickyNote, Package, PersonStanding } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
@@ -37,7 +37,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
   } = order;
   
   const isDeliveryInfoComplete = deliveryInfo.name && deliveryInfo.address && deliveryInfo.phone;
-  const canProceed = orderType === 'dine-in' || (orderType === 'delivery' && isDeliveryInfoComplete);
+  const canProceed = items.length > 0 && (orderType === 'dine-in' || (orderType === 'delivery' && isDeliveryInfoComplete));
 
   return (
     <Card className="h-full flex flex-col">

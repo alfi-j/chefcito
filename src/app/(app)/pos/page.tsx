@@ -54,8 +54,9 @@ export default function PosPage() {
       await addOrder({
         table: order.table,
         items: order.items,
-        customerId: order.customerId,
         notes: order.notes,
+        orderType: order.orderType,
+        deliveryInfo: order.deliveryInfo
       });
       toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
@@ -149,7 +150,6 @@ export default function PosPage() {
         <div className="lg:col-span-1 h-full min-h-[400px] lg:min-h-0">
           <CurrentOrder 
             order={order}
-            customers={customers}
             onSendToKitchen={handleSendToKitchen}
             onPayment={handleOpenPaymentDialog}
             onEditItem={handleEditItem}
