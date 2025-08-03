@@ -36,8 +36,9 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
     orderType, setOrderType, deliveryInfo, setDeliveryInfo
   } = order;
   
-  const isDeliveryInfoComplete = deliveryInfo.name && deliveryInfo.address && deliveryInfo.phone;
-  const canProceed = items.length > 0 && (orderType === 'dine-in' || (orderType === 'delivery' && isDeliveryInfoComplete));
+  const isDeliveryInfoComplete = !!(deliveryInfo.name && deliveryInfo.address && deliveryInfo.phone);
+  const canSendToKitchen = items.length > 0 && (orderType === 'dine-in' || isDeliveryInfoComplete);
+  const canMakePayment = items.length > 0;
 
   return (
     <Card className="h-full flex flex-col">
@@ -168,12 +169,12 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
           <Separator className="my-2" />
           <div className="w-full grid grid-cols-2 gap-2">
             <Button variant="outline" onClick={clearOrder}>{t('pos.current_order.clear_order')}</Button>
-            <Button variant="secondary" onClick={onPayment} disabled={!canProceed}>
+            <Button variant="secondary" onClick={onPayment} disabled={!canMakePayment}>
               <CreditCard className="mr-2 h-4 w-4" />
               {t('pos.current_order.payment')}
             </Button>
           </div>
-          <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen} disabled={!canProceed}>
+          <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen} disabled={!canSendToKitchen}>
             <Send className="mr-2 h-4 w-4"/>
             {t('pos.current_order.send_to_kitchen')}
           </Button>

@@ -143,11 +143,11 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <div className="lg:col-span-3">
           <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <CurrentOrder 
             order={order}
             onSendToKitchen={handleSendToKitchen}
