@@ -42,17 +42,36 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
   const availableModifierGroups = useMemo(() => {
     if (!item) return {};
 
+    const categoryMap = new Map(categories.map(c => [c.name, c]));
+    
+    const getParentModifiers = (categoryName: string): string[] => {
+        const category = categoryMap.get(categoryName);
+        if (!category) return [];
+
+        const ownModifiers = category.linkedModifiers || [];
+        
+        const parentCategory = categories.find(c => c.id === category.parentId);
+        if (parentCategory) {
+            return [...ownModifiers, ...getParentModifiers(parentCategory.name)];
+        }
+        
+        return ownModifiers;
+    }
+
     const itemCategory = categories.find(c => c.name === item.category);
+    
+    const allInheritedModifiers = itemCategory ? getParentModifiers(itemCategory.name) : [];
+
     const modifierCategoryNames = new Set([
       ...(item.linkedModifiers || []),
-      ...(itemCategory?.linkedModifiers || [])
+      ...allInheritedModifiers
     ]);
 
     const groups: Record<string, MenuItem[]> = {};
     
     modifierCategoryNames.forEach(catName => {
-        const category = categories.find(c => c.name === catName && c.isModifierGroup);
-        if (category) {
+        const category = categoryMap.get(catName);
+        if (category && category.isModifierGroup) {
             groups[catName] = menuItems.filter(i => i.category === catName);
         }
     });
