@@ -19,6 +19,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
 
 interface CurrentOrderProps {
   order: ReturnType<typeof useCurrentOrder>;
@@ -44,7 +45,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
         <CardTitle className="font-headline">{t('pos.current_order.title')}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
-        <div>
+        <div className='flex-shrink-0'>
           <Tabs value={orderType} onValueChange={(value) => setOrderType(value as OrderType)} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="dine-in">
