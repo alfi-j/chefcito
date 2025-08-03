@@ -104,7 +104,6 @@ export function CurrentOrder({ order, customers, onSendToKitchen, onPayment, onE
                       <p className="font-semibold">{item.quantity}x {item.menuItem.name}</p>
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                     </div>
-                    
                   </div>
                    {item.selectedExtras && item.selectedExtras.length > 0 && (
                      <div className="pl-14 mt-1 text-sm text-muted-foreground">
