@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useCallback } from 'react';
@@ -14,29 +15,32 @@ export const useCurrentOrder = () => {
     phone: ''
   });
 
-  const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
-    setItems(prevItems => {
-      const existingItemIndex = prevItems.findIndex(i => 
-        i.menuItem.id === item.id && 
+  const addItem = useCallback((itemToAdd: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
+    setItems(currentItems => {
+      const existingItemIndex = currentItems.findIndex(i => 
+        i.menuItem.id === itemToAdd.id && 
         JSON.stringify(i.selectedExtras?.map(e => e.id).sort()) === JSON.stringify(selectedExtras.map(e => e.id).sort()) &&
         i.notes === (notes || undefined)
       );
 
       if (existingItemIndex > -1) {
-        const newItems = [...prevItems];
-        newItems[existingItemIndex].quantity += quantity;
+        const newItems = [...currentItems];
+        newItems[existingItemIndex] = {
+          ...newItems[existingItemIndex],
+          quantity: newItems[existingItemIndex].quantity + quantity
+        };
         return newItems;
       } else {
         const newItem: OrderItem = {
-          id: `${item.id}-${Date.now()}`,
-          menuItem: item,
+          id: `${itemToAdd.id}-${Date.now()}`,
+          menuItem: itemToAdd,
           quantity,
           cookedCount: 0,
           status: 'New',
           selectedExtras,
           notes,
         };
-        return [...prevItems, newItem];
+        return [...currentItems, newItem];
       }
     });
   }, []);
