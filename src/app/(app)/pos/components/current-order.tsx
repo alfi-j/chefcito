@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
-import { Send, CreditCard, Utensils, StickyNote, Package, PersonStanding } from 'lucide-react'
+import { Send, CreditCard, Utensils, StickyNote, Package, PersonStanding, PlusCircle, MinusCircle } from 'lucide-react'
 import { useI18n } from '@/context/i18n-context'
 import type { useCurrentOrder } from '@/hooks/use-current-order'
 import {
@@ -33,12 +33,18 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
   const { 
     items, subtotal, tax, total, clearOrder, 
     table, setTable, notes, setNotes,
-    orderType, setOrderType, deliveryInfo, setDeliveryInfo
+    orderType, setOrderType, deliveryInfo, setDeliveryInfo,
+    updateItemQuantity
   } = order;
   
   const isDeliveryInfoComplete = !!(deliveryInfo.name && deliveryInfo.address && deliveryInfo.phone);
   const canSendToKitchen = items.length > 0 && (orderType === 'dine-in' || isDeliveryInfoComplete);
   const canMakePayment = items.length > 0;
+  
+  const handleQuantityChange = (itemId: string, adjustment: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    updateItemQuantity(itemId, adjustment);
+  }
 
   return (
     <Card className="h-full flex flex-col">
@@ -127,7 +133,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
                         )}
                     </div>
                     <div className="flex-grow min-w-0">
-                      <p className="font-semibold">{item.quantity}x {item.menuItem.name}</p>
+                      <p className="font-semibold">{item.menuItem.name}</p>
                       <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                        {item.selectedExtras && item.selectedExtras.length > 0 && (
                         <div className="mt-1 text-sm text-muted-foreground">
@@ -142,6 +148,15 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
                           <p className="italic truncate">{item.notes}</p>
                         </div>
                       )}
+                    </div>
+                     <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handleQuantityChange(item.id, -1, e)}>
+                        <MinusCircle className="h-4 w-4"/>
+                      </Button>
+                      <span className="font-bold text-lg w-6 text-center">{item.quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handleQuantityChange(item.id, 1, e)}>
+                        <PlusCircle className="h-4 w-4"/>
+                      </Button>
                     </div>
                   </div>
                 </div>

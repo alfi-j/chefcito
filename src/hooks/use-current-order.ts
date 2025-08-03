@@ -17,16 +17,28 @@ export const useCurrentOrder = () => {
 
   const addItem = useCallback((item: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => {
-      const newItem: OrderItem = {
-        id: `${item.id}-${Date.now()}`,
-        menuItem: item,
-        quantity,
-        cookedCount: 0,
-        status: 'New',
-        selectedExtras,
-        notes,
-      };
-      return [...prev, newItem];
+      const existingItemIndex = prev.findIndex(i => 
+        i.menuItem.id === item.id && 
+        JSON.stringify(i.selectedExtras?.map(e => e.id).sort()) === JSON.stringify(selectedExtras.map(e => e.id).sort()) &&
+        i.notes === (notes || undefined)
+      );
+
+      if (existingItemIndex > -1) {
+        const newItems = [...prev];
+        newItems[existingItemIndex].quantity += quantity;
+        return newItems;
+      } else {
+        const newItem: OrderItem = {
+          id: `${item.id}-${Date.now()}`,
+          menuItem: item,
+          quantity,
+          cookedCount: 0,
+          status: 'New',
+          selectedExtras,
+          notes,
+        };
+        return [...prev, newItem];
+      }
     });
   }, []);
 
@@ -36,6 +48,26 @@ export const useCurrentOrder = () => {
         ? { ...item, quantity: newQuantity, selectedExtras: newSelectedExtras, notes }
         : item
     ));
+  }, []);
+
+  const updateItemQuantity = useCallback((itemId: string, adjustment: number) => {
+    setItems(prev => {
+      const itemIndex = prev.findIndex(item => item.id === itemId);
+      if (itemIndex === -1) return prev;
+      
+      const newItems = [...prev];
+      const item = newItems[itemIndex];
+      
+      const newQuantity = item.quantity + adjustment;
+
+      if (newQuantity <= 0) {
+        // Remove item if quantity is zero or less
+        return newItems.filter(i => i.id !== itemId);
+      } else {
+        newItems[itemIndex] = { ...item, quantity: newQuantity };
+        return newItems;
+      }
+    });
   }, []);
 
   const removeItem = useCallback((itemId: string) => {
@@ -72,6 +104,7 @@ export const useCurrentOrder = () => {
     setDeliveryInfo,
     addItem,
     updateItem,
+    updateItemQuantity,
     removeItem,
     clearOrder,
     subtotal,
