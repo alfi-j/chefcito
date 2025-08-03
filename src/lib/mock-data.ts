@@ -469,10 +469,10 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push( prepTime );
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
@@ -489,5 +489,6 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     return { avgPrepTime, mostDelayed };
 };
+
 
 
