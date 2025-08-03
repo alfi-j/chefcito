@@ -40,7 +40,7 @@ export const useCurrentOrder = () => {
         return [...prev, newItem];
       }
     });
-  }, []);
+  }, [items]);
 
   const updateItem = useCallback((itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => prev.map(item =>
