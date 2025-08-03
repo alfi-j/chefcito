@@ -489,6 +489,3 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     return { avgPrepTime, mostDelayed };
 };
-
-
-

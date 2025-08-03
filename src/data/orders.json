@@ -1,3 +1,4 @@
+
 [
   {
     "id": 1,
@@ -89,7 +90,7 @@
         "menuItemId": "4",
         "quantity": 0,
         "cookedCount": 1,
-        "status": "Cooked",
+        "status": "Ready",
         "selectedExtraIds": []
       }
     ]

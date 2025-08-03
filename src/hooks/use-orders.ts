@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context";
 import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
 
-const statusSequence: ('New' | 'Cooking' | 'Cooked')[] = ['New', 'Cooking', 'Cooked'];
+const statusSequence: ('New' | 'Cooking' | 'Ready')[] = ['New', 'Cooking', 'Ready'];
 
 const parseOrderDates = (orders: Order[]): Order[] => {
   return orders.map(order => ({
@@ -51,7 +51,7 @@ export const useOrders = () => {
         if (o.id !== orderId) return o;
         
         const item = o.items.find(i => i.id === itemId);
-        if (!item || item.status === 'Cooked') return o;
+        if (!item || item.status === 'Ready') return o;
 
         const currentIndex = statusSequence.indexOf(item.status);
         const nextStatus = statusSequence[currentIndex + 1];
@@ -60,15 +60,15 @@ export const useOrders = () => {
         let newCookedCount = item.cookedCount;
         let statusForRemaining = item.status;
 
-        if (nextStatus === 'Cooked') {
+        if (nextStatus === 'Ready') {
             newQuantity -= 1;
             newCookedCount += 1;
-            statusForRemaining = newQuantity > 0 ? 'New' : 'Cooked';
+            statusForRemaining = newQuantity > 0 ? 'New' : 'Ready';
         }
         
         const newItems = o.items.map(i => {
             if (i.id !== itemId) return i;
-            return { ...i, status: nextStatus === 'Cooked' ? statusForRemaining : nextStatus, quantity: newQuantity, cookedCount: newCookedCount };
+            return { ...i, status: nextStatus === 'Ready' ? statusForRemaining : nextStatus, quantity: newQuantity, cookedCount: newCookedCount };
         });
 
         updatedOrder = { ...o, items: newItems };

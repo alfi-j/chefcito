@@ -50,14 +50,14 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
     // Sort items within each group
     for (const category in groups) {
       groups[category].sort((a, b) => {
-         // Primary sort: uncategorized (cooked) items last
-        const aIsFullyCooked = a.quantity === 0 && a.cookedCount > 0;
-        const bIsFullyCooked = b.quantity === 0 && b.cookedCount > 0;
-        if (aIsFullyCooked && !bIsFullyCooked) return 1;
-        if (!aIsFullyCooked && bIsFullyCooked) return -1;
+         // Primary sort: uncategorized (ready) items last
+        const aIsFullyReady = a.quantity === 0 && a.cookedCount > 0;
+        const bIsFullyReady = b.quantity === 0 && b.cookedCount > 0;
+        if (aIsFullyReady && !bIsFullyReady) return 1;
+        if (!aIsFullyReady && bIsFullyReady) return -1;
         
         // Secondary sort: by status order
-        const statusOrder = { 'New': 0, 'Cooking': 1, 'Cooked': 2 };
+        const statusOrder = { 'New': 0, 'Cooking': 1, 'Ready': 2 };
         return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
       });
     }

@@ -17,7 +17,7 @@ export type OrderItem = {
   menuItem: MenuItem;
   quantity: number;
   cookedCount: number;
-  status: 'New' | 'Cooking' | 'Cooked';
+  status: 'New' | 'Cooking' | 'Ready';
   selectedExtras?: MenuItem[];
   splitId?: number;
   notes?: string;

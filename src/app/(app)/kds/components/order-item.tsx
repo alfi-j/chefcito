@@ -15,13 +15,13 @@ interface OrderItemProps {
 const statusColors = {
   New: 'bg-blue-500/10 hover:bg-blue-500/20',
   Cooking: 'bg-yellow-500/10 hover:bg-yellow-500/20',
-  Cooked: 'bg-green-500/10 cursor-not-allowed',
+  Ready: 'bg-green-500/10 cursor-not-allowed',
 };
 
 export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
   const handleStatusChange = (e: React.MouseEvent) => {
     e.stopPropagation(); 
-    if (item.status === 'Cooked') return;
+    if (item.status === 'Ready') return;
     onUpdateItemStatus(orderId, item.id);
   };
 
@@ -79,7 +79,7 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold ml-1.5">Cooked</span>
+          <span className="text-lg font-bold ml-1.5">Ready</span>
           <RotateCcw className="h-4 w-4 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
       </div>
