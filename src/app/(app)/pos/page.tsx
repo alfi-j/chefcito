@@ -1,7 +1,7 @@
 
 "use client"
 import React, { useState } from 'react';
-import { type MenuItem, type OrderItem, type Customer } from '@/lib/types';
+import { type MenuItem, type OrderItem } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
@@ -17,12 +17,15 @@ export default function PosPage() {
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
   
-  const { menuItems, categories, customers, loading: menuLoading } = useMenu();
+  const { menuItems, categories, loading: menuLoading } = useMenu();
   const order = useCurrentOrder();
 
-  const handleSelectItem = (item: MenuItem) => {
+  const handleAddItemToOrder = (item: MenuItem) => {
     order.addItem(item, 1, []);
-    toast.success(t('pos.toast.item_added', { item: item.name }), { duration: 2000 });
+    toast.success(t('pos.toast.item_added', { item: item.name }), {
+      duration: 1500,
+      icon: '✅'
+    });
   };
   
   const handleEditItem = (orderItem: OrderItem) => {
@@ -133,11 +136,11 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8 items-start h-full">
-        <div className="xl:col-span-3 h-full">
-          <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleSelectItem} />
+      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-8 items-start h-full">
+        <div className="lg:col-span-2 xl:col-span-3 h-full">
+          <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleAddItemToOrder} />
         </div>
-        <div className="xl:col-span-2 h-full">
+        <div className="lg:col-span-1 xl:col-span-2 h-full">
           <CurrentOrder 
             order={order}
             onSendToKitchen={handleSendToKitchen}

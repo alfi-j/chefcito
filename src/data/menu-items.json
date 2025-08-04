@@ -1,5 +1,16 @@
 [
   {
+    "id": "3",
+    "name": "Spaghetti Carbonara",
+    "price": 15.5,
+    "category": "Pastas",
+    "imageUrl": "",
+    "aiHint": "pasta food",
+    "description": "Pasta with eggs, cheese, pancetta, and black pepper.",
+    "available": true,
+    "sortIndex": 0
+  },
+  {
     "id": "2",
     "name": "Caesar Salad",
     "price": 8.99,
@@ -8,7 +19,7 @@
     "aiHint": "Caesar Salad food",
     "description": "Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.",
     "available": true,
-    "sortIndex": 0,
+    "sortIndex": 1,
     "linkedModifiers": []
   },
   {
@@ -20,21 +31,10 @@
     "aiHint": "Margherita Pizza food",
     "description": "Classic pizza with fresh basil and mozzarella.",
     "available": true,
-    "sortIndex": 1,
+    "sortIndex": 2,
     "linkedModifiers": [
       "Extras"
     ]
-  },
-  {
-    "id": "3",
-    "name": "Spaghetti Carbonara",
-    "price": 15.5,
-    "category": "Pastas",
-    "imageUrl": "",
-    "aiHint": "pasta food",
-    "description": "Pasta with eggs, cheese, pancetta, and black pepper.",
-    "available": true,
-    "sortIndex": 2
   },
   {
     "id": "4",

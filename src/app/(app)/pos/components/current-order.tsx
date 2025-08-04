@@ -114,7 +114,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
         <Separator className="my-4" />
 
         <ScrollArea className="flex-grow pr-4 -mr-4">
-          <div className="space-y-4 pr-4">
+          <div className="space-y-2 pr-4">
             {items.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground py-10">
                 <Utensils className="w-12 h-12 mb-4" />
@@ -125,38 +125,33 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
               items.map(item => (
                 <div key={item.id} onClick={() => onEditItem(item)} className="p-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center flex-shrink-0">
-                        {item.menuItem.imageUrl && !item.menuItem.imageUrl.startsWith("https://placehold.co") ? (
-                        <Image src={item.menuItem.imageUrl} alt={item.menuItem.name} width={48} height={48} className="rounded-md object-cover" data-ai-hint={item.menuItem.aiHint} />
-                        ) : (
-                        <Utensils className="w-6 h-6 text-muted-foreground" />
-                        )}
+                     <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(item.id, -1, e)}>
+                        <MinusCircle className="h-3.5 w-3.5"/>
+                      </Button>
+                      <span className="font-bold text-base w-5 text-center">{item.quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => handleQuantityChange(item.id, 1, e)}>
+                        <PlusCircle className="h-3.5 w-3.5"/>
+                      </Button>
                     </div>
                     <div className="flex-grow min-w-0">
-                      <p className="font-semibold">{item.menuItem.name}</p>
-                      <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
+                      <p className="font-semibold text-sm leading-tight">{item.menuItem.name}</p>
                        {item.selectedExtras && item.selectedExtras.length > 0 && (
-                        <div className="mt-1 text-sm text-muted-foreground">
+                        <div className="mt-0.5 text-xs text-muted-foreground">
                             {item.selectedExtras.map(extra => (
                             <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
                             ))}
                         </div>
                       )}
                       {item.notes && (
-                        <div className="mt-1 text-sm text-muted-foreground flex items-start gap-1.5">
-                          <StickyNote className="w-3.5 h-3.5 mt-0.5 text-primary/80 flex-shrink-0"/>
+                        <div className="mt-0.5 text-xs text-muted-foreground flex items-start gap-1.5">
+                          <StickyNote className="w-3 h-3 mt-0.5 text-primary/80 flex-shrink-0"/>
                           <p className="italic truncate">{item.notes}</p>
                         </div>
                       )}
                     </div>
-                     <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handleQuantityChange(item.id, -1, e)}>
-                        <MinusCircle className="h-4 w-4"/>
-                      </Button>
-                      <span className="font-bold text-lg w-6 text-center">{item.quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handleQuantityChange(item.id, 1, e)}>
-                        <PlusCircle className="h-4 w-4"/>
-                      </Button>
+                    <div className="text-sm font-semibold">
+                      ${((item.menuItem.price + (item.selectedExtras?.reduce((acc, e) => acc + e.price, 0) || 0)) * item.quantity).toFixed(2)}
                     </div>
                   </div>
                 </div>
