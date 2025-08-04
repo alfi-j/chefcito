@@ -135,7 +135,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
       <CardContent className="flex-grow flex flex-col min-h-0">
           <div className="flex-grow relative mt-4">
             <ScrollArea className="absolute inset-0">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 p-1">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 p-1">
                 {itemsForActiveCategory.map(item => (
                   <Card 
                     key={item.id} 
