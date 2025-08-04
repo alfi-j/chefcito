@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo, type Staff } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData } from './data-utils';
@@ -43,6 +43,11 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 
 
 // Functions to interact with mock data
+
+// Staff
+export const getStaff = async (): Promise<Staff[]> => {
+    return await readData<Staff[]>('staff.json');
+}
 
 // Customers
 export const getCustomers = async (): Promise<Customer[]> => {
@@ -469,10 +474,10 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push( prepTime );
             itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);

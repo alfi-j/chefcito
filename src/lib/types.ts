@@ -90,5 +90,13 @@ export type InventoryItem = {
   category?: string;
 };
 
+export type Staff = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Waiter' | 'Manager' | 'Chef';
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+}
+
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

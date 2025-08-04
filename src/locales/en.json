@@ -149,6 +149,22 @@
             "fetch_error": "Could not fetch order history."
         }
     },
+    "waiters": {
+        "title": "Waiters",
+        "loading": "Loading staff data...",
+        "roster_title": "Staff Roster",
+        "roster_desc": "View all staff members and their current status.",
+        "table": {
+            "name": "Name",
+            "role": "Role",
+            "status": "Status"
+        },
+        "status": {
+            "on_shift": "On Shift",
+            "off_shift": "Off Shift",
+            "on_break": "On Break"
+        }
+    },
     "restaurant": {
         "title": "Restaurant",
         "loading": "Loading data...",
@@ -267,8 +283,8 @@
             "name": "Name",
             "type": "Type",
             "select_type": "Select a type",
-            "banks": "Banks",
-            "add_bank": "Add a new bank"
+            "banks": "Bancos",
+            "add_bank": "Añadir un nuevo banco"
         },
         "toast": {
             "fetch_error": "Could not fetch data.",

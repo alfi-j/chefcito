@@ -14,7 +14,7 @@ import {
   Languages,
   Settings,
   BarChart3,
-  History,
+  Users,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname, useRouter } from "next/navigation"
@@ -53,7 +53,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/orders", label: t('orders.title'), icon: History },
+    { href: "/waiters", label: t('waiters.title'), icon: Users },
     { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
@@ -94,7 +94,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
       <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm">
         <div className="grid h-16 grid-cols-5 max-w-lg mx-auto">
-          {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+          {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/waiters", "/restaurant", "/reports"].includes(item.href)).map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} className={cn(

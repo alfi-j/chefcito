@@ -2,7 +2,7 @@
 "use client"
 
 // This page has been consolidated into the POS page.
-// This file can be removed in the future.
+// In the future this route will be for the waiters section.
 export default function OrdersPage() {
   return null;
 }

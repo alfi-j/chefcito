@@ -149,6 +149,22 @@
             "fetch_error": "No se pudo cargar el historial de órdenes."
         }
     },
+    "waiters": {
+        "title": "Meseros",
+        "loading": "Cargando datos del personal...",
+        "roster_title": "Lista de Personal",
+        "roster_desc": "Ver todos los miembros del personal y su estado actual.",
+        "table": {
+            "name": "Nombre",
+            "role": "Rol",
+            "status": "Estado"
+        },
+        "status": {
+            "on_shift": "En Turno",
+            "off_shift": "Fuera de Turno",
+            "on_break": "En Descanso"
+        }
+    },
     "restaurant": {
         "title": "Restaurante",
         "loading": "Cargando datos...",

@@ -26,6 +26,11 @@ const nextConfig: NextConfig = {
         destination: '/restaurant',
         permanent: true,
       },
+      {
+        source: '/orders',
+        destination: '/pos',
+        permanent: true,
+      }
     ]
   },
 };
