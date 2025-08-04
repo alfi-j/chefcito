@@ -133,13 +133,13 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
           <div className="flex items-center gap-2">
              <SidebarTrigger />
-             <h2 className="text-xl font-headline font-semibold">
+             <h2 className="text-xl font.headline font-semibold">
                 {currentPage}
              </h2>
           </div>
           <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
         </header>
-        <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30 pt-16", `font-size-${fontSize}`)}>
+        <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30 pt-20", `font-size-${fontSize}`)}>
           {children}
         </main>
       </SidebarInset>
