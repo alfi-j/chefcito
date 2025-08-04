@@ -11,16 +11,11 @@ import { useI18n } from '@/context/i18n-context';
 import { addOrder } from '@/lib/mock-data';
 import { useMenu } from '@/hooks/use-menu';
 import { useCurrentOrder } from '@/hooks/use-current-order';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from '@/components/ui/badge';
-import { useIsMobile } from '@/hooks/use-mobile';
-
 
 export default function PosPage() {
   const [editingOrderItem, setEditingOrderItem] = useState<OrderItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
-  const isMobile = useIsMobile();
   
   const { menuItems, categories, loading: menuLoading } = useMenu();
   const order = useCurrentOrder();
@@ -126,38 +121,6 @@ export default function PosPage() {
      <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleAddItemToOrder} />
   )
 
-  const renderDesktopLayout = () => (
-     <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start h-full">
-        <div className="lg:col-span-3 h-full">
-          {menuSelectionComponent}
-        </div>
-        <div className="lg:col-span-2 h-full">
-          {currentOrderComponent}
-        </div>
-      </div>
-  )
-  
-  const renderMobileLayout = () => (
-      <Tabs defaultValue="menu" className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="menu">{t('pos.menu_selection.title')}</TabsTrigger>
-            <TabsTrigger value="order" className="relative">
-                {t('pos.current_order.title')}
-                {order.items.length > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-1">{order.items.length}</Badge>
-                )}
-            </TabsTrigger>
-        </TabsList>
-        <TabsContent value="menu" className="flex-grow h-0">
-          {menuSelectionComponent}
-        </TabsContent>
-        <TabsContent value="order" className="flex-grow h-0">
-           {currentOrderComponent}
-        </TabsContent>
-    </Tabs>
-  )
-
-
   return (
     <>
       {isEditDialog && dialogItem && (
@@ -181,7 +144,14 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      {isMobile ? renderMobileLayout() : renderDesktopLayout()}
+       <div className="grid grid-cols-1 md:grid-cols-10 gap-4 items-start h-full">
+        <div className="md:col-span-8 h-full">
+          {menuSelectionComponent}
+        </div>
+        <div className="md:col-span-2 h-full">
+          {currentOrderComponent}
+        </div>
+      </div>
     </>
   );
 }
