@@ -16,7 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
-import { getOrderTotal, getItemTotal } from "../page"
+import { getOrderTotal, getItemTotal } from "@/lib/utils"
 import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt, StickyNote } from "lucide-react"
 import { MdOutlineTableRestaurant } from "react-icons/md"
 

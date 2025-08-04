@@ -14,7 +14,7 @@ import { type Order, type OrderItem } from "@/lib/types"
 import { useI18n } from "@/context/i18n-context"
 import { Separator } from "@/components/ui/separator"
 import { format } from "date-fns"
-import { getOrderTotal, getItemTotal } from "../page"
+import { getOrderTotal, getItemTotal } from "@/lib/utils"
 import { ChefHat, Printer, Download } from "lucide-react"
 import { toast } from "sonner"
 
