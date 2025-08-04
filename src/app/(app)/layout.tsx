@@ -16,19 +16,6 @@ import {
   BarChart3,
   History,
 } from "lucide-react"
-import {
-  SidebarProvider,
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-  SidebarFooter,
-  SidebarTrigger,
-  SidebarInset,
-  SidebarRail,
-} from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -77,7 +64,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     if (currentItem) {
       return currentItem.label;
     }
-    return "Dashboard";
+    return "Chefcito";
   }
 
   const currentPage = getPageTitle();
@@ -88,62 +75,40 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarRail />
-        <SidebarHeader className="p-4">
-          <Link href="/pos" className="flex items-center gap-2">
-            <ChefHat className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-headline font-bold text-primary group-data-[collapsible=icon]:hidden">Chefcito</h1>
-          </Link>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            {menuItems.filter(item => !item.isHidden).map((item) => (
-              <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton
-                  asChild
-                  size="lg"
-                  isActive={pathname.startsWith(item.href)}
-                  tooltip={{children: item.label}}
-                >
-                  <Link href={item.href}>
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarContent>
-        <SidebarFooter>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} asChild size="lg" tooltip={{children: t('userMenu.logout')}}>
-                <div>
-                  <LogOut />
-                  <span>{t('userMenu.logout')}</span>
-                </div>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
+    <div className="flex flex-col h-screen">
+       <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
           <div className="flex items-center gap-2">
-             <SidebarTrigger />
-             <h2 className="text-xl font.headline font-semibold">
+             <Link href="/pos" className="flex items-center gap-2">
+                <ChefHat className="w-8 h-8 text-primary" />
+             </Link>
+             <h2 className="text-xl font-headline font-semibold">
                 {currentPage}
              </h2>
           </div>
           <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
         </header>
-        <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30 pt-20", `font-size-${fontSize}`)}>
-          {children}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+
+      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-24")}>
+        {children}
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm">
+        <div className="grid h-16 grid-cols-5 max-w-lg mx-auto">
+          {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+            const isActive = pathname.startsWith(item.href);
+            return (
+              <Link key={item.href} href={item.href} className={cn(
+                  "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
+                  isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
+              )}>
+                <item.icon className="h-6 w-6" />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </div>
   )
 }
 
