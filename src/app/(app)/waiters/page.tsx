@@ -2,86 +2,90 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/context/i18n-context';
-import { type Staff } from '@/lib/types';
-import { getStaff } from '@/lib/mock-data';
-import { Badge } from '@/components/ui/badge';
+import { type StaffPerformance } from '@/lib/types';
+import { getStaffPerformance } from '@/lib/mock-data';
+import { StaffPerformanceCard } from './components/staff-performance-card';
+import { DateRangePicker } from '../reports/components/date-range-picker';
+import { type DateRange } from 'react-day-picker';
+import { addDays } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 export default function WaitersPage() {
   const { t } = useI18n();
-  const [staff, setStaff] = useState<Staff[]>([]);
+  const [staffPerformance, setStaffPerformance] = useState<StaffPerformance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -7),
+    to: new Date(),
+  });
 
   useEffect(() => {
     const fetchStaff = async () => {
       setLoading(true);
-      const staffList = await getStaff();
-      setStaff(staffList);
+      const performanceData = await getStaffPerformance(date);
+      setStaffPerformance(performanceData);
       setLoading(false);
     };
     fetchStaff();
-  }, []);
+  }, [date]);
 
-  const getStatusVariant = (status: Staff['status']) => {
-    switch (status) {
-      case 'On Shift':
-        return 'default';
-      case 'Off Shift':
-        return 'secondary';
-      case 'On Break':
-        return 'outline';
-      default:
-        return 'secondary';
-    }
-  }
-
-  if (loading) {
-    return <div>{t('waiters.loading')}</div>
-  }
+  const renderSkeleton = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card key={i}>
+            <CardHeader>
+                <div className="flex items-center gap-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <Skeleton className="h-6 w-1/2 mx-auto mb-1" />
+                        <Skeleton className="h-3 w-full mx-auto" />
+                    </div>
+                    <div>
+                        <Skeleton className="h-6 w-1/2 mx-auto mb-1" />
+                        <Skeleton className="h-3 w-full mx-auto" />
+                    </div>
+                     <div>
+                        <Skeleton className="h-6 w-1/2 mx-auto mb-1" />
+                        <Skeleton className="h-3 w-full mx-auto" />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">{t('waiters.roster_title')}</CardTitle>
-          <CardDescription>{t('waiters.roster_desc')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('waiters.table.name')}</TableHead>
-                  <TableHead>{t('waiters.table.role')}</TableHead>
-                  <TableHead>{t('waiters.table.status')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {staff.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="font-medium">{member.name}</TableCell>
-                    <TableCell>{member.role}</TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(member.status)}>
-                        {t(`waiters.status.${member.status.toLowerCase().replace(' ', '_')}`)}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
+    <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 className="text-3xl font-headline font-bold">{t('waiters.title')}</h1>
+                <p className="text-muted-foreground">{t('waiters.dashboard_desc')}</p>
+            </div>
+            <DateRangePicker date={date} onDateChange={setDate} />
+        </div>
+
+        {loading ? (
+            renderSkeleton()
+        ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {staffPerformance.map((staff) => (
+                    <StaffPerformanceCard key={staff.id} staff={staff} />
                 ))}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+        )}
     </div>
   );
 }
+

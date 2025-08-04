@@ -152,6 +152,7 @@
     "waiters": {
         "title": "Waiters",
         "loading": "Loading staff data...",
+        "dashboard_desc": "Monitor staff performance and activity.",
         "roster_title": "Staff Roster",
         "roster_desc": "View all staff members and their current status.",
         "table": {
@@ -163,6 +164,11 @@
             "on_shift": "On Shift",
             "off_shift": "Off Shift",
             "on_break": "On Break"
+        },
+        "kpi": {
+            "tables_served": "Tables Served",
+            "total_sales": "Total Sales",
+            "avg_sale": "Avg. Sale"
         }
     },
     "restaurant": {

@@ -1,4 +1,5 @@
 
+
 export type MenuItem = {
   id: string;
   name: string;
@@ -97,6 +98,12 @@ export type Staff = {
   role: 'Waiter' | 'Manager' | 'Chef';
   status: 'On Shift' | 'Off Shift' | 'On Break';
 }
+
+export type StaffPerformance = Staff & {
+    tablesServed: number;
+    totalSales: number;
+    avgSaleValue: number;
+};
 
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

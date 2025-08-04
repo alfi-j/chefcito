@@ -152,6 +152,7 @@
     "waiters": {
         "title": "Meseros",
         "loading": "Cargando datos del personal...",
+        "dashboard_desc": "Supervisa el rendimiento y la actividad del personal.",
         "roster_title": "Lista de Personal",
         "roster_desc": "Ver todos los miembros del personal y su estado actual.",
         "table": {
@@ -163,6 +164,11 @@
             "on_shift": "En Turno",
             "off_shift": "Fuera de Turno",
             "on_break": "En Descanso"
+        },
+        "kpi": {
+            "tables_served": "Mesas Atendidas",
+            "total_sales": "Ventas Totales",
+            "avg_sale": "Venta Prom."
         }
     },
     "restaurant": {
