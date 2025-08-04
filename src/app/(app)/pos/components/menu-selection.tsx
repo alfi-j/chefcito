@@ -149,7 +149,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                             <Utensils className="w-1/2 h-1/2 text-muted-foreground/50" />
                         )}
                     </div>
-                    <CardFooter className="p-2 flex-grow flex flex-col items-start justify-between">
+                    <CardFooter className="p-2 flex-grow flex flex-col items-start">
                       <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
                       <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
                     </CardFooter>
