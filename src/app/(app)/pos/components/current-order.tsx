@@ -161,7 +161,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
         </ScrollArea>
       </CardContent>
       {items.length > 0 && (
-        <CardFooter className="flex-col !p-4 border-t sticky bottom-0 bg-card">
+        <CardFooter className="flex-col !p-4 border-t bg-card">
           <div className="w-full space-y-1 text-sm py-2">
             <div className="flex justify-between">
               <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
