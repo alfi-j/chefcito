@@ -105,5 +105,15 @@ export type StaffPerformance = Staff & {
     avgSaleValue: number;
 };
 
+export type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'To Do' | 'In Progress' | 'Done';
+  priority: 'Low' | 'Medium' | 'High';
+  assignedTo?: string; // Staff ID
+  dueDate?: string; // ISO date string
+}
+
 
 export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

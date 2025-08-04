@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo, type Staff, type StaffPerformance } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo, type Staff, type StaffPerformance, type Task } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData } from './data-utils';
@@ -390,6 +390,10 @@ export const adjustInventoryStock = async (itemId: string, adjustment: number) =
     return null;
 }
 
+// Tasks
+export const getTasks = async (): Promise<Task[]> => {
+    return await readData<Task[]>('tasks.json');
+}
 
 // Reporting
 const getOrderTotal = (order: Order) => {

@@ -155,6 +155,10 @@
         "dashboard_desc": "Monitor staff performance and activity.",
         "roster_title": "Staff Roster",
         "roster_desc": "View all staff members and their current status.",
+        "tabs": {
+            "performance": "Performance",
+            "tasks": "Tasks"
+        },
         "table": {
             "name": "Name",
             "role": "Role",
@@ -169,6 +173,10 @@
             "tables_served": "Tables Served",
             "total_sales": "Total Sales",
             "avg_sale": "Avg. Sale"
+        },
+        "tasks": {
+            "board_title": "Task Board",
+            "add_task": "Add Task"
         }
     },
     "restaurant": {

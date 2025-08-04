@@ -11,10 +11,11 @@ import { DateRangePicker } from '../reports/components/date-range-picker';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TaskBoard } from './components/task-board';
 
 
-export default function WaitersPage() {
-  const { t } = useI18n();
+function PerformanceDashboard() {
   const [staffPerformance, setStaffPerformance] = useState<StaffPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<DateRange | undefined>({
@@ -65,17 +66,13 @@ export default function WaitersPage() {
       ))}
     </div>
   )
-
+  
   return (
-    <div className="space-y-6">
+     <div className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <h1 className="text-3xl font-headline font-bold">{t('waiters.title')}</h1>
-                <p className="text-muted-foreground">{t('waiters.dashboard_desc')}</p>
-            </div>
+            <div/>
             <DateRangePicker date={date} onDateChange={setDate} />
         </div>
-
         {loading ? (
             renderSkeleton()
         ) : (
@@ -85,8 +82,35 @@ export default function WaitersPage() {
                 ))}
             </div>
         )}
-    </div>
-  );
+     </div>
+  )
 }
 
 
+export default function WaitersPage() {
+  const { t } = useI18n();
+
+  return (
+    <div className="space-y-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 className="text-3xl font-headline font-bold">{t('waiters.title')}</h1>
+                <p className="text-muted-foreground">{t('waiters.dashboard_desc')}</p>
+            </div>
+        </div>
+
+        <Tabs defaultValue="performance">
+            <TabsList>
+                <TabsTrigger value="performance">{t('waiters.tabs.performance')}</TabsTrigger>
+                <TabsTrigger value="tasks">{t('waiters.tabs.tasks')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="performance" className="mt-4">
+                <PerformanceDashboard />
+            </TabsContent>
+            <TabsContent value="tasks" className="mt-4">
+                <TaskBoard />
+            </TabsContent>
+        </Tabs>
+    </div>
+  );
+}
