@@ -2,7 +2,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useI18n } from '@/context/i18n-context';
 import { type StaffPerformance } from '@/lib/types';
 import { getStaffPerformance } from '@/lib/mock-data';
@@ -88,4 +88,5 @@ export default function WaitersPage() {
     </div>
   );
 }
+
 
