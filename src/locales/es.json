@@ -176,7 +176,22 @@
         },
         "tasks": {
             "board_title": "Tablero de Tareas",
-            "add_task": "Añadir Tarea"
+            "board_desc": "Arrastra y suelta las tareas para actualizar su estado.",
+            "add_task": "Añadir Tarea",
+            "no_tasks": "No hay tareas en esta columna.",
+            "status": {
+                "to_do": "Por Hacer",
+                "in_progress": "En Progreso",
+                "done": "Hecho"
+            },
+            "priority": {
+                "low": "Baja",
+                "medium": "Media",
+                "high": "Alta"
+            },
+            "edit": "Editar",
+            "reassign": "Reasignar",
+            "delete": "Eliminar"
         }
     },
     "restaurant": {
