@@ -145,10 +145,10 @@ export default function PosPage() {
       />
       
        <div className="grid grid-cols-1 md:grid-cols-10 gap-4 items-start h-full">
-        <div className="md:col-span-7 h-full">
+        <div className="md:col-span-6 h-full">
           {menuSelectionComponent}
         </div>
-        <div className="md:col-span-3 h-full">
+        <div className="md:col-span-4 h-full">
           {currentOrderComponent}
         </div>
       </div>
