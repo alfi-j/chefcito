@@ -22,10 +22,6 @@ export default function PosPage() {
 
   const handleAddItemToOrder = (item: MenuItem) => {
     order.addItem(item, 1, []);
-    toast.success(t('pos.toast.item_added', { item: item.name }), {
-      duration: 1500,
-      icon: '✅'
-    });
   };
   
   const handleEditItem = (orderItem: OrderItem) => {
@@ -136,11 +132,11 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-8 items-start h-full">
-        <div className="lg:col-span-2 xl:col-span-3 h-full">
+      <div className="grid grid-cols-5 xl:grid-cols-5 gap-4 items-start h-full">
+        <div className="col-span-3 h-full">
           <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleAddItemToOrder} />
         </div>
-        <div className="lg:col-span-1 xl:col-span-2 h-full">
+        <div className="col-span-2 h-full">
           <CurrentOrder 
             order={order}
             onSendToKitchen={handleSendToKitchen}
