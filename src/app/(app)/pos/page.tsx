@@ -132,11 +132,11 @@ export default function PosPage() {
         onConfirmPayment={handlePaymentSuccess}
       />
       
-      <div className="grid grid-cols-5 xl:grid-cols-5 gap-4 items-start h-full">
-        <div className="col-span-3 h-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start h-full">
+        <div className="md:col-span-2 h-full">
           <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleAddItemToOrder} />
         </div>
-        <div className="col-span-2 h-full">
+        <div className="md:col-span-1 h-full">
           <CurrentOrder 
             order={order}
             onSendToKitchen={handleSendToKitchen}
