@@ -12,6 +12,14 @@
       {
         "status": "pending",
         "timestamp": "2024-08-07T14:00:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T18:04:30.024Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T18:04:41.047Z"
       }
     ],
     "items": [
@@ -139,9 +147,8 @@
   {
     "id": 4,
     "table": 2,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-08-07T13:50:00Z",
-    "completedAt": "2024-08-07T14:05:00Z",
     "isPinned": false,
     "staffName": "Maria",
     "orderType": "dine-in",
@@ -154,6 +161,10 @@
       {
         "status": "completed",
         "timestamp": "2024-08-07T14:05:00Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T18:04:46.810Z"
       }
     ],
     "items": [
