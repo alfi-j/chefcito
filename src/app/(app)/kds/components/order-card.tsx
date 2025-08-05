@@ -12,8 +12,8 @@ import { OrderItem } from "./order-item"
 
 interface OrderCardProps {
   order: Order
-  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void
-  onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'Cooking') => void
+  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void
+  onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDrop: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
@@ -90,10 +90,10 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
           "flex flex-col h-full",
           order.isPinned && "border-primary border-2",
         )}
-        draggable={order.status === 'pending' && !order.isPinned}
+        draggable={!order.isPinned}
       >
           <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
-            <GripVertical className={cn("h-5 w-5 text-muted-foreground", order.status === 'pending' && !order.isPinned ? "cursor-grab" : "invisible")} />
+            <GripVertical className={cn("h-5 w-5 text-muted-foreground", !order.isPinned ? "cursor-grab" : "invisible")} />
             <div className="flex-grow flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
                 <ClipboardList className="h-5 w-5" />

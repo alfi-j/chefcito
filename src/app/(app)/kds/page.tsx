@@ -41,24 +41,46 @@ export default function KdsPage() {
       return;
     }
 
+    const draggedOrder = orders.find(o => o.id === draggedOrderId);
+    const dropOrder = orders.find(o => o.id === dropOrderId);
+
+    if (!draggedOrder || !dropOrder || draggedOrder.status !== dropOrder.status) {
+      handleDragEnd();
+      return;
+    }
+
     setOrders(currentOrders => {
+      if (draggedOrder.status === 'pending') {
         const pending = currentOrders.filter(o => o.status === 'pending' && !o.isPinned);
         const pinned = currentOrders.filter(o => o.status === 'pending' && o.isPinned);
         const completed = currentOrders.filter(o => o.status === 'completed');
-
+        
         const fromIndex = pending.findIndex(o => o.id === draggedOrderId);
         const toIndex = pending.findIndex(o => o.id === dropOrderId);
 
-        if (fromIndex === -1 || toIndex === -1) {
-          handleDragEnd();
-          return currentOrders;
-        }
+        if (fromIndex === -1 || toIndex === -1) return currentOrders;
         
         const reorderedPending = [...pending];
         const [removed] = reorderedPending.splice(fromIndex, 1);
         reorderedPending.splice(toIndex, 0, removed);
       
         return [...pinned, ...reorderedPending, ...completed];
+      } else { // status is 'completed'
+        const pending = currentOrders.filter(o => o.status === 'pending');
+        const completed = currentOrders.filter(o => o.status === 'completed' && !o.isPinned);
+        const pinnedCompleted = currentOrders.filter(o => o.status === 'completed' && o.isPinned);
+
+        const fromIndex = completed.findIndex(o => o.id === draggedOrderId);
+        const toIndex = completed.findIndex(o => o.id === dropOrderId);
+
+        if (fromIndex === -1 || toIndex === -1) return currentOrders;
+
+        const reorderedCompleted = [...completed];
+        const [removed] = reorderedCompleted.splice(fromIndex, 1);
+        reorderedCompleted.splice(toIndex, 0, removed);
+
+        return [...pending, ...pinnedCompleted, ...reorderedCompleted];
+      }
     });
 
     handleDragEnd();
@@ -82,7 +104,10 @@ export default function KdsPage() {
   }, [orders]);
 
   const servingOrders = useMemo(() => {
-      return orders.filter(o => o.status === 'completed').sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const completed = orders.filter(o => o.status === 'completed');
+    const unpinned = completed.filter(o => !o.isPinned);
+    const pinned = completed.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    return [...pinned, ...unpinned];
   }, [orders]);
   
   const renderOrderList = (orderList: Order[]) => {
