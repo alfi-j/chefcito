@@ -12,8 +12,8 @@ import { OrderItem } from "./order-item"
 
 interface OrderCardProps {
   order: Order
-  onUpdateItemStatus: (orderId: number, itemId: string) => void
-  onRevertItemStatus: (orderId: number, itemId: string) => void
+  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void
+  onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => void
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDrop: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;

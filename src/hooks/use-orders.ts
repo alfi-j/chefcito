@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { type Order, type OrderItem } from "@/lib/types";
 import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context";
-import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
+import { getInitialOrders, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
 
 
 const parseOrderDates = (orders: Order[]): Order[] => {

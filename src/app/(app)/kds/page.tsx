@@ -9,8 +9,6 @@ import { useI18n } from "@/context/i18n-context";
 import { useOrders } from "@/hooks/use-orders";
 
 
-const isOrderCompleted = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
-
 export default function KdsPage() {
   const [activeTab, setActiveTab] = useState('pending');
   const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
