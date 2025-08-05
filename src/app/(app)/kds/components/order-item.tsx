@@ -20,10 +20,10 @@ const statusColors = {
 
 export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
   
-  const ItemInfo = () => (
+  const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
       <div className="flex items-start gap-1.5">
-          <span className="font-bold text-xl leading-tight">1x</span>
+          <span className="font-bold text-xl leading-tight">{count}x</span>
           <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
       </div>
       {item.selectedExtras && item.selectedExtras.length > 0 && (
@@ -40,16 +40,20 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
   );
 
   const StatusRow = ({ 
+      count,
       status, 
       onClick, 
       onRevert, 
       revertTo 
     }: {
+      count: number;
       status: 'New' | 'Cooking' | 'Ready',
       onClick?: () => void,
       onRevert?: () => void,
       revertTo?: 'New' | 'Cooking'
   }) => {
+    if (count === 0) return null;
+
     const canRevert = !!onRevert;
     const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
 
@@ -63,7 +67,7 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
-            <ItemInfo />
+            <ItemInfo count={count} />
             {canRevert && (
               <button
                   onClick={(e) => { e.stopPropagation(); onRevert(); }}
@@ -80,30 +84,24 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
 
   return (
     <div className="space-y-1">
-        {Array.from({ length: item.newCount }).map((_, i) => (
-             <StatusRow 
-                key={`new-${i}`}
-                status="New"
-                onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
-            />
-        ))}
-        {Array.from({ length: item.cookingCount }).map((_, i) => (
-            <StatusRow 
-                key={`cooking-${i}`}
-                status="Cooking"
-                onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
-                onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
-                revertTo="New"
-            />
-        ))}
-        {Array.from({ length: item.readyCount }).map((_, i) => (
-             <StatusRow 
-                key={`ready-${i}`}
-                status="Ready"
-                onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-                revertTo="Cooking"
-            />
-        ))}
+        <StatusRow 
+            count={item.newCount}
+            status="New"
+            onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
+        />
+        <StatusRow 
+            count={item.cookingCount}
+            status="Cooking"
+            onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
+            onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
+            revertTo="New"
+        />
+        <StatusRow 
+            count={item.readyCount}
+            status="Ready"
+            onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
+            revertTo="Cooking"
+        />
     </div>
   )
 }
