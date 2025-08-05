@@ -35,8 +35,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
-import { OrderDetailsDialog } from '../orders/components/order-details-dialog'
-import { ReceiptDialog } from '../orders/components/receipt-dialog'
+import { OrderDetailsDialog } from './components/dialogs/order-details-dialog'
+import { ReceiptDialog } from './components/dialogs/receipt-dialog'
 import { getOrderTotal } from '@/lib/utils'
 
 const getStatusVariant = (status: Order['status']) => {
