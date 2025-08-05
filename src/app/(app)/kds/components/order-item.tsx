@@ -13,44 +13,43 @@ interface OrderItemProps {
 }
 
 const statusColors = {
-  New: 'bg-blue-500/10 hover:bg-blue-500/20',
-  Cooking: 'bg-yellow-500/10 hover:bg-yellow-500/20',
-  Ready: 'bg-green-500/10',
+  New: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
+  Cooking: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
+  Ready: 'bg-green-500/10 text-green-800 dark:text-green-300',
 };
 
 export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
   
   const ItemInfo = () => (
     <div className="flex-1 min-w-0">
-      <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
+      <div className="flex items-start gap-1.5">
+          <span className="font-bold text-xl leading-tight">1x</span>
+          <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
+      </div>
       {item.selectedExtras && item.selectedExtras.length > 0 && (
-        <div className="pl-2 text-sm text-muted-foreground font-medium">
+        <div className="pl-6 text-sm text-muted-foreground font-medium">
           {item.selectedExtras.map(extra => (
             <div key={extra.id}>+ {extra.name}</div>
           ))}
         </div>
       )}
       {item.notes && (
-          <p className="pl-2 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
+          <p className="pl-6 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
       )}
     </div>
   );
 
   const StatusRow = ({ 
-      count, 
       status, 
       onClick, 
       onRevert, 
       revertTo 
     }: {
-      count: number,
       status: 'New' | 'Cooking' | 'Ready',
       onClick?: () => void,
       onRevert?: () => void,
       revertTo?: 'New' | 'Cooking'
   }) => {
-    if (count <= 0) return null;
-
     const canRevert = !!onRevert;
     const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
 
@@ -63,11 +62,8 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
         )}
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
-        <div className="flex justify-between items-start gap-2">
-            <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                <span className="font-bold text-xl leading-tight">{count}x</span>
-                <ItemInfo />
-            </div>
+        <div className="flex justify-between items-center gap-2">
+            <ItemInfo />
             {canRevert && (
               <button
                   onClick={(e) => { e.stopPropagation(); onRevert(); }}
@@ -84,24 +80,30 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
 
   return (
     <div className="space-y-1">
-        <StatusRow 
-          count={item.newCount}
-          status="New"
-          onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
-        />
-        <StatusRow 
-          count={item.cookingCount}
-          status="Cooking"
-          onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
-          onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
-          revertTo="New"
-        />
-        <StatusRow 
-          count={item.readyCount}
-          status="Ready"
-          onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-          revertTo="Cooking"
-        />
+        {Array.from({ length: item.newCount }).map((_, i) => (
+             <StatusRow 
+                key={`new-${i}`}
+                status="New"
+                onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
+            />
+        ))}
+        {Array.from({ length: item.cookingCount }).map((_, i) => (
+            <StatusRow 
+                key={`cooking-${i}`}
+                status="Cooking"
+                onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
+                onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
+                revertTo="New"
+            />
+        ))}
+        {Array.from({ length: item.readyCount }).map((_, i) => (
+             <StatusRow 
+                key={`ready-${i}`}
+                status="Ready"
+                onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
+                revertTo="Cooking"
+            />
+        ))}
     </div>
   )
 }
