@@ -1,10 +1,11 @@
+
 [
   {
     "id": 1,
     "table": 5,
     "status": "pending",
     "createdAt": "2024-08-07T14:00:00Z",
-    "isPinned": false,
+    "isPinned": true,
     "staffName": "Alex",
     "notes": "Customer has a gluten allergy. Please be extra careful with the pizza.",
     "orderType": "dine-in",
@@ -12,14 +13,6 @@
       {
         "status": "pending",
         "timestamp": "2024-08-07T14:00:00Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T18:04:30.024Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T18:04:41.047Z"
       }
     ],
     "items": [
@@ -27,8 +20,8 @@
         "id": "1-1",
         "menuItemId": "1",
         "quantity": 1,
-        "newCount": 0,
-        "cookingCount": 1,
+        "newCount": 1,
+        "cookingCount": 0,
         "readyCount": 0,
         "servedCount": 0,
         "selectedExtraIds": [
@@ -71,19 +64,6 @@
       }
     ],
     "items": [
-      {
-        "id": "2-1",
-        "menuItemId": "3",
-        "quantity": 2,
-        "newCount": 0,
-        "cookingCount": 0,
-        "readyCount": 1,
-        "servedCount": 1,
-        "selectedExtraIds": [
-          "extra-2"
-        ],
-        "notes": "Extra bacon on both."
-      },
       {
         "id": "2-2",
         "menuItemId": "4",
@@ -135,8 +115,8 @@
         "id": "3-2",
         "menuItemId": "6",
         "quantity": 3,
-        "newCount": 3,
-        "cookingCount": 0,
+        "newCount": 0,
+        "cookingCount": 3,
         "readyCount": 0,
         "servedCount": 0,
         "selectedExtraIds": [],
@@ -157,22 +137,6 @@
       {
         "status": "pending",
         "timestamp": "2024-08-07T13:50:00Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2024-08-07T14:05:00Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T18:04:46.810Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T18:15:16.020Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T18:15:18.050Z"
       }
     ],
     "items": [
