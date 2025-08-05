@@ -2,7 +2,7 @@
   {
     "id": 1,
     "table": 3,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T10:00:00Z",
     "isPinned": false,
     "staffName": "John Doe",
@@ -46,6 +46,26 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:26:54.249Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:30:13.865Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:30:26.076Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:30:34.036Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:30:37.927Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:31:08.179Z"
       }
     ],
     "items": [
@@ -67,12 +87,13 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T16:31:08.179Z"
   },
   {
     "id": 2,
     "table": 5,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T09:50:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
@@ -164,6 +185,18 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:26:55.614Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:30:19.841Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:30:38.750Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:31:08.382Z"
       }
     ],
     "items": [
@@ -183,12 +216,13 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T16:31:08.382Z"
   },
   {
     "id": 3,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T09:30:00Z",
     "isPinned": false,
     "staffName": "John Doe",
@@ -236,6 +270,18 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:26:57.559Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:30:23.050Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:30:39.411Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:31:08.647Z"
       }
     ],
     "items": [
@@ -247,7 +293,8 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T16:31:08.647Z"
   },
   {
     "id": 4,

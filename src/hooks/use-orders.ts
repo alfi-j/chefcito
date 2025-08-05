@@ -52,7 +52,7 @@ export const useOrders = () => {
             const itemIndex = newItems.findIndex(i => i.id === itemId);
             if (itemIndex === -1) return o;
 
-            const item = { ...newItems[itemIndex] }; // Create a mutable copy of the item
+            const item = { ...newItems[itemIndex] };
             
             if (fromStatus === 'New' && item.newCount > 0) {
                 item.newCount -= 1;
@@ -80,7 +80,8 @@ export const useOrders = () => {
         
         try {
             console.log(`Updated status for item ${itemId} in order ${orderId}`);
-            if (updatedOrder.status === 'completed' && originalOrders.find((o: Order) => o.id === orderId)?.status !== 'completed') {
+            const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
+            if (updatedOrder.status === 'completed' && originalOrder?.status !== 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'completed' });
             }
         } catch (error: any) {
@@ -90,7 +91,7 @@ export const useOrders = () => {
     }, [orders, t]);
 
 
-    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => {
+    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'Cooking') => {
         const originalOrders = JSON.parse(JSON.stringify(orders));
         let orderToUpdate: Order | undefined;
 
@@ -106,9 +107,6 @@ export const useOrders = () => {
             if (toStatus === 'Cooking' && item.readyCount > 0) {
                 item.readyCount -= 1;
                 item.cookingCount += 1;
-            } else if (toStatus === 'New' && item.cookingCount > 0) {
-                item.cookingCount -= 1;
-                item.newCount += 1;
             } else {
                 return o;
             }
@@ -117,7 +115,6 @@ export const useOrders = () => {
             const wasCompleted = o.status === 'completed';
             orderToUpdate = { ...o, items: newItems, status: 'pending' };
 
-            // If the order was completed, we need to mark it as pending again
             if (wasCompleted) {
                 console.log(`Order ${orderId} reverted to pending.`);
             }
@@ -131,7 +128,6 @@ export const useOrders = () => {
 
         try {
             console.log(`Reverted status for item ${itemId} in order ${orderId}`);
-            // If the original order status was completed, we send an update to the backend
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
             if (originalOrder && originalOrder.status === 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'pending' });

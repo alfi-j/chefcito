@@ -10,7 +10,7 @@ interface OrderItemProps {
     orderId: number;
     orderStatus: Order['status'];
     onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void;
-    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => void;
+    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'Cooking') => void;
 }
 
 const statusColors = {
@@ -45,19 +45,16 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
       status, 
       onClick, 
       onRevert, 
-      revertTo 
     }: {
       count: number;
       status: 'New' | 'Cooking' | 'Ready',
       onClick?: () => void,
       onRevert?: () => void,
-      revertTo?: 'New' | 'Cooking'
   }) => {
     if (count === 0) return null;
 
-    const canRevert = !!onRevert && orderStatus === 'completed';
-    const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
-
+    const canRevert = !!onRevert && orderStatus === 'completed' && status === 'Ready';
+    
     return (
       <div 
         className={cn(
@@ -73,9 +70,9 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
               <button
                   onClick={(e) => { e.stopPropagation(); onRevert(); }}
                   className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`Revert to ${revertTo}`}
+                  aria-label={`Revert to Cooking`}
               >
-                  <RotateCcw className={cn("h-4 w-4", revertIconColor)} />
+                  <RotateCcw className={cn("h-4 w-4", "text-green-700")} />
               </button>
             )}
         </div>
@@ -84,18 +81,20 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
   }
 
   if (orderStatus === 'completed') {
+    // For completed orders, show only one "Ready" block for the total quantity.
+    // This block allows reverting items back to cooking.
     return (
         <div className="space-y-1">
             <StatusRow 
                 count={item.quantity}
                 status="Ready"
                 onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-                revertTo="Cooking"
             />
         </div>
     )
   }
 
+  // For pending orders, show separate blocks for New, Cooking, and Ready counts.
   return (
     <div className="space-y-1">
         <StatusRow 
