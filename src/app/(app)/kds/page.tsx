@@ -4,7 +4,7 @@ import { useState, useMemo, type DragEvent } from "react";
 import { OrderCard } from "./components/order-card";
 import { type Order } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { useI18n } from "@/context/i18n-context";
 import { useOrders } from "@/hooks/use-orders";
 
@@ -74,14 +74,14 @@ export default function KdsPage() {
     }
   };
 
-  const pendingOrders = useMemo(() => {
+  const kitchenOrders = useMemo(() => {
     const pending = orders.filter(o => o.status === 'pending');
     const unpinned = pending.filter(o => !o.isPinned);
     const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
     return [...pinned, ...unpinned];
   }, [orders]);
 
-  const completedOrders = useMemo(() => {
+  const servingOrders = useMemo(() => {
       return orders.filter(o => o.status === 'completed').sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [orders]);
   
@@ -119,14 +119,14 @@ export default function KdsPage() {
     <Card>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4 sm:p-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="pending">{t('kds.tabs.pending')} ({pendingOrders.length})</TabsTrigger>
-          <TabsTrigger value="completed">{t('kds.tabs.completed')} ({completedOrders.length})</TabsTrigger>
+          <TabsTrigger value="pending">{t('kds.tabs.kitchen')} ({kitchenOrders.length})</TabsTrigger>
+          <TabsTrigger value="completed">{t('kds.tabs.serving')} ({servingOrders.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="pending" className="pt-4 sm:pt-6">
-          {renderOrderList(pendingOrders)}
+          {renderOrderList(kitchenOrders)}
         </TabsContent>
         <TabsContent value="completed" className="pt-4 sm:pt-6">
-          {renderOrderList(completedOrders)}
+          {renderOrderList(servingOrders)}
         </TabsContent>
       </Tabs>
     </Card>

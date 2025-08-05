@@ -117,7 +117,7 @@
   {
     "id": 2,
     "table": 5,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T09:50:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
@@ -225,6 +225,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:53:17.809Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:09:20.938Z"
       }
     ],
     "items": [
@@ -244,7 +248,8 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T17:09:20.938Z"
   },
   {
     "id": 3,
@@ -317,6 +322,14 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T16:55:09.204Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T17:09:30.754Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:09:45.691Z"
       }
     ],
     "items": [
@@ -329,7 +342,7 @@
         "selectedExtraIds": []
       }
     ],
-    "completedAt": "2025-08-05T16:55:09.204Z"
+    "completedAt": "2025-08-05T17:09:45.691Z"
   },
   {
     "id": 4,
@@ -363,6 +376,22 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T17:02:52.483Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T17:09:26.112Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:09:47.001Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T17:10:00.282Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:10:56.242Z"
       }
     ],
     "items": [
@@ -391,12 +420,12 @@
         "selectedExtraIds": []
       }
     ],
-    "completedAt": "2025-08-05T17:02:52.483Z"
+    "completedAt": "2025-08-05T17:10:56.242Z"
   },
   {
     "id": 5,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2025-08-02T23:23:57.462Z",
     "isPinned": false,
     "notes": "asdasdasd",
@@ -437,6 +466,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:26:49.667Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:09:17.489Z"
       }
     ],
     "items": [
@@ -448,6 +481,7 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T17:09:17.489Z"
   }
 ]

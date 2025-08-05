@@ -16,10 +16,7 @@ const parseOrderDates = (orders: Order[]): Order[] => {
   }));
 };
 
-// An order is considered "completed" (in the completed tab) if at least one item is ready to serve.
-const isOrderReadyForCompletion = (order: Order) => order.items.some(item => item.readyCount > 0);
-// An order is fully complete (and could be archived) if all items are served. This is for potential future logic.
-const isOrderFullyComplete = (order: Order) => order.items.every(item => item.newCount === 0 && item.cookingCount === 0);
+const isOrderReadyForServing = (order: Order) => order.items.some(item => item.readyCount > 0 || item.servedCount > 0);
 
 export const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -43,8 +40,8 @@ export const useOrders = () => {
         fetchOrders();
     }, [fetchOrders]);
   
-    const updateItemStatus = useCallback(async (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => {
-        const originalOrders = JSON.parse(JSON.stringify(orders)); // Deep copy for revert
+    const updateItemStatus = useCallback(async (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => {
+        const originalOrders = JSON.parse(JSON.stringify(orders));
         let updatedOrder: Order | undefined;
 
         const newOrders = orders.map(o => {
@@ -62,14 +59,17 @@ export const useOrders = () => {
             } else if (fromStatus === 'Cooking' && item.cookingCount > 0) {
                 item.cookingCount -= 1;
                 item.readyCount += 1;
+            } else if (fromStatus === 'Serve' && item.readyCount > 0) {
+                item.readyCount -= 1;
+                item.servedCount += 1;
             } else {
-                return o; // No change
+                return o;
             }
             
             newItems[itemIndex] = item;
             updatedOrder = { ...o, items: newItems };
-
-            if (isOrderReadyForCompletion(updatedOrder)) {
+            
+            if (isOrderReadyForServing(updatedOrder)) {
                 updatedOrder.status = 'completed';
             } else {
                 updatedOrder.status = 'pending';
@@ -94,7 +94,7 @@ export const useOrders = () => {
     }, [orders, t]);
 
 
-    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => {
+    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => {
         const originalOrders = JSON.parse(JSON.stringify(orders));
         let updatedOrder: Order | undefined;
 
@@ -113,6 +113,9 @@ export const useOrders = () => {
             } else if (toStatus === 'Cooking' && item.readyCount > 0) {
                 item.readyCount -= 1;
                 item.cookingCount += 1;
+            } else if (toStatus === 'Serve' && item.servedCount > 0) {
+                item.servedCount -= 1;
+                item.readyCount += 1;
             } else {
                 return o;
             }
@@ -120,7 +123,7 @@ export const useOrders = () => {
             newItems[itemIndex] = item;
             updatedOrder = { ...o, items: newItems };
             
-            if (isOrderReadyForCompletion(updatedOrder)) {
+            if (isOrderReadyForServing(updatedOrder)) {
                 updatedOrder.status = 'completed';
             } else {
                 updatedOrder.status = 'pending';

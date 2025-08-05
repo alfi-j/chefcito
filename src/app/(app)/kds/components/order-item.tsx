@@ -9,17 +9,18 @@ interface OrderItemProps {
     item: OrderItemType;
     orderId: number;
     orderStatus: Order['status'];
-    onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void;
-    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => void;
+    onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void;
+    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void;
 }
 
 const statusColors = {
   New: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
   Cooking: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
   Serve: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
+  Served: 'bg-gray-500/10 text-gray-800 dark:text-gray-300 hover:bg-gray-500/20',
 };
 
-export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
+export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
 
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
@@ -47,7 +48,7 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
       onRevert, 
     }: {
       count: number;
-      status: 'New' | 'Cooking' | 'Serve',
+      status: 'New' | 'Cooking' | 'Serve' | 'Served',
       onClick?: () => void,
       onRevert?: () => void,
   }) => {
@@ -76,7 +77,8 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
                 >
                     <RotateCcw className={cn("h-4 w-4", {
                         "text-yellow-700": status === 'Cooking',
-                        "text-green-700": status === 'Serve'
+                        "text-green-700": status === 'Serve',
+                        "text-gray-700": status === 'Served'
                     })} />
                 </button>
               )}
@@ -88,22 +90,36 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
 
   return (
     <div className="space-y-1">
-        <StatusRow 
-            count={item.newCount}
-            status="New"
-            onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
-        />
-        <StatusRow 
-            count={item.cookingCount}
-            status="Cooking"
-            onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
-            onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
-        />
-        <StatusRow 
-            count={item.readyCount}
-            status="Serve"
-            onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-        />
+      {orderStatus === 'pending' && (
+        <>
+          <StatusRow 
+              count={item.newCount}
+              status="New"
+              onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
+          />
+          <StatusRow 
+              count={item.cookingCount}
+              status="Cooking"
+              onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
+              onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
+          />
+        </>
+      )}
+      {orderStatus === 'completed' && (
+         <>
+          <StatusRow 
+              count={item.readyCount}
+              status="Serve"
+              onClick={() => onUpdateItemStatus(orderId, item.id, 'Serve')}
+              onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
+          />
+          <StatusRow 
+              count={item.servedCount}
+              status="Served"
+              onRevert={() => onRevertItemStatus(orderId, item.id, 'Serve')}
+          />
+         </>
+      )}
     </div>
   )
 }

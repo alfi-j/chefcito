@@ -94,7 +94,9 @@
         "no_orders": "No orders in this category.",
         "tabs": {
             "pending": "Pending",
-            "completed": "Completed"
+            "completed": "Completed",
+            "kitchen": "Kitchen",
+            "serving": "Serving"
         },
         "toast": {
             "fetch_error": "Could not fetch orders.",

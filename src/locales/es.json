@@ -94,7 +94,9 @@
         "no_orders": "No hay órdenes en esta categoría.",
         "tabs": {
             "pending": "Pendientes",
-            "completed": "Completadas"
+            "completed": "Completadas",
+            "kitchen": "Cocina",
+            "serving": "Servicio"
         },
         "toast": {
             "fetch_error": "No se pudieron cargar las órdenes.",
