@@ -19,8 +19,10 @@ export function useTimeAgo(date: Date) {
       }
     };
 
+    // Run the first update on the client side after mount
     update();
-    const interval = setInterval(update, 5000); // update every 5 seconds
+    
+    const interval = setInterval(update, 60000); // update every minute
     return () => clearInterval(interval);
   }, [date]);
 
