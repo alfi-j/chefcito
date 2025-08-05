@@ -65,7 +65,10 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
-            <ItemInfo count={count} />
+            <div className="flex items-center gap-2 flex-1">
+                <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{status}</div>
+                <ItemInfo count={count} />
+            </div>
             {canRevert && (
               <button
                   onClick={(e) => { e.stopPropagation(); onRevert(); }}
