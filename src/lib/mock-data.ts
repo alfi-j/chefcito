@@ -219,32 +219,33 @@ export const addOrder = async (orderData: {
     return newOrder;
 };
 
-export const updateOrderItemStatus = async (payload: { itemId: string, newStatus: OrderItem['status'], newQuantity: number, newCookedCount: number }) => {
+export const updateOrderItemStatus = async (orderId: number, itemId: string, newStatus: OrderItem['status']) => {
     const orders = await readData<any[]>('orders.json');
-    let orderModified = false;
-    for (const order of orders) {
-        const item = order.items.find((i: any) => i.id === payload.itemId);
+    const order = orders.find(o => o.id === orderId);
+    if (order) {
+        const item = order.items.find((i: any) => i.id === itemId);
         if (item) {
-            item.status = payload.newStatus;
-            item.quantity = payload.newQuantity;
-            item.cookedCount = payload.newCookedCount;
-            // If the whole order is now cooked, mark it as completed
-            if (order.items.every((i: any) => i.quantity === 0 && i.cookedCount > 0)) {
-                 if (order.status === 'pending') {
-                    order.status = 'completed';
-                    const now = new Date().toISOString();
-                    order.completedAt = now;
-                    order.statusHistory.push({ status: 'completed', timestamp: now });
-                 }
+            item.status = newStatus;
+
+            // If an item is marked served, we consider its quantity fulfilled for the purpose of order completion
+            if (newStatus === 'Served') {
+                item.cookedCount = item.quantity;
+                item.quantity = 0;
             }
-            orderModified = true;
-            break;
+
+            // Check if all items are served
+            if (order.items.every((i: any) => i.status === 'Served')) {
+                order.status = 'completed';
+                const now = new Date().toISOString();
+                order.completedAt = now;
+                order.statusHistory.push({ status: 'completed', timestamp: now });
+            }
+            
+            await writeData('orders.json', orders);
+            return true;
         }
     }
-    if (orderModified) {
-        await writeData('orders.json', orders);
-    }
-    return orderModified;
+    return false;
 }
 
 export const updateOrderStatus = async (payload: { orderId: number; newStatus: 'pending' | 'completed' }) => {
@@ -361,7 +362,7 @@ const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
         const mainItemPrice = item.menuItem.price + extrasTotal;
-        return total + (mainItemPrice * (item.cookedCount + item.quantity));
+        return total + (mainItemPrice * item.quantity);
     }, 0);
 };
 
@@ -425,16 +426,15 @@ export const getItemSalesReport = async (dateRange?: DateRange) => {
             if (!itemSales[item.menuItem.id]) {
                 itemSales[item.menuItem.id] = { name: item.menuItem.name, quantity: 0, total: 0 };
             }
-            const quantity = item.cookedCount + item.quantity;
-            itemSales[item.menuItem.id].quantity += quantity;
-            itemSales[item.menuItem.id].total += item.menuItem.price * quantity;
+            itemSales[item.menuItem.id].quantity += item.quantity;
+            itemSales[item.menuItem.id].total += item.menuItem.price * item.quantity;
 
             item.selectedExtras?.forEach(extra => {
                  if (!itemSales[extra.id]) {
                     itemSales[extra.id] = { name: extra.name, quantity: 0, total: 0 };
                 }
-                itemSales[extra.id].quantity += quantity;
-                itemSales[extra.id].total += extra.price * quantity;
+                itemSales[extra.id].quantity += item.quantity;
+                itemSales[extra.id].total += extra.price * item.quantity;
             });
         });
     });
@@ -475,7 +475,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
                 itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push( prepTime );
-            itemPrepTimes[item.menuItem.id].count += (item.cookedCount + item.quantity);
+            itemPrepTimes[item.menuItem.id].count += item.quantity;
         });
     });
 
