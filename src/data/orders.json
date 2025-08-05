@@ -56,7 +56,7 @@
   {
     "id": 2,
     "table": 5,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T09:50:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
@@ -88,6 +88,26 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T14:14:41.375Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:18:39.352Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:18:46.823Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:18:56.263Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:19:07.866Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:20:54.320Z"
       }
     ],
     "items": [
@@ -107,8 +127,7 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T14:14:41.375Z"
+    ]
   },
   {
     "id": 3,
@@ -145,6 +164,14 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T14:08:34.339Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:18:49.511Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:18:58.876Z"
       }
     ],
     "items": [
