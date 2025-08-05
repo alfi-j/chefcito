@@ -86,8 +86,9 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
     return (
         <div className="space-y-1">
             <StatusRow 
-                count={item.quantity}
+                count={item.readyCount}
                 status="Ready"
+                onClick={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
                 onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
             />
         </div>

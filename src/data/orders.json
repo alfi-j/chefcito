@@ -244,7 +244,7 @@
   {
     "id": 3,
     "table": 1,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T09:30:00Z",
     "isPinned": false,
     "staffName": "John Doe",
@@ -304,6 +304,10 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T16:31:08.647Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:54:02.669Z"
       }
     ],
     "items": [
@@ -315,13 +319,12 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T16:31:08.647Z"
+    ]
   },
   {
     "id": 4,
     "table": 1,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2025-08-02T21:36:17.607Z",
     "isPinned": false,
     "notes": "",
@@ -334,6 +337,18 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T14:28:37.778Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:54:00.545Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:54:16.013Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:54:19.371Z"
       }
     ],
     "items": [
@@ -361,8 +376,7 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T14:28:37.778Z"
+    ]
   },
   {
     "id": 5,
