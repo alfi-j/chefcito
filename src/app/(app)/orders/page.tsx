@@ -1,99 +1,219 @@
 
 "use client"
 
-import React, { useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import React, { useState, useMemo } from 'react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { MoreHorizontal, File, Search, History } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { format } from 'date-fns'
 import { useOrders } from '@/hooks/use-orders'
 import { useI18n } from '@/context/i18n-context'
-import { groupReadyItemsByTable } from '@/lib/utils'
-import { type ReadyItem } from '@/lib/types'
-import { Separator } from '@/components/ui/separator'
-import { StickyNote } from 'lucide-react'
-import { MdOutlineTableRestaurant } from 'react-icons/md'
+import { type Order } from '@/lib/types'
+import { OrderDetailsDialog } from './components/order-details-dialog'
+import { ReceiptDialog } from './components/receipt-dialog'
+import { getOrderTotal } from '@/lib/utils'
 
-export default function ReadyToServePage() {
-  const { orders, loading, updateItemStatus } = useOrders();
+const getStatusVariant = (status: Order['status']) => {
+  switch (status) {
+    case 'pending':
+      return 'secondary'
+    case 'completed':
+      return 'default'
+    default:
+      return 'outline'
+  }
+}
+
+export default function OrdersPage() {
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const { orders, loading } = useOrders();
   const { t } = useI18n();
 
-  const readyItemsByTable = useMemo(() => {
-    return groupReadyItemsByTable(orders);
-  }, [orders]);
+  const handleViewDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setIsDetailsOpen(true);
+  }
 
-  const sortedTables = useMemo(() => {
-    return Object.keys(readyItemsByTable).sort((a, b) => Number(a) - Number(b));
-  }, [readyItemsByTable]);
+  const handleViewReceipt = (order: Order) => {
+    setSelectedOrder(order);
+    setIsReceiptOpen(true);
+  }
+
+  const filteredOrders = useMemo(() => {
+    let filtered = orders;
+
+    if (activeTab !== 'all') {
+      filtered = filtered.filter(order => order.status === activeTab);
+    }
+
+    if (searchQuery) {
+        filtered = filtered.filter(order => String(order.id).includes(searchQuery));
+    }
+    
+    return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [orders, activeTab, searchQuery]);
   
-  const handleMarkAsServed = (item: ReadyItem) => {
-    // We can reuse the existing updateItemStatus function.
-    // Advancing from 'Ready' will mark it as served and remove it from this view.
-    updateItemStatus(item.orderId, item.orderItemId);
-  }
-
-  if (loading) {
+  const renderOrders = (orderList: Order[]) => {
+    if (loading) {
+      return <div className="flex justify-center items-center h-64"><p>{t('orders.loading')}</p></div>;
+    }
+    if (orderList.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
+          <History className="w-16 h-16 mb-4 text-muted-foreground/50"/>
+          <p className="font-semibold">{t('orders.no_orders_found')}</p>
+          <p className="text-sm">{t('orders.no_orders_description')}</p>
+        </div>
+      );
+    }
     return (
-      <div className="flex justify-center items-center h-full">
-        <p>{t('kds.loading')}</p>
-      </div>
-    );
-  }
+      <>
+        {/* Desktop Table View */}
+        <div className="hidden md:block border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('orders.table.order_id')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('orders.table.date')}</TableHead>
+                <TableHead className="hidden md:table-cell">{t('orders.table.table')}</TableHead>
+                <TableHead className="hidden sm:table-cell">{t('orders.table.status')}</TableHead>
+                <TableHead>{t('orders.table.staff')}</TableHead>
+                <TableHead className="text-right">{t('orders.table.total')}</TableHead>
+                <TableHead><span className="sr-only">{t('orders.table.actions')}</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {orderList.map((order) => (
+                <TableRow key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
+                  <TableCell className="font-medium">#{order.id}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
+                  <TableCell className="hidden md:table-cell">{t('pos.current_order.table')} {order.table}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
+                  </TableCell>
+                  <TableCell>{order.staffName || 'N/A'}</TableCell>
+                  <TableCell className="text-right font-semibold">${getOrderTotal(order).toFixed(2)}</TableCell>
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">{t('orders.table.toggle_menu')}</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => handleViewDetails(order)}>{t('orders.table.view_details')}</DropdownMenuItem>
+                          {order.status === 'completed' && (
+                              <DropdownMenuItem onSelect={() => handleViewReceipt(order)}>{t('orders.details.view_receipt')}</DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
 
-  if (sortedTables.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground p-8">
-        <Card className="p-10">
-            <CardHeader>
-                <CardTitle className="font-headline text-2xl">{t('orders.no_ready_items_title')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <p>{t('orders.no_ready_items_desc')}</p>
-            </CardContent>
-        </Card>
-      </div>
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {orderList.map((order) => (
+            <Card key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
+                <CardContent className="p-4 flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <p className="font-bold text-lg">#{order.id}</p>
+                            <p className="text-sm text-muted-foreground">{t('pos.current_order.table')} {order.table}</p>
+                        </div>
+                        <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                        <p>{format(new Date(order.createdAt), 'PPp')}</p>
+                        <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                        <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}>
+                            {t('orders.table.view_details')}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+          ))}
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sortedTables.map(table => (
-          <Card key={table} className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-headline text-2xl">
-                <MdOutlineTableRestaurant className="h-6 w-6" />
-                <span>{t('pos.current_order.table')} {table}</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 space-y-3">
-              {readyItemsByTable[table].map((item) => (
-                <div key={item.id} className="bg-muted/50 p-3 rounded-lg">
-                    <div className="flex justify-between items-start gap-2">
-                        <div>
-                            <p className="font-semibold">{item.name}</p>
-                            {item.selectedExtras && item.selectedExtras.length > 0 && (
-                                <div className="pl-2 text-xs text-muted-foreground font-medium">
-                                    {item.selectedExtras.map(extra => (
-                                    <div key={extra.id}>+ {extra.name}</div>
-                                    ))}
-                                </div>
-                            )}
-                            {item.notes && (
-                                <div className="mt-1.5 flex items-start gap-1.5 text-xs text-primary/80">
-                                    <StickyNote className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"/>
-                                    <p className="italic whitespace-pre-wrap">{item.notes}</p>
-                                </div>
-                            )}
-                        </div>
-                        <Button size="sm" onClick={() => handleMarkAsServed(item)}>
-                            {t('orders.mark_as_served')}
-                        </Button>
+    <>
+      <OrderDetailsDialog 
+        isOpen={isDetailsOpen}
+        onOpenChange={setIsDetailsOpen}
+        order={selectedOrder}
+        onViewReceipt={handleViewReceipt}
+      />
+      <ReceiptDialog
+        isOpen={isReceiptOpen}
+        onOpenChange={setIsReceiptOpen}
+        order={selectedOrder}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-headline">{t('orders.title')}</CardTitle>
+          <CardDescription>{t('orders.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-4">
+                    <TabsList className="grid w-full grid-cols-3 sm:w-auto">
+                        <TabsTrigger value="all">{t('orders.tabs.all')}</TabsTrigger>
+                        <TabsTrigger value="pending">{t('orders.tabs.pending')}</TabsTrigger>
+                        <TabsTrigger value="completed">{t('orders.tabs.completed')}</TabsTrigger>
+                    </TabsList>
+                    <div className="relative w-full sm:max-w-xs">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        type="search"
+                        placeholder={t('orders.table.order_id')}
+                        className="pl-8 w-full"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                     </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
+                <TabsContent value="all">{renderOrders(filteredOrders)}</TabsContent>
+                <TabsContent value="pending">{renderOrders(filteredOrders)}</TabsContent>
+                <TabsContent value="completed">{renderOrders(filteredOrders)}</TabsContent>
+            </Tabs>
+        </CardContent>
+      </Card>
+    </>
   )
 }
