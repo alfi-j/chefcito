@@ -56,7 +56,7 @@
   {
     "id": 2,
     "table": 5,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T09:50:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
@@ -84,6 +84,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T14:08:00.765Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:14:41.375Z"
       }
     ],
     "items": [
@@ -103,7 +107,8 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T14:14:41.375Z"
   },
   {
     "id": 3,
