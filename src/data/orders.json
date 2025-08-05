@@ -2,7 +2,7 @@
   {
     "id": 1,
     "table": 3,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T10:00:00Z",
     "isPinned": false,
     "staffName": "John Doe",
@@ -66,6 +66,26 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T16:31:08.179Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:52:27.891Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:52:33.584Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:52:41.930Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:53:32.341Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:53:39.792Z"
       }
     ],
     "items": [
@@ -87,13 +107,12 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T16:31:08.179Z"
+    ]
   },
   {
     "id": 2,
     "table": 5,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T09:50:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
@@ -197,6 +216,10 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T16:31:08.382Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T16:53:17.809Z"
       }
     ],
     "items": [
@@ -216,8 +239,7 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T16:31:08.382Z"
+    ]
   },
   {
     "id": 3,

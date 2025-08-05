@@ -104,8 +104,13 @@ export const useOrders = () => {
 
             const item = { ...newItems[itemIndex] };
 
-            if (toStatus === 'Cooking' && item.readyCount > 0) {
-                item.readyCount -= 1;
+            // When reverting, we move a unit from ready to cooking.
+            // The total quantity was temporarily stored in 'quantity'.
+            // The individual counts are the source of truth now.
+            const totalReadyUnits = item.readyCount > 0 ? item.readyCount : item.quantity;
+            
+            if (toStatus === 'Cooking' && totalReadyUnits > 0) {
+                item.readyCount = totalReadyUnits - 1;
                 item.cookingCount += 1;
             } else {
                 return o;
