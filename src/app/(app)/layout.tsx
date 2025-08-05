@@ -77,22 +77,41 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-col h-screen">
        <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
              <Link href="/pos" className="flex items-center gap-2">
                 <ChefHat className="w-8 h-8 text-primary" />
+                <span className="text-xl font-headline font-semibold hidden sm:inline-block">Chefcito</span>
              </Link>
-             <h2 className="text-xl font-headline font-semibold">
-                {currentPage}
-             </h2>
+             
+             {/* Desktop Navigation */}
+             <nav className="hidden md:flex items-center gap-2">
+                 {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+                    const isActive = pathname.startsWith(item.href);
+                    return (
+                        <Button key={item.href} variant={isActive ? "secondary" : "ghost"} size="sm" asChild>
+                            <Link href={item.href}>
+                                <item.icon className="h-4 w-4 mr-2" />
+                                {item.label}
+                            </Link>
+                        </Button>
+                    )
+                })}
+             </nav>
           </div>
-          <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-headline font-semibold md:hidden">
+                {currentPage}
+            </h2>
+            <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
+          </div>
         </header>
 
-      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-24")}>
+      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-28 md:pb-6")}>
         {children}
       </main>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm">
+      {/* Mobile Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm md:hidden">
         <div className="grid h-16 grid-cols-5 max-w-lg mx-auto">
           {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
             const isActive = pathname.startsWith(item.href);
