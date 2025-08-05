@@ -55,7 +55,7 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
   }) => {
     if (count === 0) return null;
 
-    const canRevert = !!onRevert;
+    const canRevert = !!onRevert && orderStatus === 'completed';
     const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
 
     return (
@@ -83,25 +83,34 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
     );
   }
 
+  if (orderStatus === 'completed') {
+    return (
+        <div className="space-y-1">
+            <StatusRow 
+                count={item.quantity}
+                status="Ready"
+                onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
+                revertTo="Cooking"
+            />
+        </div>
+    )
+  }
+
   return (
     <div className="space-y-1">
         <StatusRow 
             count={item.newCount}
             status="New"
-            onClick={orderStatus === 'pending' ? () => onUpdateItemStatus(orderId, item.id, 'New') : undefined}
+            onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
         />
         <StatusRow 
             count={item.cookingCount}
             status="Cooking"
-            onClick={orderStatus === 'pending' ? () => onUpdateItemStatus(orderId, item.id, 'Cooking') : undefined}
-            onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
-            revertTo="New"
+            onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
         />
         <StatusRow 
             count={item.readyCount}
             status="Ready"
-            onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-            revertTo="Cooking"
         />
     </div>
   )
