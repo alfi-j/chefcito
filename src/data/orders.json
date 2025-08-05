@@ -244,7 +244,7 @@
   {
     "id": 3,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-01-01T09:30:00Z",
     "isPinned": false,
     "staffName": "John Doe",
@@ -308,6 +308,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:54:02.669Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:55:09.204Z"
       }
     ],
     "items": [
@@ -319,7 +323,8 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T16:55:09.204Z"
   },
   {
     "id": 4,

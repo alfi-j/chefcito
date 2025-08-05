@@ -10,13 +10,13 @@ interface OrderItemProps {
     orderId: number;
     orderStatus: Order['status'];
     onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void;
-    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'Cooking') => void;
+    onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => void;
 }
 
 const statusColors = {
   New: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
   Cooking: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
-  Ready: 'bg-green-500/10 text-green-800 dark:text-green-300',
+  Serve: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
 };
 
 export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
@@ -47,13 +47,13 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
       onRevert, 
     }: {
       count: number;
-      status: 'New' | 'Cooking' | 'Ready',
+      status: 'New' | 'Cooking' | 'Serve',
       onClick?: () => void,
       onRevert?: () => void,
   }) => {
     if (count === 0) return null;
 
-    const canRevert = !!onRevert && orderStatus === 'completed' && status === 'Ready';
+    const canRevert = !!onRevert;
     
     return (
       <div 
@@ -70,9 +70,12 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
               <button
                   onClick={(e) => { e.stopPropagation(); onRevert(); }}
                   className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`Revert to Cooking`}
+                  aria-label={`Revert status`}
               >
-                  <RotateCcw className={cn("h-4 w-4", "text-green-700")} />
+                  <RotateCcw className={cn("h-4 w-4", {
+                      "text-yellow-700": status === 'Cooking',
+                      "text-green-700": status === 'Serve'
+                  })} />
               </button>
             )}
         </div>
@@ -81,13 +84,11 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
   }
 
   if (orderStatus === 'completed') {
-    // For completed orders, show only one "Ready" block for the total quantity.
-    // This block allows reverting items back to cooking.
     return (
         <div className="space-y-1">
             <StatusRow 
                 count={item.readyCount}
-                status="Ready"
+                status="Serve"
                 onClick={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
                 onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
             />
@@ -95,7 +96,6 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
     )
   }
 
-  // For pending orders, show separate blocks for New, Cooking, and Ready counts.
   return (
     <div className="space-y-1">
         <StatusRow 
@@ -107,10 +107,11 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
             count={item.cookingCount}
             status="Cooking"
             onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
+            onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
         />
         <StatusRow 
             count={item.readyCount}
-            status="Ready"
+            status="Serve"
         />
     </div>
   )

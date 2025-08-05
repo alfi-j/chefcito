@@ -79,7 +79,6 @@ export const useOrders = () => {
         if (!updatedOrder) return;
         
         try {
-            console.log(`Updated status for item ${itemId} in order ${orderId}`);
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
             if (updatedOrder.status === 'completed' && originalOrder?.status !== 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'completed' });
@@ -91,7 +90,7 @@ export const useOrders = () => {
     }, [orders, t]);
 
 
-    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'Cooking') => {
+    const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => {
         const originalOrders = JSON.parse(JSON.stringify(orders));
         let orderToUpdate: Order | undefined;
 
@@ -103,14 +102,12 @@ export const useOrders = () => {
             if (itemIndex === -1) return o;
 
             const item = { ...newItems[itemIndex] };
-
-            // When reverting, we move a unit from ready to cooking.
-            // The total quantity was temporarily stored in 'quantity'.
-            // The individual counts are the source of truth now.
-            const totalReadyUnits = item.readyCount > 0 ? item.readyCount : item.quantity;
             
-            if (toStatus === 'Cooking' && totalReadyUnits > 0) {
-                item.readyCount = totalReadyUnits - 1;
+            if (toStatus === 'New' && item.cookingCount > 0) {
+                item.cookingCount -= 1;
+                item.newCount += 1;
+            } else if (toStatus === 'Cooking' && item.readyCount > 0) {
+                item.readyCount -= 1;
                 item.cookingCount += 1;
             } else {
                 return o;
@@ -132,7 +129,6 @@ export const useOrders = () => {
         if (!orderToUpdate) return;
 
         try {
-            console.log(`Reverted status for item ${itemId} in order ${orderId}`);
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
             if (originalOrder && originalOrder.status === 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'pending' });
