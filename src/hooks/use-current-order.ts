@@ -25,9 +25,11 @@ export const useCurrentOrder = () => {
 
       if (existingItemIndex > -1) {
         const newItems = [...currentItems];
+        const existingItem = newItems[existingItemIndex];
         newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: newItems[existingItemIndex].quantity + quantity
+          ...existingItem,
+          quantity: existingItem.quantity + quantity,
+          newCount: existingItem.newCount + quantity,
         };
         return newItems;
       } else {
@@ -35,8 +37,10 @@ export const useCurrentOrder = () => {
           id: `${itemToAdd.id}-${Date.now()}`,
           menuItem: itemToAdd,
           quantity,
-          cookedCount: 0,
-          status: 'New',
+          newCount: quantity,
+          cookingCount: 0,
+          readyCount: 0,
+          servedCount: 0,
           selectedExtras,
           notes,
         };
@@ -48,7 +52,16 @@ export const useCurrentOrder = () => {
   const updateItem = useCallback((itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string) => {
     setItems(prev => prev.map(item =>
       item.id === itemId
-        ? { ...item, quantity: newQuantity, selectedExtras: newSelectedExtras, notes }
+        ? { 
+            ...item, 
+            quantity: newQuantity, 
+            newCount: newQuantity, // Assume updates reset progress for simplicity
+            cookingCount: 0,
+            readyCount: 0,
+            servedCount: 0,
+            selectedExtras: newSelectedExtras, 
+            notes 
+          }
         : item
     ));
   }, []);
@@ -67,7 +80,12 @@ export const useCurrentOrder = () => {
         // Remove item if quantity is zero or less
         return newItems.filter(i => i.id !== itemId);
       } else {
-        newItems[itemIndex] = { ...item, quantity: newQuantity };
+        newItems[itemIndex] = { 
+            ...item, 
+            quantity: newQuantity,
+            // Adjust the 'newCount' proportionally or just add/remove from it
+            newCount: Math.max(0, item.newCount + adjustment)
+        };
         return newItems;
       }
     });

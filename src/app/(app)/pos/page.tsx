@@ -77,8 +77,10 @@ export default function PosPage() {
           id: `${item.id}-${Date.now()}`,
           menuItem: item,
           quantity: 1,
-          cookedCount: 0,
-          status: 'New',
+          newCount: 1,
+          cookingCount: 0,
+          readyCount: 0,
+          servedCount: 0,
           selectedExtras: [],
           notes: '',
       };

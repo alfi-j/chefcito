@@ -10,15 +10,27 @@
       {
         "status": "pending",
         "timestamp": "2024-01-01T10:00:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:46:51.496Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:46:51.775Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:02:17.028Z"
       }
     ],
     "items": [
       {
         "id": "1-1",
         "menuItemId": "1",
-        "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
+        "quantity": 0,
+        "cookedCount": 1,
+        "status": "Ready",
         "selectedExtraIds": [
           "extra-1"
         ]
@@ -44,21 +56,33 @@
       {
         "status": "pending",
         "timestamp": "2024-01-01T09:50:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:58:57.380Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:58:57.671Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T13:59:04.828Z"
       }
     ],
     "items": [
       {
         "id": "2-1",
         "menuItemId": "2",
-        "quantity": 0,
-        "cookedCount": 2,
-        "status": "New",
+        "quantity": 2,
+        "cookedCount": 0,
+        "status": "Cooking",
         "selectedExtraIds": []
       },
       {
         "id": "2-2",
         "menuItemId": "6",
-        "quantity": 1,
+        "quantity": 0,
         "cookedCount": 1,
         "status": "Ready",
         "selectedExtraIds": []
@@ -91,8 +115,8 @@
       {
         "id": "3-1",
         "menuItemId": "4",
-        "quantity": 0,
-        "cookedCount": 1,
+        "quantity": 1,
+        "cookedCount": 0,
         "status": "New",
         "selectedExtraIds": []
       }
@@ -116,8 +140,8 @@
       {
         "id": "1754170577607",
         "menuItemId": "5",
-        "quantity": 0,
-        "cookedCount": 1,
+        "quantity": 1,
+        "cookedCount": 0,
         "status": "New",
         "selectedExtraIds": []
       },
@@ -142,7 +166,7 @@
   {
     "id": 5,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2025-08-02T23:23:57.462Z",
     "isPinned": false,
     "notes": "asdasdasd",
@@ -163,6 +187,14 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T12:51:22.898Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:46:38.776Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T13:46:39.034Z"
       }
     ],
     "items": [
@@ -171,10 +203,10 @@
         "menuItemId": "5",
         "quantity": 0,
         "cookedCount": 1,
-        "status": "New",
+        "status": "Ready",
         "selectedExtraIds": []
       }
     ],
-    "completedAt": "2025-08-05T05:42:15.233Z"
+    "completedAt": "2025-08-05T13:46:38.776Z"
   }
 ]

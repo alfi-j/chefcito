@@ -28,10 +28,23 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
             return extraItem;
         }));
 
+        // Compatibility for new data structure
+        const quantity = item.quantity || 0;
+        const newCount = item.newCount ?? (item.status === 'New' ? quantity : 0);
+        const cookingCount = item.cookingCount ?? (item.status === 'Cooking' ? quantity : 0);
+        const readyCount = item.readyCount ?? (item.status === 'Ready' ? (item.cookedCount || 0) : 0);
+        const totalQuantity = newCount + cookingCount + readyCount + (item.servedCount || 0) + (item.cookedCount || 0);
+
+
         return {
             ...item,
             menuItem,
             selectedExtras: selectedExtras.filter(e => e !== null) as MenuItem[],
+            quantity: totalQuantity || quantity,
+            newCount: newCount,
+            cookingCount: cookingCount,
+            readyCount: readyCount,
+            servedCount: item.servedCount || 0,
         };
     }));
 
@@ -208,8 +221,10 @@ export const addOrder = async (orderData: {
             id: item.id,
             menuItemId: item.menuItem.id,
             quantity: item.quantity,
-            cookedCount: 0,
-            status: 'New',
+            newCount: item.quantity,
+            cookingCount: 0,
+            readyCount: 0,
+            servedCount: 0,
             selectedExtraIds: item.selectedExtras?.map(e => e.id) || [],
             notes: item.notes || '',
         }))
@@ -219,32 +234,18 @@ export const addOrder = async (orderData: {
     return newOrder;
 };
 
-export const updateOrderItemStatus = async (orderId: number, itemId: string, newStatus: OrderItem['status']) => {
+export const updateOrderItemStatus = async (orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Ready') => {
+    // This mock function is now less relevant due to the more granular client-side state management.
+    // In a real application, you would send the specific count changes to the backend.
+    // For now, we'll just acknowledge that a change happened.
+    console.log(`Server received status update for order ${orderId}, item ${itemId} to ${newStatus}`);
+    
+    // We can still handle the overall order completion logic here.
     const orders = await readData<any[]>('orders.json');
     const order = orders.find(o => o.id === orderId);
     if (!order) return false;
-
-    const item = order.items.find((i: any) => i.id === itemId);
-    if (!item) return false;
     
-    item.status = newStatus;
-
-    if (newStatus === 'Ready') {
-        item.cookedCount = (item.cookedCount || 0) + item.quantity;
-        item.quantity = 0;
-    } else if (newStatus === 'New' && item.cookedCount > 0) { // Reverting a ready item
-        item.quantity = item.cookedCount;
-        item.cookedCount = 0;
-    }
-
-    // Check if all items are cooked (quantity is 0)
-    const allCooked = order.items.every((i: any) => i.quantity === 0);
-    if (allCooked && order.status !== 'completed') {
-        order.status = 'completed';
-        const now = new Date().toISOString();
-        order.completedAt = now;
-        order.statusHistory.push({ status: 'completed', timestamp: now });
-    }
+    // The client will now determine if all items are ready and tell us to complete the order.
     
     await writeData('orders.json', orders);
     return true;
@@ -367,8 +368,7 @@ const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
         const mainItemPrice = item.menuItem.price + extrasTotal;
-        const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-        return total + (mainItemPrice * totalUnits);
+        return total + (mainItemPrice * item.quantity);
     }, 0);
 };
 
@@ -429,7 +429,7 @@ export const getItemSalesReport = async (dateRange?: DateRange) => {
 
     completedOrders.forEach(order => {
         order.items.forEach(item => {
-            const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
+            const totalUnits = item.quantity;
 
             if (!itemSales[item.menuItem.id]) {
                 itemSales[item.menuItem.id] = { name: item.menuItem.name, quantity: 0, total: 0 };
@@ -478,7 +478,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
         const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
-        const totalUnits = order.items.reduce((acc, item) => acc + (item.cookedCount || 0) + (item.quantity || 0), 0);
+        const totalUnits = order.items.reduce((acc, item) => acc + (item.quantity), 0);
 
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {

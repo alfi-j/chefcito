@@ -15,9 +15,11 @@ export type MenuItem = {
 export type OrderItem = {
   id:string;
   menuItem: MenuItem;
-  quantity: number;
-  cookedCount: number;
-  status: 'New' | 'Cooking' | 'Ready' | 'Served';
+  quantity: number; // This will be the total quantity for the item line
+  newCount: number;
+  cookingCount: number;
+  readyCount: number;
+  servedCount: number; // For FOH to track
   selectedExtras?: MenuItem[];
   splitId?: number;
   notes?: string;
@@ -99,3 +101,4 @@ export type ReadyItem = {
   selectedExtras: MenuItem[];
   notes?: string;
 };
+
