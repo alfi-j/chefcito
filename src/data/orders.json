@@ -60,7 +60,7 @@
         "menuItemId": "6",
         "quantity": 1,
         "cookedCount": 1,
-        "status": "New",
+        "status": "Ready",
         "selectedExtraIds": []
       }
     ]
@@ -114,7 +114,7 @@
         "menuItemId": "5",
         "quantity": 0,
         "cookedCount": 1,
-        "status": "Ready",
+        "status": "New",
         "selectedExtraIds": []
       },
       {

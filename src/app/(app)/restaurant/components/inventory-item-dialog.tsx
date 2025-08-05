@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { type InventoryItem, type MenuItem } from "@/lib/types"
 import { useI18n } from '@/context/i18n-context'
 import { MultiSelect } from './multi-select'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function InventoryItemDialog({ 
   item,
@@ -95,64 +96,66 @@ export function InventoryItemDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.inventory.dialog.edit_title') : t('restaurant.inventory.dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.inventory.dialog.edit_desc') : t('restaurant.inventory.dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">{t('restaurant.inventory.dialog.name')}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="quantity">{t('restaurant.inventory.dialog.quantity')}</Label>
-              <Input 
-                id="quantity" 
-                type="text"
-                inputMode="decimal"
-                value={quantity}
-                onChange={handleNumericInputChange(setQuantity)}
-              />
+        <ScrollArea className="flex-1 -mx-6">
+            <div className="space-y-4 py-4 px-6">
+                <div className="space-y-2">
+                    <Label htmlFor="name">{t('restaurant.inventory.dialog.name')}</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                    <Label htmlFor="quantity">{t('restaurant.inventory.dialog.quantity')}</Label>
+                    <Input 
+                        id="quantity" 
+                        type="text"
+                        inputMode="decimal"
+                        value={quantity}
+                        onChange={handleNumericInputChange(setQuantity)}
+                    />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="unit">{t('restaurant.inventory.dialog.unit')}</Label>
+                        <Input id="unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g. kg, L, pcs"/>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="reorderThreshold">{t('restaurant.inventory.dialog.reorder_threshold')}</Label>
+                        <Input 
+                        id="reorderThreshold" 
+                        type="text" 
+                        inputMode="decimal"
+                        value={reorderThreshold}
+                        onChange={handleNumericInputChange(setReorderThreshold)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                    <Label htmlFor="category">{t('restaurant.inventory.dialog.category')}</Label>
+                    <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="linkedItems">{t('restaurant.inventory.dialog.linked_items')}</Label>
+                    <MultiSelect
+                    options={menuItemOptions}
+                    selected={linkedItemIds}
+                    onChange={setLinkedItemIds}
+                    placeholder={t('restaurant.inventory.dialog.select_items')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                    {t('restaurant.inventory.dialog.linked_items_desc')}
+                    </p>
+                </div>
             </div>
-            <div className="space-y-2">
-                <Label htmlFor="unit">{t('restaurant.inventory.dialog.unit')}</Label>
-                <Input id="unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g. kg, L, pcs"/>
-            </div>
-          </div>
-           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="reorderThreshold">{t('restaurant.inventory.dialog.reorder_threshold')}</Label>
-                <Input 
-                  id="reorderThreshold" 
-                  type="text" 
-                  inputMode="decimal"
-                  value={reorderThreshold}
-                  onChange={handleNumericInputChange(setReorderThreshold)}
-                />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="category">{t('restaurant.inventory.dialog.category')}</Label>
-              <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
-            </div>
-          </div>
-           <div className="space-y-2">
-            <Label htmlFor="linkedItems">{t('restaurant.inventory.dialog.linked_items')}</Label>
-            <MultiSelect
-              options={menuItemOptions}
-              selected={linkedItemIds}
-              onChange={setLinkedItemIds}
-              placeholder={t('restaurant.inventory.dialog.select_items')}
-            />
-             <p className="text-xs text-muted-foreground">
-              {t('restaurant.inventory.dialog.linked_items_desc')}
-            </p>
-          </div>
-        </div>
-        <DialogFooter>
+        </ScrollArea>
+        <DialogFooter className="pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
