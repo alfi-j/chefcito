@@ -8,7 +8,7 @@ import { RotateCcw } from "lucide-react";
 interface OrderItemProps {
     item: OrderItemType;
     orderId: number;
-    orderStatus: Order['status'];
+    currentTab: 'kitchen' | 'serving';
     onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void;
     onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void;
 }
@@ -20,7 +20,7 @@ const statusColors = {
   Served: 'bg-gray-500/10 text-gray-800 dark:text-gray-300 hover:bg-gray-500/20',
 };
 
-export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
+export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
 
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
@@ -90,7 +90,7 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
 
   return (
     <div className="space-y-1">
-      {orderStatus === 'pending' && (
+      {currentTab === 'kitchen' && (
         <>
           <StatusRow 
               count={item.newCount}
@@ -105,7 +105,7 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
           />
         </>
       )}
-      {orderStatus === 'completed' && (
+      {currentTab === 'serving' && (
          <>
           <StatusRow 
               count={item.readyCount}

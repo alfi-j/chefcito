@@ -12,6 +12,7 @@ import { OrderItem } from "./order-item"
 
 interface OrderCardProps {
   order: Order
+  items: OrderItemType[]; // Now accepts a filtered list of items
   onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void
   onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
@@ -21,7 +22,7 @@ interface OrderCardProps {
   onTogglePin: (orderId: number) => void;
 }
 
-export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
+export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
   const timeAgo = useTimeAgo(order.createdAt);
   
   const [now, setNow] = useState(new Date().getTime());
@@ -40,7 +41,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
     const categoryOrder: { [category: string]: number } = {};
     let orderCounter = 0;
 
-    order.items.forEach(item => {
+    items.forEach(item => {
       const category = item.menuItem.category;
       if (!groups[category]) {
         groups[category] = [];
@@ -59,7 +60,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
     }
     
     return sortedGroups;
-  }, [order.items]);
+  }, [items]);
   
   const orderedCategories = useMemo(() => {
     return Object.keys(groupedItems);
@@ -73,6 +74,13 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
     e.stopPropagation();
     onTogglePin(order.id);
   }
+  
+  const currentTab = useMemo(() => {
+      if (items.some(i => i.newCount > 0 || i.cookingCount > 0)) {
+          return 'kitchen';
+      }
+      return 'serving';
+  }, [items]);
 
   return (
     <div 
@@ -148,7 +156,7 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                         key={item.id} 
                         item={item} 
                         orderId={order.id} 
-                        orderStatus={order.status}
+                        currentTab={currentTab}
                         onUpdateItemStatus={onUpdateItemStatus} 
                         onRevertItemStatus={onRevertItemStatus}
                       />

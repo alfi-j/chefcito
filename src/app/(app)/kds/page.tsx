@@ -2,7 +2,7 @@
 "use client";
 import { useState, useMemo, type DragEvent } from "react";
 import { OrderCard } from "./components/order-card";
-import { type Order } from "@/lib/types";
+import { type Order, type OrderItem } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { useI18n } from "@/context/i18n-context";
@@ -44,44 +44,33 @@ export default function KdsPage() {
     const draggedOrder = orders.find(o => o.id === draggedOrderId);
     const dropOrder = orders.find(o => o.id === dropOrderId);
 
-    if (!draggedOrder || !dropOrder || draggedOrder.status !== dropOrder.status) {
+    if (!draggedOrder || !dropOrder) {
       handleDragEnd();
       return;
     }
+    
+    // Determine which list we are in based on activeTab
+    const orderList = activeTab === 'pending' ? kitchenOrders : servingOrders;
+    
+    const fromIndex = orderList.findIndex(o => o.id === draggedOrderId);
+    const toIndex = orderList.findIndex(o => o.id === dropOrderId);
+
+    if (fromIndex === -1 || toIndex === -1) {
+       handleDragEnd();
+       return;
+    }
 
     setOrders(currentOrders => {
-      if (draggedOrder.status === 'pending') {
-        const pending = currentOrders.filter(o => o.status === 'pending' && !o.isPinned);
-        const pinned = currentOrders.filter(o => o.status === 'pending' && o.isPinned);
-        const completed = currentOrders.filter(o => o.status === 'completed');
+        const reordered = [...currentOrders];
+        const fromOrderIndex = reordered.findIndex(o => o.id === draggedOrderId);
+        const toOrderIndex = reordered.findIndex(o => o.id === dropOrderId);
         
-        const fromIndex = pending.findIndex(o => o.id === draggedOrderId);
-        const toIndex = pending.findIndex(o => o.id === dropOrderId);
-
-        if (fromIndex === -1 || toIndex === -1) return currentOrders;
+        const [removed] = reordered.splice(fromOrderIndex, 1);
+        reordered.splice(toOrderIndex, 0, removed);
         
-        const reorderedPending = [...pending];
-        const [removed] = reorderedPending.splice(fromIndex, 1);
-        reorderedPending.splice(toIndex, 0, removed);
-      
-        return [...pinned, ...reorderedPending, ...completed];
-      } else { // status is 'completed'
-        const pending = currentOrders.filter(o => o.status === 'pending');
-        const completed = currentOrders.filter(o => o.status === 'completed' && !o.isPinned);
-        const pinnedCompleted = currentOrders.filter(o => o.status === 'completed' && o.isPinned);
-
-        const fromIndex = completed.findIndex(o => o.id === draggedOrderId);
-        const toIndex = completed.findIndex(o => o.id === dropOrderId);
-
-        if (fromIndex === -1 || toIndex === -1) return currentOrders;
-
-        const reorderedCompleted = [...completed];
-        const [removed] = reorderedCompleted.splice(fromIndex, 1);
-        reorderedCompleted.splice(toIndex, 0, removed);
-
-        return [...pending, ...pinnedCompleted, ...reorderedCompleted];
-      }
+        return reordered;
     });
+
 
     handleDragEnd();
   };
@@ -97,18 +86,33 @@ export default function KdsPage() {
   };
 
   const kitchenOrders = useMemo(() => {
-    const pending = orders.filter(o => o.status === 'pending');
+    const pending = orders
+      .filter(o => o.items.some(i => i.newCount > 0 || i.cookingCount > 0))
+      .map(o => ({
+        ...o,
+        items: o.items.filter(i => i.newCount > 0 || i.cookingCount > 0)
+      }));
+
     const unpinned = pending.filter(o => !o.isPinned);
     const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    
     return [...pinned, ...unpinned];
   }, [orders]);
 
   const servingOrders = useMemo(() => {
-    const completed = orders.filter(o => o.status === 'completed');
+    const completed = orders
+      .filter(o => o.items.some(i => i.readyCount > 0 || i.servedCount > 0))
+      .map(o => ({
+        ...o,
+        items: o.items.filter(i => i.readyCount > 0 || i.servedCount > 0)
+      }));
+    
     const unpinned = completed.filter(o => !o.isPinned);
     const pinned = completed.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    
     return [...pinned, ...unpinned];
   }, [orders]);
+
   
   const renderOrderList = (orderList: Order[]) => {
     if (loading) {
@@ -126,7 +130,8 @@ export default function KdsPage() {
         {orderList.map((order) => (
           <OrderCard 
             key={order.id}
-            order={order} 
+            order={order}
+            items={order.items}
             onUpdateItemStatus={updateItemStatus}
             onRevertItemStatus={revertItemStatus}
             onDragStart={handleDragStart}
