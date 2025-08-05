@@ -329,7 +329,7 @@
   {
     "id": 4,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2025-08-02T21:36:17.607Z",
     "isPinned": false,
     "notes": "",
@@ -354,6 +354,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T16:54:19.371Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:02:52.483Z"
       }
     ],
     "items": [
@@ -381,7 +385,8 @@
         "status": "New",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T17:02:52.483Z"
   },
   {
     "id": 5,

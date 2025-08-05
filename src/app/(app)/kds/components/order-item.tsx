@@ -65,22 +65,22 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
-            <div className="flex items-center gap-2 flex-1">
-                <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{status}</div>
-                <ItemInfo count={count} />
+            <ItemInfo count={count} />
+            <div className="flex items-center gap-2">
+              <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{status}</div>
+              {canRevert && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onRevert(); }}
+                    className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label={`Revert status`}
+                >
+                    <RotateCcw className={cn("h-4 w-4", {
+                        "text-yellow-700": status === 'Cooking',
+                        "text-green-700": status === 'Serve'
+                    })} />
+                </button>
+              )}
             </div>
-            {canRevert && (
-              <button
-                  onClick={(e) => { e.stopPropagation(); onRevert(); }}
-                  className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`Revert status`}
-              >
-                  <RotateCcw className={cn("h-4 w-4", {
-                      "text-yellow-700": status === 'Cooking',
-                      "text-green-700": status === 'Serve'
-                  })} />
-              </button>
-            )}
         </div>
       </div>
     );
