@@ -89,7 +89,6 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
         className={cn(
           "flex flex-col h-full",
           order.isPinned && "border-primary border-2",
-          order.status === 'pending' ? "cursor-grab" : "cursor-default"
         )}
         draggable={order.status === 'pending' && !order.isPinned}
       >

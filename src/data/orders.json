@@ -289,7 +289,7 @@
   {
     "id": 5,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2025-08-02T23:23:57.462Z",
     "isPinned": false,
     "notes": "asdasdasd",
@@ -322,6 +322,10 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T14:23:00.480Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T16:23:19.967Z"
       }
     ],
     "items": [
@@ -333,6 +337,7 @@
         "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T16:23:19.967Z"
   }
 ]

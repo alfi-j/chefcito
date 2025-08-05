@@ -20,7 +20,6 @@ const statusColors = {
 };
 
 export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
-  const isOrderCompleted = orderStatus === 'completed';
 
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
@@ -56,8 +55,7 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
   }) => {
     if (count === 0) return null;
 
-    const canInteract = !isOrderCompleted;
-    const canRevert = !!onRevert && canInteract;
+    const canRevert = !!onRevert;
     const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
 
     return (
@@ -65,9 +63,9 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
         className={cn(
             "p-1 rounded-md transition-all group", 
             statusColors[status],
-            canInteract && onClick && "cursor-pointer"
+            onClick && "cursor-pointer"
         )}
-        onClick={(e) => { e.stopPropagation(); if (canInteract) onClick?.(); }}
+        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
             <ItemInfo count={count} />
