@@ -88,12 +88,12 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
         <StatusRow 
             count={item.newCount}
             status="New"
-            onClick={() => onUpdateItemStatus(orderId, item.id, 'New')}
+            onClick={orderStatus === 'pending' ? () => onUpdateItemStatus(orderId, item.id, 'New') : undefined}
         />
         <StatusRow 
             count={item.cookingCount}
             status="Cooking"
-            onClick={() => onUpdateItemStatus(orderId, item.id, 'Cooking')}
+            onClick={orderStatus === 'pending' ? () => onUpdateItemStatus(orderId, item.id, 'Cooking') : undefined}
             onRevert={() => onRevertItemStatus(orderId, item.id, 'New')}
             revertTo="New"
         />
