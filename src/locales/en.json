@@ -104,11 +104,14 @@
         }
     },
     "orders": {
-        "title": "Orders",
+        "title": "Ready to Serve",
         "description": "View and manage all customer orders.",
         "loading": "Loading order history...",
         "no_orders_found": "No orders found.",
         "no_orders_description": "New orders will appear here as they are created.",
+        "no_ready_items_title": "Nothing to Serve",
+        "no_ready_items_desc": "When the kitchen marks an item as ready, it will appear here.",
+        "mark_as_served": "Mark as Served",
         "tabs": {
             "all": "All",
             "pending": "Pending",
@@ -387,6 +390,7 @@
         },
         "language": {
             "title": "Language",
+            "title_es": "Idioma",
             "en": "English",
             "es": "Spanish"
         }

@@ -104,11 +104,14 @@
         }
     },
     "orders": {
-        "title": "Órdenes",
+        "title": "Listo para Servir",
         "description": "Ver y gestionar todas las órdenes de los clientes.",
         "loading": "Cargando historial de órdenes...",
         "no_orders_found": "No se encontraron órdenes.",
         "no_orders_description": "Las nuevas órdenes aparecerán aquí a medida que se creen.",
+        "no_ready_items_title": "Nada para Servir",
+        "no_ready_items_desc": "Cuando la cocina marque un artículo como listo, aparecerá aquí.",
+        "mark_as_served": "Marcar como Servido",
         "tabs": {
             "all": "Todas",
             "pending": "Pendientes",
