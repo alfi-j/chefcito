@@ -1,11 +1,10 @@
-
 [
   {
     "id": 1,
     "table": 5,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2024-08-06T10:00:00Z",
-    "isPinned": true,
+    "isPinned": false,
     "staffName": "John Doe",
     "notes": "Customer has a severe nut allergy. Please ensure no cross-contamination.",
     "orderType": "dine-in",
@@ -13,6 +12,10 @@
       {
         "status": "pending",
         "timestamp": "2024-08-06T10:00:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T17:20:35.679Z"
       }
     ],
     "items": [
@@ -42,7 +45,8 @@
         ],
         "notes": "Extra pancetta if possible."
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T17:20:35.679Z"
   },
   {
     "id": 2,

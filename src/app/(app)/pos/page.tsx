@@ -236,7 +236,7 @@ export default function PosPage() {
                 <TableRow key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
                   <TableCell className="font-medium">#{order.id}</TableCell>
                   <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
-                  <TableCell className="hidden md:table-cell">{t('pos.current_order.table')} {order.table}</TableCell>
+                  <TableCell className="hidden md:table-cell">{order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}</TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
                   </TableCell>
@@ -275,7 +275,7 @@ export default function PosPage() {
                     <div className="flex justify-between items-start">
                         <div>
                             <p className="font-bold text-lg">#{order.id}</p>
-                            <p className="text-sm text-muted-foreground">{t('pos.current_order.table')} {order.table}</p>
+                            <p className="text-sm text-muted-foreground">{order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}</p>
                         </div>
                         <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
                     </div>
@@ -385,7 +385,7 @@ export default function PosPage() {
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="search"
-                            placeholder={t('orders.table.order_id')}
+                            placeholder={t('orders.table.search_placeholder')}
                             className="pl-8 w-full"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}

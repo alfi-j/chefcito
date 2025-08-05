@@ -53,7 +53,6 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/orders", label: t('orders.title'), icon: History },
     { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
@@ -85,7 +84,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
              
              {/* Desktop Navigation */}
              <nav className="hidden md:flex items-center gap-2">
-                 {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+                 {menuItems.filter(item => !item.isHidden).map((item) => {
                     const isActive = pathname.startsWith(item.href);
                     return (
                         <Button key={item.href} variant={isActive ? "secondary" : "ghost"} size="sm" asChild>
@@ -112,8 +111,8 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm md:hidden">
-        <div className="grid h-16 grid-cols-5 max-w-lg mx-auto">
-          {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/orders", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+        <div className="grid h-16 grid-cols-4 max-w-lg mx-auto">
+          {menuItems.filter(item => !item.isHidden).map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} className={cn(
