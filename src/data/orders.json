@@ -1,487 +1,208 @@
+
 [
   {
     "id": 1,
-    "table": 3,
-    "status": "completed",
-    "createdAt": "2024-01-01T10:00:00Z",
-    "isPinned": false,
+    "table": 5,
+    "status": "pending",
+    "createdAt": "2024-08-06T10:00:00Z",
+    "isPinned": true,
     "staffName": "John Doe",
+    "notes": "Customer has a severe nut allergy. Please ensure no cross-contamination.",
+    "orderType": "dine-in",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-01-01T10:00:00Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:46:51.496Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:46:51.775Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:02:17.028Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:07:27.153Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:07:59.828Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:28:46.244Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:32:56.848Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:35:05.976Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:26:54.249Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:30:13.865Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:30:26.076Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:30:34.036Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:30:37.927Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:31:08.179Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:52:27.891Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:52:33.584Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:52:41.930Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:53:32.341Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:53:39.792Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:03:57.878Z"
+        "timestamp": "2024-08-06T10:00:00Z"
       }
     ],
     "items": [
       {
         "id": "1-1",
         "menuItemId": "1",
-        "quantity": 0,
-        "cookedCount": 1,
-        "status": "Ready",
+        "quantity": 2,
+        "newCount": 1,
+        "cookingCount": 1,
+        "readyCount": 0,
+        "servedCount": 0,
         "selectedExtraIds": [
           "extra-1"
-        ]
+        ],
+        "notes": "One pizza with thin crust, the other with regular."
       },
       {
         "id": "1-2",
         "menuItemId": "3",
         "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
-        "selectedExtraIds": []
+        "newCount": 0,
+        "cookingCount": 1,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [
+          "extra-2"
+        ],
+        "notes": "Extra pancetta if possible."
       }
-    ],
-    "completedAt": "2025-08-05T17:03:57.878Z"
+    ]
   },
   {
     "id": 2,
-    "table": 5,
-    "status": "completed",
-    "createdAt": "2024-01-01T09:50:00Z",
+    "table": 8,
+    "status": "pending",
+    "createdAt": "2024-08-06T10:05:00Z",
     "isPinned": false,
     "staffName": "Jane Smith",
+    "orderType": "dine-in",
+    "notes": "Order for the patio, table on the left.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-01-01T09:50:00Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:58:57.380Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:58:57.671Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T13:59:04.828Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:07:42.762Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:08:00.765Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:14:41.375Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:18:39.352Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:18:46.823Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:18:56.263Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:19:07.866Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:20:54.320Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:22:18.039Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:22:22.396Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:22:44.311Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:22:48.986Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:28:48.130Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:32:58.266Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:34:39.729Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:34:44.039Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:34:47.015Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:26:55.614Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:30:19.841Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:30:38.750Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:31:08.382Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:53:17.809Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:09:20.938Z"
+        "timestamp": "2024-08-06T10:05:00Z"
       }
     ],
     "items": [
       {
         "id": "2-1",
         "menuItemId": "2",
-        "quantity": 2,
-        "cookedCount": 0,
-        "status": "Cooking",
-        "selectedExtraIds": []
+        "quantity": 1,
+        "newCount": 1,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [
+          "extra-3"
+        ]
       },
       {
         "id": "2-2",
+        "menuItemId": "5",
+        "quantity": 2,
+        "newCount": 0,
+        "cookingCount": 2,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [],
+        "notes": "Extra garlic on both."
+      },
+      {
+        "id": "2-3",
         "menuItemId": "6",
-        "quantity": 0,
-        "cookedCount": 1,
-        "status": "Ready",
+        "quantity": 3,
+        "newCount": 3,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T17:09:20.938Z"
+    ]
   },
   {
     "id": 3,
-    "table": 1,
+    "table": 2,
     "status": "completed",
-    "createdAt": "2024-01-01T09:30:00Z",
+    "createdAt": "2024-08-06T09:45:00Z",
+    "completedAt": "2024-08-06T10:10:00Z",
     "isPinned": false,
     "staffName": "John Doe",
+    "orderType": "dine-in",
+    "notes": "Birthday celebration, add a candle to the dessert if possible.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-01-01T09:30:00Z"
+        "timestamp": "2024-08-06T09:45:00Z"
       },
       {
         "status": "completed",
-        "timestamp": "2025-08-01T01:11:43.879Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T12:51:24.685Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:07:45.054Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:08:10.240Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:08:28.734Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:08:34.339Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:18:49.511Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:18:58.876Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T14:28:48.532Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:26:57.559Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:30:23.050Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:30:39.411Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:31:08.647Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:54:02.669Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:55:09.204Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T17:09:30.754Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:09:45.691Z"
+        "timestamp": "2024-08-06T10:10:00Z"
       }
     ],
     "items": [
       {
         "id": "3-1",
+        "menuItemId": "1",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 0,
+        "selectedExtraIds": [
+          "extra-2",
+          "extra-3"
+        ]
+      },
+      {
+        "id": "3-2",
         "menuItemId": "4",
         "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 1,
+        "selectedExtraIds": [],
+        "notes": "This is the birthday dessert."
+      },
+      {
+        "id": "3-3",
+        "menuItemId": "3",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 0,
         "selectedExtraIds": []
       }
-    ],
-    "completedAt": "2025-08-05T17:09:45.691Z"
+    ]
   },
   {
     "id": 4,
-    "table": 1,
+    "table": 12,
     "status": "completed",
-    "createdAt": "2025-08-02T21:36:17.607Z",
+    "createdAt": "2024-08-06T09:58:00Z",
+    "completedAt": "2024-08-06T10:12:00Z",
     "isPinned": false,
-    "notes": "",
-    "staffName": "Staff Member",
+    "staffName": "Jane Smith",
+    "orderType": "delivery",
+    "deliveryInfo": {
+      "name": "Alice Johnson",
+      "address": "456 Oak Avenue, Foodville",
+      "phone": "555-0102"
+    },
+    "notes": "Please include extra napkins. Ring bell on arrival.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2025-08-02T21:36:17.607Z"
+        "timestamp": "2024-08-06T09:58:00Z"
       },
       {
         "status": "completed",
-        "timestamp": "2025-08-05T14:28:37.778Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:54:00.545Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:54:16.013Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:54:19.371Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:02:52.483Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T17:09:26.112Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:09:47.001Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T17:10:00.282Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:10:56.242Z"
+        "timestamp": "2024-08-06T10:12:00Z"
       }
     ],
     "items": [
       {
-        "id": "1754170577607",
-        "menuItemId": "5",
-        "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
-        "selectedExtraIds": []
-      },
-      {
-        "id": "1754170577608",
-        "menuItemId": "1",
-        "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
-        "selectedExtraIds": []
-      },
-      {
-        "id": "1754170577609",
+        "id": "4-1",
         "menuItemId": "3",
+        "quantity": 2,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 1,
+        "selectedExtraIds": [
+          "extra-1",
+          "extra-4"
+        ],
+        "notes": "One with no pepper."
+      },
+      {
+        "id": "4-2",
+        "menuItemId": "2",
         "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
-        "selectedExtraIds": []
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 1,
+        "selectedExtraIds": [],
+        "notes": "Dressing on the side."
       }
-    ],
-    "completedAt": "2025-08-05T17:10:56.242Z"
-  },
-  {
-    "id": 5,
-    "table": 1,
-    "status": "completed",
-    "createdAt": "2025-08-02T23:23:57.462Z",
-    "isPinned": false,
-    "notes": "asdasdasd",
-    "staffName": "Staff Member",
-    "statusHistory": [
-      {
-        "status": "pending",
-        "timestamp": "2025-08-02T23:23:57.462Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T05:42:15.233Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T05:42:15.548Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T12:51:22.898Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:46:38.776Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T13:46:39.034Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T14:23:00.480Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T16:23:19.967Z"
-      },
-      {
-        "status": "pending",
-        "timestamp": "2025-08-05T16:26:49.667Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:09:17.489Z"
-      }
-    ],
-    "items": [
-      {
-        "id": "5-1754177023506",
-        "menuItemId": "5",
-        "quantity": 0,
-        "cookedCount": 1,
-        "status": "Ready",
-        "selectedExtraIds": []
-      }
-    ],
-    "completedAt": "2025-08-05T17:09:17.489Z"
+    ]
   }
 ]
