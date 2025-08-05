@@ -145,7 +145,14 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
                   <h4 className="font-semibold tracking-wide uppercase text-xs px-1 text-muted-foreground/80">{category}</h4>
                   <div className="space-y-1 mt-1">
                     {groupedItems[category].map(item => (
-                      <OrderItem key={item.id} item={item} orderId={order.id} onUpdateItemStatus={onUpdateItemStatus} onRevertItemStatus={onRevertItemStatus}/>
+                      <OrderItem 
+                        key={item.id} 
+                        item={item} 
+                        orderId={order.id} 
+                        orderStatus={order.status}
+                        onUpdateItemStatus={onUpdateItemStatus} 
+                        onRevertItemStatus={onRevertItemStatus}
+                      />
                     ))}
                   </div>
                 </div>

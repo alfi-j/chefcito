@@ -1,13 +1,14 @@
 
 "use client";
 
-import { type OrderItem as OrderItemType } from "@/lib/types";
+import { type Order, type OrderItem as OrderItemType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RotateCcw } from "lucide-react";
 
 interface OrderItemProps {
     item: OrderItemType;
     orderId: number;
+    orderStatus: Order['status'];
     onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking') => void;
     onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => void;
 }
@@ -18,8 +19,9 @@ const statusColors = {
   Ready: 'bg-green-500/10 text-green-800 dark:text-green-300',
 };
 
-export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
-  
+export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
+  const isOrderCompleted = orderStatus === 'completed';
+
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
       <div className="flex items-start gap-1.5">
@@ -54,7 +56,8 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
   }) => {
     if (count === 0) return null;
 
-    const canRevert = !!onRevert;
+    const canInteract = !isOrderCompleted;
+    const canRevert = !!onRevert && canInteract;
     const revertIconColor = status === 'Cooking' ? 'text-yellow-700' : 'text-green-700';
 
     return (
@@ -62,9 +65,9 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
         className={cn(
             "p-1 rounded-md transition-all group", 
             statusColors[status],
-            onClick && "cursor-pointer"
+            canInteract && onClick && "cursor-pointer"
         )}
-        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+        onClick={(e) => { e.stopPropagation(); if (canInteract) onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
             <ItemInfo count={count} />
