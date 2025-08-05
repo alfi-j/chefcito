@@ -1,66 +1,68 @@
+
 [
   {
     "id": 1,
-    "table": 5,
-    "status": "completed",
+    "table": 3,
+    "status": "pending",
     "createdAt": "2024-08-06T10:00:00Z",
-    "isPinned": false,
-    "staffName": "John Doe",
-    "notes": "Customer has a severe nut allergy. Please ensure no cross-contamination.",
+    "isPinned": true,
+    "staffName": "Alex",
+    "notes": "Table has a nut allergy. Please ensure no cross-contamination.",
     "orderType": "dine-in",
     "statusHistory": [
       {
         "status": "pending",
         "timestamp": "2024-08-06T10:00:00Z"
-      },
-      {
-        "status": "completed",
-        "timestamp": "2025-08-05T17:20:35.679Z"
       }
     ],
     "items": [
       {
         "id": "1-1",
         "menuItemId": "1",
-        "quantity": 2,
-        "newCount": 1,
-        "cookingCount": 1,
-        "readyCount": 0,
-        "servedCount": 0,
-        "selectedExtraIds": [
-          "extra-1"
-        ],
-        "notes": "One pizza with thin crust, the other with regular."
-      },
-      {
-        "id": "1-2",
-        "menuItemId": "3",
         "quantity": 1,
         "newCount": 0,
         "cookingCount": 1,
         "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": [
-          "extra-2"
-        ],
-        "notes": "Extra pancetta if possible."
+        "selectedExtraIds": ["extra-1"],
+        "notes": "Extra crispy crust."
+      },
+      {
+        "id": "1-2",
+        "menuItemId": "3",
+        "quantity": 2,
+        "newCount": 2,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": ["extra-2"],
+        "notes": "One without pepper."
       }
-    ],
-    "completedAt": "2025-08-05T17:20:35.679Z"
+    ]
   },
   {
     "id": 2,
-    "table": 8,
-    "status": "pending",
+    "table": 7,
+    "status": "completed",
     "createdAt": "2024-08-06T10:05:00Z",
+    "completedAt": "2024-08-06T10:15:00Z",
     "isPinned": false,
-    "staffName": "Jane Smith",
-    "orderType": "dine-in",
-    "notes": "Order for the patio, table on the left.",
+    "staffName": "Maria",
+    "orderType": "delivery",
+    "deliveryInfo": {
+      "name": "Jane Doe",
+      "address": "123 Main St, Anytown",
+      "phone": "555-1234"
+    },
+    "notes": "Please include extra utensils and napkins. Ring bell upon arrival.",
     "statusHistory": [
       {
         "status": "pending",
         "timestamp": "2024-08-06T10:05:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2024-08-06T10:15:00Z"
       }
     ],
     "items": [
@@ -68,144 +70,106 @@
         "id": "2-1",
         "menuItemId": "2",
         "quantity": 1,
-        "newCount": 1,
+        "newCount": 0,
         "cookingCount": 0,
         "readyCount": 0,
-        "servedCount": 0,
-        "selectedExtraIds": [
-          "extra-3"
-        ]
+        "servedCount": 1,
+        "selectedExtraIds": ["extra-3"],
+        "notes": "Dressing on the side."
       },
       {
         "id": "2-2",
         "menuItemId": "5",
-        "quantity": 2,
+        "quantity": 1,
         "newCount": 0,
-        "cookingCount": 2,
-        "readyCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
         "servedCount": 0,
         "selectedExtraIds": [],
-        "notes": "Extra garlic on both."
-      },
-      {
-        "id": "2-3",
-        "menuItemId": "6",
-        "quantity": 3,
-        "newCount": 3,
-        "cookingCount": 0,
-        "readyCount": 0,
-        "servedCount": 0,
-        "selectedExtraIds": []
+        "notes": "Extra garlic, lightly toasted."
       }
     ]
   },
   {
     "id": 3,
-    "table": 2,
-    "status": "completed",
-    "createdAt": "2024-08-06T09:45:00Z",
-    "completedAt": "2024-08-06T10:10:00Z",
+    "table": 11,
+    "status": "pending",
+    "createdAt": "2024-08-06T10:10:00Z",
     "isPinned": false,
-    "staffName": "John Doe",
+    "staffName": "Alex",
     "orderType": "dine-in",
-    "notes": "Birthday celebration, add a candle to the dessert if possible.",
+    "notes": "Customer is in a hurry.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T09:45:00Z"
-      },
-      {
-        "status": "completed",
         "timestamp": "2024-08-06T10:10:00Z"
       }
     ],
     "items": [
       {
         "id": "3-1",
-        "menuItemId": "1",
-        "quantity": 1,
-        "newCount": 0,
+        "menuItemId": "6",
+        "quantity": 4,
+        "newCount": 4,
         "cookingCount": 0,
-        "readyCount": 1,
+        "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": [
-          "extra-2",
-          "extra-3"
-        ]
+        "selectedExtraIds": []
       },
       {
         "id": "3-2",
-        "menuItemId": "4",
+        "menuItemId": "1",
         "quantity": 1,
-        "newCount": 0,
+        "newCount": 1,
         "cookingCount": 0,
         "readyCount": 0,
-        "servedCount": 1,
-        "selectedExtraIds": [],
-        "notes": "This is the birthday dessert."
-      },
-      {
-        "id": "3-3",
-        "menuItemId": "3",
-        "quantity": 1,
-        "newCount": 0,
-        "cookingCount": 0,
-        "readyCount": 1,
         "servedCount": 0,
-        "selectedExtraIds": []
+        "selectedExtraIds": ["extra-2", "extra-3"],
+        "notes": "Well-done bacon."
       }
     ]
   },
   {
     "id": 4,
-    "table": 12,
+    "table": 5,
     "status": "completed",
-    "createdAt": "2024-08-06T09:58:00Z",
-    "completedAt": "2024-08-06T10:12:00Z",
+    "createdAt": "2024-08-06T10:12:00Z",
+    "completedAt": "2024-08-06T10:20:00Z",
     "isPinned": false,
-    "staffName": "Jane Smith",
-    "orderType": "delivery",
-    "deliveryInfo": {
-      "name": "Alice Johnson",
-      "address": "456 Oak Avenue, Foodville",
-      "phone": "555-0102"
-    },
-    "notes": "Please include extra napkins. Ring bell on arrival.",
+    "staffName": "Maria",
+    "orderType": "dine-in",
+    "notes": "",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T09:58:00Z"
+        "timestamp": "2024-08-06T10:12:00Z"
       },
       {
         "status": "completed",
-        "timestamp": "2024-08-06T10:12:00Z"
+        "timestamp": "2024-08-06T10:20:00Z"
       }
     ],
     "items": [
       {
         "id": "4-1",
         "menuItemId": "3",
-        "quantity": 2,
-        "newCount": 0,
-        "cookingCount": 0,
-        "readyCount": 1,
-        "servedCount": 1,
-        "selectedExtraIds": [
-          "extra-1",
-          "extra-4"
-        ],
-        "notes": "One with no pepper."
-      },
-      {
-        "id": "4-2",
-        "menuItemId": "2",
         "quantity": 1,
         "newCount": 0,
         "cookingCount": 0,
-        "readyCount": 0,
-        "servedCount": 1,
-        "selectedExtraIds": [],
-        "notes": "Dressing on the side."
+        "readyCount": 1,
+        "servedCount": 0,
+        "selectedExtraIds": ["extra-1", "extra-4"],
+        "notes": "Add extra parmesan on top."
+      },
+      {
+        "id": "4-2",
+        "menuItemId": "4",
+        "quantity": 2,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 2,
+        "servedCount": 0,
+        "selectedExtraIds": []
       }
     ]
   }
