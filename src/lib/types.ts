@@ -1,4 +1,5 @@
 
+
 export type MenuItem = {
   id: string;
   name: string;
@@ -88,6 +89,16 @@ export type InventoryItem = {
   lastRestocked: string; // ISO date string
   linkedItemIds?: string[];
   category?: string;
+};
+
+export type ReadyItem = {
+  id: string; // A unique ID for the specific ready item instance
+  name: string;
+  orderId: number;
+  table: number;
+  orderItemId: string; // The original OrderItem ID
+  selectedExtras: MenuItem[];
+  notes?: string;
 };
 
 

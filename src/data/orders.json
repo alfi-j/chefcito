@@ -50,16 +50,16 @@
       {
         "id": "2-1",
         "menuItemId": "2",
-        "quantity": 2,
-        "cookedCount": 0,
-        "status": "New",
+        "quantity": 0,
+        "cookedCount": 2,
+        "status": "Ready",
         "selectedExtraIds": []
       },
       {
         "id": "2-2",
         "menuItemId": "6",
-        "quantity": 2,
-        "cookedCount": 0,
+        "quantity": 1,
+        "cookedCount": 1,
         "status": "New",
         "selectedExtraIds": []
       }
@@ -112,9 +112,9 @@
       {
         "id": "1754170577607",
         "menuItemId": "5",
-        "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
+        "quantity": 0,
+        "cookedCount": 1,
+        "status": "Ready",
         "selectedExtraIds": []
       },
       {
@@ -138,7 +138,7 @@
   {
     "id": 5,
     "table": 1,
-    "status": "pending",
+    "status": "completed",
     "createdAt": "2025-08-02T23:23:57.462Z",
     "isPinned": false,
     "notes": "asdasdasd",
@@ -147,17 +147,26 @@
       {
         "status": "pending",
         "timestamp": "2025-08-02T23:23:57.462Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T05:42:15.233Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T05:42:15.548Z"
       }
     ],
     "items": [
       {
         "id": "5-1754177023506",
         "menuItemId": "5",
-        "quantity": 1,
-        "cookedCount": 0,
-        "status": "New",
+        "quantity": 0,
+        "cookedCount": 1,
+        "status": "Ready",
         "selectedExtraIds": []
       }
-    ]
+    ],
+    "completedAt": "2025-08-05T05:42:15.233Z"
   }
 ]
