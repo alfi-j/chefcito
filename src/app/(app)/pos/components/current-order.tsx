@@ -184,7 +184,7 @@ export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: 
               {t('pos.current_order.payment')}
             </Button>
           </div>
-          <Button className="w-full mt-2 bg-primary hover:bg-accent text-primary-foreground font-bold" onClick={onSendToKitchen} disabled={!canSendToKitchen}>
+          <Button className="w-full mt-2" onClick={onSendToKitchen} disabled={!canSendToKitchen}>
             <Send className="mr-2 h-4 w-4"/>
             {t('pos.current_order.send_to_kitchen')}
           </Button>

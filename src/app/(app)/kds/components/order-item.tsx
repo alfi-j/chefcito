@@ -50,6 +50,9 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
                 ))}
               </div>
             )}
+            {item.notes && (
+                <p className="pl-2 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
+            )}
           </div>
         </div>
         <span className="text-lg font-bold ml-1.5 leading-tight">{item.status}</span>
@@ -75,6 +78,9 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
                   <div key={extra.id}>+ {extra.name}</div>
                 ))}
               </div>
+            )}
+            {item.notes && (
+                <p className="pl-2 text-sm text-primary/80 font-medium italic whitespace-pre-wrap line-through">Notes: {item.notes}</p>
             )}
           </div>
         </div>

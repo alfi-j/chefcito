@@ -61,10 +61,25 @@ export function ReceiptDialog({ isOpen, onOpenChange, order }: ReceiptDialogProp
 
             <div className="space-y-1 text-xs">
                 <p><strong>{t('orders.table.order_id')}:</strong> #{order.id}</p>
-                <p><strong>{t('orders.table.table')}:</strong> {order.table}</p>
+                {order.orderType === 'dine-in' ? (
+                  <p><strong>{t('orders.table.table')}:</strong> {order.table}</p>
+                ) : (
+                  <p><strong>{t('pos.order_type.delivery')}</strong></p>
+                )}
                 <p><strong>{t('orders.table.date')}:</strong> {format(new Date(order.createdAt), 'PPp')}</p>
                 <p><strong>{t('orders.table.staff')}:</strong> {order.staffName || 'N/A'}</p>
             </div>
+            
+            {order.orderType === 'delivery' && order.deliveryInfo && (
+              <>
+                <Separator className="my-4"/>
+                <div className="space-y-1 text-xs">
+                    <p><strong>{t('pos.delivery.name')}:</strong> {order.deliveryInfo.name}</p>
+                    <p><strong>{t('pos.delivery.address')}:</strong> {order.deliveryInfo.address}</p>
+                    <p><strong>{t('pos.delivery.phone')}:</strong> {order.deliveryInfo.phone}</p>
+                </div>
+              </>
+            )}
 
             <Separator className="my-4" />
 

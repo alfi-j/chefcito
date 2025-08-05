@@ -2,7 +2,7 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { type Order, type OrderItem as OrderItemType, menuCategories } from "@/lib/types"
+import { type Order, type OrderItem as OrderItemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyNote } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
@@ -36,37 +36,33 @@ export function OrderCard({ order, onUpdateItemStatus, onRevertItemStatus, onDra
   const isVeryUrgent = elapsedMinutes > 20;
 
   const groupedItems = useMemo(() => {
-    const groups: Record<string, OrderItemType[]> = {};
-    
-    // Group items by category
-    for (const item of order.items) {
+    const groups: { [category: string]: OrderItemType[] } = {};
+    const categoryOrder: { [category: string]: number } = {};
+    let orderCounter = 0;
+
+    order.items.forEach(item => {
       const category = item.menuItem.category;
       if (!groups[category]) {
         groups[category] = [];
+        categoryOrder[category] = orderCounter++;
       }
       groups[category].push(item);
+    });
+
+    // Sort categories based on their appearance in the original order
+    const sortedCategories = Object.keys(groups).sort((a, b) => categoryOrder[a] - categoryOrder[b]);
+
+    // Create a sorted group object
+    const sortedGroups: { [category: string]: OrderItemType[] } = {};
+    for (const category of sortedCategories) {
+        sortedGroups[category] = groups[category];
     }
     
-    // Sort items within each group
-    for (const category in groups) {
-      groups[category].sort((a, b) => {
-         // Primary sort: uncategorized (ready) items last
-        const aIsFullyReady = a.quantity === 0 && a.cookedCount > 0;
-        const bIsFullyReady = b.quantity === 0 && b.cookedCount > 0;
-        if (aIsFullyReady && !bIsFullyReady) return 1;
-        if (!aIsFullyReady && bIsFullyReady) return -1;
-        
-        // Secondary sort: by status order
-        const statusOrder = { 'New': 0, 'Cooking': 1, 'Ready': 2 };
-        return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
-      });
-    }
-
-    return groups;
+    return sortedGroups;
   }, [order.items]);
-
+  
   const orderedCategories = useMemo(() => {
-    return menuCategories.filter(cat => groupedItems[cat]);
+    return Object.keys(groupedItems);
   }, [groupedItems]);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {

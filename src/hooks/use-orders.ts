@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context";
 import { getInitialOrders, updateOrderItemStatus as mockUpdateItem, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
 
-const statusSequence: ('New' | 'Cooking' | 'Ready' | 'Served')[] = ['New', 'Cooking', 'Ready', 'Served'];
+// The KDS is only concerned with these states. 'Served' is handled by front-of-house.
+const kdsStatusSequence: ('New' | 'Cooking' | 'Ready')[] = ['New', 'Cooking', 'Ready'];
 
 const parseOrderDates = (orders: Order[]): Order[] => {
   return orders.map(order => ({
@@ -17,8 +18,8 @@ const parseOrderDates = (orders: Order[]): Order[] => {
   }));
 };
 
-const isOrderCompleted = (order: Order) => order.items.every(item => item.status === 'Served');
-
+// An order is complete from the KITCHEN's perspective when all items are cooked.
+const isOrderReadyForCompletion = (order: Order) => order.items.every(item => item.quantity === 0 && item.cookedCount > 0);
 
 export const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -45,40 +46,51 @@ export const useOrders = () => {
     const updateItemStatus = useCallback(async (orderId: number, itemId: string) => {
         const originalOrders = JSON.parse(JSON.stringify(orders)); // Deep copy for revert
         let updatedOrder: Order | undefined;
+        let finalStatus: OrderItem['status'] | undefined;
 
         const newOrders = orders.map(o => {
             if (o.id !== orderId) return o;
-
-            const item = o.items.find(i => i.id === itemId);
-            if (!item) return o;
-
-            const currentIndex = statusSequence.indexOf(item.status);
-            const nextStatus = statusSequence[currentIndex + 1];
-
-            if (!nextStatus) return o; // Already at the end of the sequence
-
-            const newItems = o.items.map(i => i.id === itemId ? { ...i, status: nextStatus } : i);
             
-            updatedOrder = { ...o, items: newItems };
+            const newItems = [...o.items];
+            const itemIndex = newItems.findIndex(i => i.id === itemId);
+            if (itemIndex === -1) return o;
 
-            if (isOrderCompleted(updatedOrder)) {
-                updatedOrder.status = 'completed';
+            const item = newItems[itemIndex];
+            const currentIndex = kdsStatusSequence.indexOf(item.status);
+            const nextStatus = kdsStatusSequence[currentIndex + 1];
+
+            if (!nextStatus) return o; // Already 'Ready'
+            
+            finalStatus = nextStatus;
+
+            if (nextStatus === 'Ready') {
+                 // Item is cooked, move quantity to cookedCount
+                newItems[itemIndex] = { 
+                    ...item, 
+                    status: 'Ready', 
+                    cookedCount: item.cookedCount + item.quantity, 
+                    quantity: 0 
+                };
+            } else {
+                newItems[itemIndex] = { ...item, status: nextStatus };
             }
 
+            updatedOrder = { ...o, items: newItems };
+
+            if (isOrderReadyForCompletion(updatedOrder)) {
+                updatedOrder.status = 'completed';
+            }
+            
             return updatedOrder;
         });
 
         setOrders(newOrders);
 
-        if (!updatedOrder) return;
-        
-        const itemToUpdate = updatedOrder.items.find(i => i.id === itemId);
-        if (!itemToUpdate) return;
+        if (!updatedOrder || !finalStatus) return;
         
         try {
-            await mockUpdateItem(orderId, itemId, itemToUpdate.status);
-            
-            if (updatedOrder.status === 'completed') {
+            await mockUpdateItem(orderId, itemId, finalStatus);
+            if (updatedOrder.status === 'completed' && originalOrders.find((o: Order) => o.id === orderId)?.status !== 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'completed' });
             }
         } catch (error: any) {
@@ -86,6 +98,7 @@ export const useOrders = () => {
             setOrders(parseOrderDates(originalOrders));
         }
     }, [orders, t]);
+
 
     const revertItemStatus = useCallback(async (orderId: number, itemId: string) => {
         const originalOrders = JSON.parse(JSON.stringify(orders));
@@ -96,21 +109,27 @@ export const useOrders = () => {
         const itemIndex = order.items.findIndex(i => i.id === itemId);
         if (itemIndex === -1) return;
 
-        const newOrders = [...orders];
-        newOrders[newOrders.findIndex(o => o.id === orderId)] = {
-            ...order,
-            status: 'pending',
-            items: order.items.map((item, index) =>
-                index === itemIndex
-                    ? { ...item, status: 'New' }
-                    : item
-            )
-        };
+        const itemToRevert = order.items[itemIndex];
+        
+        // This action should only be possible on items that have been cooked
+        if(itemToRevert.cookedCount === 0) return;
 
-        setOrders(newOrders);
+        const newItems = [...order.items];
+        newItems[itemIndex] = {
+            ...itemToRevert,
+            status: 'New',
+            quantity: itemToRevert.cookedCount, // Move count back to quantity
+            cookedCount: 0,
+        };
+        
+        const newOrder = { ...order, items: newItems, status: 'pending' };
+
+        const newOrdersState = orders.map(o => o.id === orderId ? newOrder : o);
+        setOrders(newOrdersState);
 
         try {
             await mockUpdateItem(orderId, itemId, 'New');
+            // If the original order was completed, we must revert its status.
             if (order.status === 'completed') {
                 await mockUpdateStatus({ orderId, newStatus: 'pending' });
             }

@@ -57,7 +57,7 @@ export default function PosPage() {
   const { t } = useI18n();
   
   const { menuItems, categories, loading: menuLoading, fetchAllData } = useMenu();
-  const order = useCurrentOrder();
+  const currentOrder = useCurrentOrder();
 
   // State and hooks from former OrdersPage
   const [activeTab, setActiveTab] = useState('all');
@@ -69,7 +69,23 @@ export default function PosPage() {
 
 
   const handleAddItemToOrder = (item: MenuItem) => {
-    order.addItem(item, 1, []);
+    // Open dialog immediately if item has modifiers
+    const hasModifiers = (item.linkedModifiers && item.linkedModifiers.length > 0) || categories.some(c => c.linkedModifiers && c.linkedModifiers.length > 0 && c.name === item.category);
+
+    if (hasModifiers) {
+      const newItem: OrderItem = {
+          id: `${item.id}-${Date.now()}`,
+          menuItem: item,
+          quantity: 1,
+          cookedCount: 0,
+          status: 'New',
+          selectedExtras: [],
+          notes: '',
+      };
+      setEditingOrderItem(newItem);
+    } else {
+       currentOrder.addItem(item, 1, []);
+    }
   };
   
   const handleEditItem = (orderItem: OrderItem) => {
@@ -77,13 +93,20 @@ export default function PosPage() {
   };
 
   const handleUpdateItemInOrder = (item: OrderItem, quantity: number, selectedExtras: MenuItem[], notes: string) => {
-     order.updateItem(item.id, quantity, selectedExtras, notes);
+     currentOrder.updateItem(item.id, quantity, selectedExtras, notes);
      toast.success(t('pos.toast.item_updated', { item: item.menuItem.name }), { duration: 3000 });
      setEditingOrderItem(null);
   }
+  
+  const handleSaveNewItem = (quantity: number, selectedExtras: MenuItem[], notes: string) => {
+    if (editingOrderItem) {
+      currentOrder.addItem(editingOrderItem.menuItem, quantity, selectedExtras, notes);
+      setEditingOrderItem(null);
+    }
+  }
 
   const handleSendToKitchen = async () => {
-    if (order.items.length === 0) {
+    if (currentOrder.items.length === 0) {
       toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_desc'),
         duration: 3000,
@@ -93,17 +116,17 @@ export default function PosPage() {
 
     try {
       await addOrder({
-        table: order.table,
-        items: order.items,
-        notes: order.notes,
-        orderType: order.orderType,
-        deliveryInfo: order.deliveryInfo
+        table: currentOrder.table,
+        items: currentOrder.items,
+        notes: currentOrder.notes,
+        orderType: currentOrder.orderType,
+        deliveryInfo: currentOrder.deliveryInfo
       });
       toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
         duration: 3000,
       });
-      order.clearOrder();
+      currentOrder.clearOrder();
       fetchOrders(); // Refresh orders list
     } catch (error: any) {
        toast.error(t('toast.error'), {
@@ -114,7 +137,7 @@ export default function PosPage() {
   };
 
   const handleOpenPaymentDialog = () => {
-    if (order.items.length === 0) {
+    if (currentOrder.items.length === 0) {
       toast.error(t('pos.toast.empty_order_title'), {
         description: t('pos.toast.empty_order_payment_desc'),
         duration: 3000,
@@ -130,11 +153,11 @@ export default function PosPage() {
     // Send order as completed
     try {
        await addOrder({
-        table: order.table,
-        items: order.items,
-        notes: order.notes,
-        orderType: order.orderType,
-        deliveryInfo: order.deliveryInfo,
+        table: currentOrder.table,
+        items: currentOrder.items,
+        notes: currentOrder.notes,
+        orderType: currentOrder.orderType,
+        deliveryInfo: currentOrder.deliveryInfo,
       });
       // In a real app we'd likely mark this new order as paid immediately.
       // For mock purposes, we just add it and then show success.
@@ -142,7 +165,7 @@ export default function PosPage() {
           description: t('pos.toast.payment_success_desc'),
           duration: 3000,
       });
-      order.clearOrder();
+      currentOrder.clearOrder();
       fetchOrders(); // Refresh orders list
     } catch (error: any) {
        toast.error(t('toast.error'), {
@@ -275,7 +298,8 @@ export default function PosPage() {
   const displayCategories = categories.filter(c => !c.isModifierGroup);
   const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
   
-  const isEditDialog = !!editingOrderItem;
+  const isExistingItem = editingOrderItem ? currentOrder.items.some(i => i.id === editingOrderItem.id) : false;
+  const isDialog = !!editingOrderItem;
   const dialogItem = editingOrderItem?.menuItem;
   
   const closeDialog = () => {
@@ -283,21 +307,25 @@ export default function PosPage() {
   }
 
   const handleDialogSave = (quantity: number, selectedExtras: MenuItem[], notes: string) => {
-    if (isEditDialog && editingOrderItem) {
-      handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras, notes);
+    if (isDialog && editingOrderItem) {
+      if (isExistingItem) {
+        handleUpdateItemInOrder(editingOrderItem, quantity, selectedExtras, notes);
+      } else {
+        handleSaveNewItem(quantity, selectedExtras, notes);
+      }
     }
   }
 
   return (
     <>
-      {isEditDialog && dialogItem && (
+      {isDialog && dialogItem && (
         <AddItemDialog
-          isOpen={isEditDialog}
+          isOpen={isDialog}
           onOpenChange={(open) => !open && closeDialog()}
           item={dialogItem}
-          orderItem={editingOrderItem}
+          orderItem={isExistingItem ? editingOrderItem : null}
           onSave={handleDialogSave}
-          onRemove={order.removeItem}
+          onRemove={currentOrder.removeItem}
           menuItems={menuItems}
           categories={categories}
         />
@@ -306,8 +334,8 @@ export default function PosPage() {
       <PaymentDialog
         isOpen={isPaymentDialogOpen}
         onOpenChange={setPaymentDialogOpen}
-        orderItems={order.items}
-        totalAmount={order.total}
+        orderItems={currentOrder.items}
+        totalAmount={currentOrder.total}
         onConfirmPayment={handlePaymentSuccess}
       />
       
@@ -330,7 +358,7 @@ export default function PosPage() {
             </div>
             <div className="md:col-span-4 h-full">
             <CurrentOrder 
-                order={order}
+                order={currentOrder}
                 onSendToKitchen={handleSendToKitchen}
                 onPayment={handleOpenPaymentDialog}
                 onEditItem={handleEditItem}

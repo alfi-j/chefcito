@@ -104,14 +104,11 @@
         }
     },
     "orders": {
-        "title": "Ready to Serve",
+        "title": "Order History",
         "description": "View and manage all customer orders.",
         "loading": "Loading order history...",
         "no_orders_found": "No orders found.",
         "no_orders_description": "New orders will appear here as they are created.",
-        "no_ready_items_title": "Nothing to Serve",
-        "no_ready_items_desc": "When the kitchen marks an item as ready, it will appear here.",
-        "mark_as_served": "Mark as Served",
         "tabs": {
             "all": "All",
             "pending": "Pending",
@@ -130,14 +127,16 @@
             "total": "Total",
             "actions": "Actions",
             "toggle_menu": "Toggle menu",
-            "view_details": "View Details"
+            "view_details": "View Details",
+            "search_placeholder": "Search by Order ID or Table..."
         },
         "details": {
             "title": "Order Details",
             "description": "Review the complete details of this order.",
             "items": "Items",
             "status_history": "Status History",
-            "view_receipt": "View Receipt"
+            "view_receipt": "View Receipt",
+            "delivery_info": "Delivery Information"
         },
         "receipt": {
             "thank_you": "Thank you for your visit!",

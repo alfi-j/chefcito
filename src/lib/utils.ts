@@ -11,13 +11,15 @@ export const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
         const mainItemPrice = item.menuItem.price + extrasTotal;
-        return total + (mainItemPrice * item.quantity);
+        const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
+        return total + (mainItemPrice * totalUnits);
     }, 0);
 };
 
 export const getItemTotal = (item: OrderItem) => {
     const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    return (item.menuItem.price + extrasPrice) * item.quantity;
+    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
+    return (item.menuItem.price + extrasPrice) * totalUnits;
 };
 
 export const groupReadyItemsByTable = (orders: Order[]): Record<string, ReadyItem[]> => {

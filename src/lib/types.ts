@@ -99,6 +99,3 @@ export type ReadyItem = {
   selectedExtras: MenuItem[];
   notes?: string;
 };
-
-
-export const menuCategories = ['Appetizers', 'Main Courses', 'Desserts', 'Beverages'];

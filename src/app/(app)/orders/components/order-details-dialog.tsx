@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { getOrderTotal, getItemTotal } from "@/lib/utils"
-import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt, StickyNote } from "lucide-react"
+import { ClipboardList, User, Utensils, Clock, CheckCircle, Hourglass, Receipt, StickyNote, Package, PersonStanding } from "lucide-react"
 import { MdOutlineTableRestaurant } from "react-icons/md"
 
 interface OrderDetailsDialogProps {
@@ -59,10 +59,17 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
         </DialogHeader>
         
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <MdOutlineTableRestaurant className="h-4 w-4" />
-                <span>{t('pos.current_order.table')} {order.table}</span>
-            </div>
+            {order.orderType === 'dine-in' ? (
+                 <div className="flex items-center gap-2 text-muted-foreground">
+                    <MdOutlineTableRestaurant className="h-4 w-4" />
+                    <span>{t('pos.current_order.table')} {order.table}</span>
+                </div>
+            ) : (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <Package className="h-4 w-4" />
+                    <span>{t('pos.order_type.delivery')}</span>
+                </div>
+            )}
              <div className="flex items-center gap-2 text-muted-foreground">
                 <User className="h-4 w-4" />
                 <span>{order.staffName || 'N/A'}</span>
@@ -77,9 +84,21 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
                 </Badge>
             </div>
         </div>
-
-        <Separator />
         
+        {order.orderType === 'delivery' && order.deliveryInfo && (
+            <div>
+                 <h3 className="font-semibold mb-2 flex items-center gap-2">
+                    <PersonStanding className="h-4 w-4" />
+                    {t('orders.details.delivery_info')}
+                </h3>
+                <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md space-y-1">
+                    <p><strong>{t('pos.delivery.name')}:</strong> {order.deliveryInfo.name}</p>
+                    <p><strong>{t('pos.delivery.address')}:</strong> {order.deliveryInfo.address}</p>
+                    <p><strong>{t('pos.delivery.phone')}:</strong> {order.deliveryInfo.phone}</p>
+                </div>
+            </div>
+        )}
+
         {order.notes && (
              <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
@@ -108,6 +127,9 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
                                                 <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
                                                 ))}
                                             </div>
+                                        )}
+                                        {item.notes && (
+                                            <p className="pl-2 text-xs text-primary/80 italic">Notes: {item.notes}</p>
                                         )}
                                     </div>
                                 </div>

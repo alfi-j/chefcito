@@ -104,14 +104,11 @@
         }
     },
     "orders": {
-        "title": "Listo para Servir",
+        "title": "Historial de Órdenes",
         "description": "Ver y gestionar todas las órdenes de los clientes.",
         "loading": "Cargando historial de órdenes...",
         "no_orders_found": "No se encontraron órdenes.",
         "no_orders_description": "Las nuevas órdenes aparecerán aquí a medida que se creen.",
-        "no_ready_items_title": "Nada para Servir",
-        "no_ready_items_desc": "Cuando la cocina marque un artículo como listo, aparecerá aquí.",
-        "mark_as_served": "Marcar como Servido",
         "tabs": {
             "all": "Todas",
             "pending": "Pendientes",
@@ -130,14 +127,16 @@
             "total": "Total",
             "actions": "Acciones",
             "toggle_menu": "Alternar menú",
-            "view_details": "Ver Detalles"
+            "view_details": "Ver Detalles",
+            "search_placeholder": "Buscar por ID de Orden o Mesa..."
         },
         "details": {
             "title": "Detalles de la Orden",
             "description": "Revisa los detalles completos de esta orden.",
             "items": "Artículos",
             "status_history": "Historial de Estado",
-            "view_receipt": "Ver Recibo"
+            "view_receipt": "Ver Recibo",
+            "delivery_info": "Información de Entrega"
         },
         "receipt": {
             "thank_you": "¡Gracias por su visita!",
