@@ -19,7 +19,7 @@ const statusColors = {
   Serve: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
 };
 
-export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
+export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
 
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0">
@@ -86,19 +86,6 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
     );
   }
 
-  if (orderStatus === 'completed') {
-    return (
-        <div className="space-y-1">
-            <StatusRow 
-                count={item.readyCount}
-                status="Serve"
-                onClick={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-                onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
-            />
-        </div>
-    )
-  }
-
   return (
     <div className="space-y-1">
         <StatusRow 
@@ -115,6 +102,7 @@ export function OrderItem({ item, orderId, orderStatus, onUpdateItemStatus, onRe
         <StatusRow 
             count={item.readyCount}
             status="Serve"
+            onRevert={() => onRevertItemStatus(orderId, item.id, 'Cooking')}
         />
     </div>
   )

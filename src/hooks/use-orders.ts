@@ -16,8 +16,10 @@ const parseOrderDates = (orders: Order[]): Order[] => {
   }));
 };
 
-// An order is complete from the KITCHEN's perspective when all items are ready.
-const isOrderReadyForCompletion = (order: Order) => order.items.every(item => item.newCount === 0 && item.cookingCount === 0);
+// An order is considered "completed" (in the completed tab) if at least one item is ready to serve.
+const isOrderReadyForCompletion = (order: Order) => order.items.some(item => item.readyCount > 0);
+// An order is fully complete (and could be archived) if all items are served. This is for potential future logic.
+const isOrderFullyComplete = (order: Order) => order.items.every(item => item.newCount === 0 && item.cookingCount === 0);
 
 export const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -69,6 +71,8 @@ export const useOrders = () => {
 
             if (isOrderReadyForCompletion(updatedOrder)) {
                 updatedOrder.status = 'completed';
+            } else {
+                updatedOrder.status = 'pending';
             }
             
             return updatedOrder;
@@ -80,8 +84,8 @@ export const useOrders = () => {
         
         try {
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
-            if (updatedOrder.status === 'completed' && originalOrder?.status !== 'completed') {
-                await mockUpdateStatus({ orderId, newStatus: 'completed' });
+            if (updatedOrder.status !== originalOrder?.status) {
+                await mockUpdateStatus({ orderId, newStatus: updatedOrder.status });
             }
         } catch (error: any) {
             toast.error(t('toast.error'), { description: error.message || t('kds.toast.update_item_error'), duration: 3000 });
@@ -92,7 +96,7 @@ export const useOrders = () => {
 
     const revertItemStatus = useCallback(async (orderId: number, itemId: string, toStatus: 'New' | 'Cooking') => {
         const originalOrders = JSON.parse(JSON.stringify(orders));
-        let orderToUpdate: Order | undefined;
+        let updatedOrder: Order | undefined;
 
         const newOrders = orders.map(o => {
             if (o.id !== orderId) return o;
@@ -114,24 +118,25 @@ export const useOrders = () => {
             }
 
             newItems[itemIndex] = item;
-            const wasCompleted = o.status === 'completed';
-            orderToUpdate = { ...o, items: newItems, status: 'pending' };
-
-            if (wasCompleted) {
-                console.log(`Order ${orderId} reverted to pending.`);
+            updatedOrder = { ...o, items: newItems };
+            
+            if (isOrderReadyForCompletion(updatedOrder)) {
+                updatedOrder.status = 'completed';
+            } else {
+                updatedOrder.status = 'pending';
             }
 
-            return orderToUpdate;
+            return updatedOrder;
         });
         
         setOrders(parseOrderDates(newOrders));
 
-        if (!orderToUpdate) return;
+        if (!updatedOrder) return;
 
         try {
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
-            if (originalOrder && originalOrder.status === 'completed') {
-                await mockUpdateStatus({ orderId, newStatus: 'pending' });
+            if (updatedOrder.status !== originalOrder?.status) {
+                await mockUpdateStatus({ orderId, newStatus: updatedOrder.status });
             }
         } catch (error: any) {
             toast.error(t('toast.error'), { description: error.message || t('kds.toast.revert_item_error'), duration: 3000 });
