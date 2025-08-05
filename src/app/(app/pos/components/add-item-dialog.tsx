@@ -125,12 +125,12 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
         </DialogHeader>
 
         <ScrollArea className="flex-1 -mx-6">
-            <div className="px-6 space-y-6">
+            <div className="px-4 space-y-4">
                 {Object.entries(availableModifierGroups).map(([groupName, modifiers]) => {
                   if (modifiers.length === 0) return null;
                   return (
                     <div key={groupName} className="space-y-2">
-                        <Label className="font-semibold">{groupName}</Label>
+                        <Label className="font-semibold text-base">{groupName}</Label>
                         <div className="space-y-2">
                             {modifiers.map(modifier => (
                                 <div key={modifier.id} className="flex items-center space-x-2">
@@ -141,11 +141,11 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                                     />
                                     <label
                                         htmlFor={`extra-${modifier.id}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                                        className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
                                     >
                                         {modifier.name}
                                     </label>
-                                    <span className="text-sm text-muted-foreground">+${modifier.price.toFixed(2)}</span>
+                                    <span className="text-base text-muted-foreground">+${modifier.price.toFixed(2)}</span>
                                 </div>
                             ))}
                         </div>
@@ -156,17 +156,17 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                 <Separator />
 
                 <div className="space-y-2">
-                    <Label className="font-semibold" htmlFor="item-notes">{t('pos.add_item_dialog.item_notes')}</Label>
+                    <Label className="font-semibold text-base" htmlFor="item-notes">{t('pos.add_item_dialog.item_notes')}</Label>
                     <Textarea id="item-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('pos.add_item_dialog.item_notes_placeholder')} />
                 </div>
                 
                 <div className="space-y-2">
-                    <Label className="font-semibold">{t('pos.add_item_dialog.quantity')}</Label>
+                    <Label className="font-semibold text-base">{t('pos.add_item_dialog.quantity')}</Label>
                     <div className="flex items-center gap-4">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
                           <MinusCircle className="h-4 w-4" />
                         </Button>
-                        <Input className="w-16 text-center" value={quantity} readOnly />
+                        <Input className="w-16 text-center text-base" value={quantity} readOnly />
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q + 1)}>
                           <PlusCircle className="h-4 w-4" />
                         </Button>
@@ -183,7 +183,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                         <span className="sr-only">{t('pos.add_item_dialog.remove_item')}</span>
                     </Button>
                  )}
-                 <div className="text-lg font-bold">
+                 <div className="text-xl font-bold">
                     Total: <span className="text-primary">${totalItemPrice.toFixed(2)}</span>
                 </div>
             </div>

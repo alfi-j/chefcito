@@ -68,7 +68,7 @@
   {
     "id": 3,
     "table": 1,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2024-01-01T09:30:00Z",
     "completedAt": "2025-08-01T01:11:43.879Z",
     "isPinned": false,
@@ -81,6 +81,10 @@
       {
         "status": "completed",
         "timestamp": "2025-08-01T01:11:43.879Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T12:51:24.685Z"
       }
     ],
     "items": [
@@ -89,7 +93,7 @@
         "menuItemId": "4",
         "quantity": 0,
         "cookedCount": 1,
-        "status": "Ready",
+        "status": "New",
         "selectedExtraIds": []
       }
     ]
@@ -138,7 +142,7 @@
   {
     "id": 5,
     "table": 1,
-    "status": "completed",
+    "status": "pending",
     "createdAt": "2025-08-02T23:23:57.462Z",
     "isPinned": false,
     "notes": "asdasdasd",
@@ -155,6 +159,10 @@
       {
         "status": "completed",
         "timestamp": "2025-08-05T05:42:15.548Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T12:51:22.898Z"
       }
     ],
     "items": [
@@ -163,7 +171,7 @@
         "menuItemId": "5",
         "quantity": 0,
         "cookedCount": 1,
-        "status": "Ready",
+        "status": "New",
         "selectedExtraIds": []
       }
     ],

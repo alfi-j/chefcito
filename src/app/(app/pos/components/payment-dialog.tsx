@@ -162,7 +162,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0">
+        <DialogHeader className="p-4 pb-0">
           <DialogTitle className="font-headline text-2xl">{t('pos.payment_dialog.title')}</DialogTitle>
            <DialogDescription>
             {t('pos.payment_dialog.total_due')}: 
@@ -170,12 +170,12 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 px-6 min-h-0 overflow-hidden">
-            <ScrollArea className="h-full -mx-6">
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-4 px-4 min-h-0 overflow-hidden">
+            <ScrollArea className="h-full -mx-4">
                 {/* Left Side: Payment and Bill Splitting */}
-                <div className="space-y-4 px-6">
+                <div className="space-y-3 px-4">
                     <div>
-                        <Label className="font-semibold">{t('pos.payment_dialog.method')}</Label>
+                        <Label className="font-semibold text-base">{t('pos.payment_dialog.method')}</Label>
                         <RadioGroup 
                         className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2"
                         onValueChange={handleMethodChange}
@@ -186,10 +186,10 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                             <RadioGroupItem value={method.id} id={method.id} className="peer sr-only" />
                             <Label
                                 htmlFor={method.id}
-                                className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
                             >
                                 {getIconForMethod(method.type)}
-                                <span className="font-semibold text-sm">{method.name}</span>
+                                <span className="font-semibold">{method.name}</span>
                                 <Check className="h-4 w-4 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
                             </Label>
                             </div>
@@ -199,7 +199,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
 
                     {selectedMethod?.type === 'bank_transfer' && (
                         <div className="space-y-2">
-                            <Label htmlFor="bank" className="font-semibold">{t('pos.payment_dialog.bank')}</Label>
+                            <Label htmlFor="bank" className="font-semibold text-base">{t('pos.payment_dialog.bank')}</Label>
                             <Select value={selectedBank} onValueChange={setSelectedBank}>
                             <SelectTrigger id="bank">
                                 <SelectValue placeholder={t('pos.payment_dialog.select_bank')} />
@@ -219,7 +219,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                         <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-2">
                                 <Switch id="split-bill-switch" checked={isSplittingBill} onCheckedChange={handleSplitToggle} />
-                                <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
+                                <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2 text-base"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
                             </div>
                         </div>
                     </div>
@@ -227,19 +227,19 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
             </ScrollArea>
 
             {/* Right Side: Order Summary / Item Assignment */}
-            <ScrollArea className="h-full -mx-6">
-              <div className="space-y-4 px-6">
+            <ScrollArea className="h-full -mx-4">
+              <div className="space-y-3 px-4">
                 {isSplittingBill ? (
                   <>
                     <div className="space-y-2">
-                      <Label className="font-semibold">{t('pos.payment_dialog.assign_items_for')}</Label>
+                      <Label className="font-semibold text-base">{t('pos.payment_dialog.assign_items_for')}</Label>
                       <div className="space-y-2">
                         {items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
                             <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center cursor-pointer">
                               <div>
-                                <span className="font-medium">{item.quantity}x {item.menuItem.name}</span>
-                                <p className="text-xs text-muted-foreground">${calculateItemTotal(item).toFixed(2)}</p>
+                                <span className="font-medium text-base">{item.quantity}x {item.menuItem.name}</span>
+                                <p className="text-sm text-muted-foreground">${calculateItemTotal(item).toFixed(2)}</p>
                               </div>
                             </Label>
                             <Select
@@ -263,14 +263,14 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     </div>
                     <Separator />
                     <div className="space-y-2">
-                      <Label className="font-semibold">{t('pos.payment_dialog.bill_summary')}</Label>
+                      <Label className="font-semibold text-base">{t('pos.payment_dialog.bill_summary')}</Label>
                       {splits.map((split, index) => (
                         <div key={split.id} className="flex justify-between items-center p-2 rounded-md bg-muted/50">
-                           <div className="font-semibold">
+                           <div className="font-semibold text-base">
                               {t('pos.payment_dialog.bill')} {index + 1}
                           </div>
                           <div className="flex items-center gap-2">
-                              <span className="font-bold text-primary">${split.total.toFixed(2)}</span>
+                              <span className="font-bold text-primary text-base">${split.total.toFixed(2)}</span>
                               <Button
                                   variant="ghost"
                                   size="icon"
@@ -291,11 +291,11 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                   </>
                 ) : (
                   <>
-                    <Label className="font-semibold">{t('pos.payment_dialog.order_summary')}</Label>
+                    <Label className="font-semibold text-base">{t('pos.payment_dialog.order_summary')}</Label>
                     <div className="space-y-3">
                         {items.map(item => (
                             <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                                <Label className="flex-1 flex justify-between items-center">
+                                <Label className="flex-1 flex justify-between items-center text-base">
                                     <span>{item.quantity}x {item.menuItem.name}</span>
                                     <span>${calculateItemTotal(item).toFixed(2)}</span>
                                 </Label>
@@ -306,7 +306,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                 )}
                  {isSplittingBill && (
                       <div className={cn(
-                          "flex items-center gap-2 text-sm font-medium pt-2",
+                          "flex items-center gap-2 font-medium pt-2 text-base",
                           allItemsAssigned ? "text-green-600" : "text-destructive"
                       )}>
                           {allItemsAssigned ? <CheckCircle className="h-4 w-4"/> : <CircleDashed className="h-4 w-4"/>}
@@ -317,8 +317,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
             </ScrollArea>
         </div>
 
-        <DialogFooter className="p-6 pt-4 border-t !flex-row !justify-between items-center bg-background">
-          <div className="text-lg font-bold">
+        <DialogFooter className="p-4 pt-4 border-t !flex-row !justify-between items-center bg-background">
+          <div className="text-xl font-bold">
               {t('pos.payment_dialog.total_due')}: <span className="text-primary">${totalAmount.toFixed(2)}</span>
           </div>
           <div className="flex items-center gap-2">

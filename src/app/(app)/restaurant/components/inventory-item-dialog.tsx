@@ -98,20 +98,20 @@ export function InventoryItemDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="font-headline">{isEditMode ? t('restaurant.inventory.dialog.edit_title') : t('restaurant.inventory.dialog.add_title')}</DialogTitle>
+          <DialogTitle className="font-headline text-2xl">{isEditMode ? t('restaurant.inventory.dialog.edit_title') : t('restaurant.inventory.dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.inventory.dialog.edit_desc') : t('restaurant.inventory.dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="flex-1 -mx-6">
-            <div className="space-y-4 py-4 px-6">
+            <div className="space-y-3 py-4 px-4">
                 <div className="space-y-2">
-                    <Label htmlFor="name">{t('restaurant.inventory.dialog.name')}</Label>
+                    <Label htmlFor="name" className="text-base">{t('restaurant.inventory.dialog.name')}</Label>
                     <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                    <Label htmlFor="quantity">{t('restaurant.inventory.dialog.quantity')}</Label>
+                    <Label htmlFor="quantity" className="text-base">{t('restaurant.inventory.dialog.quantity')}</Label>
                     <Input 
                         id="quantity" 
                         type="text"
@@ -121,13 +121,13 @@ export function InventoryItemDialog({
                     />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="unit">{t('restaurant.inventory.dialog.unit')}</Label>
+                        <Label htmlFor="unit" className="text-base">{t('restaurant.inventory.dialog.unit')}</Label>
                         <Input id="unit" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="e.g. kg, L, pcs"/>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="reorderThreshold">{t('restaurant.inventory.dialog.reorder_threshold')}</Label>
+                        <Label htmlFor="reorderThreshold" className="text-base">{t('restaurant.inventory.dialog.reorder_threshold')}</Label>
                         <Input 
                         id="reorderThreshold" 
                         type="text" 
@@ -137,12 +137,12 @@ export function InventoryItemDialog({
                         />
                     </div>
                     <div className="space-y-2">
-                    <Label htmlFor="category">{t('restaurant.inventory.dialog.category')}</Label>
+                    <Label htmlFor="category" className="text-base">{t('restaurant.inventory.dialog.category')}</Label>
                     <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="linkedItems">{t('restaurant.inventory.dialog.linked_items')}</Label>
+                    <Label htmlFor="linkedItems" className="text-base">{t('restaurant.inventory.dialog.linked_items')}</Label>
                     <MultiSelect
                     options={menuItemOptions}
                     selected={linkedItemIds}

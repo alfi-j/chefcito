@@ -128,23 +128,23 @@ export function MenuItemDialog({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="font-headline">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
+          <DialogTitle className="font-headline text-2xl">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.item_dialog.edit_desc') : t('restaurant.item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="flex-1 -mx-6">
-            <div className="space-y-4 py-4 px-6">
+            <div className="space-y-3 py-4 px-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+                <Label htmlFor="name" className="text-base">{t('restaurant.item_dialog.name')}</Label>
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
+                <Label htmlFor="description" className="text-base">{t('restaurant.item_dialog.description')}</Label>
                 <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
+                <Label htmlFor="price" className="text-base">{t('restaurant.item_dialog.price')}</Label>
                 <Input 
                   id="price" 
                   type="text" 
@@ -160,7 +160,7 @@ export function MenuItemDialog({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
+                <Label htmlFor="category" className="text-base">{t('restaurant.item_dialog.category')}</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger>
                     <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
@@ -171,7 +171,7 @@ export function MenuItemDialog({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modifiers">{t('restaurant.item_dialog.linked_modifiers')}</Label>
+                <Label htmlFor="modifiers" className="text-base">{t('restaurant.item_dialog.linked_modifiers')}</Label>
                 <MultiSelect
                   options={modifierGroups}
                   selected={linkedModifiers}
@@ -182,9 +182,9 @@ export function MenuItemDialog({
                   {t('restaurant.item_dialog.modifiers_desc')}
                 </p>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 pt-2">
                 <Switch id="available" checked={available} onCheckedChange={setAvailable} />
-                <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
+                <Label htmlFor="available" className="text-base">{t('restaurant.item_dialog.available')}</Label>
               </div>
             </div>
         </ScrollArea>
