@@ -22,6 +22,14 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T14:02:17.028Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:07:27.153Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:07:59.828Z"
       }
     ],
     "items": [
@@ -68,6 +76,14 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T13:59:04.828Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:07:42.762Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:08:00.765Z"
       }
     ],
     "items": [
@@ -94,7 +110,6 @@
     "table": 1,
     "status": "pending",
     "createdAt": "2024-01-01T09:30:00Z",
-    "completedAt": "2025-08-01T01:11:43.879Z",
     "isPinned": false,
     "staffName": "John Doe",
     "statusHistory": [
@@ -109,6 +124,22 @@
       {
         "status": "pending",
         "timestamp": "2025-08-05T12:51:24.685Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:07:45.054Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:08:10.240Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-05T14:08:28.734Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-05T14:08:34.339Z"
       }
     ],
     "items": [

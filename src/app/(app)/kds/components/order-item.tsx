@@ -63,20 +63,20 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
              {/* COOKING ITEMS */}
             {item.cookingCount > 0 && (
                  <div 
-                    className={cn("p-1 rounded-md transition-all cursor-pointer", statusColors.Cooking)}
+                    className={cn("p-1 rounded-md transition-all cursor-pointer group", statusColors.Cooking)}
                     onClick={(e) => { e.stopPropagation(); onUpdateItemStatus(orderId, item.id, 'Cooking'); }}
                 >
-                    <div className="flex justify-between items-center group">
+                    <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                             <button
-                                onClick={(e) => { e.stopPropagation(); onRevertItemStatus(orderId, item.id, 'New'); }}
-                                className="p-1 -m-1 rounded-full hover:bg-black/10"
-                            >
-                                <RotateCcw className="h-4 w-4 text-yellow-700 opacity-50 group-hover:opacity-100 transition-opacity" />
-                            </button>
                             <span className="font-bold text-xl leading-tight">{item.cookingCount}x</span>
                             <span className="text-lg font-bold ml-1.5 leading-tight">Cooking</span>
                         </div>
+                         <button
+                            onClick={(e) => { e.stopPropagation(); onRevertItemStatus(orderId, item.id, 'New'); }}
+                            className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <RotateCcw className="h-4 w-4 text-yellow-700" />
+                        </button>
                     </div>
                 </div>
             )}
@@ -84,19 +84,19 @@ export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatu
             {/* READY ITEMS */}
             {item.readyCount > 0 && (
                  <div 
-                    className={cn("p-1 rounded-md transition-all cursor-pointer", statusColors.Ready)}
+                    className={cn("p-1 rounded-md transition-all group", statusColors.Ready)}
                 >
-                    <div className="flex justify-between items-center group">
+                    <div className="flex justify-between items-center">
                         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                             <button
-                                onClick={(e) => { e.stopPropagation(); onRevertItemStatus(orderId, item.id, 'Cooking'); }}
-                                className="p-1 -m-1 rounded-full hover:bg-black/10"
-                            >
-                                <RotateCcw className="h-4 w-4 text-green-700 opacity-50 group-hover:opacity-100 transition-opacity" />
-                            </button>
                             <span className="font-bold text-xl leading-tight">{item.readyCount}x</span>
                              <span className="text-lg font-bold ml-1.5 leading-tight">Ready</span>
                         </div>
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onRevertItemStatus(orderId, item.id, 'Cooking'); }}
+                            className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <RotateCcw className="h-4 w-4 text-green-700" />
+                        </button>
                     </div>
                 </div>
             )}
