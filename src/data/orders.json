@@ -2,17 +2,17 @@
 [
   {
     "id": 1,
-    "table": 3,
+    "table": 5,
     "status": "pending",
-    "createdAt": "2024-08-06T10:00:00Z",
+    "createdAt": "2024-08-07T14:00:00Z",
     "isPinned": true,
     "staffName": "Alex",
-    "notes": "Table has a nut allergy. Please ensure no cross-contamination.",
+    "notes": "Customer has a gluten allergy. Please be extra careful with the pizza.",
     "orderType": "dine-in",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T10:00:00Z"
+        "timestamp": "2024-08-07T14:00:00Z"
       }
     ],
     "items": [
@@ -24,117 +24,118 @@
         "cookingCount": 1,
         "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": ["extra-1"],
-        "notes": "Extra crispy crust."
+        "selectedExtraIds": ["extra-1", "extra-3"],
+        "notes": "Gluten-free crust."
       },
       {
         "id": "1-2",
-        "menuItemId": "3",
+        "menuItemId": "2",
         "quantity": 2,
         "newCount": 2,
         "cookingCount": 0,
         "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": ["extra-2"],
-        "notes": "One without pepper."
+        "selectedExtraIds": [],
+        "notes": "One with no dressing."
       }
     ]
   },
   {
     "id": 2,
-    "table": 7,
+    "table": 8,
     "status": "completed",
-    "createdAt": "2024-08-06T10:05:00Z",
-    "completedAt": "2024-08-06T10:15:00Z",
+    "createdAt": "2024-08-07T14:05:00Z",
+    "completedAt": "2024-08-07T14:20:00Z",
     "isPinned": false,
     "staffName": "Maria",
-    "orderType": "delivery",
-    "deliveryInfo": {
-      "name": "Jane Doe",
-      "address": "123 Main St, Anytown",
-      "phone": "555-1234"
-    },
-    "notes": "Please include extra utensils and napkins. Ring bell upon arrival.",
+    "orderType": "dine-in",
+    "notes": "Birthday celebration at the table.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T10:05:00Z"
+        "timestamp": "2024-08-07T14:05:00Z"
       },
       {
         "status": "completed",
-        "timestamp": "2024-08-06T10:15:00Z"
+        "timestamp": "2024-08-07T14:20:00Z"
       }
     ],
     "items": [
       {
         "id": "2-1",
-        "menuItemId": "2",
+        "menuItemId": "3",
+        "quantity": 2,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 1,
+        "selectedExtraIds": ["extra-2"],
+        "notes": "Extra bacon on both."
+      },
+      {
+        "id": "2-2",
+        "menuItemId": "4",
         "quantity": 1,
         "newCount": 0,
         "cookingCount": 0,
         "readyCount": 0,
         "servedCount": 1,
-        "selectedExtraIds": ["extra-3"],
-        "notes": "Dressing on the side."
-      },
-      {
-        "id": "2-2",
-        "menuItemId": "5",
-        "quantity": 1,
-        "newCount": 0,
-        "cookingCount": 0,
-        "readyCount": 1,
-        "servedCount": 0,
         "selectedExtraIds": [],
-        "notes": "Extra garlic, lightly toasted."
+        "notes": "Add a birthday candle."
       }
     ]
   },
   {
     "id": 3,
-    "table": 11,
+    "table": 12,
     "status": "pending",
-    "createdAt": "2024-08-06T10:10:00Z",
+    "createdAt": "2024-08-07T14:10:00Z",
     "isPinned": false,
     "staffName": "Alex",
-    "orderType": "dine-in",
-    "notes": "Customer is in a hurry.",
+    "orderType": "delivery",
+    "deliveryInfo": {
+      "name": "John Smith",
+      "address": "456 Oak Avenue, Springfield",
+      "phone": "555-555-5556"
+    },
+    "notes": "Please deliver to the side door. Include extra napkins.",
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T10:10:00Z"
+        "timestamp": "2024-08-07T14:10:00Z"
       }
     ],
     "items": [
       {
         "id": "3-1",
-        "menuItemId": "6",
-        "quantity": 4,
-        "newCount": 4,
+        "menuItemId": "1",
+        "quantity": 2,
+        "newCount": 2,
         "cookingCount": 0,
         "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": []
+        "selectedExtraIds": ["extra-1"],
+        "notes": "One well-done, one regular."
       },
       {
         "id": "3-2",
-        "menuItemId": "1",
-        "quantity": 1,
-        "newCount": 1,
+        "menuItemId": "6",
+        "quantity": 3,
+        "newCount": 3,
         "cookingCount": 0,
         "readyCount": 0,
         "servedCount": 0,
-        "selectedExtraIds": ["extra-2", "extra-3"],
-        "notes": "Well-done bacon."
+        "selectedExtraIds": [],
+        "notes": "One Diet Coke if possible."
       }
     ]
   },
   {
     "id": 4,
-    "table": 5,
+    "table": 2,
     "status": "completed",
-    "createdAt": "2024-08-06T10:12:00Z",
-    "completedAt": "2024-08-06T10:20:00Z",
+    "createdAt": "2024-08-07T13:50:00Z",
+    "completedAt": "2024-08-07T14:05:00Z",
     "isPinned": false,
     "staffName": "Maria",
     "orderType": "dine-in",
@@ -142,34 +143,46 @@
     "statusHistory": [
       {
         "status": "pending",
-        "timestamp": "2024-08-06T10:12:00Z"
+        "timestamp": "2024-08-07T13:50:00Z"
       },
       {
         "status": "completed",
-        "timestamp": "2024-08-06T10:20:00Z"
+        "timestamp": "2024-08-07T14:05:00Z"
       }
     ],
     "items": [
       {
         "id": "4-1",
-        "menuItemId": "3",
+        "menuItemId": "5",
         "quantity": 1,
         "newCount": 0,
         "cookingCount": 0,
         "readyCount": 1,
         "servedCount": 0,
-        "selectedExtraIds": ["extra-1", "extra-4"],
-        "notes": "Add extra parmesan on top."
+        "selectedExtraIds": [],
+        "notes": "Lightly toasted."
       },
       {
         "id": "4-2",
-        "menuItemId": "4",
-        "quantity": 2,
+        "menuItemId": "3",
+        "quantity": 1,
         "newCount": 0,
         "cookingCount": 0,
-        "readyCount": 2,
+        "readyCount": 0,
+        "servedCount": 1,
+        "selectedExtraIds": ["extra-4"],
+        "notes": ""
+      },
+      {
+        "id": "4-3",
+        "menuItemId": "2",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
         "servedCount": 0,
-        "selectedExtraIds": []
+        "selectedExtraIds": [],
+        "notes": ""
       }
     ]
   }
