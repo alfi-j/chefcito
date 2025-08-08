@@ -368,7 +368,8 @@ const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
         const mainItemPrice = item.menuItem.price + extrasTotal;
-        return total + (mainItemPrice * item.quantity);
+        const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
+        return total + (mainItemPrice * totalUnits);
     }, 0);
 };
 
@@ -477,7 +478,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
         const totalUnits = order.items.reduce((acc, item) => acc + (item.quantity), 0);
 
         order.items.forEach(item => {
