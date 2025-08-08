@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils, Search, GripVertical, Plus, Minus } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Pencil, Trash2, Utensils, Search, GripVertical, Plus, Minus, FolderKanban } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +45,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { useMenu } from '@/hooks/use-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface RenderedCategory extends Category {
   depth: number;
@@ -250,10 +251,19 @@ function InventoryList({
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            {t('restaurant.inventory.add_item')}
-                        </Button>
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button onClick={() => handleOpenItemDialog()} size="icon" className="w-full sm:w-10">
+                                        <PlusCircle className="h-4 w-4" />
+                                        <span className="sr-only">{t('restaurant.inventory.add_item')}</span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('restaurant.inventory.add_item')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </div>
             </CardHeader>
@@ -469,8 +479,8 @@ function MenuList({
             <CardTitle className="font-headline">{t('restaurant.menu.title')}</CardTitle>
             <CardDescription>{t('restaurant.menu.desc')}</CardDescription>
           </div>
-          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto md:justify-end">
-            <div className="relative w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto md:justify-end">
+            <div className="relative w-full sm:w-auto grow sm:grow-0">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
               type="search"
@@ -490,7 +500,7 @@ function MenuList({
                     setSelectedItemIds([]);
                 }}
             >
-                <SelectTrigger className="w-full sm:w-auto min-w-[180px]">
+                <SelectTrigger className="w-full sm:w-auto min-w-[180px] grow sm:grow-0">
                 <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -502,11 +512,32 @@ function MenuList({
                   ))}
                 </SelectContent>
             </Select>
-            <CategoryDialog categories={categories} onUpdate={onUpdateCategories} />
-            <Button onClick={() => handleOpenItemDialog()} className="w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              {t('restaurant.menu.add_item')}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <CategoryDialog categories={categories} onUpdate={onUpdateCategories}>
+                        <Button variant="outline" size="icon">
+                            <FolderKanban className="h-4 w-4" />
+                            <span className="sr-only">{t('restaurant.menu.manage_categories')}</span>
+                        </Button>
+                      </CategoryDialog>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>{t('restaurant.menu.manage_categories')}</p>
+                  </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button onClick={() => handleOpenItemDialog()} size="icon">
+                          <PlusCircle className="h-4 w-4" />
+                           <span className="sr-only">{t('restaurant.menu.add_item')}</span>
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>{t('restaurant.menu.add_item')}</p>
+                  </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </CardHeader>
