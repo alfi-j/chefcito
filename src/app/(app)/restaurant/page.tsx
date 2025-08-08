@@ -464,12 +464,12 @@ function MenuList({
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
           <div className="flex-1">
             <CardTitle className="font-headline">{t('restaurant.menu.title')}</CardTitle>
             <CardDescription>{t('restaurant.menu.desc')}</CardDescription>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full sm:w-auto md:justify-end">
             <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
