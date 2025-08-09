@@ -133,63 +133,66 @@ export function MenuItemDialog({
             {isEditMode ? t('restaurant.item_dialog.edit_desc') : t('restaurant.item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full">
-              <div className="space-y-4 py-4 px-1">
+        
+        <ScrollArea className="flex-1 -mx-6">
+            <div className="px-6 py-4 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
+                        <Input 
+                            id="price" 
+                            type="text" 
+                            inputMode="decimal"
+                            pattern="[0-9.]*"
+                            value={price} 
+                            onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\d*\.?\d*$/.test(value)) {
+                                setPrice(value);
+                            }
+                            }} 
+                        />
+                    </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-base">{t('restaurant.item_dialog.name')}</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
+                    <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price" className="text-base">{t('restaurant.item_dialog.price')}</Label>
-                  <Input 
-                    id="price" 
-                    type="text" 
-                    inputMode="decimal"
-                    pattern="[0-9.]*"
-                    value={price} 
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^\d*\.?\d*$/.test(value)) {
-                          setPrice(value);
-                      }
-                    }} 
-                  />
+                    <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
+                    <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                        <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                        {renderedCategories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
+                        </SelectContent>
+                    </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-base">{t('restaurant.item_dialog.description')}</Label>
-                  <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category" className="text-base">{t('restaurant.item_dialog.category')}</Label>
-                  <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {renderedCategories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="modifiers" className="text-base">{t('restaurant.item_dialog.linked_modifiers')}</Label>
-                  <MultiSelect
-                    options={modifierGroups}
-                    selected={linkedModifiers}
-                    onChange={setLinkedModifiers}
-                    placeholder={t('restaurant.item_dialog.select_modifiers')}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t('restaurant.item_dialog.modifiers_desc')}
-                  </p>
+                    <Label htmlFor="modifiers">{t('restaurant.item_dialog.linked_modifiers')}</Label>
+                    <MultiSelect
+                        options={modifierGroups}
+                        selected={linkedModifiers}
+                        onChange={setLinkedModifiers}
+                        placeholder={t('restaurant.item_dialog.select_modifiers')}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                        {t('restaurant.item_dialog.modifiers_desc')}
+                    </p>
                 </div>
                 <div className="flex items-center space-x-2 pt-2">
-                  <Switch id="available" checked={available} onCheckedChange={setAvailable} />
-                  <Label htmlFor="available" className="text-base">{t('restaurant.item_dialog.available')}</Label>
+                    <Switch id="available" checked={available} onCheckedChange={setAvailable} />
+                    <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
                 </div>
-              </div>
-          </ScrollArea>
-        </div>
+            </div>
+        </ScrollArea>
+
         <DialogFooter className="pt-4 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
