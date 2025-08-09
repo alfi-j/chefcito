@@ -136,29 +136,31 @@ export function MenuItemDialog({
         <div className="flex-1 min-h-0">
           <ScrollArea className="h-full">
               <div className="space-y-3 py-4 px-1">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-base">{t('restaurant.item_dialog.name')}</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-base">{t('restaurant.item_dialog.name')}</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price" className="text-base">{t('restaurant.item_dialog.price')}</Label>
+                      <Input 
+                        id="price" 
+                        type="text" 
+                        inputMode="decimal"
+                        pattern="[0-9.]*"
+                        value={price} 
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (/^\d*\.?\d*$/.test(value)) {
+                              setPrice(value);
+                          }
+                        }} 
+                      />
+                    </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="description" className="text-base">{t('restaurant.item_dialog.description')}</Label>
                   <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="text-base">{t('restaurant.item_dialog.price')}</Label>
-                  <Input 
-                    id="price" 
-                    type="text" 
-                    inputMode="decimal"
-                    pattern="[0-9.]*"
-                    value={price} 
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (/^\d*\.?\d*$/.test(value)) {
-                          setPrice(value);
-                      }
-                    }} 
-                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category" className="text-base">{t('restaurant.item_dialog.category')}</Label>
