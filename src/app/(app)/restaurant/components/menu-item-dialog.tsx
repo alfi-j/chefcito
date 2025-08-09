@@ -143,8 +143,8 @@ export function MenuItemDialog({
         </DialogHeader>
         
         <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full -mx-6">
-                <div className="px-6 py-4 space-y-4">
+            <ScrollArea className="h-full">
+                <div className="px-1 py-4 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                           <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
