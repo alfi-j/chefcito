@@ -67,7 +67,7 @@ export function MenuItemDialog({
 
     categories.forEach(category => {
         if (category.parentId && categoryMap.has(category.parentId)) {
-            categoryMap.get(category.parentId)!.children.push(category as any);
+            (categoryMap.get(category.parentId) as any).children.push(category);
         } else {
             roots.push(category);
         }
@@ -76,8 +76,8 @@ export function MenuItemDialog({
     const flattened: RenderedCategory[] = [];
     const traverse = (category: Category, depth: number) => {
         flattened.push({ ...category, depth });
-        const children = categoryMap.get(category.id)?.children || [];
-        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+        const children = (categoryMap.get(category.id) as any)?.children || [];
+        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
     };
 
     roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
@@ -135,27 +135,29 @@ export function MenuItemDialog({
         </DialogHeader>
         
         <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full -mx-6">
-              <div className="px-6 py-4 space-y-4">
-                  <div className="space-y-2">
-                      <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
-                      <Input 
-                          id="price" 
-                          type="text" 
-                          inputMode="decimal"
-                          pattern="[0-9.]*"
-                          value={price} 
-                          onChange={(e) => {
-                          const value = e.target.value;
-                          if (/^\d*\.?\d*$/.test(value)) {
-                              setPrice(value);
-                          }
-                          }} 
-                      />
+          <ScrollArea className="h-full">
+              <div className="px-1 py-4 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
+                        <Input 
+                            id="price" 
+                            type="text" 
+                            inputMode="decimal"
+                            pattern="[0-9.]*"
+                            value={price} 
+                            onChange={(e) => {
+                            const value = e.target.value;
+                            if (/^\\d*\\.?\\d*$/.test(value)) {
+                                setPrice(value);
+                            }
+                            }} 
+                        />
+                    </div>
                   </div>
                   <div className="space-y-2">
                       <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
