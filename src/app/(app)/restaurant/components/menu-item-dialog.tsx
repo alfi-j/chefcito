@@ -143,23 +143,21 @@ export function MenuItemDialog({
         </DialogHeader>
         
         <div className="flex-1 min-h-0">
-          <ScrollArea className="h-full">
-            <div className="space-y-4 py-4 pr-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
-                    <Input 
-                        id="price" 
-                        type="text" 
-                        inputMode="decimal"
-                        value={price} 
-                        onChange={handlePriceChange} 
-                    />
-                </div>
+          <ScrollArea className="h-full pr-6">
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                  <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
+                  <Input 
+                      id="price" 
+                      type="text" 
+                      inputMode="decimal"
+                      value={price} 
+                      onChange={handlePriceChange} 
+                  />
               </div>
               <div className="space-y-2">
                   <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
