@@ -11,18 +11,11 @@ const dataDir = path.join(process.cwd(), 'src', 'data');
 const cache: { [key: string]: any } = {};
 
 export async function readData<T>(filename: string): Promise<T> {
-  if (cache[filename]) {
-    // Return a deep copy to prevent modifying the cache directly
-    return JSON.parse(JSON.stringify(cache[filename]));
-  }
-
   const filePath = path.join(dataDir, filename);
   try {
     const fileContents = await fs.readFile(filePath, 'utf8');
     const data = JSON.parse(fileContents);
-    cache[filename] = data;
-    // Return a deep copy
-    return JSON.parse(JSON.stringify(data));
+    return data;
   } catch (error) {
     console.error(`Error reading data file ${filename}:`, error);
     return [] as T;
@@ -33,8 +26,7 @@ export async function writeData(filename: string, data: any): Promise<void> {
   const filePath = path.join(dataDir, filename);
   try {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
-    // Invalidate cache for this file
-    delete cache[filename];
+    // Invalidate cache for this file since we are using fs.readFile directly
   } catch (error) {
     console.error(`Error writing data file ${filename}:`, error);
     throw error;

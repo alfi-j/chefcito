@@ -4,7 +4,7 @@
 import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { readData, writeData } from './data-utils';
+import { readData, writeData, clearCache } from './data-utils';
 
 // Helper function to get all menu items for order inflation
 const getAllMenuItems = async () => {
@@ -50,6 +50,8 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 
     return {
         ...order,
+        createdAt: new Date(order.createdAt),
+        completedAt: order.completedAt ? new Date(order.completedAt) : undefined,
         items: inflatedItems.filter(i => i !== null) as OrderItem[],
     };
 };
@@ -188,9 +190,9 @@ export const deleteMenuItems = async (ids: string[]) => {
 
 
 // Orders
-export const getInitialOrders = async (): Promise<Order[]> => {
+export const getInitialOrders = async (menuItems?: MenuItem[]): Promise<Order[]> => {
     const ordersFromFile = await readData<any[]>('orders.json');
-    const allMenuItems = await getAllMenuItems();
+    const allMenuItems = menuItems || await getAllMenuItems();
     const inflatedOrders = await Promise.all(ordersFromFile.map(order => inflateOrder(order, allMenuItems)));
     return inflatedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
@@ -478,12 +480,12 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
         const totalUnits = order.items.reduce((acc, item) => acc + (item.quantity), 0);
 
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
-                itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+                itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
             itemPrepTimes[item.menuItem.id].times.push( prepTime );
             itemPrepTimes[item.menuItem.id].count += totalUnits;

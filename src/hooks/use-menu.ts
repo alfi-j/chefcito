@@ -1,67 +1,39 @@
 
 "use client"
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context';
+import { useData } from '@/context/data-context';
 import { 
-  getMenuItems, 
-  getCategories, 
   addMenuItem, 
   updateMenuItem, 
   deleteMenuItem,
   deleteMenuItems,
-  getPaymentMethods,
   updatePaymentMethod as mockUpdatePaymentMethod,
   addPaymentMethod as mockAddPaymentMethod,
   deletePaymentMethod as mockDeletePaymentMethod,
-  getCustomers,
-  getInventoryItems,
   addInventoryItem as mockAddInventoryItem,
   updateInventoryItem as mockUpdateInventoryItem,
   adjustInventoryStock as mockAdjustInventoryStock,
   deleteInventoryItem as mockDeleteInventoryItem,
   updateMenuItemOrder,
 } from '@/lib/mock-data';
-import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types"
+import { type MenuItem, type PaymentMethod, type InventoryItem } from "@/lib/types"
 
 export const useMenu = () => {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const { t } = useI18n();
-
-  const fetchAllData = useCallback(async () => {
-    setLoading(true);
-    try {
-        const [menuData, categoryData, paymentData, customerData, inventoryData] = await Promise.all([
-            getMenuItems(),
-            getCategories(),
-            getPaymentMethods(),
-            getCustomers(),
-            getInventoryItems(),
-        ]);
-        setMenuItems(menuData);
-        setCategories(categoryData);
-        setPaymentMethods(paymentData);
-        setCustomers(customerData);
-        setInventoryItems(inventoryData);
-    } catch (error) {
-       console.error("Failed to fetch data:", error);
-       toast.error(t('toast.error'), { description: t('restaurant.toast.fetch_error'), duration: 3000 });
-    } finally {
-        setLoading(false);
-    }
-  }, [t]);
-
-  useEffect(() => {
-    fetchAllData();
-  }, [fetchAllData]);
+  const {
+    menuItems,
+    categories,
+    paymentMethods,
+    customers,
+    inventoryItems,
+    loading,
+    forceCacheRefresh
+  } = useData();
   
-  const handleSaveItem = async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
+  const handleSaveItem = useCallback(async (itemData: MenuItem | Omit<MenuItem, 'id'>) => {
     const isEditMode = 'id' in itemData;
     try {
       if (isEditMode) {
@@ -69,64 +41,63 @@ export const useMenu = () => {
       } else {
         await addMenuItem(itemData as Omit<MenuItem, 'id'>);
       }
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.item_updated' : 'restaurant.toast.item_added'), duration: 3000 });
     } catch(error: any) {
       toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.update_item_error' : 'restaurant.toast.add_item_error'), duration: 3000 });
     }
-  };
+  }, [forceCacheRefresh, t]);
 
-  const handleDeleteItem = async (itemId: string) => {
+  const handleDeleteItem = useCallback(async (itemId: string) => {
      try {
       await deleteMenuItem(itemId);
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t('restaurant.toast.item_deleted'), duration: 3000 });
     } catch (error: any) {
        toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error'), duration: 3000 });
     }
-  };
+  }, [forceCacheRefresh, t]);
   
-  const handleDeleteMultipleItems = async (itemIds: string[]) => {
+  const handleDeleteMultipleItems = useCallback(async (itemIds: string[]) => {
      try {
       const count = itemIds.length;
       await deleteMenuItems(itemIds);
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t('restaurant.toast.items_deleted', { count }), duration: 3000 });
     } catch (error: any) {
        toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_item_error'), duration: 3000 });
     }
-  }
+  }, [forceCacheRefresh, t]);
 
-  const handleReorderItems = async (reorderedItems: MenuItem[]) => {
-    const originalItems = [...menuItems];
-    setMenuItems(reorderedItems); // Optimistic update
+  const handleReorderItems = useCallback(async (reorderedItems: MenuItem[]) => {
     const orderedIds = reorderedItems.map(item => item.id);
     try {
       await updateMenuItemOrder(orderedIds);
+       await forceCacheRefresh();
     } catch(error: any) {
-       setMenuItems(originalItems); // Revert on error
+       await forceCacheRefresh(); // Re-fetch to revert optimistic update
        toast.error(t('toast.error'), { description: t('restaurant.toast.reorder_error'), duration: 3000 });
     }
-  }
+  }, [forceCacheRefresh, t]);
 
-  const handleCategoriesUpdate = () => {
-    fetchAllData();
-  }
+  const handleCategoriesUpdate = useCallback(async () => {
+    await forceCacheRefresh();
+  }, [forceCacheRefresh])
 
-  const handlePaymentMethodToggle = async (id: string, enabled: boolean) => {
+  const handlePaymentMethodToggle = useCallback(async (id: string, enabled: boolean) => {
     try {
       const method = paymentMethods.find(m => m.id === id);
       if(method) {
         await mockUpdatePaymentMethod({ ...method, enabled });
-        await fetchAllData();
+        await forceCacheRefresh();
         toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_updated'), duration: 3000 });
       }
     } catch(error: any) {
       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_update_error'), duration: 3000 });
     }
-  }
+  }, [paymentMethods, forceCacheRefresh, t]);
 
-  const handleSavePaymentMethod = async (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
+  const handleSavePaymentMethod = useCallback(async (methodData: PaymentMethod | Omit<PaymentMethod, 'id'>) => {
      const isEditMode = 'id' in methodData;
      try {
         if (isEditMode) {
@@ -134,24 +105,24 @@ export const useMenu = () => {
         } else {
           await mockAddPaymentMethod(methodData as Omit<PaymentMethod, 'id'>);
         }
-        await fetchAllData();
+        await forceCacheRefresh();
         toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.payment_method_updated' : 'restaurant.toast.payment_method_added'), duration: 3000 });
      } catch (error: any) {
         toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.payment_method_update_error' : 'restaurant.toast.payment_method_add_error'), duration: 3000 });
      }
-  }
+  }, [forceCacheRefresh, t]);
 
-  const handleDeletePaymentMethod = async (id: string) => {
+  const handleDeletePaymentMethod = useCallback(async (id: string) => {
     try {
       await mockDeletePaymentMethod(id);
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t('restaurant.toast.payment_method_deleted'), duration: 3000 });
     } catch(error: any) {
       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.payment_method_delete_error'), duration: 3000 });
     }
-  }
+  }, [forceCacheRefresh, t]);
 
-  const handleSaveInventoryItem = async (itemData: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
+  const handleSaveInventoryItem = useCallback(async (itemData: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
     const isEditMode = 'id' in itemData;
     try {
       if (isEditMode) {
@@ -159,40 +130,32 @@ export const useMenu = () => {
       } else {
         await mockAddInventoryItem(itemData as Omit<InventoryItem, 'id' | 'lastRestocked'>);
       }
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t(isEditMode ? 'restaurant.toast.inventory_item_updated' : 'restaurant.toast.inventory_item_added'), duration: 3000 });
     } catch (error: any) {
       toast.error(t('toast.error'), { description: error.message || t(isEditMode ? 'restaurant.toast.inventory_item_update_error' : 'restaurant.toast.inventory_item_add_error'), duration: 3000 });
     }
-  };
+  }, [forceCacheRefresh, t]);
   
-  const handleAdjustInventoryStock = async (itemId: string, adjustment: number) => {
+  const handleAdjustInventoryStock = useCallback(async (itemId: string, adjustment: number) => {
     try {
       await mockAdjustInventoryStock(itemId, adjustment);
-      // Optimistic update for responsiveness
-      setInventoryItems(prevItems =>
-        prevItems.map(item =>
-          item.id === itemId
-            ? { ...item, quantity: Math.max(0, item.quantity + adjustment) }
-            : item
-        )
-      );
-      // No toast for quick adjustments to avoid spamming user
+      await forceCacheRefresh();
     } catch (error: any) {
       toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.inventory_stock_update_error'), duration: 3000 });
-      await fetchAllData(); // Re-fetch to correct state on error
+      await forceCacheRefresh();
     }
-  }
+  }, [forceCacheRefresh, t])
 
-  const handleDeleteInventoryItem = async (itemId: string) => {
+  const handleDeleteInventoryItem = useCallback(async (itemId: string) => {
      try {
       await mockDeleteInventoryItem(itemId);
-      await fetchAllData();
+      await forceCacheRefresh();
       toast.success(t('toast.success'), { description: t('restaurant.toast.inventory_item_deleted'), duration: 3000 });
     } catch (error: any) {
        toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.inventory_item_delete_error'), duration: 3000 });
     }
-  }
+  }, [forceCacheRefresh, t]);
 
   return {
     menuItems,
@@ -201,7 +164,6 @@ export const useMenu = () => {
     customers,
     inventoryItems,
     loading,
-    fetchAllData,
     handleSaveItem,
     handleDeleteItem,
     handleDeleteMultipleItems,

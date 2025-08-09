@@ -37,6 +37,7 @@ import { useTheme } from "next-themes"
 import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { I18nProvider, useI18n } from "@/context/i18n-context"
+import { DataProvider } from "@/context/data-context"
 
 // Simple cookie utility
 const eraseCookie = (name: string) => {   
@@ -134,7 +135,9 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <I18nProvider>
-      <AppLayoutContent>{children}</AppLayoutContent>
+      <DataProvider>
+        <AppLayoutContent>{children}</AppLayoutContent>
+      </DataProvider>
     </I18nProvider>
   )
 }

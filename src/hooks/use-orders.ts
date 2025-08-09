@@ -2,19 +2,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react';
-import { type Order, type OrderItem } from "@/lib/types";
+import { type Order } from "@/lib/types";
 import { toast } from "sonner";
 import { useI18n } from "@/context/i18n-context";
 import { getInitialOrders, updateOrderStatus as mockUpdateStatus, toggleOrderPin as mockTogglePin } from "@/lib/mock-data";
+import { useData } from '@/context/data-context';
 
-
-const parseOrderDates = (orders: Order[]): Order[] => {
-  return orders.map(order => ({
-    ...order,
-    createdAt: new Date(order.createdAt),
-    completedAt: order.completedAt ? new Date(order.completedAt) : undefined,
-  }));
-};
 
 const isOrderReadyForServing = (order: Order) => order.items.some(item => item.readyCount > 0 || item.servedCount > 0);
 
@@ -22,19 +15,21 @@ export const useOrders = () => {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const { t } = useI18n();
+    const { menuItems, forceCacheRefresh } = useData();
 
     const fetchOrders = useCallback(async () => {
+        if (menuItems.length === 0) return;
         try {
-        setLoading(true);
-        const initialOrders = await getInitialOrders();
-        setOrders(parseOrderDates(initialOrders));
+            setLoading(true);
+            const initialOrders = await getInitialOrders(menuItems);
+            setOrders(initialOrders);
         } catch (error) {
-        console.error("Failed to fetch orders:", error);
-        toast.error(t('toast.error'), { description: t('kds.toast.fetch_error'), duration: 3000 });
+            console.error("Failed to fetch orders:", error);
+            toast.error(t('toast.error'), { description: t('kds.toast.fetch_error'), duration: 3000 });
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
-    }, [t]);
+    }, [t, menuItems]);
 
     useEffect(() => {
         fetchOrders();
@@ -78,7 +73,7 @@ export const useOrders = () => {
             return updatedOrder;
         });
 
-        setOrders(parseOrderDates(newOrders));
+        setOrders(newOrders);
 
         if (!updatedOrder) return;
         
@@ -89,7 +84,7 @@ export const useOrders = () => {
             }
         } catch (error: any) {
             toast.error(t('toast.error'), { description: error.message || t('kds.toast.update_item_error'), duration: 3000 });
-            setOrders(parseOrderDates(originalOrders));
+            setOrders(originalOrders);
         }
     }, [orders, t]);
 
@@ -132,7 +127,7 @@ export const useOrders = () => {
             return updatedOrder;
         });
         
-        setOrders(parseOrderDates(newOrders));
+        setOrders(newOrders);
 
         if (!updatedOrder) return;
 
@@ -143,7 +138,7 @@ export const useOrders = () => {
             }
         } catch (error: any) {
             toast.error(t('toast.error'), { description: error.message || t('kds.toast.revert_item_error'), duration: 3000 });
-            setOrders(parseOrderDates(originalOrders));
+            setOrders(originalOrders);
         }
     }, [orders, t]);
     
