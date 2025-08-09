@@ -143,61 +143,61 @@ export function MenuItemDialog({
         </DialogHeader>
         
         <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full">
-                <div className="px-1 py-4 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                          <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
-                          <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                      </div>
-                      <div className="space-y-2">
-                          <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
-                          <Input 
-                              id="price" 
-                              type="text" 
-                              inputMode="decimal"
-                              value={price} 
-                              onChange={handlePriceChange} 
-                          />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
-                        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
-                        <Select value={category} onValueChange={setCategory}>
-                            <SelectTrigger>
-                            <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                            {renderedCategories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="modifiers">{t('restaurant.item_dialog.linked_modifiers')}</Label>
-                        <MultiSelect
-                            options={modifierGroups}
-                            selected={linkedModifiers}
-                            onChange={setLinkedModifiers}
-                            placeholder={t('restaurant.item_dialog.select_modifiers')}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                            {t('restaurant.item_dialog.modifiers_desc')}
-                        </p>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="imageUrl">{t('restaurant.item_dialog.image_url')}</Label>
-                        <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-                    </div>
-                    <div className="flex items-center space-x-2 pt-2">
-                        <Switch id="available" checked={available} onCheckedChange={setAvailable} />
-                        <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
-                    </div>
+          <ScrollArea className="h-full">
+            <div className="space-y-4 py-4 pr-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
-            </ScrollArea>
+                <div className="space-y-2">
+                    <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
+                    <Input 
+                        id="price" 
+                        type="text" 
+                        inputMode="decimal"
+                        value={price} 
+                        onChange={handlePriceChange} 
+                    />
+                </div>
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
+                  <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
+                  <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger>
+                      <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                      {renderedCategories.filter(c => !c.isModifierGroup).map(cat => <SelectItem key={cat.id} value={cat.name}><span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span></SelectItem>)}
+                      </SelectContent>
+                  </Select>
+              </div>
+              <div className="space-y-2">
+                  <Label htmlFor="modifiers">{t('restaurant.item_dialog.linked_modifiers')}</Label>
+                  <MultiSelect
+                      options={modifierGroups}
+                      selected={linkedModifiers}
+                      onChange={setLinkedModifiers}
+                      placeholder={t('restaurant.item_dialog.select_modifiers')}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                      {t('restaurant.item_dialog.modifiers_desc')}
+                  </p>
+              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="imageUrl">{t('restaurant.item_dialog.image_url')}</Label>
+                  <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
+              </div>
+              <div className="flex items-center space-x-2 pt-2">
+                  <Switch id="available" checked={available} onCheckedChange={setAvailable} />
+                  <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
+              </div>
+            </div>
+          </ScrollArea>
         </div>
 
         <DialogFooter className="pt-4 border-t">
