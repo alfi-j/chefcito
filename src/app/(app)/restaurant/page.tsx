@@ -28,7 +28,7 @@ import { useI18n } from '@/context/i18n-context'
 import { 
   updateMenuItemOrder,
 } from '@/lib/mock-data';
-// import { MenuItemDialog } from './components/menu-item-dialog'
+import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
 import { InventoryItemDialog } from './components/inventory-item-dialog'
@@ -305,9 +305,8 @@ function MenuList({
   const { t } = useI18n();
 
   const handleOpenItemDialog = (item?: MenuItem) => {
-    // setEditingItem(item);
-    // setIsItemDialogOpen(true);
-    toast.error("This component has been disabled.");
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
   };
   
   const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
@@ -544,13 +543,13 @@ function MenuList({
         </div>
       </CardHeader>
 
-      {/* <MenuItemDialog
+      <MenuItemDialog
         isOpen={isItemDialogOpen}
         onOpenChange={setIsItemDialogOpen}
         item={editingItem}
         onSave={onSaveItem}
         categories={categories}
-      /> */}
+      />
 
       <CardContent>
         {numSelected > 0 && (
