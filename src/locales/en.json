@@ -153,6 +153,51 @@
             "fetch_error": "Could not fetch order history."
         }
     },
+    "waiters": {
+        "title": "Waiters",
+        "loading": "Loading staff data...",
+        "dashboard_desc": "Monitor staff performance and activity.",
+        "roster_title": "Staff Roster",
+        "roster_desc": "View all staff members and their current status.",
+        "tabs": {
+            "performance": "Performance",
+            "tasks": "Tasks"
+        },
+        "table": {
+            "name": "Name",
+            "role": "Role",
+            "status": "Status"
+        },
+        "status": {
+            "on_shift": "On Shift",
+            "off_shift": "Off Shift",
+            "on_break": "On Break"
+        },
+        "kpi": {
+            "tables_served": "Tables Served",
+            "total_sales": "Total Sales",
+            "avg_sale": "Avg. Sale"
+        },
+        "tasks": {
+            "board_title": "Task Board",
+            "board_desc": "Drag and drop tasks to update their status.",
+            "add_task": "Add Task",
+            "no_tasks": "No tasks in this column.",
+            "status": {
+                "to_do": "To Do",
+                "in_progress": "In Progress",
+                "done": "Done"
+            },
+            "priority": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High"
+            },
+            "edit": "Edit",
+            "reassign": "Reassign",
+            "delete": "Delete"
+        }
+    },
     "restaurant": {
         "title": "Restaurant",
         "loading": "Loading data...",
@@ -272,8 +317,8 @@
             "name": "Name",
             "type": "Type",
             "select_type": "Select a type",
-            "banks": "Banks",
-            "add_bank": "Add a new bank"
+            "banks": "Bancos",
+            "add_bank": "Añadir un nuevo banco"
         },
         "toast": {
             "fetch_error": "Could not fetch data.",

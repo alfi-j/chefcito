@@ -1,7 +1,7 @@
 
 'use server'
 
-import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo } from './types';
+import { type MenuItem, type Category, type Order, type OrderItem, type PaymentMethod, type Customer, type InventoryItem, type OrderType, type DeliveryInfo, type Staff, type StaffPerformance, type Task } from './types';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { readData, writeData, clearCache } from './data-utils';
@@ -58,6 +58,41 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 
 
 // Functions to interact with mock data
+
+// Staff
+export const getStaff = async (): Promise<Staff[]> => {
+    return await readData<Staff[]>('staff.json');
+}
+
+export const getStaffPerformance = async (dateRange?: DateRange): Promise<StaffPerformance[]> => {
+    const staffList = await getStaff();
+    const orders = await getInitialOrders();
+    
+    const completedOrders = orders.filter(o => {
+        if (o.status !== 'completed' || !o.completedAt) return false;
+        if (!dateRange || !dateRange.from) return true; // No date range means all completed orders
+        const completedAt = new Date(o.completedAt);
+        const to = dateRange.to || new Date();
+        return completedAt >= dateRange.from && completedAt <= to;
+    });
+
+    const performanceData: StaffPerformance[] = staffList.map(staff => {
+        const staffOrders = completedOrders.filter(o => o.staffName === staff.name);
+        const totalSales = staffOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
+        const tablesServed = new Set(staffOrders.map(o => o.table)).size;
+        const avgSaleValue = staffOrders.length > 0 ? totalSales / staffOrders.length : 0;
+
+        return {
+            ...staff,
+            tablesServed,
+            totalSales,
+            avgSaleValue,
+        };
+    });
+
+    return performanceData;
+};
+
 
 // Customers
 export const getCustomers = async (): Promise<Customer[]> => {
@@ -364,14 +399,18 @@ export const adjustInventoryStock = async (itemId: string, adjustment: number) =
     return null;
 }
 
+// Tasks
+export const getTasks = async (): Promise<Task[]> => {
+    return await readData<Task[]>('tasks.json');
+}
 
 // Reporting
 const getOrderTotal = (order: Order) => {
     return order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-        const mainItemPrice = item.menuItem.price + extrasTotal;
         const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-        return total + (mainItemPrice * totalUnits);
+        const mainItemPrice = item.menuItem.price + extrasTotal;
+        return total + (mainItemPrice * (item.cookedCount + item.quantity));
     }, 0);
 };
 
@@ -480,9 +519,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
 
     const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
     validOrders.forEach(order => {
-        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(o.createdAt));
-        const totalUnits = order.items.reduce((acc, item) => acc + (item.quantity), 0);
-
+        const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
         order.items.forEach(item => {
             if (!itemPrepTimes[item.menuItem.id]) {
                 itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };

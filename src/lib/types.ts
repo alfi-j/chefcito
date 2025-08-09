@@ -1,4 +1,5 @@
 
+
 export type MenuItem = {
   id: string;
   name: string;
@@ -92,13 +93,27 @@ export type InventoryItem = {
   category?: string;
 };
 
-export type ReadyItem = {
-  id: string; // A unique ID for the specific ready item instance
+export type Staff = {
+  id: string;
   name: string;
-  orderId: number;
-  table: number;
-  orderItemId: string; // The original OrderItem ID
-  selectedExtras: MenuItem[];
-  notes?: string;
+  email: string;
+  role: 'Waiter' | 'Manager' | 'Chef';
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+}
+
+export type StaffPerformance = Staff & {
+    tablesServed: number;
+    totalSales: number;
+    avgSaleValue: number;
 };
+
+export type Task = {
+  id: string;
+  title: string;
+  description?: string;
+  status: 'To Do' | 'In Progress' | 'Done';
+  priority: 'Low' | 'Medium' | 'High';
+  assignedTo?: string; // Staff ID
+  dueDate?: string; // ISO date string
+}
 

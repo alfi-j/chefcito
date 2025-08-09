@@ -153,6 +153,51 @@
             "fetch_error": "No se pudo cargar el historial de órdenes."
         }
     },
+    "waiters": {
+        "title": "Meseros",
+        "loading": "Cargando datos del personal...",
+        "dashboard_desc": "Supervisa el rendimiento y la actividad del personal.",
+        "roster_title": "Lista de Personal",
+        "roster_desc": "Ver todos los miembros del personal y su estado actual.",
+        "tabs": {
+            "performance": "Rendimiento",
+            "tasks": "Tareas"
+        },
+        "table": {
+            "name": "Nombre",
+            "role": "Rol",
+            "status": "Estado"
+        },
+        "status": {
+            "on_shift": "En Turno",
+            "off_shift": "Fuera de Turno",
+            "on_break": "En Descanso"
+        },
+        "kpi": {
+            "tables_served": "Mesas Atendidas",
+            "total_sales": "Ventas Totales",
+            "avg_sale": "Venta Prom."
+        },
+        "tasks": {
+            "board_title": "Tablero de Tareas",
+            "board_desc": "Arrastra y suelta las tareas para actualizar su estado.",
+            "add_task": "Añadir Tarea",
+            "no_tasks": "No hay tareas en esta columna.",
+            "status": {
+                "to_do": "Por Hacer",
+                "in_progress": "En Progreso",
+                "done": "Hecho"
+            },
+            "priority": {
+                "low": "Baja",
+                "medium": "Media",
+                "high": "Alta"
+            },
+            "edit": "Editar",
+            "reassign": "Reasignar",
+            "delete": "Eliminar"
+        }
+    },
     "restaurant": {
         "title": "Restaurante",
         "loading": "Cargando datos...",
