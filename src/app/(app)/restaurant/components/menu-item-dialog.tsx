@@ -57,10 +57,10 @@ export function MenuItemDialog({
   const [linkedModifiers, setLinkedModifiers] = useState<string[]>([]);
   
   const resetState = () => {
-    setName(item?.name || '');
-    setDescription(item?.description || '');
-    setPrice(item?.price ?? '');
-    setCategory(item?.category || '');
+    setName(item?.name ?? '');
+    setDescription(item?.description ?? '');
+ setPrice(item?.price !== undefined ? item.price.toString() : ''); // Ensure price is string for input
+ setCategory(item?.category ?? '');
     setImageUrl(item?.imageUrl || '');
     setAvailable(item?.available ?? true);
     setLinkedModifiers(item?.linkedModifiers || []);
@@ -134,17 +134,17 @@ export function MenuItemDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle className="font-headline text-2xl">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.item_dialog.edit_desc') : t('restaurant.item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
             <ScrollArea className="h-full">
-                <div className="space-y-4 py-4 px-1">
+              <div className="space-y-4 p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
@@ -198,7 +198,7 @@ export function MenuItemDialog({
             </ScrollArea>
         </div>
 
-        <DialogFooter className="pt-4 border-t">
+        <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 p-6 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>

@@ -23,11 +23,13 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function DateRangePicker({
   className,
-  date,
+  // Remove the default date prop and handle state internally
+  date: initialDate,
   onDateChange
 }: DateRangePickerProps) {
   const { t } = useI18n();
 
+  const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -61,7 +63,10 @@ export function DateRangePicker({
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={onDateChange}
+            onSelect={(range) => {
+              setDate(range);
+              onDateChange(range);
+            }}
             numberOfMonths={2}
           />
         </PopoverContent>

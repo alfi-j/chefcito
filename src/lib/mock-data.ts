@@ -521,6 +521,7 @@ export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
     validOrders.forEach(order => {
         const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
         order.items.forEach(item => {
+            const totalUnits = item.quantity;
             if (!itemPrepTimes[item.menuItem.id]) {
                 itemPrepTimes[item.menuItem.id] = { name: item.name, times: [], count: 0 };
             }
