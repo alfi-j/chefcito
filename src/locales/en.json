@@ -245,6 +245,7 @@
             "description": "Description",
             "price": "Price",
             "category": "Category",
+            "image_url": "Image URL",
             "select_category": "Select a category",
             "linked_modifiers": "Linked Modifiers",
             "select_modifiers": "Select modifiers...",

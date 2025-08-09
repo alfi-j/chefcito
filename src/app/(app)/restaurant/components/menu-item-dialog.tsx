@@ -157,7 +157,6 @@ export function MenuItemDialog({
                           }} 
                       />
                   </div>
-
                   <div className="space-y-2">
                       <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
                       <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
@@ -184,6 +183,10 @@ export function MenuItemDialog({
                       <p className="text-xs text-muted-foreground">
                           {t('restaurant.item_dialog.modifiers_desc')}
                       </p>
+                  </div>
+                   <div className="space-y-2">
+                      <Label htmlFor="imageUrl">{t('restaurant.item_dialog.image_url')}</Label>
+                      <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                   </div>
                   <div className="flex items-center space-x-2 pt-2">
                       <Switch id="available" checked={available} onCheckedChange={setAvailable} />

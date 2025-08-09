@@ -245,6 +245,7 @@
             "description": "Descripción",
             "price": "Precio",
             "category": "Categoría",
+            "image_url": "URL de la Imagen",
             "select_category": "Selecciona una categoría",
             "linked_modifiers": "Modificadores Vinculados",
             "select_modifiers": "Seleccionar modificadores...",
