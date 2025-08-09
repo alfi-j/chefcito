@@ -28,7 +28,7 @@ import { useI18n } from '@/context/i18n-context'
 import { 
   updateMenuItemOrder,
 } from '@/lib/mock-data';
-import { MenuItemDialog } from './components/menu-item-dialog'
+// import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
 import { InventoryItemDialog } from './components/inventory-item-dialog'
@@ -46,6 +46,7 @@ import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { useMenu } from '@/hooks/use-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { toast } from 'sonner'
 
 interface RenderedCategory extends Category {
   depth: number;
@@ -304,8 +305,9 @@ function MenuList({
   const { t } = useI18n();
 
   const handleOpenItemDialog = (item?: MenuItem) => {
-    setEditingItem(item);
-    setIsItemDialogOpen(true);
+    // setEditingItem(item);
+    // setIsItemDialogOpen(true);
+    toast.error("This component has been disabled.");
   };
   
   const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
@@ -542,13 +544,13 @@ function MenuList({
         </div>
       </CardHeader>
 
-      <MenuItemDialog
+      {/* <MenuItemDialog
         isOpen={isItemDialogOpen}
         onOpenChange={setIsItemDialogOpen}
         item={editingItem}
         onSave={onSaveItem}
         categories={categories}
-      />
+      /> */}
 
       <CardContent>
         {numSelected > 0 && (
