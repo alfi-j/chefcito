@@ -40,8 +40,8 @@ import { I18nProvider, useI18n } from "@/context/i18n-context"
 import { DataProvider } from "@/context/data-context"
 
 // Simple cookie utility
-const eraseCookie = (name: string) => {   
-    document.cookie = name+'=; Max-Age=-99999999; path=/;';  
+const eraseCookie = (name: string) => {
+  document.cookie = name + '=; Max-Age=-99999999; path=/;';
 }
 
 
@@ -58,7 +58,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ]
-  
+
   const getPageTitle = () => {
     const currentItem = menuItems.find((item) => pathname.startsWith(item.href));
     if (currentItem) {
@@ -68,7 +68,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   const currentPage = getPageTitle();
-  
+
   const handleLogout = async () => {
     eraseCookie("chefcito-auth");
     router.push('/login')
@@ -76,35 +76,39 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-col h-screen">
-       <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
-          <div className="flex items-center gap-4">
-             <Link href="/pos" className="flex items-center gap-2">
-                <ChefHat className="w-8 h-8 text-primary" />
-                <span className="text-xl font-headline font-semibold hidden sm:inline-block">Chefcito</span>
-             </Link>
-             
-             {/* Desktop Navigation */}
-             <nav className="hidden md:flex items-center gap-2">
-                 {menuItems.filter(item => !item.isHidden).map((item) => {
-                    const isActive = pathname.startsWith(item.href);
-                    return (
-                        <Button key={item.href} variant={isActive ? "secondary" : "ghost"} size="sm" asChild>
-                            <Link href={item.href}>
-                                <item.icon className="h-4 w-4 mr-2" />
-                                {item.label}
-                            </Link>
-                        </Button>
-                    )
-                })}
-             </nav>
- <div className="flex items-center gap-4 ml-auto"> {/* Add ml-auto here */}
+      <header className="sticky top-0 z-10 flex items-center justify-between p-4 bg-background/80 border-b h-16 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          <Link href="/pos" className="flex items-center gap-2">
+            <ChefHat className="w-8 h-8 text-primary" />
+            <span className="text-xl font-headline font-semibold hidden sm:inline-block">Chefcito</span>
+          </Link>
+
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-2">
+            {menuItems.filter(item => !item.isHidden).map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              return (
+                <Button key={item.href} variant={isActive ? "secondary" : "ghost"} size="sm" asChild>
+                  <Link href={item.href}>
+                    <item.icon className="h-4 w-4 mr-2" />
+                    {item.label}
+                  </Link>
+                </Button>
+              )
+            })}
+          </nav>
+        </div>
+
+        <div className="flex items-center gap-4 ml-auto"> {/* Add ml-auto here */}
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-headline font-semibold md:hidden">
-                {currentPage}
+              {currentPage}
             </h2>
             <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
           </div>
-        </header>
+          </div>
+      </header>
+
 
       <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-28 md:pb-6")}>
         {children}
@@ -112,13 +116,14 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm md:hidden">
- <div className="grid h-16 grid-cols-4 max-w-lg mx-auto justify-items-center"> {/* Adjust grid columns and add justify-items-center */}
+
+        <div className="grid h-16 grid-cols-4 max-w-lg mx-auto justify-items-center"> {/* Adjust grid columns and add justify-items-center */}
           {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/restaurant", "/reports"].includes(item.href)).map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} className={cn(
-                  "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
+                "flex flex-col items-center justify-center gap-1 text-xs font-medium transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-primary"
               )}>
                 <item.icon className="h-6 w-6" />
                 <span>{item.label}</span>
@@ -170,7 +175,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           <User className="mr-2 h-4 w-4" />
           <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>
-        
+
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
@@ -218,11 +223,11 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
-        
+
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>{t('userMenu.logout')}</span>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>{t('userMenu.logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
