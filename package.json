@@ -11,7 +11,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "check-routes": "tsx src/scripts/check-routes.ts",
-    "test-api": "tsx src/scripts/test-api.ts"
+    "test-api": "tsx src/scripts/test-api.ts",
+    "populate-db": "tsx src/scripts/populate-db.ts",
+    "test-db-connection": "tsx src/scripts/test-db-connection.ts",
+    "verify-data": "tsx src/scripts/verify-data.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",

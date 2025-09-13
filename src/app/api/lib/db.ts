@@ -11,13 +11,13 @@ try {
   pgAvailable = false;
 }
 
-// Only load .env file if not already in a Next.js environment
-if (typeof process.env.NODE_ENV === 'undefined' || process.env.NODE_ENV !== 'production') {
-  try {
-    require('dotenv').config();
-  } catch (error) {
-    console.warn('dotenv not available:', error);
-  }
+// Always try to load .env file, regardless of environment
+// In production on Vercel, environment variables should be set in the dashboard
+// But for local development and fallback, we still want to load .env
+try {
+  require('dotenv').config();
+} catch (error) {
+  console.warn('dotenv not available or .env file not found:', error);
 }
 
 // Create a PostgreSQL connection pool

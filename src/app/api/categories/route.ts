@@ -14,11 +14,23 @@ function createResponse(data: any, status: number = 200) {
 // GET /api/categories - Get all categories
 export async function GET() {
   try {
+    // Log environment variable status for debugging
+    console.log('DATABASE_URL present:', !!process.env.DATABASE_URL);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+    
     const result = await query('SELECT * FROM categories ORDER BY id');
     return createResponse(result.rows);
   } catch (error: any) {
     console.error('Error fetching categories:', error);
-    return createResponse({ error: 'Failed to fetch categories', details: error.message }, 500);
+    return createResponse({ 
+      error: 'Failed to fetch categories', 
+      details: error.message,
+      // Additional debugging info
+      debug: {
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        nodeEnv: process.env.NODE_ENV
+      }
+    }, 500);
   }
 }
 
