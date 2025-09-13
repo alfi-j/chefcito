@@ -56,7 +56,7 @@ export default function PosPage() {
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
   
-  const { menuItems, categories, loading: menuLoading } = useMenu();
+  const { menuItems, categories } = useMenu();
   const currentOrder = useCurrentOrder();
 
   // State and hooks from former OrdersPage
@@ -149,29 +149,29 @@ export default function PosPage() {
     setPaymentDialogOpen(true);
   }
 
-  const handlePaymentSuccess = async () => {
-    setPaymentDialogOpen(false);
+  const handlePaymentSuccess = async (paymentData: any) => {
+    // In a real app, you would process the payment here
+    console.log('Payment processed:', paymentData);
     
-    // Send order as completed
     try {
-       await createOrder({
+      await createOrder({
         table: currentOrder.table,
         items: currentOrder.items,
         notes: currentOrder.notes,
         orderType: currentOrder.orderType,
-        deliveryInfo: currentOrder.deliveryInfo,
+        deliveryInfo: currentOrder.deliveryInfo
       });
-      // In a real app we'd likely mark this new order as paid immediately.
-      // For mock purposes, we just add it and then show success.
-       toast.success(t('pos.toast.payment_success_title'), {
-          description: t('pos.toast.payment_success_desc'),
-          duration: 3000,
+      
+      toast.success(t('pos.toast.payment_success_title'), {
+        description: t('pos.toast.payment_success_desc'),
+        duration: 3000,
       });
+      
       currentOrder.clearOrder();
       fetchOrders(); // Refresh orders list
     } catch (error: any) {
-       toast.error(t('toast.error'), {
-        description: error.message || t('pos.toast.send_error'),
+      toast.error(t('toast.error'), {
+        description: error.message || t('pos.toast.payment_error'),
         duration: 3000,
       });
     }

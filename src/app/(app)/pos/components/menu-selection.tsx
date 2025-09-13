@@ -151,7 +151,9 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                     </div>
                     <CardFooter className="p-2 flex-grow flex flex-col items-start">
                       <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
+                      <p className="text-xs text-primary font-bold">
+                        ${(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)}
+                      </p>
                     </CardFooter>
                   </Card>
                 ))}

@@ -2,11 +2,26 @@ import { NextResponse } from 'next/server';
 import { query } from '../lib/db';
 import { MenuItem } from '../lib/types';
 
+// Helper function to create a JSON response
+function createResponse(data: any, status: number = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+
 // GET /api/menu-items - Get all menu items
 export async function GET() {
   try {
     const result = await query('SELECT * FROM menu_items ORDER BY sort_index');
-    return NextResponse.json(result.rows);
+    // Ensure price is parsed as a number
+    const menuItems = result.rows.map((item: any) => ({
+      ...item,
+      price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+    }));
+    return createResponse(menuItems);
   } catch (error) {
     console.error('Error fetching menu items:', error);
     return NextResponse.json({ error: 'Failed to fetch menu items' }, { status: 500 });
@@ -23,10 +38,28 @@ export async function POST(request: Request) {
       `INSERT INTO menu_items 
        (id, name, price, description, available, category, image_url, ai_hint, linked_modifiers, sort_index) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
-      [id, name, price, description, available !== undefined ? available : true, category, imageUrl, aiHint, linkedModifiers || [], sortIndex || 0]
+      [
+        id || `item_${Date.now()}`,
+        name,
+        price,
+        description,
+        available !== undefined ? available : true,
+        category,
+        imageUrl || '',
+        aiHint || '',
+        linkedModifiers || [],
+        sortIndex || 0
+      ]
     );
 
-    return NextResponse.json(result.rows[0], { status: 201 });
+    const item = result.rows[0];
+    // Ensure price is parsed as a number
+    const menuItem = {
+      ...item,
+      price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+    };
+    
+    return createResponse(menuItem, 201);
   } catch (error) {
     console.error('Error creating menu item:', error);
     return NextResponse.json({ error: 'Failed to create menu item' }, { status: 500 });
@@ -51,14 +84,32 @@ export async function PUT(request: Request) {
        SET name = $1, price = $2, description = $3, available = $4, category = $5, 
            image_url = $6, ai_hint = $7, linked_modifiers = $8, sort_index = $9
        WHERE id = $10 RETURNING *`,
-      [name, price, description, available, category, imageUrl, aiHint, linkedModifiers, sortIndex, id]
+      [
+        name,
+        price,
+        description,
+        available,
+        category,
+        imageUrl,
+        aiHint,
+        linkedModifiers,
+        sortIndex,
+        id
+      ]
     );
 
     if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Menu item not found' }, { status: 404 });
+      return createResponse({ error: 'Menu item not found' }, 404);
     }
 
-    return NextResponse.json(result.rows[0]);
+    const item = result.rows[0];
+    // Ensure price is parsed as a number
+    const menuItem = {
+      ...item,
+      price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+    };
+    
+    return createResponse(menuItem);
   } catch (error) {
     console.error('Error updating menu item:', error);
     return NextResponse.json({ error: 'Failed to update menu item' }, { status: 500 });
@@ -81,7 +132,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Menu item not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ message: 'Menu item deleted successfully' });
+    return createResponse({ message: 'Menu item deleted successfully' });
   } catch (error) {
     console.error('Error deleting menu item:', error);
     return NextResponse.json({ error: 'Failed to delete menu item' }, { status: 500 });

@@ -50,7 +50,13 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
             inventoryRes.json(),
         ]);
 
-        setMenuItems(menuData);
+        // Ensure price is parsed as a number for menu items
+        const parsedMenuItems = menuData.map((item: any) => ({
+          ...item,
+          price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
+        }));
+
+        setMenuItems(parsedMenuItems);
         setCategories(categoriesData);
         setPaymentMethods(paymentsData);
         setCustomers(customersData);
