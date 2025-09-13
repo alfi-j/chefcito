@@ -61,7 +61,7 @@ export async function POST(request: Request) {
           [
             item.id,
             order.id,
-            item.menuItemId,
+            item.menuItem?.id, // Fix: use item.menuItem.id instead of item.menuItemId
             item.quantity,
             item.newCount || 0,
             item.cookingCount || 0,
@@ -119,24 +119,27 @@ export async function PUT(request: Request) {
     const { table, status, isPinned, customerId, staffName, statusHistory, notes, orderType, deliveryInfo, items } = body;
 
     // Update the order
-    const orderResult = await query(
-      `UPDATE orders 
-       SET table_number = $1, status = $2, is_pinned = $3, customer_id = $4, staff_name = $5, 
-           status_history = $6, notes = $7, order_type = $8, delivery_info = $9
-       WHERE id = $10 RETURNING *`,
-      [table, status, isPinned, customerId, staffName, JSON.stringify(statusHistory), notes, orderType, JSON.stringify(deliveryInfo), id]
+    await query(
+      `UPDATE orders SET 
+        table_number = $1, 
+        status = $2, 
+        is_pinned = $3, 
+        customer_id = $4, 
+        staff_name = $5, 
+        status_history = $6, 
+        notes = $7,
+        order_type = $8,
+        delivery_info = $9
+       WHERE id = $10`,
+      [table, status, isPinned || false, customerId, staffName, JSON.stringify(statusHistory || []), notes, orderType, JSON.stringify(deliveryInfo), id]
     );
 
-    if (orderResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
-    }
-
-    // If items were provided, update them
+    // Update order items if provided
     if (items && Array.isArray(items)) {
-      // First delete existing items for this order
+      // First, delete existing items for this order
       await query('DELETE FROM order_items WHERE order_id = $1', [id]);
       
-      // Then insert new items
+      // Then insert the new items
       for (const item of items) {
         await query(
           `INSERT INTO order_items 
@@ -145,7 +148,7 @@ export async function PUT(request: Request) {
           [
             item.id,
             id,
-            item.menuItemId,
+            item.menuItem?.id, // Fix: use item.menuItem.id instead of item.menuItemId
             item.quantity,
             item.newCount || 0,
             item.cookingCount || 0,
@@ -159,7 +162,7 @@ export async function PUT(request: Request) {
       }
     }
 
-    // Return the updated order with items
+    // Return the updated order
     const result = await query(`
       SELECT o.*, 
              json_agg(oi.*) as items
@@ -204,8 +207,8 @@ export async function DELETE(request: Request) {
     
     // Delete the order
     const result = await query('DELETE FROM orders WHERE id = $1 RETURNING *', [id]);
-
-    if (result.rows.length === 0) {
+    
+    if (result.rowCount === 0) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 

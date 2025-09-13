@@ -54,17 +54,30 @@ export const migrateData = async () => {
         table: order.table,
         items: order.items.map((item: any) => ({
           id: item.id,
-          menuItemId: item.menuItemId,
-          name: item.name,
-          price: item.price,
+          // Fix: Use the correct structure for OrderItem
+          menuItem: {
+            id: item.menuItemId,
+            // Other menuItem properties would be fetched from the database
+          },
           quantity: item.quantity,
+          newCount: item.newCount || item.quantity,
+          cookingCount: item.cookingCount || 0,
+          readyCount: item.readyCount || 0,
+          servedCount: item.servedCount || 0,
           selectedExtras: item.selectedExtras || [],
+          notes: item.notes || '',
         })),
         status: order.status || 'pending',
         createdAt: order.createdAt || new Date().toISOString(),
         completedAt: order.completedAt || null,
         total: order.total || 0,
         customerId: order.customerId || null,
+        isPinned: order.isPinned || false,
+        staffName: order.staffName || null,
+        statusHistory: order.statusHistory || [],
+        notes: order.notes || '',
+        orderType: order.orderType || 'dine-in',
+        deliveryInfo: order.deliveryInfo || null,
       }));
       
       // Save to new storage
