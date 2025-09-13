@@ -1,0 +1,219 @@
+[
+  {
+    "id": 1,
+    "table": 5,
+    "status": "pending",
+    "createdAt": "2024-08-07T14:00:00Z",
+    "isPinned": true,
+    "staffName": "Alex",
+    "notes": "Customer has a gluten allergy. Please be extra careful with the pizza.",
+    "orderType": "dine-in",
+    "statusHistory": [
+      {
+        "status": "pending",
+        "timestamp": "2024-08-07T14:00:00Z"
+      }
+    ],
+    "items": [
+      {
+        "id": "1-1",
+        "menuItemId": "1",
+        "quantity": 1,
+        "newCount": 1,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [
+          "extra-1",
+          "extra-3"
+        ],
+        "notes": "Gluten-free crust."
+      },
+      {
+        "id": "1-2",
+        "menuItemId": "2",
+        "quantity": 2,
+        "newCount": 2,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [],
+        "notes": "One with no dressing."
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "table": 8,
+    "status": "pending",
+    "createdAt": "2024-08-07T14:05:00Z",
+    "isPinned": false,
+    "staffName": "Maria",
+    "orderType": "dine-in",
+    "notes": "Birthday celebration at the table.",
+    "statusHistory": [
+      {
+        "status": "pending",
+        "timestamp": "2024-08-07T14:05:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2024-08-07T14:20:00Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-08T17:28:00.185Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-08T17:28:05.996Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-08T17:28:10.957Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-09T02:02:01.883Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-09T02:02:02.574Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-09T02:02:59.493Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-09T02:03:00.788Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-09T02:03:05.031Z"
+      },
+      {
+        "status": "pending",
+        "timestamp": "2025-08-09T02:03:09.016Z"
+      }
+    ],
+    "items": [
+      {
+        "id": "2-2",
+        "menuItemId": "4",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 1,
+        "selectedExtraIds": [],
+        "notes": "Add a birthday candle."
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "table": 12,
+    "status": "pending",
+    "createdAt": "2024-08-07T14:10:00Z",
+    "isPinned": false,
+    "staffName": "Alex",
+    "orderType": "delivery",
+    "deliveryInfo": {
+      "name": "John Smith",
+      "address": "456 Oak Avenue, Springfield",
+      "phone": "555-555-5556"
+    },
+    "notes": "Please deliver to the side door. Include extra napkins.",
+    "statusHistory": [
+      {
+        "status": "pending",
+        "timestamp": "2024-08-07T14:10:00Z"
+      }
+    ],
+    "items": [
+      {
+        "id": "3-1",
+        "menuItemId": "1",
+        "quantity": 2,
+        "newCount": 2,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [
+          "extra-1"
+        ],
+        "notes": "One well-done, one regular."
+      },
+      {
+        "id": "3-2",
+        "menuItemId": "6",
+        "quantity": 3,
+        "newCount": 0,
+        "cookingCount": 3,
+        "readyCount": 0,
+        "servedCount": 0,
+        "selectedExtraIds": [],
+        "notes": "One Diet Coke if possible."
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "table": 2,
+    "status": "completed",
+    "createdAt": "2024-08-07T13:50:00Z",
+    "isPinned": false,
+    "staffName": "Maria",
+    "orderType": "dine-in",
+    "notes": "",
+    "statusHistory": [
+      {
+        "status": "pending",
+        "timestamp": "2024-08-07T13:50:00Z"
+      },
+      {
+        "status": "completed",
+        "timestamp": "2025-08-08T17:28:25.355Z"
+      }
+    ],
+    "items": [
+      {
+        "id": "4-1",
+        "menuItemId": "5",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 0,
+        "selectedExtraIds": [],
+        "notes": "Lightly toasted."
+      },
+      {
+        "id": "4-2",
+        "menuItemId": "3",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 0,
+        "servedCount": 1,
+        "selectedExtraIds": [
+          "extra-4"
+        ],
+        "notes": ""
+      },
+      {
+        "id": "4-3",
+        "menuItemId": "2",
+        "quantity": 1,
+        "newCount": 0,
+        "cookingCount": 0,
+        "readyCount": 1,
+        "servedCount": 0,
+        "selectedExtraIds": [],
+        "notes": ""
+      }
+    ],
+    "completedAt": "2025-08-08T17:28:25.355Z"
+  }
+]

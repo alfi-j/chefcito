@@ -1,0 +1,116 @@
+[
+  {
+    "id": "3",
+    "name": "Spaghetti Carbonara",
+    "price": 15.5,
+    "category": "Pastas",
+    "imageUrl": "",
+    "aiHint": "pasta food",
+    "description": "Pasta with eggs, cheese, pancetta, and black pepper.",
+    "available": true,
+    "sortIndex": 0
+  },
+  {
+    "id": "2",
+    "name": "Caesar Salad",
+    "price": 8.99,
+    "category": "Appetizers",
+    "imageUrl": "",
+    "aiHint": "Caesar Salad food",
+    "description": "Crisp romaine lettuce with Caesar dressing, croutons, and Parmesan cheese.",
+    "available": true,
+    "sortIndex": 1,
+    "linkedModifiers": []
+  },
+  {
+    "id": "1",
+    "name": "Margherita Pizza",
+    "price": 12.99,
+    "category": "Pizzas",
+    "imageUrl": "",
+    "aiHint": "Margherita Pizza food",
+    "description": "Classic pizza with fresh basil and mozzarella.",
+    "available": true,
+    "sortIndex": 2,
+    "linkedModifiers": [
+      "Extras"
+    ]
+  },
+  {
+    "id": "4",
+    "name": "Tiramisu",
+    "price": 6.5,
+    "category": "Desserts",
+    "imageUrl": "",
+    "aiHint": "tiramisu food",
+    "description": "Coffee-flavoured Italian dessert.",
+    "available": true,
+    "sortIndex": 3
+  },
+  {
+    "id": "5",
+    "name": "Bruschetta",
+    "price": 7,
+    "category": "Appetizers",
+    "imageUrl": "",
+    "aiHint": "bruschetta food",
+    "description": "Grilled bread with garlic, topped with tomato and basil.",
+    "available": true,
+    "sortIndex": 4
+  },
+  {
+    "id": "6",
+    "name": "Coca-Cola",
+    "price": 2.5,
+    "category": "Beverages",
+    "imageUrl": "",
+    "aiHint": "soda drink",
+    "description": "A classic refreshing soda.",
+    "available": true,
+    "sortIndex": 5
+  },
+  {
+    "id": "extra-1",
+    "name": "Extra Cheese",
+    "price": 1.5,
+    "category": "Extras",
+    "imageUrl": "",
+    "aiHint": "cheese topping",
+    "description": "Add extra cheese to your dish.",
+    "available": true,
+    "sortIndex": 6
+  },
+  {
+    "id": "extra-2",
+    "name": "Bacon",
+    "price": 2,
+    "category": "Extras",
+    "imageUrl": "",
+    "aiHint": "bacon topping",
+    "description": "Add crispy bacon.",
+    "available": true,
+    "sortIndex": 7
+  },
+  {
+    "id": "extra-3",
+    "name": "Avocado",
+    "price": 2.5,
+    "category": "Extras",
+    "imageUrl": "",
+    "aiHint": "avocado topping",
+    "description": "Add fresh avocado.",
+    "available": true,
+    "sortIndex": 8
+  },
+  {
+    "id": "extra-4",
+    "name": "Extra Patty",
+    "price": 4,
+    "category": "Extras",
+    "imageUrl": "",
+    "aiHint": "burger meat",
+    "description": "Add another juicy patty.",
+    "available": true,
+    "sortIndex": 9
+  }
+]

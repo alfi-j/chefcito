@@ -1,0 +1,454 @@
+
+{
+    "pos": {
+        "title": "Terminal de Venta",
+        "loading": "Cargando menú...",
+        "current_order": {
+            "title": "Orden Actual",
+            "table": "Mesa",
+            "select_table": "Seleccionar Mesa",
+            "customer": "Cliente",
+            "select_customer": "Seleccionar un cliente",
+            "search_customer": "Buscar cliente...",
+            "no_customer_found": "No se encontró ningún cliente.",
+            "no_items": "No hay artículos en la orden.",
+            "select_items": "Selecciona artículos del menú para comenzar.",
+            "order_notes": "Notas de la Orden",
+            "order_notes_placeholder": "Añade cualquier instrucción especial para la cocina...",
+            "subtotal": "Subtotal",
+            "tax": "Impuesto (8%)",
+            "total": "Total",
+            "clear_order": "Limpiar Orden",
+            "payment": "Pago",
+            "send_to_kitchen": "Enviar a Cocina"
+        },
+        "order_type": {
+            "dine_in": "Para Servir",
+            "delivery": "A Domicilio"
+        },
+        "delivery": {
+            "name": "Nombre del Cliente",
+            "address": "Dirección",
+            "phone": "Teléfono"
+        },
+        "menu_selection": {
+            "title": "Menú",
+            "no_categories_title": "Menú",
+            "no_categories_desc_1": "No se encontraron categorías de menú.",
+            "no_categories_desc_2": "Agrega categorías y artículos en la página de Menú.",
+            "filter_by_category": "Filtrar por categoría",
+            "all_categories": "Todas las Categorías"
+        },
+        "payment_dialog": {
+            "title": "Procesar Pago",
+            "total_due": "Total a Pagar",
+            "method": "Método de Pago",
+            "card": "Tarjeta",
+            "cash": "Efectivo",
+            "bank": "Banco",
+            "select_bank": "Seleccione un banco",
+            "confirm": "Confirmar Pago",
+            "split_bill": "Dividir Cuenta",
+            "per_person": "por persona",
+            "payment": "Pago",
+            "remaining_balance": "Restante",
+            "add_payment": "Añadir Pago",
+            "bill": "Cuenta",
+            "add_bill": "Añadir Cuenta",
+            "order_summary": "Resumen de la Orden",
+            "assign_items_for": "Asignar artículos a cuentas",
+            "all_items_assigned": "Todos los artículos asignados.",
+            "items_unassigned": "Hay artículos sin asignar.",
+            "unassigned_items": "Sin Asignar",
+            "items_in_bill": "Artículos en la Cuenta",
+            "no_items_in_bill": "No se han añadido artículos a esta cuenta.",
+            "bill_summary": "Totales de Cuentas"
+        },
+        "add_item_dialog": {
+            "customize": "Personaliza tu artículo y añádelo a la orden.",
+            "update_item": "Actualizar Artículo",
+            "add_to_order": "Añadir a la Orden",
+            "extras": "Extras",
+            "quantity": "Cantidad",
+            "item_notes": "Notas del Artículo",
+            "item_notes_placeholder": "Instrucciones especiales para este artículo...",
+            "remove_item": "Eliminar Artículo"
+        },
+        "toast": {
+            "item_added": "{{item}} agregado",
+            "item_updated": "{{item}} actualizado",
+            "empty_order_title": "Orden Vacía",
+            "empty_order_desc": "No se puede enviar una orden vacía a la cocina.",
+            "empty_order_payment_desc": "No se puede procesar el pago de una orden vacía.",
+            "order_sent_title": "¡Orden Enviada!",
+            "order_sent_desc": "La orden ha sido enviada a la cocina.",
+            "fetch_error": "No se pudieron cargar los datos del menú.",
+            "send_error": "Error al enviar la orden a la cocina.",
+            "payment_success_title": "Pago Exitoso",
+            "payment_success_desc": "La orden ha sido pagada y completada."
+        }
+    },
+    "kds": {
+        "title": "Sistema de Cocina",
+        "loading": "Cargando órdenes...",
+        "no_orders": "No hay órdenes en esta categoría.",
+        "tabs": {
+            "pending": "Pendientes",
+            "completed": "Completadas",
+            "kitchen": "Cocina",
+            "serving": "Servicio"
+        },
+        "toast": {
+            "fetch_error": "No se pudieron cargar las órdenes.",
+            "update_item_error": "Error al actualizar el estado del artículo.",
+            "revert_item_error": "Error al revertir el estado del artículo.",
+            "pin_error": "Error al actualizar el estado de anclaje."
+        }
+    },
+    "orders": {
+        "title": "Historial de Órdenes",
+        "description": "Ver y gestionar todas las órdenes de los clientes.",
+        "loading": "Cargando historial de órdenes...",
+        "no_orders_found": "No se encontraron órdenes.",
+        "no_orders_description": "Las nuevas órdenes aparecerán aquí a medida que se creen.",
+        "tabs": {
+            "all": "Todas",
+            "pending": "Pendientes",
+            "completed": "Completadas"
+        },
+        "status": {
+            "pending": "Pendiente",
+            "completed": "Completada"
+        },
+        "table": {
+            "order_id": "ID de Orden",
+            "date": "Fecha",
+            "table": "Mesa",
+            "staff": "Personal",
+            "status": "Estado",
+            "total": "Total",
+            "actions": "Acciones",
+            "toggle_menu": "Alternar menú",
+            "view_details": "Ver Detalles",
+            "search_placeholder": "Buscar por ID de Orden o Mesa..."
+        },
+        "details": {
+            "title": "Detalles de la Orden",
+            "description": "Revisa los detalles completos de esta orden.",
+            "items": "Artículos",
+            "status_history": "Historial de Estado",
+            "view_receipt": "Ver Recibo",
+            "delivery_info": "Información de Entrega"
+        },
+        "receipt": {
+            "thank_you": "¡Gracias por su visita!",
+            "print": "Imprimir",
+            "download": "Descargar",
+            "print_toast_title": "Imprimiendo Recibo",
+            "print_toast_desc": "Enviado a la impresora.",
+            "download_toast_title": "Descargando Recibo",
+            "download_toast_desc": "Su recibo se descargará en breve."
+        },
+        "toast": {
+            "fetch_error": "No se pudo cargar el historial de órdenes."
+        }
+    },
+    "waiters": {
+        "title": "Meseros",
+        "loading": "Cargando datos del personal...",
+        "dashboard_desc": "Supervisa el rendimiento y la actividad del personal.",
+        "roster_title": "Lista de Personal",
+        "roster_desc": "Ver todos los miembros del personal y su estado actual.",
+        "tabs": {
+            "performance": "Rendimiento",
+            "tasks": "Tareas"
+        },
+        "table": {
+            "name": "Nombre",
+            "role": "Rol",
+            "status": "Estado"
+        },
+        "status": {
+            "on_shift": "En Turno",
+            "off_shift": "Fuera de Turno",
+            "on_break": "En Descanso"
+        },
+        "kpi": {
+            "tables_served": "Mesas Atendidas",
+            "total_sales": "Ventas Totales",
+            "avg_sale": "Venta Prom."
+        },
+        "tasks": {
+            "board_title": "Tablero de Tareas",
+            "board_desc": "Arrastra y suelta las tareas para actualizar su estado.",
+            "add_task": "Añadir Tarea",
+            "no_tasks": "No hay tareas en esta columna.",
+            "status": {
+                "to_do": "Por Hacer",
+                "in_progress": "En Progreso",
+                "done": "Hecho"
+            },
+            "priority": {
+                "low": "Baja",
+                "medium": "Media",
+                "high": "Alta"
+            },
+            "edit": "Editar",
+            "reassign": "Reasignar",
+            "delete": "Eliminar"
+        }
+    },
+    "restaurant": {
+        "title": "Restaurante",
+        "loading": "Cargando datos...",
+        "menu": {
+            "title": "Menú",
+            "desc": "Gestiona los artículos, categorías y modificadores de tu menú.",
+            "add_item": "Añadir Artículo",
+            "manage_categories": "Gestionar Categorías",
+            "search_placeholder": "Buscar artículos...",
+            "filter_by_category": "Filtrar por categoría",
+            "all_categories": "Todas las Categorías",
+            "table": {
+                "image": "Imagen",
+                "name": "Nombre",
+                "category": "Categoría",
+                "status": "Estado",
+                "price": "Precio",
+                "actions": "Acciones",
+                "toggle_menu": "Alternar menú",
+                "edit": "Editar",
+                "delete": "Eliminar"
+            },
+             "status": {
+                "available": "Disponible",
+                "unavailable": "No disponible"
+            }
+        },
+        "inventory": {
+            "title": "Inventario",
+            "desc": "Controla los niveles de stock, gestiona las reposiciones y supervisa el uso.",
+            "add_item": "Añadir Artículo",
+            "table": {
+                "name": "Nombre",
+                "in_stock": "En Stock",
+                "unit": "Unidad",
+                "status": "Estado",
+                "actions": "Acciones"
+            },
+            "status": {
+                "in_stock": "En Stock",
+                "low_stock": "Stock Bajo",
+                "out_of_stock": "Agotado"
+            },
+            "dialog": {
+                "edit_title": "Editar Artículo de Inventario",
+                "add_title": "Añadir Nuevo Artículo al Inventario",
+                "edit_desc": "Realiza cambios en el artículo del inventario aquí.",
+                "add_desc": "Añade un nuevo artículo a tu inventario.",
+                "name": "Nombre del Artículo",
+                "quantity": "Cantidad",
+                "unit": "Unidad",
+                "reorder_threshold": "Umbral de Pedido",
+                "category": "Categoría",
+                "linked_items": "Artículos del Menú Vinculados",
+                "select_items": "Seleccionar artículos del menú...",
+                "linked_items_desc": "Vincular a artículos del menú para rastrear el uso de ingredientes automáticamente."
+            }
+        },
+        "batch_actions": {
+            "selected": "{{count}} seleccionados",
+            "delete": "Eliminar"
+        },
+        "delete_dialog": {
+            "title": "¿Eliminar {{count}} artículos?",
+            "desc": "Esta acción no se puede deshacer. Esto eliminará permanentemente los artículos de menú seleccionados.",
+            "confirm": "Sí, eliminar"
+        },
+        "payment_methods": {
+            "title": "Métodos de Pago",
+            "desc": "Gestiona las opciones de pago disponibles en la caja.",
+            "add_method": "Añadir Método",
+            "table": {
+                "name": "Nombre",
+                "type": "Tipo",
+                "enabled": "Habilitado",
+                "actions": "Acciones"
+            },
+            "types": {
+                "cash": "Efectivo",
+                "card": "Tarjeta",
+                "bank_transfer": "Transferencia Bancaria"
+            }
+        },
+        "item_dialog": {
+            "edit_title": "Editar Artículo del Menú",
+            "add_title": "Añadir Nuevo Artículo al Menú",
+            "edit_desc": "Realiza cambios en el artículo del menú aquí. Haz clic en guardar cuando termines.",
+            "add_desc": "Añade un nuevo artículo a tu menú. Haz clic en crear cuando termines.",
+            "name": "Nombre",
+            "description": "Descripción",
+            "price": "Precio",
+            "category": "Categoría",
+            "image_url": "URL de la Imagen",
+            "select_category": "Selecciona una categoría",
+            "linked_modifiers": "Modificadores Vinculados",
+            "select_modifiers": "Seleccionar modificadores...",
+            "modifiers_desc": "Los modificadores estarán disponibles para este artículo en el TPV.",
+            "available": "Disponible"
+        },
+        "category_dialog": {
+            "title": "Gestionar Categorías",
+            "desc": "Añade, edita o elimina las categorías de tu menú.",
+            "new_name": "Nombre de la nueva categoría",
+            "add": "Añadir",
+            "is_modifier": "Es un grupo de modificadores",
+            "modifier_group": "Grupo de Modificadores",
+            "linked_modifiers": "Modificadores Vinculados",
+            "parent_category": "Categoría Padre",
+            "select_parent": "Selecciona una categoría padre",
+            "no_parent": "Sin Padre"
+        },
+        "payment_method_dialog": {
+            "edit_title": "Editar Método de Pago",
+            "add_title": "Añadir Nuevo Método de Pago",
+            "edit_desc": "Realiza cambios en el método de pago.",
+            "add_desc": "Añade una nueva forma de pago para los clientes.",
+            "name": "Nombre",
+            "type": "Tipo",
+            "select_type": "Selecciona un tipo",
+            "banks": "Bancos",
+            "add_bank": "Añadir un nuevo banco"
+        },
+        "toast": {
+            "fetch_error": "No se pudieron cargar los datos.",
+            "item_updated": "Artículo del menú actualizado.",
+            "item_added": "Artículo del menú añadido.",
+            "items_deleted": "{{count}} artículos del menú eliminados.",
+            "update_item_error": "Error al actualizar el artículo.",
+            "add_item_error": "Error al añadir el artículo.",
+            "reorder_error": "Error al reordenar los artículos.",
+            "item_deleted": "Artículo del menú eliminado.",
+            "delete_item_error": "Error al eliminar el artículo.",
+            "category_added": "Categoría añadida.",
+            "add_category_error": "Error al añadir la categoría.",
+            "category_deleted": "Categoría eliminada.",
+            "delete_category_error": "Error al eliminar la categoría.",
+            "category_updated": "Categoría actualizada.",
+            "update_category_error": "Error al actualizar la categoría.",
+            "payment_method_updated": "Método de pago actualizado.",
+            "payment_method_update_error": "Error al actualizar el método de pago.",
+            "payment_method_added": "Método de pago añadido.",
+            "payment_method_add_error": "Error al añadir el método de pago.",
+            "payment_method_deleted": "Método de pago eliminado.",
+            "payment_method_delete_error": "Error al eliminar el método de pago.",
+            "inventory_item_updated": "Artículo de inventario actualizado.",
+            "inventory_item_update_error": "Error al actualizar el artículo de inventario.",
+            "inventory_item_added": "Artículo de inventario añadido.",
+            "inventory_item_add_error": "Error al añadir el artículo de inventario.",
+            "inventory_stock_update_error": "Error al actualizar el stock del inventario.",
+            "inventory_item_deleted": "Artículo de inventario eliminado.",
+            "inventory_item_delete_error": "Error al eliminar el artículo de inventario."
+        }
+    },
+    "reports": {
+        "title": "Informes",
+        "export": "Exportar",
+        "pick_a_date": "Elige una fecha",
+        "loading": "Cargando datos del informe...",
+        "no_data": "No hay datos disponibles para el período seleccionado.",
+        "tabs": {
+            "sales": "Ventas",
+            "items": "Artículos",
+            "kitchen": "Cocina"
+        },
+        "sales": {
+            "total_revenue": "Ingresos Totales",
+            "total_orders": "Pedidos Totales",
+            "avg_order_value": "Valor Promedio Pedido",
+            "daily_sales": "Ventas Diarias",
+            "daily_sales_desc": "Ingresos generados por día en el período seleccionado.",
+            "revenue": "Ingresos"
+        },
+        "items": {
+            "best_selling": "Artículos Más Vendidos",
+            "least_selling": "Artículos Menos Vendidos",
+            "table": {
+                "item": "Artículo",
+                "quantity_sold": "Cantidad Vendida",
+                "total_revenue": "Ingresos Totales"
+            }
+        },
+        "kitchen": {
+            "avg_prep_time": "Tiempo Promedio de Prep.",
+            "avg_prep_time_desc": "Tiempo promedio desde la creación hasta la finalización del pedido.",
+            "most_delayed": "Artículos con Mayor Retraso",
+            "most_delayed_desc": "Artículos con el tiempo de preparación promedio más largo.",
+            "table": {
+                "item": "Artículo",
+                "avg_time": "Tiempo Promedio"
+            }
+        },
+        "toast": {
+            "export_title": "Exportando Informe",
+            "export_desc": "Tu informe se está generando y se descargará en breve."
+        }
+    },
+    "profile": {
+        "title": "Perfil",
+        "account_title": "Mi Cuenta",
+        "account_desc": "Actualiza la configuración de tu cuenta.",
+        "name": "Nombre",
+        "email": "Correo Electrónico",
+        "save_button": "Guardar Cambios",
+        "password_section_title": "Cambiar Contraseña",
+        "password_section_desc": "Actualiza tu contraseña aquí. Por favor, ten cuidado.",
+        "current_password": "Contraseña Actual",
+        "new_password": "Nueva Contraseña",
+        "confirm_password": "Confirmar Nueva Contraseña",
+        "change_password_button": "Cambiar Contraseña",
+        "toast": {
+            "profile_updated": "Información del perfil guardada.",
+            "password_mismatch": "Las nuevas contraseñas no coinciden.",
+            "password_empty": "Por favor, rellena todos los campos de contraseña.",
+            "password_updated": "Contraseña actualizada correctamente."
+        }
+    },
+    "userMenu": {
+        "staff_member": "Miembro del Personal",
+        "email": "Correo Electrónico",
+        "password": "Contraseña",
+        "login": "Iniciar Sesión",
+        "login_success_title": "Inicio de Sesión Exitoso",
+        "login_success_desc": "¡Bienvenido de nuevo!",
+        "profile": "Perfil",
+        "logout": "Cerrar Sesión",
+        "theme": {
+            "title": "Tema",
+            "light": "Claro",
+            "dark": "Oscuro",
+            "system": "Sistema"
+        },
+        "font_size": {
+            "title": "Tamaño de Fuente",
+            "small": "Pequeño",
+            "medium": "Mediano",
+            "large": "Grande"
+        },
+        "language": {
+            "title": "Idioma",
+            "en": "Inglés",
+            "es": "Español"
+        }
+    },
+    "dialog": {
+        "cancel": "Cancelar",
+        "save": "Guardar cambios",
+        "create": "Crear",
+        "close": "Cerrar"
+    },
+    "toast": {
+        "success": "Éxito",
+        "error": "Error"
+    }
+}

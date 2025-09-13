@@ -1,0 +1,7 @@
+
+[
+    { "id": "pm-1", "name": "Cash", "type": "cash", "enabled": true },
+    { "id": "pm-2", "name": "Card", "type": "card", "enabled": true },
+    { "id": "pm-3", "name": "Bank Transfer", "type": "bank_transfer", "enabled": true, "banks": ["Bank A", "Bank B", "Bank C"] },
+    { "id": "pm-4", "name": "Gift Card", "type": "card", "enabled": false }
+]

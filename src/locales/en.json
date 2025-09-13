@@ -1,0 +1,455 @@
+
+{
+    "pos": {
+        "title": "POS",
+        "loading": "Loading menu...",
+        "current_order": {
+            "title": "Current Order",
+            "table": "Table",
+            "select_table": "Select Table",
+            "customer": "Customer",
+            "select_customer": "Select a customer",
+            "search_customer": "Search customer...",
+            "no_customer_found": "No customer found.",
+            "no_items": "No items in order.",
+            "select_items": "Select items from the menu to get started.",
+            "order_notes": "Order Notes",
+            "order_notes_placeholder": "Add any special instructions for the kitchen...",
+            "subtotal": "Subtotal",
+            "tax": "Tax (8%)",
+            "total": "Total",
+            "clear_order": "Clear Order",
+            "payment": "Payment",
+            "send_to_kitchen": "Send to Kitchen"
+        },
+        "order_type": {
+            "dine_in": "Dine-in",
+            "delivery": "Delivery"
+        },
+        "delivery": {
+            "name": "Customer Name",
+            "address": "Address",
+            "phone": "Phone"
+        },
+        "menu_selection": {
+            "title": "Menu",
+            "no_categories_title": "Menu",
+            "no_categories_desc_1": "No menu categories found.",
+            "no_categories_desc_2": "Add categories and items on the Menu page.",
+            "filter_by_category": "Filter by category",
+            "all_categories": "All Categories"
+        },
+        "payment_dialog": {
+            "title": "Process Payment",
+            "total_due": "Total Due",
+            "method": "Payment Method",
+            "card": "Card",
+            "cash": "Cash",
+            "bank": "Bank",
+            "select_bank": "Select a bank",
+            "confirm": "Confirm Payment",
+            "split_bill": "Split Bill",
+            "per_person": "per person",
+            "payment": "Payment",
+            "remaining_balance": "Remaining",
+            "add_payment": "Add Payment",
+            "bill": "Bill",
+            "add_bill": "Add Bill",
+            "order_summary": "Order Summary",
+            "assign_items_for": "Assign items to bills",
+            "all_items_assigned": "All items assigned.",
+            "items_unassigned": "There are unassigned items.",
+            "unassigned_items": "Unassigned",
+            "items_in_bill": "Items in Bill",
+            "no_items_in_bill": "No items added to this bill yet.",
+            "bill_summary": "Bill Totals"
+        },
+        "add_item_dialog": {
+            "customize": "Customize your item and add it to the order.",
+            "update_item": "Update Item",
+            "add_to_order": "Add to Order",
+            "extras": "Extras",
+            "quantity": "Quantity",
+            "item_notes": "Item Notes",
+            "item_notes_placeholder": "Special instructions for this item...",
+            "remove_item": "Remove Item"
+        },
+        "toast": {
+            "item_added": "{{item}} added",
+            "item_updated": "{{item}} updated",
+            "empty_order_title": "Empty Order",
+            "empty_order_desc": "Cannot send an empty order to the kitchen.",
+            "empty_order_payment_desc": "Cannot process payment for an empty order.",
+            "order_sent_title": "Order Sent!",
+            "order_sent_desc": "The order has been sent to the kitchen.",
+            "fetch_error": "Could not fetch menu data.",
+            "send_error": "Failed to send order to the kitchen.",
+            "payment_success_title": "Payment Successful",
+            "payment_success_desc": "The order has been paid and completed."
+        }
+    },
+    "kds": {
+        "title": "KDS",
+        "loading": "Loading orders...",
+        "no_orders": "No orders in this category.",
+        "tabs": {
+            "pending": "Pending",
+            "completed": "Completed",
+            "kitchen": "Kitchen",
+            "serving": "Serving"
+        },
+        "toast": {
+            "fetch_error": "Could not fetch orders.",
+            "update_item_error": "Failed to update item status.",
+            "revert_item_error": "Failed to revert item status.",
+            "pin_error": "Failed to update pin status."
+        }
+    },
+    "orders": {
+        "title": "Order History",
+        "description": "View and manage all customer orders.",
+        "loading": "Loading order history...",
+        "no_orders_found": "No orders found.",
+        "no_orders_description": "New orders will appear here as they are created.",
+        "tabs": {
+            "all": "All",
+            "pending": "Pending",
+            "completed": "Completed"
+        },
+        "status": {
+            "pending": "Pending",
+            "completed": "Completed"
+        },
+        "table": {
+            "order_id": "Order ID",
+            "date": "Date",
+            "table": "Table",
+            "staff": "Staff",
+            "status": "Status",
+            "total": "Total",
+            "actions": "Actions",
+            "toggle_menu": "Toggle menu",
+            "view_details": "View Details",
+            "search_placeholder": "Search by Order ID or Table..."
+        },
+        "details": {
+            "title": "Order Details",
+            "description": "Review the complete details of this order.",
+            "items": "Items",
+            "status_history": "Status History",
+            "view_receipt": "View Receipt",
+            "delivery_info": "Delivery Information"
+        },
+        "receipt": {
+            "thank_you": "Thank you for your visit!",
+            "print": "Print",
+            "download": "Download",
+            "print_toast_title": "Printing Receipt",
+            "print_toast_desc": "Sent to printer.",
+            "download_toast_title": "Downloading Receipt",
+            "download_toast_desc": "Your receipt will download shortly."
+        },
+        "toast": {
+            "fetch_error": "Could not fetch order history."
+        }
+    },
+    "waiters": {
+        "title": "Waiters",
+        "loading": "Loading staff data...",
+        "dashboard_desc": "Monitor staff performance and activity.",
+        "roster_title": "Staff Roster",
+        "roster_desc": "View all staff members and their current status.",
+        "tabs": {
+            "performance": "Performance",
+            "tasks": "Tasks"
+        },
+        "table": {
+            "name": "Name",
+            "role": "Role",
+            "status": "Status"
+        },
+        "status": {
+            "on_shift": "On Shift",
+            "off_shift": "Off Shift",
+            "on_break": "On Break"
+        },
+        "kpi": {
+            "tables_served": "Tables Served",
+            "total_sales": "Total Sales",
+            "avg_sale": "Avg. Sale"
+        },
+        "tasks": {
+            "board_title": "Task Board",
+            "board_desc": "Drag and drop tasks to update their status.",
+            "add_task": "Add Task",
+            "no_tasks": "No tasks in this column.",
+            "status": {
+                "to_do": "To Do",
+                "in_progress": "In Progress",
+                "done": "Done"
+            },
+            "priority": {
+                "low": "Low",
+                "medium": "Medium",
+                "high": "High"
+            },
+            "edit": "Edit",
+            "reassign": "Reassign",
+            "delete": "Delete"
+        }
+    },
+    "restaurant": {
+        "title": "Restaurant",
+        "loading": "Loading data...",
+        "menu": {
+            "title": "Menu",
+            "desc": "Manage your menu items, categories, and modifiers.",
+            "add_item": "Add Item",
+            "manage_categories": "Manage Categories",
+            "search_placeholder": "Search for items...",
+            "filter_by_category": "Filter by category",
+            "all_categories": "All Categories",
+            "table": {
+                "image": "Image",
+                "name": "Name",
+                "category": "Category",
+                "status": "Status",
+                "price": "Price",
+                "actions": "Actions",
+                "toggle_menu": "Toggle menu",
+                "edit": "Edit",
+                "delete": "Delete"
+            },
+            "status": {
+                "available": "Available",
+                "unavailable": "Unavailable"
+            }
+        },
+         "inventory": {
+            "title": "Inventory",
+            "desc": "Track stock levels, manage restocks, and monitor usage.",
+            "add_item": "Add Item",
+            "table": {
+                "name": "Name",
+                "in_stock": "In Stock",
+                "unit": "Unit",
+                "status": "Status",
+                "actions": "Actions"
+            },
+            "status": {
+                "in_stock": "In Stock",
+                "low_stock": "Low Stock",
+                "out_of_stock": "Out of Stock"
+            },
+            "dialog": {
+                "edit_title": "Edit Inventory Item",
+                "add_title": "Add New Inventory Item",
+                "edit_desc": "Make changes to the inventory item here.",
+                "add_desc": "Add a new item to your inventory.",
+                "name": "Item Name",
+                "quantity": "Quantity",
+                "unit": "Unit",
+                "reorder_threshold": "Reorder Threshold",
+                "category": "Category",
+                "linked_items": "Linked Menu Items",
+                "select_items": "Select menu items...",
+                "linked_items_desc": "Link to menu items to track ingredient usage automatically."
+            }
+        },
+        "batch_actions": {
+            "selected": "{{count}} selected",
+            "delete": "Delete"
+        },
+        "delete_dialog": {
+            "title": "Delete {{count}} items?",
+            "desc": "This action cannot be undone. This will permanently delete the selected menu items.",
+            "confirm": "Yes, delete"
+        },
+        "payment_methods": {
+            "title": "Payment Methods",
+            "desc": "Manage the payment options available at checkout.",
+            "add_method": "Add Method",
+            "table": {
+                "name": "Name",
+                "type": "Type",
+                "enabled": "Enabled",
+                "actions": "Actions"
+            },
+            "types": {
+                "cash": "Cash",
+                "card": "Card",
+                "bank_transfer": "Bank Transfer"
+            }
+        },
+        "item_dialog": {
+            "edit_title": "Edit Menu Item",
+            "add_title": "Add New Menu Item",
+            "edit_desc": "Make changes to the menu item here. Click save when you're done.",
+            "add_desc": "Add a new item to your menu. Click save when you're done.",
+            "name": "Name",
+            "description": "Description",
+            "price": "Price",
+            "category": "Category",
+            "image_url": "Image URL",
+            "select_category": "Select a category",
+            "linked_modifiers": "Linked Modifiers",
+            "select_modifiers": "Select modifiers...",
+            "modifiers_desc": "Modifiers will be available for this item at the POS.",
+            "available": "Available"
+        },
+        "category_dialog": {
+            "title": "Manage Categories",
+            "desc": "Add, edit, or delete your menu categories.",
+            "new_name": "New category name",
+            "add": "Add",
+            "is_modifier": "Is a modifier group",
+            "modifier_group": "Modifier Group",
+            "linked_modifiers": "Linked Modifiers",
+            "parent_category": "Parent Category",
+            "select_parent": "Select a parent category",
+            "no_parent": "No Parent"
+        },
+        "payment_method_dialog": {
+            "edit_title": "Edit Payment Method",
+            "add_title": "Add New Payment Method",
+            "edit_desc": "Make changes to the payment method.",
+            "add_desc": "Add a new way for customers to pay.",
+            "name": "Name",
+            "type": "Type",
+            "select_type": "Select a type",
+            "banks": "Bancos",
+            "add_bank": "Añadir un nuevo banco"
+        },
+        "toast": {
+            "fetch_error": "Could not fetch data.",
+            "item_updated": "Menu item updated.",
+            "item_added": "Menu item added.",
+            "items_deleted": "{{count}} menu items deleted.",
+            "update_item_error": "Failed to update item.",
+            "add_item_error": "Failed to add item.",
+            "reorder_error": "Failed to reorder items.",
+            "item_deleted": "Menu item deleted.",
+            "delete_item_error": "Failed to delete item.",
+            "category_added": "Category added.",
+            "add_category_error": "Failed to add category.",
+            "category_deleted": "Category deleted.",
+            "delete_category_error": "Failed to delete category.",
+            "category_updated": "Category updated.",
+            "update_category_error": "Failed to update category.",
+            "payment_method_updated": "Payment method updated.",
+            "payment_method_update_error": "Failed to update payment method.",
+            "payment_method_added": "Payment method added.",
+            "payment_method_add_error": "Failed to add payment method.",
+            "payment_method_deleted": "Payment method deleted.",
+            "payment_method_delete_error": "Failed to delete payment method.",
+            "inventory_item_updated": "Inventory item updated.",
+            "inventory_item_update_error": "Failed to update inventory item.",
+            "inventory_item_added": "Inventory item added.",
+            "inventory_item_add_error": "Failed to add inventory item.",
+            "inventory_stock_update_error": "Failed to update inventory stock.",
+            "inventory_item_deleted": "Inventory item deleted.",
+            "inventory_item_delete_error": "Failed to delete inventory item."
+        }
+    },
+    "reports": {
+        "title": "Reports",
+        "export": "Export",
+        "pick_a_date": "Pick a date",
+        "loading": "Loading report data...",
+        "no_data": "No data available for the selected period.",
+        "tabs": {
+            "sales": "Sales",
+            "items": "Items",
+            "kitchen": "Kitchen"
+        },
+        "sales": {
+            "total_revenue": "Total Revenue",
+            "total_orders": "Total Orders",
+            "avg_order_value": "Avg. Order Value",
+            "daily_sales": "Daily Sales",
+            "daily_sales_desc": "Revenue generated per day in the selected period.",
+            "revenue": "Revenue"
+        },
+        "items": {
+            "best_selling": "Best Selling Items",
+            "least_selling": "Least Selling Items",
+            "table": {
+                "item": "Item",
+                "quantity_sold": "Quantity Sold",
+                "total_revenue": "Total Revenue"
+            }
+        },
+        "kitchen": {
+            "avg_prep_time": "Average Prep Time",
+            "avg_prep_time_desc": "Average time from order creation to completion.",
+            "most_delayed": "Most Delayed Items",
+            "most_delayed_desc": "Items with the longest average preparation time.",
+            "table": {
+                "item": "Item",
+                "avg_time": "Avg. Time"
+            }
+        },
+        "toast": {
+            "export_title": "Exporting Report",
+            "export_desc": "Your report is being generated and will download shortly."
+        }
+    },
+    "profile": {
+        "title": "Profile",
+        "account_title": "My Account",
+        "account_desc": "Update your account settings.",
+        "name": "Name",
+        "email": "Email",
+        "save_button": "Save Changes",
+        "password_section_title": "Change Password",
+        "password_section_desc": "Update your password here. Please be careful.",
+        "current_password": "Current Password",
+        "new_password": "New Password",
+        "confirm_password": "Confirm New Password",
+        "change_password_button": "Change Password",
+        "toast": {
+            "profile_updated": "Profile information saved.",
+            "password_mismatch": "New passwords do not match.",
+            "password_empty": "Please fill in all password fields.",
+            "password_updated": "Password updated successfully."
+        }
+    },
+    "userMenu": {
+        "staff_member": "Staff Member",
+        "email": "Email",
+        "password": "Password",
+        "login": "Login",
+        "login_success_title": "Login Successful",
+        "login_success_desc": "Welcome back!",
+        "profile": "Profile",
+        "logout": "Logout",
+        "theme": {
+            "title": "Theme",
+            "light": "Light",
+            "dark": "Dark",
+            "system": "System"
+        },
+        "font_size": {
+            "title": "Font Size",
+            "small": "Small",
+            "medium": "Medium",
+            "large": "Large"
+        },
+        "language": {
+            "title": "Language",
+            "title_es": "Idioma",
+            "en": "English",
+            "es": "Spanish"
+        }
+    },
+    "dialog": {
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create",
+        "close": "Close"
+    },
+    "toast": {
+        "success": "Success",
+        "error": "Error"
+    }
+}
