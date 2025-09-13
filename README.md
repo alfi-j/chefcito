@@ -81,3 +81,7 @@ To learn more about the technologies used:
 - [Next.js Documentation](https://nextjs.org/docs)
 - [NeonDB Documentation](https://neon.tech/docs)
 - [Vercel Documentation](https://vercel.com/docs)
+
+---
+
+This project was built using AI assistance.
