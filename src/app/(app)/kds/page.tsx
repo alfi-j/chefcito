@@ -1,24 +1,3 @@
-<<<<<<< HEAD
-"use client"
-
-import React, { useState } from 'react';
-import { Card } from "@/components/ui/card"
-import { OrderCard } from './components/order-card';
-import { useOrders } from '@/hooks/use-orders';
-import { useI18n } from '@/context/i18n-context';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useMemo } from 'react';
-import { type Order } from '@/lib/types';
-
-export default function KDSPage() {
-  const { orders, loading, updateItemStatus, revertItemStatus, togglePinOrder } = useOrders();
-  const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState('pending');
-  const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
-  const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
-
-  const handleDragStart = (e: React.DragEvent, orderId: number) => {
-=======
 "use client";
 import { useState, useMemo, type DragEvent } from "react";
 import { OrderCard } from "./components/order-card";
@@ -45,48 +24,15 @@ export default function KdsPage() {
   } = useOrders();
 
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
->>>>>>> d3399ff (Chefcito Beta!)
     setDraggedOrderId(orderId);
     e.dataTransfer.effectAllowed = 'move';
   };
 
-<<<<<<< HEAD
-  const handleDragEnter = (e: React.DragEvent, orderId: number) => {
-    e.preventDefault();
-    setDragOverOrderId(orderId);
-  };
-
-=======
->>>>>>> d3399ff (Chefcito Beta!)
   const handleDragEnd = () => {
     setDraggedOrderId(null);
     setDragOverOrderId(null);
   };
 
-<<<<<<< HEAD
-  const handleDrop = (e: React.DragEvent, targetOrderId: number) => {
-    e.preventDefault();
-    setDragOverOrderId(null);
-    
-    if (draggedOrderId && draggedOrderId !== targetOrderId) {
-      // Handle order reordering if needed
-      console.log(`Dropped order ${draggedOrderId} onto order ${targetOrderId}`);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
-
-  const kitchenOrders = useMemo(() => {
-    const pending = orders.filter(o => 
-      o.items.some(i => i.newCount > 0 || i.cookingCount > 0) &&
-      !o.items.some(i => i.readyCount > 0 || i.servedCount > 0)
-    );
-    
-    const unpinned = pending.filter(o => !o.isPinned);
-    const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-=======
   const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
     e.preventDefault();
     if (draggedOrderId === null || draggedOrderId === dropOrderId) {
@@ -138,7 +84,6 @@ export default function KdsPage() {
 
     const unpinned = pending.filter(o => !o.isPinned);
     const pinned = pending.filter(o => o.isPinned).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
->>>>>>> d3399ff (Chefcito Beta!)
     
     return [...pinned, ...unpinned];
   }, [orders]);
@@ -152,11 +97,7 @@ export default function KdsPage() {
       }));
     
     const unpinned = completed.filter(o => !o.isPinned);
-<<<<<<< HEAD
-    const pinned = completed.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
-=======
     const pinned = completed.filter(o => o.isPinned).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
->>>>>>> d3399ff (Chefcito Beta!)
     
     return [...pinned, ...unpinned];
   }, [orders]);
@@ -180,32 +121,13 @@ export default function KdsPage() {
             key={order.id}
             order={order}
             items={order.items}
-<<<<<<< HEAD
-            onUpdateItemStatus={(orderId, itemId, newStatus) => {
-              // Map the status values to match the API
-              const statusMap: Record<string, 'cooking' | 'ready' | 'served'> = {
-                'Cooking': 'cooking',
-                'Ready': 'ready',
-                'Served': 'served'
-              };
-              const apiStatus = statusMap[newStatus];
-              if (apiStatus) {
-                updateItemStatus({ orderId, itemId, newStatus: apiStatus });
-              }
-            }}
-=======
             onUpdateItemStatus={updateItemStatus}
->>>>>>> d3399ff (Chefcito Beta!)
             onRevertItemStatus={revertItemStatus}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
             onDragEnter={handleDragEnter}
             isDraggingOver={dragOverOrderId === order.id}
-<<<<<<< HEAD
-            onTogglePin={togglePinOrder}
-=======
             onTogglePin={toggleOrderPin}
->>>>>>> d3399ff (Chefcito Beta!)
           />
         ))}
       </div>

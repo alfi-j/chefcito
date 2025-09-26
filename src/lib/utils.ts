@@ -1,16 +1,3 @@
-<<<<<<< HEAD
-import { type Order, type OrderItem, type MenuItem } from "./types"
-
-export function cn(...classes: (string | undefined | null | false)[]) {
-  return classes.filter(Boolean).join(" ")
-}
-
-export const getOrderTotal = (order: Order): number => {
-  const subtotal = order.items.reduce((total, item) => {
-    const mainItemPrice = item.menuItem.price;
-    const extrasPrice = item.selectedExtras?.reduce((acc: number, extra: MenuItem) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.quantity || 0);
-=======
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { type Order, type OrderItem, type MenuItem } from "@/lib/types"
@@ -128,7 +115,6 @@ export const getOrderTotal = (order: Order): number => {
       return acc + safeGet<number>(extra, 'price', 0);
     }, 0) || 0;
     const totalUnits = safeGet<number>(item, 'quantity', 0);
->>>>>>> d3399ff (Chefcito Beta!)
     return total + (mainItemPrice + extrasPrice) * totalUnits;
   }, 0);
   
@@ -139,11 +125,6 @@ export const getOrderTotal = (order: Order): number => {
 };
 
 export const getItemTotal = (item: OrderItem): number => {
-<<<<<<< HEAD
-  const mainItemPrice = item.menuItem.price;
-  const extrasPrice = item.selectedExtras?.reduce((acc: number, extra: MenuItem) => acc + extra.price, 0) || 0;
-  const totalUnits = (item.quantity || 0);
-=======
   // Check if menuItem exists
   if (!item || !item.menuItem) return 0;
   
@@ -154,14 +135,10 @@ export const getItemTotal = (item: OrderItem): number => {
     return acc + safeGet<number>(extra, 'price', 0);
   }, 0) || 0;
   const totalUnits = safeGet<number>(item, 'quantity', 0);
->>>>>>> d3399ff (Chefcito Beta!)
   return (mainItemPrice + extrasPrice) * totalUnits;
 };
 
 export const getReadyItems = (order: Order) => {
-<<<<<<< HEAD
-=======
   if (!order || !order.items) return [];
->>>>>>> d3399ff (Chefcito Beta!)
   return order.items.filter(item => item.readyCount > 0);
 };

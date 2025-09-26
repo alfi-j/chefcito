@@ -24,40 +24,25 @@ import { Pencil, Trash2, Check } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context'
-<<<<<<< HEAD
-import { addCategory, updateCategory, deleteCategory as mockDeleteCategory } from '@/lib/mock-data';
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { MultiSelect } from './multi-select'
-=======
 import { categoriesApi } from '@/lib/api-client';
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
 import { FolderKanban } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
->>>>>>> d3399ff (Chefcito Beta!)
 
 interface RenderedCategory extends Category {
   depth: number;
 }
 
-<<<<<<< HEAD
-export function CategoryDialog({ categories, onUpdate }: { categories: Category[], onUpdate: () => void }) {
-=======
 export function CategoryDialog({ children, categories, onUpdate }: { children?: React.ReactNode, categories: Category[], onUpdate: () => void }) {
->>>>>>> d3399ff (Chefcito Beta!)
   const [isOpen, setIsOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { t } = useI18n();
   
-<<<<<<< HEAD
-  const modifierOptions = useMemo(() => 
-=======
   const modifierGroups = useMemo(() => 
->>>>>>> d3399ff (Chefcito Beta!)
     categories
         .filter(c => c.isModifierGroup)
         .map(c => ({ value: c.name, label: c.name })), 
@@ -67,11 +52,7 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
     try {
-<<<<<<< HEAD
-      await addCategory({
-=======
       await categoriesApi.create({
->>>>>>> d3399ff (Chefcito Beta!)
         name: newCategoryName, 
         isModifierGroup: isNewCategoryModifier
       });
@@ -86,13 +67,9 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
 
   const handleDeleteCategory = async (id: number, name: string) => {
     try {
-<<<<<<< HEAD
-      await mockDeleteCategory(id);
-=======
       // Replace mock isCategoryInUse and mockDeleteCategory with API calls
       // For now, we'll skip the in-use check and directly delete
       await categoriesApi.delete(id);
->>>>>>> d3399ff (Chefcito Beta!)
       onUpdate();
       toast.success(t('toast.success'), { description: t('restaurant.toast.category_deleted'), duration: 3000 });
     } catch(error: any) {
@@ -103,12 +80,8 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
     try {
-<<<<<<< HEAD
-      await updateCategory(editingCategory);
-=======
       // Replace mock updateCategory with API call
       await categoriesApi.update(editingCategory);
->>>>>>> d3399ff (Chefcito Beta!)
       onUpdate();
       setEditingCategory(null);
       toast.success(t('toast.success'), { description: t('restaurant.toast.category_updated'), duration: 3000 });
@@ -161,41 +134,16 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
     return renderedCategories.filter(c => c.id !== editingCategory?.id);
   }, [renderedCategories, editingCategory]);
 
-<<<<<<< HEAD
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCategoryName.trim()) return;
-
-    try {
-      if (editingCategory) {
-        await updateCategory({ ...editingCategory, name: newCategoryName.trim() });
-        onUpdate();
-        handleOpenChange(false);
-      } else {
-        await addCategory({ name: newCategoryName.trim() });
-        onUpdate();
-        handleOpenChange(false);
-      }
-    } catch (error) {
-      console.error('Failed to save category:', error);
-    }
-  };
-=======
->>>>>>> d3399ff (Chefcito Beta!)
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-<<<<<<< HEAD
-        <Button variant="outline">{t('restaurant.menu.manage_categories')}</Button>
-=======
         {children || (
           <Button variant="outline" size="icon">
             <FolderKanban className="h-4 w-4" />
             <span className="sr-only">{t('restaurant.menu.manage_categories')}</span>
           </Button>
         )}
->>>>>>> d3399ff (Chefcito Beta!)
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -253,11 +201,7 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
                             value={String(editingCategory.parentId || 'null')}
                             onValueChange={(value) => {
                                if(editingCategory) {
-<<<<<<< HEAD
-                                  setEditingCategory({...editingCategory, parentId: value === 'null' ? undefined : Number(value)})
-=======
                                   setEditingCategory({...editingCategory, parentId: value === 'null' ? null : Number(value)})
->>>>>>> d3399ff (Chefcito Beta!)
                                }
                             }}
                           >
@@ -280,14 +224,6 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
                         <div>
                           <Label className="text-sm font-medium">{t('restaurant.category_dialog.linked_modifiers')}</Label>
                           <MultiSelect
-<<<<<<< HEAD
-                            options={modifierOptions}
-                            selected={editingCategory.linkedModifiers || []}
-                            onChange={(selected) => setEditingCategory({...editingCategory, linkedModifiers: selected as string[]})}
-                            placeholder={t('restaurant.categories.dialog.select_modifiers')}
-                          />
-
-=======
                             options={modifierGroups}
                             selected={editingCategory.linkedModifiers || []}
                             onChange={(selected) => {
@@ -309,7 +245,6 @@ export function CategoryDialog({ children, categories, onUpdate }: { children?: 
                             }}
                             className="mt-1"
                           />
->>>>>>> d3399ff (Chefcito Beta!)
                         </div>
                       )}
                     </div>

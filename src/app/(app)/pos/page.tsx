@@ -8,17 +8,10 @@ import { AddItemDialog } from './components/add-item-dialog';
 import { PaymentDialog } from './components/payment-dialog';
 import { toast } from "sonner";
 import { useI18n } from '@/context/i18n-context';
-<<<<<<< HEAD
-import { createOrder } from '@/lib/data';
-import { useMenu } from '@/hooks/use-menu';
-import { useCurrentOrder } from '@/hooks/use-current-order';
-import { useOrders } from '@/hooks/use-orders';
-=======
 import { useMenu } from '@/hooks/use-menu';
 import { useCurrentOrder } from '@/hooks/use-current-order';
 import { useOrders } from '@/hooks/use-orders';
 import { ordersApi } from '@/lib/api-client';
->>>>>>> d3399ff (Chefcito Beta!)
 
 import {
   Table,
@@ -63,11 +56,7 @@ export default function PosPage() {
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const { t } = useI18n();
   
-<<<<<<< HEAD
-  const { menuItems, categories } = useMenu();
-=======
   const { menuItems, categories, loading: menuLoading, forceCacheRefresh: fetchAllData } = useMenu();
->>>>>>> d3399ff (Chefcito Beta!)
   const currentOrder = useCurrentOrder();
 
   // State and hooks from former OrdersPage
@@ -76,11 +65,7 @@ export default function PosPage() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-<<<<<<< HEAD
-  const { orders, loading: ordersLoading, fetchOrders } = useOrders();
-=======
   const { orders, loading: ordersLoading, refreshOrders: fetchOrders } = useOrders();
->>>>>>> d3399ff (Chefcito Beta!)
 
 
   const handleAddItemToOrder = (item: MenuItem) => {
@@ -132,11 +117,7 @@ export default function PosPage() {
     }
 
     try {
-<<<<<<< HEAD
-      await createOrder({
-=======
       await ordersApi.create({
->>>>>>> d3399ff (Chefcito Beta!)
         table: currentOrder.table,
         items: currentOrder.items,
         notes: currentOrder.notes,
@@ -168,40 +149,16 @@ export default function PosPage() {
     setPaymentDialogOpen(true);
   }
 
-<<<<<<< HEAD
-  const handlePaymentSuccess = async (paymentData: any) => {
-    // In a real app, you would process the payment here
-    console.log('Payment processed:', paymentData);
-    
-    try {
-      await createOrder({
-=======
   const handlePaymentSuccess = async () => {
     setPaymentDialogOpen(false);
     
     // Send order as completed
     try {
        await ordersApi.create({
->>>>>>> d3399ff (Chefcito Beta!)
         table: currentOrder.table,
         items: currentOrder.items,
         notes: currentOrder.notes,
         orderType: currentOrder.orderType,
-<<<<<<< HEAD
-        deliveryInfo: currentOrder.deliveryInfo
-      });
-      
-      toast.success(t('pos.toast.payment_success_title'), {
-        description: t('pos.toast.payment_success_desc'),
-        duration: 3000,
-      });
-      
-      currentOrder.clearOrder();
-      fetchOrders(); // Refresh orders list
-    } catch (error: any) {
-      toast.error(t('toast.error'), {
-        description: error.message || t('pos.toast.payment_error'),
-=======
         deliveryInfo: currentOrder.deliveryInfo,
       });
       // In a real app we'd likely mark this new order as paid immediately.
@@ -215,7 +172,6 @@ export default function PosPage() {
     } catch (error: any) {
        toast.error(t('toast.error'), {
         description: error.message || t('pos.toast.send_error'),
->>>>>>> d3399ff (Chefcito Beta!)
         duration: 3000,
       });
     }

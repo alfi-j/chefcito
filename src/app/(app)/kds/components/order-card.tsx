@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> d3399ff (Chefcito Beta!)
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -11,20 +7,12 @@ import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyN
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
 import { useTimeAgo } from "@/hooks/use-time-ago"
-<<<<<<< HEAD
-import OrderItem from "./order-item";
-
-interface OrderCardProps {
-  order: Order
-  items: OrderItemType[]; // Now accepts a filtered list of items
-=======
 import { OrderItem } from "./order-item"
 import { useI18n } from "@/context/i18n-context";
 
 interface OrderCardProps {
   order: Order
   items: OrderItemType[];
->>>>>>> d3399ff (Chefcito Beta!)
   onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void
   onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
@@ -35,10 +23,7 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
-<<<<<<< HEAD
-=======
   const { t } = useI18n();
->>>>>>> d3399ff (Chefcito Beta!)
   const timeAgo = useTimeAgo(order.createdAt);
   
   const [now, setNow] = useState(new Date().getTime());
@@ -48,11 +33,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     return () => clearInterval(interval);
   }, []);
 
-<<<<<<< HEAD
-  const elapsedMinutes = (now - order.createdAt.getTime()) / (1000 * 60);
-=======
   const elapsedMinutes = (now - new Date(order.createdAt).getTime()) / (1000 * 60);
->>>>>>> d3399ff (Chefcito Beta!)
   const isUrgent = elapsedMinutes > 10;
   const isVeryUrgent = elapsedMinutes > 20;
 
@@ -62,12 +43,8 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     let orderCounter = 0;
 
     items.forEach(item => {
-<<<<<<< HEAD
-      const category = item.menuItem.category;
-=======
       // Handle cases where menuItem might be null
       const category = item.menuItem?.category || 'Unknown';
->>>>>>> d3399ff (Chefcito Beta!)
       if (!groups[category]) {
         groups[category] = [];
         categoryOrder[category] = orderCounter++;
@@ -134,11 +111,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
               </CardTitle>
               <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                   <MdOutlineTableRestaurant className="h-5 w-5" />
-<<<<<<< HEAD
-                  <span>{order.table}</span>
-=======
                   <span>{order.orderType === 'dine-in' ? `${order.table}` : t('pos.order_type.delivery')}</span>
->>>>>>> d3399ff (Chefcito Beta!)
               </div>
               <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                   <Clock className="h-5 w-5" />
@@ -180,25 +153,6 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
                   {index > 0 && <Separator className="my-2"/>}
                   <h4 className="font-semibold tracking-wide uppercase text-xs px-1 text-muted-foreground/80">{category}</h4>
                   <div className="space-y-1 mt-1">
-<<<<<<< HEAD
-                    {groupedItems[category].map(item => (
-                      <OrderItem
-                        key={item.id}
-                        item={item}
-                        orderId={order.id}
-                        status={currentTab === 'kitchen' ? 'New' : 'Ready'}
-                        count={
-                          currentTab === 'kitchen' ? item.newCount : item.readyCount
-                        }
-                        onUpdateStatus={(itemId, action) => {
-                          // Implementation needed
-                        }}
-                        onRevertStatus={(itemId, fromStatus) => onRevertItemStatus(order.id, itemId, fromStatus as any)}
-                        onDragStart={(e) => {}}
-                        t={(key) => key}
-                      />
-
-=======
                     {groupedItems[category].map((item, itemIndex) => (
                       // Create a unique key by combining item.id with its index to handle duplicates
                       <OrderItem 
@@ -209,7 +163,6 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
                         onUpdateItemStatus={onUpdateItemStatus} 
                         onRevertItemStatus={onRevertItemStatus}
                       />
->>>>>>> d3399ff (Chefcito Beta!)
                     ))}
                   </div>
                 </div>
@@ -219,8 +172,4 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
       </Card>
     </div>
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d3399ff (Chefcito Beta!)

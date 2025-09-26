@@ -208,18 +208,6 @@ const ChartTooltipContent = React.forwardRef<
                       !hideIndicator && (
                         <div
                           className={cn(
-<<<<<<< HEAD
-                            "shrink-0 rounded-[2px]",
-                            indicator === "dot" && "h-2.5 w-2.5",
-                            indicator === "line" && "w-1",
-                            indicator === "dashed" && "w-0 border-[1.5px] border-dashed bg-transparent",
-                            nestLabel && indicator === "dashed" && "my-0.5"
-                          )}
-                          style={
-                            {
-                              backgroundColor: indicatorColor,
-                              borderColor: indicatorColor,
-=======
                             "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
                             {
                               "h-2.5 w-2.5": indicator === "dot",
@@ -233,7 +221,6 @@ const ChartTooltipContent = React.forwardRef<
                             {
                               "--color-bg": indicatorColor,
                               "--color-border": indicatorColor,
->>>>>>> d3399ff (Chefcito Beta!)
                             } as React.CSSProperties
                           }
                         />
@@ -247,19 +234,9 @@ const ChartTooltipContent = React.forwardRef<
                     >
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
-<<<<<<< HEAD
-                        <span className={cn(
-                          "text-muted-foreground",
-                          nestLabel && "font-medium"
-                        )}>
-                          {itemConfig?.label || item.name}
-                        </span>
-
-=======
                         <span className="text-muted-foreground">
                           {itemConfig?.label || item.name}
                         </span>
->>>>>>> d3399ff (Chefcito Beta!)
                       </div>
                       {item.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
@@ -267,10 +244,6 @@ const ChartTooltipContent = React.forwardRef<
                         </span>
                       )}
                     </div>
-<<<<<<< HEAD
-
-=======
->>>>>>> d3399ff (Chefcito Beta!)
                   </>
                 )}
               </div>

@@ -43,16 +43,9 @@ export function TaskCard({ task, staffList }: TaskCardProps) {
                 <div className="flex-1 space-y-1">
                     <CardTitle className="text-base font-semibold">{task.title}</CardTitle>
                     <div className="flex items-center gap-2">
-<<<<<<< HEAD
-                          <Badge variant={priorityVariantMap[task.priority as keyof typeof priorityVariantMap]}>
-                            {t(`tasks.priorities.${task.priority}`)}
-                          </Badge>
-
-=======
                          <Badge variant={priorityVariantMap[task.priority]}>
                             {t(`waiters.tasks.priority.${task.priority.toLowerCase()}`)}
                         </Badge>
->>>>>>> d3399ff (Chefcito Beta!)
                          {task.dueDate && (
                             <span className="text-xs text-muted-foreground">{format(new Date(task.dueDate), 'MMM d')}</span>
                         )}

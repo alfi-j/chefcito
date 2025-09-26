@@ -1,25 +1,3 @@
-<<<<<<< HEAD
-"use client"
-
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from "@/components/ui/button"
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
-} from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Minus, Plus, Utensils } from "lucide-react"
-import { useI18n } from '@/context/i18n-context';
-import { type MenuItem, type OrderItem } from '@/lib/types';
-import { Card, CardContent } from '@/components/ui/card';
-import Image from 'next/image';
-=======
 
 "use client";
 
@@ -42,7 +20,6 @@ import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
->>>>>>> d3399ff (Chefcito Beta!)
 
 interface AddItemDialogProps {
   isOpen: boolean;
@@ -52,60 +29,6 @@ interface AddItemDialogProps {
   onSave: (quantity: number, selectedExtras: MenuItem[], notes: string) => void;
   onRemove?: (itemId: string) => void;
   menuItems: MenuItem[];
-<<<<<<< HEAD
-  categories: any[]; // Category type
-}
-
-export function AddItemDialog({ 
-  isOpen, 
-  onOpenChange, 
-  item,
-  orderItem,
-  onSave,
-  onRemove,
-  menuItems,
-  categories
-}: AddItemDialogProps) {
-  const [quantity, setQuantity] = useState(1);
-  const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
-  const [notes, setNotes] = useState('');
-  const { t } = useI18n();
-
-  // Find modifier groups that are linked to this item or its category
-  const availableModifierGroups = useMemo(() => {
-    const groups: Record<string, MenuItem[]> = {};
-    
-    // Find the category for this item
-    const itemCategory = categories.find(c => c.name === item.category);
-    
-    // Get modifier IDs from item and category
-    const modifierIds = [
-      ...(item.linkedModifiers || []),
-      ...(itemCategory?.linkedModifiers || [])
-    ];
-    
-    // Find modifier items
-    const modifiers = menuItems.filter(mi => 
-      modifierIds.includes(mi.id) || 
-      (mi.category && categories.find(c => c.name === mi.category)?.isModifierGroup)
-    );
-    
-    // Group modifiers by category
-    modifiers.forEach(modifier => {
-      const category = categories.find(c => c.name === modifier.category);
-      if (category) {
-        if (!groups[category.name]) {
-          groups[category.name] = [];
-        }
-        groups[category.name].push({
-          ...modifier,
-          // Ensure price is a number
-          price: typeof modifier.price === 'string' ? parseFloat(modifier.price) : modifier.price
-        });
-      }
-    });
-    
-=======
   categories: Category[];
 }
 
@@ -154,7 +77,6 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
         }
     });
 
->>>>>>> d3399ff (Chefcito Beta!)
     return groups;
   }, [item, categories, menuItems]);
 
@@ -176,17 +98,6 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
     return selectedExtras.some(e => e.id === extraId);
   }
 
-<<<<<<< HEAD
-  const handleIncrement = () => {
-    setQuantity(prev => prev + 1);
-  };
-
-  const handleDecrement = () => {
-    setQuantity(prev => Math.max(1, prev - 1));
-  };
-
-=======
->>>>>>> d3399ff (Chefcito Beta!)
   const handleConfirm = () => {
     onSave(quantity, selectedExtras, notes);
   };
@@ -198,13 +109,8 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
     onOpenChange(false);
   }
   
-<<<<<<< HEAD
-  const extrasPrice = selectedExtras.reduce((acc, extra) => acc + (typeof extra.price === 'string' ? parseFloat(extra.price) : extra.price), 0);
-  const totalItemPrice = ((typeof item.price === 'string' ? parseFloat(item.price) : item.price) + extrasPrice) * quantity;
-=======
   const extrasPrice = selectedExtras.reduce((acc, extra) => acc + extra.price, 0);
   const totalItemPrice = (item.price + extrasPrice) * quantity;
->>>>>>> d3399ff (Chefcito Beta!)
 
   if (!item) return null;
 
@@ -214,11 +120,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">{item.name}</DialogTitle>
           <DialogDescription>
-<<<<<<< HEAD
-            {orderItem ? t('pos.add_item_dialog.update_item') : t('pos.add_item_dialog.customize')}
-=======
             {isEditMode ? t('pos.add_item_dialog.update_item') : t('pos.add_item_dialog.customize')}
->>>>>>> d3399ff (Chefcito Beta!)
           </DialogDescription>
         </DialogHeader>
 
@@ -244,15 +146,11 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                                         {modifier.name}
                                     </label>
                                     <span className="text-base text-muted-foreground">
-<<<<<<< HEAD
-                                      ${(typeof modifier.price === 'string' ? parseFloat(modifier.price) : modifier.price).toFixed(2)}
-=======
                                         +${
                                             typeof modifier.price === 'string' 
                                             ? parseFloat(modifier.price).toFixed(2) 
                                             : modifier.price.toFixed(2)
                                         }
->>>>>>> d3399ff (Chefcito Beta!)
                                     </span>
                                 </div>
                             ))}
@@ -270,15 +168,6 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                 
                 <div className="space-y-2">
                     <Label className="font-semibold text-base">{t('pos.add_item_dialog.quantity')}</Label>
-<<<<<<< HEAD
-                    <div className="flex items-center justify-center space-x-2">
-                        <Button variant="outline" size="icon" onClick={handleDecrement}>
-                            <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
-                        <Button variant="outline" size="icon" onClick={handleIncrement}>
-                            <Plus className="h-4 w-4" />
-=======
                     <div className="flex items-center gap-4">
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => Math.max(1, q - 1))}>
                           <MinusCircle className="h-4 w-4" />
@@ -286,38 +175,11 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                         <Input className="w-16 text-center text-base" value={quantity} readOnly />
                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setQuantity(q => q + 1)}>
                           <PlusCircle className="h-4 w-4" />
->>>>>>> d3399ff (Chefcito Beta!)
                         </Button>
                     </div>
                 </div>
             </div>
         </ScrollArea>
-<<<<<<< HEAD
-        
-        <div className="-mx-6 px-6 py-4 border-t">
-            <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold">{t('pos.add_item_dialog.add_to_order')}</span>
-                <span className="text-xl font-bold text-primary">
-                  ${totalItemPrice.toFixed(2)}
-                </span>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-2">
-                {orderItem && onRemove && (
-                    <Button variant="destructive" onClick={handleRemove} className="flex-1">
-                        {t('pos.add_item_dialog.remove')}
-                    </Button>
-                )}
-                <Button onClick={handleConfirm} className="flex-1">
-                    {orderItem ? t('pos.add_item_dialog.update') : t('pos.add_item_dialog.add')}
-                </Button>
-            </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-=======
 
         <DialogFooter className="!flex-row !justify-between items-center pt-4 border-t">
             <div className="flex items-center gap-2">
@@ -340,4 +202,3 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
     </Dialog>
   );
 }
->>>>>>> d3399ff (Chefcito Beta!)

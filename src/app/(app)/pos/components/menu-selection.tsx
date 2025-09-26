@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> d3399ff (Chefcito Beta!)
 "use client"
 import { useState, useMemo } from 'react'
 import Image from 'next/image'
@@ -117,15 +113,12 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     )
   }
   
-<<<<<<< HEAD
-=======
   // Helper function to safely format price
   const formatPrice = (price: number | string): string => {
     const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     return isNaN(numPrice) ? '0.00' : numPrice.toFixed(2);
   };
   
->>>>>>> d3399ff (Chefcito Beta!)
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="flex-row items-center justify-between">
@@ -163,13 +156,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                     </div>
                     <CardFooter className="p-2 flex-grow flex flex-col items-start">
                       <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
-<<<<<<< HEAD
-                      <p className="text-xs text-primary font-bold">
-                        ${(typeof item.price === 'string' ? parseFloat(item.price) : item.price).toFixed(2)}
-                      </p>
-=======
                       <p className="text-xs text-primary font-bold">${formatPrice(item.price)}</p>
->>>>>>> d3399ff (Chefcito Beta!)
                     </CardFooter>
                   </Card>
                 ))}
@@ -179,8 +166,4 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
       </CardContent>
     </Card>
   )
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> d3399ff (Chefcito Beta!)

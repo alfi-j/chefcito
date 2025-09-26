@@ -3,8 +3,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useI18n } from '@/context/i18n-context';
-<<<<<<< HEAD
-=======
 import { 
   categoriesApi,
   menuItemsApi,
@@ -12,7 +10,6 @@ import {
   customersApi,
   inventoryApi
 } from '@/lib/api-client';
->>>>>>> d3399ff (Chefcito Beta!)
 import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types";
 
 interface DataContextType {
@@ -39,39 +36,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
-<<<<<<< HEAD
-        // Fetch all data from API routes
-        const [menuRes, categoriesRes, paymentsRes, customersRes, inventoryRes] = await Promise.all([
-            fetch('/api/menu-items'),
-            fetch('/api/categories'),
-            fetch('/api/payment-methods'),
-            fetch('/api/customers'),
-            fetch('/api/inventory'),
-        ]);
-
-        if (!menuRes.ok || !categoriesRes.ok || !paymentsRes.ok || !customersRes.ok || !inventoryRes.ok) {
-            throw new Error('Failed to fetch data from API');
-        }
-
-        const [menuData, categoriesData, paymentsData, customersData, inventoryData] = await Promise.all([
-            menuRes.json(),
-            categoriesRes.json(),
-            paymentsRes.json(),
-            customersRes.json(),
-            inventoryRes.json(),
-        ]);
-
-        // Ensure price is parsed as a number for menu items
-        const parsedMenuItems = menuData.map((item: any) => ({
-          ...item,
-          price: typeof item.price === 'string' ? parseFloat(item.price) : item.price
-        }));
-
-        setMenuItems(parsedMenuItems);
-        setCategories(categoriesData);
-        setPaymentMethods(paymentsData);
-        setCustomers(customersData);
-=======
         const [menuData, categoryData, paymentData, customerData, inventoryData] = await Promise.all([
             menuItemsApi.getAll(),
             categoriesApi.getAll(),
@@ -83,7 +47,6 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         setCategories(categoryData);
         setPaymentMethods(paymentData);
         setCustomers(customerData);
->>>>>>> d3399ff (Chefcito Beta!)
         setInventoryItems(inventoryData);
     } catch (error) {
        console.error("Failed to fetch data:", error);
