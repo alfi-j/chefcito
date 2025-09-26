@@ -122,7 +122,8 @@ export default function PosPage() {
         items: currentOrder.items,
         notes: currentOrder.notes,
         orderType: currentOrder.orderType,
-        deliveryInfo: currentOrder.deliveryInfo
+        deliveryInfo: currentOrder.deliveryInfo,
+        status: 'pending' // Add the required status property
       });
       toast.success(t('pos.toast.order_sent_title'), {
         description: t('pos.toast.order_sent_desc'),
@@ -160,6 +161,7 @@ export default function PosPage() {
         notes: currentOrder.notes,
         orderType: currentOrder.orderType,
         deliveryInfo: currentOrder.deliveryInfo,
+        status: 'pending' // Add the required status property
       });
       // In a real app we'd likely mark this new order as paid immediately.
       // For mock purposes, we just add it and then show success.

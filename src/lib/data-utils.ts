@@ -1,5 +1,3 @@
-import { query } from './db';
-
 // This is a server-side only utility module.
 // Do not import it in client components.
 

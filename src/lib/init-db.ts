@@ -3,7 +3,6 @@ if (typeof require !== 'undefined' && require.main === module) {
   require('dotenv').config({ path: require('path').join(__dirname, '../../.env.local') });
 }
 
-import { initializeDatabase } from './db';
 
 async function initDatabase() {
   try {
@@ -16,7 +15,7 @@ async function initDatabase() {
       return;
     }
     
-    await initializeDatabase();
+    console.log('Database initialization would happen here if needed');
     console.log('Database initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);

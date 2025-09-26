@@ -1,1 +1,28 @@
-import { pool } from '../src/lib/db'; async function resetSequence() { const client = await pool.connect(); try { await client.query('BEGIN'); await client.query('DELETE FROM order_status_history'); await client.query('DELETE FROM order_item_extras'); await client.query('DELETE FROM order_items'); await client.query('DELETE FROM orders'); await client.query(); await client.query('COMMIT'); console.log('Sequence reset successfully'); } catch (error) { await client.query('ROLLBACK'); console.error('Error resetting sequence:', error); } finally { client.release(); await pool.end(); } } resetSequence().catch(console.error);
+import { pool } from '../src/lib/db';
+
+async function resetSequence() {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    await client.query('DELETE FROM order_status_history');
+    await client.query('DELETE FROM order_item_extras');
+    await client.query('DELETE FROM order_items');
+    await client.query('DELETE FROM orders');
+    
+    // Reset the sequence for the orders table
+    await client.query('ALTER SEQUENCE orders_id_seq RESTART WITH 1');
+    
+    await client.query('COMMIT');
+    console.log('Sequence reset successfully');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error resetting sequence:', error);
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+resetSequence().catch(console.error);
