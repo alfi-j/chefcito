@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client"
 
 import React, { useState } from 'react';
@@ -17,20 +18,52 @@ export default function KDSPage() {
   const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
 
   const handleDragStart = (e: React.DragEvent, orderId: number) => {
+=======
+"use client";
+import { useState, useMemo, type DragEvent } from "react";
+import { OrderCard } from "./components/order-card";
+import { type Order, type OrderItem } from "@/lib/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card } from "@/components/ui/card";
+import { useI18n } from "@/context/i18n-context";
+import { useOrders } from "@/hooks/use-orders";
+
+
+export default function KdsPage() {
+  const [activeTab, setActiveTab] = useState('pending');
+  const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
+  const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
+  const { t } = useI18n();
+  
+  const { 
+    orders, 
+    loading, 
+    updateItemStatus, 
+    revertItemStatus, 
+    toggleOrderPin,
+    refreshOrders
+  } = useOrders();
+
+  const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
+>>>>>>> d3399ff (Chefcito Beta!)
     setDraggedOrderId(orderId);
     e.dataTransfer.effectAllowed = 'move';
   };
 
+<<<<<<< HEAD
   const handleDragEnter = (e: React.DragEvent, orderId: number) => {
     e.preventDefault();
     setDragOverOrderId(orderId);
   };
 
+=======
+>>>>>>> d3399ff (Chefcito Beta!)
   const handleDragEnd = () => {
     setDraggedOrderId(null);
     setDragOverOrderId(null);
   };
 
+<<<<<<< HEAD
   const handleDrop = (e: React.DragEvent, targetOrderId: number) => {
     e.preventDefault();
     setDragOverOrderId(null);
@@ -53,6 +86,59 @@ export default function KDSPage() {
     
     const unpinned = pending.filter(o => !o.isPinned);
     const pinned = pending.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+=======
+  const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
+    e.preventDefault();
+    if (draggedOrderId === null || draggedOrderId === dropOrderId) {
+      handleDragEnd();
+      return;
+    }
+
+    const draggedOrder = orders.find(o => o.id === draggedOrderId);
+    const dropOrder = orders.find(o => o.id === dropOrderId);
+
+    if (!draggedOrder || !dropOrder) {
+      handleDragEnd();
+      return;
+    }
+    
+    // Determine which list we are in based on activeTab
+    const orderList = activeTab === 'pending' ? kitchenOrders : servingOrders;
+    
+    const fromIndex = orderList.findIndex(o => o.id === draggedOrderId);
+    const toIndex = orderList.findIndex(o => o.id === dropOrderId);
+
+    if (fromIndex === -1 || toIndex === -1) {
+       handleDragEnd();
+       return;
+    }
+
+    refreshOrders(); // Refresh orders after drag and drop
+
+    handleDragEnd();
+  };
+  
+  const handleDragEnter = (e: DragEvent<HTMLDivElement>, orderId: number) => {
+    e.preventDefault();
+    if (draggedOrderId !== orderId) {
+      const draggedOrder = orders.find(o => o.id === draggedOrderId);
+      if (draggedOrder && !draggedOrder.isPinned) {
+        setDragOverOrderId(orderId);
+      }
+    }
+  };
+
+  const kitchenOrders = useMemo(() => {
+    const pending = orders
+      .filter(o => o.items.some(i => i.newCount > 0 || i.cookingCount > 0))
+      .map(o => ({
+        ...o,
+        items: o.items.filter(i => i.newCount > 0 || i.cookingCount > 0)
+      }));
+
+    const unpinned = pending.filter(o => !o.isPinned);
+    const pinned = pending.filter(o => o.isPinned).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+>>>>>>> d3399ff (Chefcito Beta!)
     
     return [...pinned, ...unpinned];
   }, [orders]);
@@ -66,7 +152,11 @@ export default function KDSPage() {
       }));
     
     const unpinned = completed.filter(o => !o.isPinned);
+<<<<<<< HEAD
     const pinned = completed.filter(o => o.isPinned).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+=======
+    const pinned = completed.filter(o => o.isPinned).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+>>>>>>> d3399ff (Chefcito Beta!)
     
     return [...pinned, ...unpinned];
   }, [orders]);
@@ -90,6 +180,7 @@ export default function KDSPage() {
             key={order.id}
             order={order}
             items={order.items}
+<<<<<<< HEAD
             onUpdateItemStatus={(orderId, itemId, newStatus) => {
               // Map the status values to match the API
               const statusMap: Record<string, 'cooking' | 'ready' | 'served'> = {
@@ -102,12 +193,19 @@ export default function KDSPage() {
                 updateItemStatus({ orderId, itemId, newStatus: apiStatus });
               }
             }}
+=======
+            onUpdateItemStatus={updateItemStatus}
+>>>>>>> d3399ff (Chefcito Beta!)
             onRevertItemStatus={revertItemStatus}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
             onDragEnter={handleDragEnter}
             isDraggingOver={dragOverOrderId === order.id}
+<<<<<<< HEAD
             onTogglePin={togglePinOrder}
+=======
+            onTogglePin={toggleOrderPin}
+>>>>>>> d3399ff (Chefcito Beta!)
           />
         ))}
       </div>

@@ -23,11 +23,20 @@ export default function ReportsPage() {
     to: new Date(),
   });
   
+<<<<<<< HEAD
   const { sales, items, kitchen, isLoading, error, refetch } = useReports(date || { from: new Date(), to: new Date() });
   
   useEffect(() => {
     refetch();
   }, [date, refetch]);
+=======
+  const { reports, loading, fetchAllReports } = useReports(date);
+
+  useEffect(() => {
+    // Fetch reports whenever the date range changes or on initial load.
+    fetchAllReports();
+  }, [date]);
+>>>>>>> d3399ff (Chefcito Beta!)
 
   const handleExport = () => {
     // This is a mock export. In a real app, this would trigger a download.
@@ -56,6 +65,7 @@ export default function ReportsPage() {
           <TabsTrigger value="kitchen">{t('reports.tabs.kitchen')}</TabsTrigger>
         </TabsList>
         <TabsContent value="sales">
+<<<<<<< HEAD
           <SalesReport data={sales} loading={isLoading} />
         </TabsContent>
         <TabsContent value="items">
@@ -63,6 +73,15 @@ export default function ReportsPage() {
         </TabsContent>
         <TabsContent value="kitchen">
           <KitchenReport data={kitchen} loading={isLoading} />
+=======
+          <SalesReport data={reports.sales} loading={loading} />
+        </TabsContent>
+        <TabsContent value="items">
+          <ItemReport data={reports.items} loading={loading} />
+        </TabsContent>
+        <TabsContent value="kitchen">
+          <KitchenReport data={reports.kitchen} loading={loading} />
+>>>>>>> d3399ff (Chefcito Beta!)
         </TabsContent>
       </Tabs>
     </div>

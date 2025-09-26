@@ -72,18 +72,29 @@ export function MenuItemDialog({
     }
   }, [isOpen, item]);
 
+<<<<<<< HEAD
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !category || price === undefined) return;
+=======
+  const handleSubmit = () => {
+    const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
+    if (isNaN(finalPrice)) return;
+>>>>>>> d3399ff (Chefcito Beta!)
 
     const itemData = {
       name,
       description,
+<<<<<<< HEAD
       price: typeof price === 'string' ? parseFloat(price) : price,
+=======
+      price: finalPrice,
+>>>>>>> d3399ff (Chefcito Beta!)
       category,
       imageUrl,
       available,
       linkedModifiers,
+<<<<<<< HEAD
       sortIndex: 0
     };
 
@@ -95,6 +106,19 @@ export function MenuItemDialog({
     }
   };
 
+=======
+      // sortIndex will be handled by the backend/hook
+    };
+
+    if (isEditMode && item) {
+      onSave({ id: item.id, sortIndex: item.sortIndex, ...itemData });
+    } else {
+      onSave(itemData);
+    }
+    onOpenChange(false);
+  };
+  
+>>>>>>> d3399ff (Chefcito Beta!)
   const renderedCategories = useMemo(() => {
     const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
     const roots: Category[] = [];
@@ -200,8 +224,12 @@ export function MenuItemDialog({
 
         <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 p-6 border-t">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
+<<<<<<< HEAD
           <Button type="submit">{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
 
+=======
+          <Button onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
+>>>>>>> d3399ff (Chefcito Beta!)
         </DialogFooter>
       </DialogContent>
     </Dialog>

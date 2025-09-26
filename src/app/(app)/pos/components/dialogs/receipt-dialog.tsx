@@ -13,7 +13,11 @@ import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem } from "@/lib/types"
 import { useI18n } from "@/context/i18n-context"
 import { format } from "date-fns"
+<<<<<<< HEAD
 import { getItemTotal, getOrderTotal } from "@/lib/utils"
+=======
+import { getItemTotal, getOrderTotal, safeGet } from "@/lib/utils"
+>>>>>>> d3399ff (Chefcito Beta!)
 import { ChefHat, Download, Printer } from "lucide-react"
 import { toast } from "sonner"
 
@@ -45,10 +49,17 @@ export function ReceiptDialog({ isOpen, onOpenChange, order }: ReceiptDialogProp
   const renderItem = (item: OrderItem) => (
     <div key={item.id} className="flex justify-between items-start text-sm py-1">
         <div className="flex-1">
+<<<<<<< HEAD
             <p>{item.quantity}x {item.menuItem.name}</p>
             {item.selectedExtras && item.selectedExtras.length > 0 && (
                 <div className="pl-4 text-xs text-muted-foreground">
                     {item.selectedExtras.map(extra => <div key={extra.id}>+ {extra.name}</div>)}
+=======
+            <p>{item.quantity}x {safeGet(item, 'menuItem.name', 'Unknown Item')}</p>
+            {item.selectedExtras && item.selectedExtras.length > 0 && (
+                <div className="pl-4 text-xs text-muted-foreground">
+                    {item.selectedExtras.map(extra => <div key={extra.id}>+ {safeGet(extra, 'name', 'Unknown Extra')}</div>)}
+>>>>>>> d3399ff (Chefcito Beta!)
                 </div>
             )}
         </div>

@@ -27,22 +27,34 @@ import { PlusCircle, Trash2 } from 'lucide-react'
 export function PaymentMethodDialog({ 
   children, 
   method,
+<<<<<<< HEAD
   onOpenChange,
+=======
+>>>>>>> d3399ff (Chefcito Beta!)
   onSave,
 }: { 
   children: React.ReactNode, 
   method?: PaymentMethod,
+<<<<<<< HEAD
   onOpenChange?: (open: boolean) => void,
+=======
+>>>>>>> d3399ff (Chefcito Beta!)
   onSave: (method: PaymentMethod | Omit<PaymentMethod, 'id'>) => void,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!method;
   const { t } = useI18n();
 
+<<<<<<< HEAD
   const [name, setName] = useState(method?.name || '');
   const [type, setType] = useState<"cash" | "card" | "online">(method?.type || 'card');
   const [enabled, setEnabled] = useState(method?.enabled ?? true);
   const [banks, setBanks] = useState<string[]>(method?.banks || []);
+=======
+  const [name, setName] = useState('');
+  const [type, setType] = useState<'cash' | 'card' | 'bank_transfer'>('card');
+  const [banks, setBanks] = useState<string[]>([]);
+>>>>>>> d3399ff (Chefcito Beta!)
   const [newBank, setNewBank] = useState('');
 
   useEffect(() => {
@@ -60,19 +72,27 @@ export function PaymentMethodDialog({
       name,
       type,
       enabled: method?.enabled ?? true,
+<<<<<<< HEAD
       banks: type === 'card' ? banks : undefined
+=======
+      banks: type === 'bank_transfer' ? banks : undefined
+>>>>>>> d3399ff (Chefcito Beta!)
     };
     if (isEditMode) {
       onSave({ id: method.id, ...methodData });
     } else {
       onSave(methodData);
     }
+<<<<<<< HEAD
     
     if (onOpenChange) {
       onOpenChange(false);
     } else {
       setIsOpen(false);
     }
+=======
+    setIsOpen(false);
+>>>>>>> d3399ff (Chefcito Beta!)
   };
   
   const handleAddBank = () => {
@@ -86,6 +106,7 @@ export function PaymentMethodDialog({
     setBanks(prev => prev.filter(b => b !== bankToDelete));
   }
 
+<<<<<<< HEAD
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name) return;
@@ -122,6 +143,8 @@ export function PaymentMethodDialog({
     }
   };
 
+=======
+>>>>>>> d3399ff (Chefcito Beta!)
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -146,10 +169,15 @@ export function PaymentMethodDialog({
               <SelectContent>
                 <SelectItem value='card'>{t('restaurant.payment_methods.types.card')}</SelectItem>
                 <SelectItem value='cash'>{t('restaurant.payment_methods.types.cash')}</SelectItem>
+<<<<<<< HEAD
+=======
+                <SelectItem value='bank_transfer'>{t('restaurant.payment_methods.types.bank_transfer')}</SelectItem>
+>>>>>>> d3399ff (Chefcito Beta!)
               </SelectContent>
             </Select>
           </div>
 
+<<<<<<< HEAD
 
           {type === 'card' && (
             <div className="space-y-2">
@@ -188,6 +216,32 @@ export function PaymentMethodDialog({
                   ))}
                 </div>
               )}
+=======
+          {type === 'bank_transfer' && (
+            <div className="space-y-2">
+                <Label>{t('restaurant.payment_method_dialog.banks')}</Label>
+                <div className="space-y-2">
+                    {banks.map(bank => (
+                        <div key={bank} className="flex items-center gap-2">
+                            <Input value={bank} readOnly className="flex-1"/>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteBank(bank)}>
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ))}
+                    <div className="flex items-center gap-2">
+                        <Input 
+                            placeholder={t('restaurant.payment_method_dialog.add_bank')}
+                            value={newBank}
+                            onChange={(e) => setNewBank(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAddBank()}
+                        />
+                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleAddBank}>
+                            <PlusCircle className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+>>>>>>> d3399ff (Chefcito Beta!)
             </div>
           )}
 

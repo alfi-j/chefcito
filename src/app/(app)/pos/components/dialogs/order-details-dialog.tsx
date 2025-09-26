@@ -15,7 +15,11 @@ import { Badge } from "@/components/ui/badge"
 import { type Order, type OrderItem } from "@/lib/types"
 import { useI18n } from "@/context/i18n-context"
 import { format } from "date-fns"
+<<<<<<< HEAD
 import { getItemTotal, getOrderTotal } from "@/lib/utils"
+=======
+import { getItemTotal, getOrderTotal, safeGet } from "@/lib/utils"
+>>>>>>> d3399ff (Chefcito Beta!)
 import { Package, PersonStanding } from "lucide-react"
 
 interface OrderDetailsDialogProps {
@@ -47,10 +51,17 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
     <div key={item.id} className="py-2">
         <div className="flex justify-between items-start">
             <div className="flex-1">
+<<<<<<< HEAD
                 <p className="font-semibold">{item.quantity}x {item.menuItem.name}</p>
                 {item.selectedExtras && item.selectedExtras.length > 0 && (
                     <div className="pl-4 text-sm text-muted-foreground">
                         {item.selectedExtras.map(extra => <div key={extra.id}>+ {extra.name}</div>)}
+=======
+                <p className="font-semibold">{item.quantity}x {safeGet(item, 'menuItem.name', 'Unknown Item')}</p>
+                {item.selectedExtras && item.selectedExtras.length > 0 && (
+                    <div className="pl-4 text-sm text-muted-foreground">
+                        {item.selectedExtras.map(extra => <div key={extra.id}>+ {safeGet(extra, 'name', 'Unknown Extra')}</div>)}
+>>>>>>> d3399ff (Chefcito Beta!)
                     </div>
                 )}
                  {item.notes && (
@@ -60,7 +71,11 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
             <p className="font-medium">${getItemTotal(item).toFixed(2)}</p>
         </div>
     </div>
+<<<<<<< HEAD
   )
+=======
+  );
+>>>>>>> d3399ff (Chefcito Beta!)
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

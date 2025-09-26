@@ -45,6 +45,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 
+<<<<<<< HEAD
 import {
   getCategories,
   getMenuItems,
@@ -60,6 +61,8 @@ import {
   deletePaymentMethod as mockDeletePaymentMethod
 } from '@/lib/mock-data';
 
+=======
+>>>>>>> d3399ff (Chefcito Beta!)
 interface RenderedCategory extends Category {
   depth: number;
 }
@@ -73,7 +76,11 @@ function InventoryList({
 }: { 
   items: InventoryItem[], 
   menuItems: MenuItem[], 
+<<<<<<< HEAD
   onSave: (item: InventoryItem | Omit<InventoryItem, "id" | "lastRestocked">) => Promise<void>, 
+=======
+  onSave: (item: InventoryItem | Omit<InventoryItem, "id">) => Promise<void>, 
+>>>>>>> d3399ff (Chefcito Beta!)
   onAdjustStock: (itemId: string, adjustment: number) => Promise<void>,
   onDeleteItem: (itemId: string) => Promise<void>
 }) {
@@ -299,10 +306,17 @@ function MenuList({
 }: { 
   menuItems: MenuItem[], 
   categories: Category[], 
+<<<<<<< HEAD
   onUpdateCategories: () => void,
   onSaveItem: (item: MenuItem | Omit<MenuItem, "id">) => Promise<void>,
   onDeleteItem: (id: string) => Promise<void>,
   onDeleteMultipleItems: (ids: string[]) => Promise<void>,
+=======
+  onUpdateCategories: () => void, // Fix: Ensure this function is passed and used
+  onSaveItem: (item: MenuItem | Omit<MenuItem, "id">) => Promise<void>,
+  onDeleteItem: (id: string) => Promise<void>,
+  onDeleteMultipleItems: (ids: string[]) => void,
+>>>>>>> d3399ff (Chefcito Beta!)
   onReorderItems: (items: MenuItem[]) => void,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -525,6 +539,7 @@ function MenuList({
                   ))}
                 </SelectContent>
             </Select>
+<<<<<<< HEAD
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -553,6 +568,22 @@ function MenuList({
               </Tooltip>
             </TooltipProvider>
 
+=======
+            <CategoryDialog categories={categories} onUpdate={onUpdateCategories} />
+            <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Button onClick={() => handleOpenItemDialog()} size="icon">
+                          <PlusCircle className="h-4 w-4" />
+                           <span className="sr-only">{t('restaurant.menu.add_item')}</span>
+                      </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                      <p>{t('restaurant.menu.add_item')}</p>
+                  </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+>>>>>>> d3399ff (Chefcito Beta!)
           </div>
         </div>
       </CardHeader>
@@ -650,7 +681,13 @@ function MenuList({
                         {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
                     </Badge>
                     </TableCell>
+<<<<<<< HEAD
                     <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
+=======
+                    <TableCell className="text-right font-semibold">
+                      ${typeof item.price === 'string' ? parseFloat(item.price).toFixed(2) : item.price.toFixed(2)}
+                    </TableCell>
+>>>>>>> d3399ff (Chefcito Beta!)
                     <TableCell>
                     <div className="flex justify-end">
                         <DropdownMenu>

@@ -3,6 +3,16 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useI18n } from '@/context/i18n-context';
+<<<<<<< HEAD
+=======
+import { 
+  categoriesApi,
+  menuItemsApi,
+  paymentMethodsApi,
+  customersApi,
+  inventoryApi
+} from '@/lib/api-client';
+>>>>>>> d3399ff (Chefcito Beta!)
 import { type Category, type MenuItem, type PaymentMethod, type Customer, type InventoryItem } from "@/lib/types";
 
 interface DataContextType {
@@ -29,6 +39,7 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
+<<<<<<< HEAD
         // Fetch all data from API routes
         const [menuRes, categoriesRes, paymentsRes, customersRes, inventoryRes] = await Promise.all([
             fetch('/api/menu-items'),
@@ -60,6 +71,19 @@ export const DataProvider = ({ children }: { children: React.ReactNode }) => {
         setCategories(categoriesData);
         setPaymentMethods(paymentsData);
         setCustomers(customersData);
+=======
+        const [menuData, categoryData, paymentData, customerData, inventoryData] = await Promise.all([
+            menuItemsApi.getAll(),
+            categoriesApi.getAll(),
+            paymentMethodsApi.getAll(),
+            customersApi.getAll(),
+            inventoryApi.getAll(),
+        ]);
+        setMenuItems(menuData);
+        setCategories(categoryData);
+        setPaymentMethods(paymentData);
+        setCustomers(customerData);
+>>>>>>> d3399ff (Chefcito Beta!)
         setInventoryItems(inventoryData);
     } catch (error) {
        console.error("Failed to fetch data:", error);

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Pool, QueryResult } from 'pg';
 
 // Only load .env file if not already in a Next.js environment
@@ -192,3 +193,13 @@ if (process.env.NODE_ENV !== 'production') {
   // Don't auto-initialize to prevent errors during import
   // initializeDatabase will be called manually when needed
 }
+=======
+import { Pool } from '@neondatabase/serverless';
+
+// Create a connection pool
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export { pool };
+>>>>>>> d3399ff (Chefcito Beta!)
