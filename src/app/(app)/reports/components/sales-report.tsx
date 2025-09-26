@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -63,7 +62,7 @@ export function SalesReport({ data, loading }: SalesReportProps) {
             <CardTitle className="font-headline">{t('reports.sales.avg_order_value')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">${data.avgOrderValue.toFixed(2)}</p>
+            <p className="text-4xl font-bold">${(data.avgOrderValue || 0).toFixed(2)}</p>
           </CardContent>
         </Card>
       </div>

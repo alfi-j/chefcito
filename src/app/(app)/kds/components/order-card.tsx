@@ -94,6 +94,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
       onDrop={(e) => onDrop(e, order.id)}
       onDragOver={handleDragOver}
       onDragEnter={(e) => onDragEnter(e, order.id)}
+      onDragEnd={(e) => e.preventDefault()}
     >
       <Card 
         className={cn(

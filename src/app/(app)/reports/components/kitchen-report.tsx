@@ -60,7 +60,7 @@ export function KitchenReport({ data, loading }: KitchenReportProps) {
           <CardDescription>{t('reports.kitchen.most_delayed_desc')}</CardDescription>
         </CardHeader>
         <CardContent>
-          {data.mostDelayed.length > 0 ? (
+          {data.mostDelayed && data.mostDelayed.length > 0 ? (
             <div className="border rounded-lg">
                 <Table>
                     <TableHeader>

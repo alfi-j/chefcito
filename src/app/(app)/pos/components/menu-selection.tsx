@@ -44,7 +44,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     return flattened;
   }, [categories]);
 
-  const [activeCategoryName, setActiveCategoryName] = useState(renderedCategories[0]?.name || 'all');
+  const [activeCategoryName, setActiveCategoryName] = useState('all');
 
   const categoryMap = useMemo(() => {
     const map = new Map<number, Category>();
