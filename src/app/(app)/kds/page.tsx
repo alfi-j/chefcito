@@ -105,8 +105,58 @@ export default function KdsPage() {
     loadOrderPositionsFromDB();
     
     // Set up periodic refresh
-    const interval = setInterval(() => {
-      refreshOrders();
+    const interval = setInterval(async () => {
+      try {
+        // Refresh orders to get the latest data
+        await refreshOrders();
+        
+        // Reload order positions after refreshing orders to maintain custom positions
+        const response = await fetch(`/api/orders`);
+        if (!response.ok) return;
+        
+        const allOrders = await response.json();
+        const validOrderIds = new Set(allOrders.map((order: any) => order.id));
+        
+        const pendingResponse = await fetch(`/api/order-positions?tabName=pending`);
+        if (pendingResponse.ok) {
+          const pendingPositions = await pendingResponse.json();
+          
+          const pendingMap: Record<number, number> = {};
+          pendingPositions.forEach((pos: any) => {
+            if (validOrderIds.has(pos.order_id)) {
+              pendingMap[pos.order_id] = pos.position;
+            }
+          });
+          
+          const completedResponse = await fetch(`/api/order-positions?tabName=completed`);
+          if (completedResponse.ok) {
+            const completedPositions = await completedResponse.json();
+            
+            const completedMap: Record<number, number> = {};
+            completedPositions.forEach((pos: any) => {
+              if (validOrderIds.has(pos.order_id)) {
+                completedMap[pos.order_id] = pos.position;
+              }
+            });
+            
+            // Only update positions if they've changed to reduce blinking
+            setOrderPositions(prevPositions => {
+              const pendingChanged = JSON.stringify(prevPositions.pending) !== JSON.stringify(pendingMap);
+              const completedChanged = JSON.stringify(prevPositions.completed) !== JSON.stringify(completedMap);
+              
+              if (pendingChanged || completedChanged) {
+                return {
+                  pending: pendingMap,
+                  completed: completedMap
+                };
+              }
+              return prevPositions;
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to reload data:', error);
+      }
     }, 30000); // Refresh every 30 seconds
     
     return () => clearInterval(interval);

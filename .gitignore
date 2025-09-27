@@ -44,8 +44,3 @@ next-env.d.ts
 # genkit
 .genkit/
 .genkit-cache.json
-
-# custom ignores
-/docs/
-/scripts/
-/.lingma/
