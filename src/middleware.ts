@@ -1,4 +1,3 @@
-
 import { type NextRequest, NextResponse } from 'next/server'
 
 // This middleware checks if the user is authenticated.
