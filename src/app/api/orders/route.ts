@@ -135,7 +135,7 @@ export async function POST(request: Request) {
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *`,
         [
           table,
-          'pending',
+          body.status || 'pending', // Use the status from the request, default to 'pending'
           notes || null,
           orderType,
           deliveryInfo ? JSON.stringify(deliveryInfo) : null,
