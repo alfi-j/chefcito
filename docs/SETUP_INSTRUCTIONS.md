@@ -1,49 +1,74 @@
-# MongoDB Atlas Setup Instructions
+# Setup Instructions
 
-## Current Issue
-The application is still trying to connect with the placeholder `<db_password>` instead of your actual password.
+## Prerequisites
 
-## Solution Steps
+- Node.js (version 18 or higher)
+- MongoDB Atlas account or local MongoDB installation
+- Git
 
-1. **Verify your .env.local file**
-   Make sure your `.env.local` file contains your actual password, not the placeholder:
-   ```
-   MONGODB_URI=mongodb+srv://ajestrellar:YOUR_REAL_PASSWORD@chefcito-cluster.wxbzjce.mongodb.net/chefcito?retryWrites=true&w=majority&appName=chefcito-cluster
-   MONGODB_DB=chefcito
-   ```
+## Setup Steps
 
-2. **Replace the placeholder**
-   You need to replace `YOUR_REAL_PASSWORD` with your actual MongoDB Atlas password.
-
-3. **If you're unsure of your password**
-   - Go to MongoDB Atlas
-   - Navigate to "Database Access" in the left sidebar
-   - Find your user (ajestrellar)
-   - Either remember your password or reset it
-
-4. **Test with environment variables directly**
-   Instead of relying on the .env.local file, you can test with:
+1. **Clone the repository**:
    ```bash
-   MONGODB_URI="mongodb+srv://ajestrellar:YOUR_REAL_PASSWORD@chefcito-cluster.wxbzjce.mongodb.net/chefcito?retryWrites=true&w=majority&appName=chefcito-cluster" npm run db:test
+   git clone <repository-url>
+   cd chefcito
    ```
 
-5. **Check for special characters in your password**
-   If your password contains special characters like `@`, `:`, `/`, `?`, `#`, `[`, `]`, you need to URL encode them:
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+   - Copy `.env.local.example` to `.env.local`:
+     ```bash
+     cp .env.local.example .env.local
+     ```
+   - Update the `MONGODB_URI` with your actual MongoDB connection string
+   - Set the `MONGODB_DB` to your database name (default is "chefcito")
+
+4. **Initialize the database schema**:
+   ```bash
+   npm run db:schema
+   ```
+
+5. **Initialize the database with sample data** (optional):
+   ```bash
+   npm run db:init
+   ```
+
+6. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+7. **Access the application**:
+   Open your browser to `http://localhost:9002`
+
+## Default User Credentials
+
+After running the database initialization, you'll have a default admin user:
+- Email: admin@chefcito.com
+- Password: admin123
+
+You can change these credentials after logging in.
+
+## Common Issues
+
+### MongoDB Connection Issues
+
+1. **Authentication failed**: Verify your MongoDB URI and password are correct
+2. **Connection timeout**: Check that your IP is whitelisted in MongoDB Atlas
+3. **Network issues**: Ensure your firewall isn't blocking the connection
+
+### Environment Variables
+
+If you're having issues with environment variables:
+1. Make sure `.env.local` exists in the root directory
+2. Verify there are no extra spaces or characters in the URI
+3. If your password contains special characters, URL encode them:
    - `@` becomes `%40`
    - `:` becomes `%3A`
    - `/` becomes `%2F`
-   - `?` becomes `%3F`
-   - `#` becomes `%23`
-   - `[` becomes `%5B`
-   - `]` becomes `%5D`
 
-6. **Verify your IP whitelist**
-   Make sure your current IP address is whitelisted in MongoDB Atlas:
-   - Go to MongoDB Atlas
-   - Navigate to "Network Access" in the left sidebar
-   - Make sure your current IP is listed or add "Allow access from anywhere" (0.0.0.0/0) for testing
-
-After completing these steps, try running the test again:
-```bash
-npm run db:test
-```
+For additional help, refer to the [MongoDB Setup Guide](mongodb-setup.md) or [Troubleshooting Guide](mongodb-troubleshooting.md).

@@ -17,7 +17,17 @@ This guide helps resolve common issues with MongoDB connectivity and data operat
 - Confirm your database user credentials are correct
 - Ensure your MongoDB cluster is active and not paused
 
-### 2. Data Not Loading
+### 2. Missing Collections
+
+**Symptoms**:
+- Errors related to missing collections
+- Application features not working properly
+
+**Solutions**:
+- Run `npm run db:schema` to create all required collections and indexes
+- Verify that the database initialization completed successfully
+
+### 3. Data Not Loading
 
 **Symptoms**:
 - Empty lists in the UI
@@ -29,7 +39,7 @@ This guide helps resolve common issues with MongoDB connectivity and data operat
 - Check that the database collections exist and contain data
 - Verify the database name in your connection string matches your actual database
 
-### 3. Performance Issues
+### 4. Performance Issues
 
 **Symptoms**:
 - Slow page loads
@@ -51,26 +61,33 @@ Use the provided scripts to test and verify your MongoDB setup:
    npm run db:test
    ```
 
-2. Initialize database with sample data:
+2. Initialize database schema:
    ```bash
-   npm run db:init
+   npm run db:schema
    ```
 
-3. Verify data insertion:
+3. Initialize database with sample data:
    ```bash
-   npm run db:verify
+   npm run db:init
    ```
 
 ## Debugging Environment Variables
 
 To debug environment variable issues:
 
-1. Run the debug script:
-   ```bash
-   npm run db:debug
+1. Check that `.env.local` exists in the root directory
+2. Verify the MongoDB URI format:
    ```
-
-2. Check that the output shows your MongoDB URI and database name correctly
+   mongodb+srv://username:password@cluster-url/database-name?retryWrites=true&w=majority
+   ```
+3. If your password contains special characters, URL encode them:
+   - `@` becomes `%40`
+   - `:` becomes `%3A`
+   - `/` becomes `%2F`
+   - `?` becomes `%3F`
+   - `#` becomes `%23`
+   - `[` becomes `%5B`
+   - `]` becomes `%5D`
 
 ## Data Service Layer
 

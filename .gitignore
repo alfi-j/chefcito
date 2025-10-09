@@ -44,3 +44,6 @@ next-env.d.ts
 # genkit
 .genkit/
 .genkit-cache.json
+
+# scripts
+/src/scripts/

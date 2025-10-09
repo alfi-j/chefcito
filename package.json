@@ -10,11 +10,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "db:schema": "tsx src/scripts/init-database-schema.ts",
     "db:init": "tsx src/scripts/init-mongo-db.ts",
-    "db:test": "tsx src/scripts/test-mongo-connection.ts",
-    "db:debug": "tsx src/scripts/debug-env.ts",
-    "db:direct": "tsx src/scripts/direct-test.ts",
-    "db:verify": "tsx src/scripts/verify-data.ts"
+    "db:check": "tsx src/scripts/check-database.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",

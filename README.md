@@ -8,6 +8,7 @@ Chefcito is a comprehensive restaurant management system designed to streamline 
 - **Kitchen Display System (KDS)**: Real-time order tracking and kitchen workflow management
 - **Inventory Management**: Stock level monitoring and automated low-stock alerts
 - **Reporting Dashboard**: Sales analytics and performance metrics
+- **User Management**: Role-based access control with Admin, Restaurant Owner, and Staff roles
 - **Multi-language Support**: Available in English and Spanish with easy extensibility
 
 ## Technology Stack
@@ -22,12 +23,17 @@ Chefcito is a comprehensive restaurant management system designed to streamline 
 
 ## Data Architecture
 
-The application uses MongoDB Atlas as its primary data store. All data operations are handled through a dedicated MongoDB service layer that provides typed methods for all backend operations. This service handles:
+The application uses MongoDB Atlas as its primary data store with the following collections:
+- Users: User accounts with role-based access control
+- Staff: Staff member information
+- Categories: Menu categories and modifier groups
+- MenuItems: Food and drink items with pricing
+- Orders: Customer orders with status tracking
+- Inventory: Stock items with low-stock alerts
+- Customers: Customer information
+- PaymentMethods: Available payment options
 
-- Connection management with connection pooling
-- CRUD operations for all data entities
-- Data validation and error handling
-- Proper resource cleanup
+All data operations are handled through a dedicated MongoDB service layer that provides typed methods for all backend operations.
 
 ## Project Structure
 
@@ -37,13 +43,14 @@ src/
 │   ├── (app)/          # Main application pages
 │   ├── api/            # API routes
 │   └── login/          # Login page
-├── components/         # Reusable UI components
-├── context/            # React context providers
-├── hooks/              # Custom React hooks
-├── lib/                # Library and utility functions
-└── scripts/            # Utility scripts
+├── components/          # Reusable UI components
+├── context/             # React context providers
+├── hooks/               # Custom React hooks
+├── lib/                 # Library and utility functions
+├── models/              # MongoDB data models
+└── scripts/             # Utility scripts
 
-docs/                   # Documentation
+docs/                    # Documentation
 ```
 
 ## Getting Started
@@ -65,7 +72,7 @@ docs/                   # Documentation
 
 4. **Initialize the database**:
    ```bash
-   npm run db:init
+   npm run db:schema
    ```
 
 5. **Start the development server**:
@@ -82,18 +89,16 @@ docs/                   # Documentation
 - `npm run build` - Build the application for production
 - `npm run start` - Start the production server
 - `npm run lint` - Run ESLint
-- `npm run db:test` - Test MongoDB connection
+- `npm run db:schema` - Initialize database schema with collections and indexes
 - `npm run db:init` - Initialize MongoDB with sample data
-- `npm run db:verify` - Verify data insertion
-- `npm run db:debug` - Debug environment variables
+- `npm run db:check` - Check current database collections and status
 
 ## Documentation
 
-All documentation is located in the [docs/](docs/) directory:
-- Setup guides
-- Troubleshooting guides
-- Migration documentation
-- Project organization guides
+Essential documentation is located in the [docs/](docs/) directory:
+- [Setup Instructions](docs/SETUP_INSTRUCTIONS.md) - Complete setup guide
+- [MongoDB Setup](docs/mongodb-setup.md) - Database configuration
+- [Troubleshooting](docs/mongodb-troubleshooting.md) - Common issues and solutions
 
 ## License
 

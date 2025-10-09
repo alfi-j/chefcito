@@ -18,14 +18,19 @@ This guide explains how to set up MongoDB for the Chefcito application.
 2. Configure environment variables:
    - Copy `.env.local.example` to `.env.local`
    - Update the `MONGODB_URI` with your MongoDB connection string
-   - Set the `MONGODB_DB` to your database name
+   - Set the `MONGODB_DB` to your database name (default is "chefcito")
 
-3. Initialize the database:
+3. Initialize the database schema:
+   ```bash
+   npm run db:schema
+   ```
+
+4. Initialize the database with sample data (optional):
    ```bash
    npm run db:init
    ```
 
-4. Test the connection:
+5. Test the connection:
    ```bash
    npm run db:test
    ```
@@ -34,16 +39,22 @@ This guide explains how to set up MongoDB for the Chefcito application.
 
 The application uses the following collections:
 
-- `categories`: Menu categories
-- `menuItems`: Menu items
-- `orders`: Customer orders
-- `paymentMethods`: Payment methods
+- `users`: User accounts with authentication and role-based access
+- `staff`: Staff member information
+- `categories`: Menu categories and modifier groups
+- `menuItems`: Menu items with pricing and availability
+- `orders`: Customer orders with status tracking
+- `inventory`: Stock items with low-stock alerts
 - `customers`: Customer information
-- `inventory`: Inventory items
-- `staff`: Staff members
-- `tasks`: Tasks for waiters
+- `paymentMethods`: Available payment options
 
-Each collection contains documents with fields that match the TypeScript types defined in the application.
+Each collection is created with appropriate indexes for optimal performance.
+
+## Available Scripts
+
+- `npm run db:schema`: Creates all required collections and indexes
+- `npm run db:init`: Populates the database with sample data
+- `npm run db:test`: Tests the MongoDB connection
 
 ## Data Operations
 
@@ -54,8 +65,4 @@ All data operations are handled through the MongoDB service layer (`src/lib/mong
 - Data validation and transformation
 - Resource cleanup and connection pooling
 
-## Troubleshooting
-
-- **Connection Issues**: Ensure your MongoDB URI is correct and that your network settings allow connections.
-- **Data Initialization**: Verify that the JSON files in `src/data/` are correctly formatted and contain valid data.
-- **Environment Variables**: Double-check that your `.env.local` file is correctly configured with the necessary variables.
+For troubleshooting common issues, refer to the [Troubleshooting Guide](mongodb-troubleshooting.md).
