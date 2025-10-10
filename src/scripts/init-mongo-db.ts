@@ -1,11 +1,21 @@
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+import { dbManager } from '@/lib/mongodb';
+import { promises as fs } from 'fs';
+import { join } from 'path';
+import { 
+  findMany as findManyTyped, 
+  insertMany as insertManyTyped
+} from '@/lib/mongodb';
 
-import { dbManager, insertMany } from '../lib/mongodb';
-import { readData } from '../lib/data-utils';
-import path from 'path';
-
-const dataDir = path.join(process.cwd(), 'src', 'data');
+const readData = async <T>(filename: string): Promise<T[]> => {
+  try {
+    const filePath = join(process.cwd(), 'data', filename);
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    return JSON.parse(fileContents);
+  } catch (error) {
+    console.warn(`Could not read ${filename}:`, error);
+    return [];
+  }
+};
 
 async function initMongoDB() {
   try {
@@ -16,53 +26,41 @@ async function initMongoDB() {
     await dbManager.connect();
     console.log('Connected to MongoDB successfully');
 
-    // Load data from JSON files
-    console.log('Loading data from JSON files...');
+    // Read and insert categories
     const categories = await readData<any[]>('categories.json');
-    const menuItems = await readData<any[]>('menu-items.json');
-    const paymentMethods = await readData<any[]>('payment-methods.json');
-    const customers = await readData<any[]>('customers.json');
-    const inventory = await readData<any[]>('inventory.json');
-    const staff = await readData<any[]>('staff.json');
-    const orders = await readData<any[]>('orders.json');
-
-    // Insert data into MongoDB collections
-    console.log('Inserting data into MongoDB collections...');
-    
     if (categories.length > 0) {
-      await insertMany('categories', categories);
+      await insertManyTyped('categories', categories);
       console.log(`Inserted ${categories.length} categories`);
     }
-    
+
+    // Read and insert menu items
+    const menuItems = await readData<any[]>('menuItems.json');
     if (menuItems.length > 0) {
-      await insertMany('menuItems', menuItems);
+      await insertManyTyped('menuItems', menuItems);
       console.log(`Inserted ${menuItems.length} menu items`);
     }
-    
+
+    // Read and insert inventory items
+    const inventory = await readData<any[]>('inventory.json');
+    if (inventory.length > 0) {
+      await insertManyTyped('inventories', inventory);
+      console.log(`Inserted ${inventory.length} inventory items`);
+    }
+
+    // Read and insert customers
+    const customers = await readData<any[]>('customers.json');
+    if (customers.length > 0) {
+      await insertManyTyped('customers', customers);
+      console.log(`Inserted ${customers.length} customers`);
+    }
+
+    // Read and insert payment methods
+    const paymentMethods = await readData<any[]>('paymentMethods.json');
     if (paymentMethods.length > 0) {
-      await insertMany('paymentMethods', paymentMethods);
+      await insertManyTyped('paymentMethods', paymentMethods);
       console.log(`Inserted ${paymentMethods.length} payment methods`);
     }
     
-    if (customers.length > 0) {
-      await insertMany('customers', customers);
-      console.log(`Inserted ${customers.length} customers`);
-    }
-    
-    if (inventory.length > 0) {
-      await insertMany('inventory', inventory);
-      console.log(`Inserted ${inventory.length} inventory items`);
-    }
-    
-    if (staff.length > 0) {
-      await insertMany('staff', staff);
-      console.log(`Inserted ${staff.length} staff members`);
-    }
-    
-    if (orders.length > 0) {
-      await insertMany('orders', orders);
-      console.log(`Inserted ${orders.length} orders`);
-    }
 
     console.log('Database initialization completed successfully!');
   } catch (error) {

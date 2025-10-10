@@ -4,7 +4,7 @@ import { updatePaymentMethod, addPaymentMethod, deletePaymentMethod } from '@/li
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
     const data = await request.json();
-    const updatedMethod = await updatePaymentMethod(data);
+    const updatedMethod = await updatePaymentMethod(params.id, data);
     return NextResponse.json(updatedMethod);
   } catch (error) {
     console.error('Error updating payment method:', error);

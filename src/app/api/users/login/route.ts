@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
 import { User } from '@/models';
-import { dbManager } from '@/lib/mongodb';
+import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    await dbManager.connect();
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
     
     const body = await request.json();
     const { email, password } = body;
 
-    // Find user by email
+    // Find user in User collection
     const user = await User.findOne({ email });
+    
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -19,8 +25,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check password
-    const isPasswordValid = await user.comparePassword(password);
+    // Check password - handle both hashed and plain text passwords for backward compatibility
+    let isPasswordValid = false;
+    
+    // If password is hashed (contains bcrypt hash pattern)
+    if (user.password && (user.password.startsWith('$2b$') || user.password.startsWith('$2a$') || user.password.startsWith('$2y$'))) {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Plain text password comparison (backward compatibility)
+      isPasswordValid = password === user.password;
+    }
+    
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid credentials' },

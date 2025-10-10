@@ -28,7 +28,7 @@ export function UserInfo() {
         </div>
         <div className="flex items-center justify-between">
           <span className="font-medium">Role:</span>
-          <Badge variant={user.role === "Restaurant Owner" ? "default" : user.role === "Admin" ? "secondary" : "outline"}>
+          <Badge variant={user.role === "Owner" ? "default" : user.role === "Admin" ? "secondary" : "outline"}>
             {user.role}
           </Badge>
         </div>

@@ -1,21 +1,29 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Staff } from '@/lib/types';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Owner' | 'Admin' | 'Staff';
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+  membership: 'free' | 'pro';
+}
 
 interface UserContextType {
-  user: Staff | null;
+  user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateMembership: (membership: 'free' | 'pro') => void;
-  updateUserRole: (role: Staff['role']) => void;
+  updateUserRole: (role: User['role']) => void;
   refreshUser: () => void;
 };
     
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<Staff | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   // Initialize user from localStorage or cookie if available
   useEffect(() => {
@@ -30,9 +38,6 @@ export function UserProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // In a real app, this would validate credentials against a backend
-    // For now, we'll simulate different user types based on email
-    
     try {
       const response = await fetch('/api/users/login', {
         method: 'POST',
@@ -91,10 +96,10 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateUserRole = (role: Staff['role']) => {
+  const updateUserRole = (role: User['role']) => {
     if (user) {
       // In a real app, this would update the role on the backend
-      const updatedUser = { ...user, role };
+      const updatedUser: User = { ...user, role };
       setUser(updatedUser);
       localStorage.setItem('chefcito-user', JSON.stringify(updatedUser));
       

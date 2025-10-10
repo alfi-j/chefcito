@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { addInventoryItem, updateInventoryItem, adjustInventoryStock, deleteInventoryItem } from '@/lib/mongo-data-service';
+import { addInventoryItem, updateInventoryItem, updateInventoryStock, deleteInventoryItem } from '@/lib/mongo-data-service';
 
 export async function POST(request: Request) {
   try {
@@ -20,10 +20,10 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     
     if (body.action === 'adjustStock') {
-      const updatedItem = await adjustInventoryStock(params.id, body.amount);
+      const updatedItem = await updateInventoryStock(params.id, body.amount);
       return NextResponse.json(updatedItem);
     } else {
-      const updatedItem = await updateInventoryItem(body.data);
+      const updatedItem = await updateInventoryItem(params.id, body.data);
       return NextResponse.json(updatedItem);
     }
   } catch (error) {

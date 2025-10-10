@@ -1,5 +1,3 @@
-import { Staff } from "@/lib/types";
-
 export type Feature =
   | "view-orders"
   | "manage-orders"
@@ -12,10 +10,13 @@ export type Feature =
   | "access-kds"
   | "access-pos";
 
-export const checkFeatureAccess = (user: Staff, feature: Feature): boolean => {
+export const checkFeatureAccess = (user: {
+  role: 'Owner' | 'Admin' | 'Staff';
+  membership: 'free' | 'pro';
+}, feature: Feature): boolean => {
   // Role-based access control
   switch (user.role) {
-    case "Restaurant Owner":
+    case "Owner":
       // Owners have access to everything
       return true;
 
@@ -32,7 +33,10 @@ export const checkFeatureAccess = (user: Staff, feature: Feature): boolean => {
   }
 };
 
-export const checkMembershipFeatures = (user: Staff, feature: Feature): boolean => {
+export const checkMembershipFeatures = (user: {
+  role: 'Owner' | 'Admin' | 'Staff';
+  membership: 'free' | 'pro';
+}, feature: Feature): boolean => {
   // Pro members get additional features
   if (user.membership === "pro") {
     return true;
@@ -49,7 +53,10 @@ export const checkMembershipFeatures = (user: Staff, feature: Feature): boolean 
   return freeMemberFeatures.includes(feature);
 };
 
-export const hasAccess = (user: Staff, feature: Feature): boolean => {
+export const hasAccess = (user: {
+  role: 'Owner' | 'Admin' | 'Staff';
+  membership: 'free' | 'pro';
+}, feature: Feature): boolean => {
   // Check both role-based and membership-based access
   return checkFeatureAccess(user, feature) && checkMembershipFeatures(user, feature);
 };

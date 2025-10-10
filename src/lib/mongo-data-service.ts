@@ -5,20 +5,18 @@ import {
   OrderItem, 
   PaymentMethod, 
   Customer, 
-  InventoryItem, 
-  Staff, 
-  StaffPerformance
+  InventoryItem
 } from './types';
 import { DateRange } from 'react-day-picker';
 import { 
-  findMany as findManyTyped, 
-  findOne as findOneTyped, 
-  insertOne as insertOneTyped, 
-  updateOne as updateOneTyped, 
-  updateMany as updateManyTyped,
-  deleteOne as deleteOneTyped,
-  insertMany as insertManyTyped
-} from './mongodb';
+  User as UserModel,
+  Category as CategoryModel,
+  MenuItem as MenuItemModel,
+  Order as OrderModel,
+  Inventory as InventoryModel,
+  Customer as CustomerModel,
+  PaymentMethod as PaymentMethodModel
+} from '../models';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 
 // Generate a random ID
@@ -26,7 +24,8 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 
 // Helper function to get all menu items for order inflation
 const getAllMenuItems = async () => {
-  return await findManyTyped<MenuItem>('menuItems');
+  const menuItems = await MenuItemModel.find({});
+  return menuItems.map(item => item.toObject());
 };
 
 const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order> => {
@@ -73,13 +72,14 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
   };
 };
 
-// Staff
-export const getStaff = async (): Promise<Staff[]> => {
-  return await findManyTyped<Staff>('staff');
+// Users
+export const getUsers = async () => {
+  const users = await UserModel.find({});
+  return users.map(user => user.toObject());
 };
 
-export const getStaffPerformance = async (dateRange?: DateRange): Promise<StaffPerformance[]> => {
-  const staffList = await getStaff();
+export const getUserPerformance = async (dateRange?: DateRange) => {
+  const users = await getUsers();
   const orders = await getInitialOrders();
   
   const completedOrders = orders.filter(o => {
@@ -90,136 +90,108 @@ export const getStaffPerformance = async (dateRange?: DateRange): Promise<StaffP
     return completedAt >= dateRange.from && completedAt <= to;
   });
 
-  const performanceData: StaffPerformance[] = staffList.map(staff => {
-    const staffOrders = completedOrders.filter(o => o.staffName === staff.name);
-    const totalSales = staffOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
-    const tablesServed = new Set(staffOrders.map(o => o.table)).size;
-    const avgSaleValue = staffOrders.length > 0 ? totalSales / staffOrders.length : 0;
+  const performanceData = users.map(user => {
+    const userOrders = completedOrders.filter(o => o.staffName === user.name);
+    const totalSales = userOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
+    const tablesServed = new Set(userOrders.map(o => o.table)).size;
+    const avgSaleValue = userOrders.length > 0 ? totalSales / userOrders.length : 0;
 
     return {
-      ...staff,
+      ...user,
       tablesServed,
       totalSales,
-      avgSaleValue,
+      avgSaleValue
     };
   });
 
-  return performanceData;
+  return performanceData.sort((a, b) => b.totalSales - a.totalSales);
 };
 
 // Customers
 export const getCustomers = async (): Promise<Customer[]> => {
-  return await findManyTyped<Customer>('customers');
+  const customers = await CustomerModel.find({});
+  return customers.map(customer => customer.toObject());
+};
+
+export const addCustomer = async (customerData: Omit<Customer, 'id'>) => {
+  const newCustomer = new CustomerModel({ 
+    id: generateId(),
+    ...customerData
+  });
+  await newCustomer.save();
+  return newCustomer.toObject();
+};
+
+export const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
+  const result = await CustomerModel.updateOne(
+    { id },
+    { $set: customerData }
+  );
+  
+  return result.modifiedCount > 0;
+};
+
+export const deleteCustomer = async (id: string) => {
+  const result = await CustomerModel.deleteOne({ id });
+  return result.deletedCount > 0;
 };
 
 // Categories
 export const getCategories = async (): Promise<Category[]> => {
-  const categories = await findManyTyped<Category>('categories');
-  return categories.sort((a, b) => a.name.localeCompare(b.name));
+  const categories = await CategoryModel.find({});
+  return categories.map(category => category.toObject());
 };
 
 export const addCategory = async (categoryData: Omit<Category, 'id'>) => {
-  const categories = await findManyTyped<Category>('categories');
-  const newCategory = { 
-    id: categories.length > 0 ? Math.max(...categories.map(c => c.id)) + 1 : 1, 
+  const newCategory = new CategoryModel({ 
+    id: generateId(),
     ...categoryData
-  };
-  await insertOneTyped('categories', newCategory);
-  return newCategory;
+  });
+  await newCategory.save();
+  return newCategory.toObject();
 };
 
-export const updateCategory = async (updatedCategory: Category) => {
-  const result = await updateOneTyped(
-    'categories',
-    { id: updatedCategory.id },
-    { $set: updatedCategory }
+export const updateCategory = async (id: string, categoryData: Partial<Category>) => {
+  const result = await CategoryModel.updateOne(
+    { id },
+    { $set: categoryData }
   );
   
-  if (result.modifiedCount > 0) {
-    // If category name changed, update menu items
-    const categories = await findManyTyped<Category>('categories');
-    const oldCategory = categories.find(c => c.id === updatedCategory.id);
-    
-    if (oldCategory && oldCategory.name !== updatedCategory.name) {
-      await updateManyTyped(
-        'menuItems',
-        { category: oldCategory.name },
-        { $set: { category: updatedCategory.name } }
-      );
-    }
-    
-    return updatedCategory;
-  }
-  return null;
+  return result.modifiedCount > 0;
 };
 
-export const deleteCategory = async (id: number) => {
-  const result = await deleteOneTyped('categories', { id });
+export const deleteCategory = async (id: string) => {
+  const result = await CategoryModel.deleteOne({ id });
   return result.deletedCount > 0;
-};
-
-export const isCategoryInUse = async (name: string) => {
-  const count = await (await findManyTyped<MenuItem>('menuItems')).filter(item => item.category === name).length;
-  return count > 0;
 };
 
 // Menu Items
 export const getMenuItems = async (): Promise<MenuItem[]> => {
-  const items = await findManyTyped<MenuItem>('menuItems');
-  return items
-    .map(item => ({
-      ...item,
-      sortIndex: item.sortIndex ?? 0
-    }))
-    .sort((a, b) => a.sortIndex - b.sortIndex);
+  const menuItems = await MenuItemModel.find({});
+  return menuItems.map(item => item.toObject());
 };
 
-export const addMenuItem = async (itemData: Omit<MenuItem, 'id' | 'sortIndex'>) => {
-  const menuItems = await findManyTyped<MenuItem>('menuItems');
-  const newItem = { 
+export const addMenuItem = async (itemData: Omit<MenuItem, 'id'>) => {
+  const newItem = new MenuItemModel({ 
     id: generateId(),
-    sortIndex: menuItems.length,
-    ...itemData
-  };
-  await insertOneTyped('menuItems', newItem);
-  return newItem;
+    ...itemData,
+    sortIndex: 0 // Default sort index
+  });
+  await newItem.save();
+  return newItem.toObject();
 };
 
-export const updateMenuItem = async (item: MenuItem) => {
-  const result = await updateOneTyped(
-    'menuItems',
-    { id: item.id },
-    { $set: item }
+export const updateMenuItem = async (id: string, itemData: Partial<MenuItem>) => {
+  const result = await MenuItemModel.updateOne(
+    { id },
+    { $set: itemData }
   );
   
-  if (result.modifiedCount > 0) {
-    return item;
-  }
-  return null;
-};
-
-export const updateMenuItemOrder = async (orderedIds: string[]) => {
-  const menuItems = await findManyTyped<MenuItem>('menuItems');
-  const itemMap = new Map(menuItems.map(item => [item.id, item]));
-
-  for (let i = 0; i < orderedIds.length; i++) {
-    const id = orderedIds[i];
-    const item = itemMap.get(id);
-    if (item) {
-      item.sortIndex = i;
-      await updateOneTyped(
-        'menuItems',
-        { id: item.id },
-        { $set: { sortIndex: i } }
-      );
-    }
-  }
-  
-  return true;
+  return result.modifiedCount > 0;
 };
 
 export const deleteMenuItem = async (id: string) => {
-  const result = await deleteOneTyped('menuItems', { id });
+  const result = await MenuItemModel.deleteOne({ id });
   return result.deletedCount > 0;
 };
 
@@ -231,115 +203,76 @@ export const deleteMenuItems = async (ids: string[]) => {
 
 // Orders
 export const getInitialOrders = async (menuItems?: MenuItem[]): Promise<Order[]> => {
-  const ordersFromFile = await findManyTyped<any>('orders');
   const allMenuItems = menuItems || await getAllMenuItems();
-  const inflatedOrders = await Promise.all(ordersFromFile.map(order => inflateOrder(order, allMenuItems)));
-  return inflatedOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const orders = await OrderModel.find({});
+  
+  const inflatedOrders = await Promise.all(
+    orders.map(order => inflateOrder(order.toObject(), allMenuItems))
+  );
+  
+  return inflatedOrders;
 };
 
-export const addOrder = async (orderData: { 
-  table: number, 
-  items: OrderItem[], 
-  notes?: string,
-  orderType: any,
-  deliveryInfo?: any,
-}) => {
-  const orders = await findManyTyped<any>('orders');
-  const newOrder: any = {
-    id: orders.length > 0 ? Math.max(...orders.map(o => o.id)) + 1 : 1,
-    table: orderData.table,
+export const addOrder = async (orderData: any) => {
+  const newOrder = new OrderModel({
+    id: Date.now(),
+    ...orderData,
+    createdAt: new Date(),
     status: 'pending',
-    createdAt: new Date().toISOString(),
-    isPinned: false,
-    notes: orderData.notes || '',
-    orderType: orderData.orderType || 'dine-in',
-    deliveryInfo: orderData.orderType === 'delivery' ? orderData.deliveryInfo : null,
+    statusHistory: [{ status: 'pending', timestamp: new Date() }],
     staffName: '', // This would typically come from the authenticated user
-    statusHistory: [{
-      status: 'pending',
-      timestamp: new Date().toISOString()
-    }],
-    items: orderData.items.map((item: any) => ({
-      ...item,
-      id: generateId()
-    }))
-  };
+  });
   
-  await insertOneTyped('orders', newOrder);
-  return newOrder;
+  await newOrder.save();
+  return newOrder.toObject();
 };
 
-export const updateOrderItemStatus = async (orderId: number, itemId: string, newStatus: 'New' | 'Cooking' | 'Ready') => {
-  // Get the order
-  const orders = await findManyTyped<any>('orders');
-  const order = orders.find((o: any) => o.id === orderId);
+export const updateOrderItemStatus = async (payload: { 
+  orderId: number; 
+  itemId: string; 
+  fromStatus?: 'New' | 'Cooking' | 'Serve';
+  toStatus?: 'New' | 'Cooking' | 'Serve';
+  updatedOrder: any;
+}) => {
+  const { orderId, updatedOrder } = payload;
   
-  if (!order) return false;
-  
-  // Find the item and update its status
-  const item = order.items.find((i: any) => i.id === itemId);
-  if (!item) return false;
-  
-  // Update the item status counts
-  switch (newStatus) {
-    case 'New':
-      item.newCount = item.quantity;
-      item.cookingCount = 0;
-      item.readyCount = 0;
-      break;
-    case 'Cooking':
-      item.newCount = 0;
-      item.cookingCount = item.quantity;
-      item.readyCount = 0;
-      break;
-    case 'Ready':
-      item.newCount = 0;
-      item.cookingCount = 0;
-      item.readyCount = item.quantity;
-      break;
-  }
-  
-  // Update the order in the database
-  const result = await updateOneTyped(
-    'orders',
+  // Update the order with new item counts
+  const result = await OrderModel.updateOne(
     { id: orderId },
-    { $set: { items: order.items } }
+    { $set: { items: updatedOrder.items } }
   );
   
   return result.modifiedCount > 0;
 };
 
 export const updateOrderStatus = async (payload: { orderId: number; newStatus: 'pending' | 'completed' }) => {
-  const orders = await findManyTyped<any>('orders');
-  const order = orders.find((o: any) => o.id === payload.orderId);
+  const order = await OrderModel.findOne({ id: payload.orderId });
   
   if (order) {
     order.status = payload.newStatus;
-    const now = new Date().toISOString();
+    const now = new Date();
     
     if(payload.newStatus === 'completed' && !order.completedAt) {
       order.completedAt = now;
     } else if (payload.newStatus === 'pending') {
       // Remove completedAt timestamp if reverted
-      delete order.completedAt;
+      order.completedAt = undefined;
+    }
+    
+    if (!order.statusHistory) {
+      order.statusHistory = [];
     }
     
     order.statusHistory.push({ status: payload.newStatus, timestamp: now });
     
-    const result = await updateOneTyped<Order>(
-      'orders',
-      { id: payload.orderId },
-      { $set: order }
-    );
-    
-    return result.modifiedCount > 0;
+    await order.save();
+    return true;
   }
   return false;
 };
 
 export const toggleOrderPin = async (payload: { orderId: number; isPinned: boolean }) => {
-  const result = await updateOneTyped(
-    'orders',
+  const result = await OrderModel.updateOne(
     { id: payload.orderId },
     { $set: { isPinned: payload.isPinned } }
   );
@@ -349,226 +282,250 @@ export const toggleOrderPin = async (payload: { orderId: number; isPinned: boole
 
 // Payment Methods
 export const getPaymentMethods = async (): Promise<PaymentMethod[]> => {
-  return await findManyTyped<PaymentMethod>('paymentMethods');
+  const paymentMethods = await PaymentMethodModel.find({});
+  return paymentMethods.map(method => method.toObject());
 };
 
 export const addPaymentMethod = async (methodData: Omit<PaymentMethod, 'id'>) => {
-  const newMethod = { 
+  const newMethod = new PaymentMethodModel({ 
     id: generateId(),
     ...methodData
-  };
-  await insertOneTyped('paymentMethods', newMethod);
-  return newMethod;
+  });
+  await newMethod.save();
+  return newMethod.toObject();
 };
 
-export const updatePaymentMethod = async (method: PaymentMethod) => {
-  const result = await updateOneTyped(
-    'paymentMethods',
-    { id: method.id },
-    { $set: method }
+export const updatePaymentMethod = async (id: string, methodData: Partial<PaymentMethod>) => {
+  const result = await PaymentMethodModel.updateOne(
+    { id },
+    { $set: methodData }
   );
   
-  if (result.modifiedCount > 0) {
-    return method;
-  }
-  return null;
+  return result.modifiedCount > 0;
 };
 
 export const deletePaymentMethod = async (id: string) => {
-  const result = await deleteOneTyped('paymentMethods', { id });
+  const result = await PaymentMethodModel.deleteOne({ id });
   return result.deletedCount > 0;
 };
 
 // Inventory
-export const getInventoryItems = async (): Promise<InventoryItem[]> => {
-  return await findManyTyped<InventoryItem>('inventory');
+export const getInventory = async (): Promise<InventoryItem[]> => {
+  const inventory = await InventoryModel.find({});
+  return inventory.map(item => {
+    const itemObj = item.toObject();
+    // Convert Date to string for lastRestocked
+    return {
+      ...itemObj,
+      lastRestocked: itemObj.lastRestocked.toISOString()
+    };
+  });
 };
 
-export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
-  const newItem = { 
+export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id'>) => {
+  const newItem = new InventoryModel({ 
     id: generateId(),
-    lastRestocked: new Date().toISOString(),
-    ...itemData
+    ...itemData,
+    lastRestocked: new Date()
+  });
+  await newItem.save();
+  const savedItem = newItem.toObject();
+  return {
+    ...savedItem,
+    lastRestocked: savedItem.lastRestocked.toISOString()
   };
-  await insertOneTyped('inventory', newItem);
-  return newItem;
 };
 
-export const updateInventoryItem = async (item: InventoryItem) => {
-  const result = await updateOneTyped(
-    'inventory',
-    { id: item.id },
-    { $set: item }
+export const updateInventoryItem = async (id: string, itemData: Partial<InventoryItem>) => {
+  const result = await InventoryModel.updateOne(
+    { id },
+    { $set: itemData }
   );
   
-  if (result.modifiedCount > 0) {
-    return item;
-  }
-  return null;
+  return result.modifiedCount > 0;
 };
 
 export const deleteInventoryItem = async (id: string) => {
-  const result = await deleteOneTyped('inventory', { id });
+  const result = await InventoryModel.deleteOne({ id });
   return result.deletedCount > 0;
-}
+};
 
-export const adjustInventoryStock = async (itemId: string, adjustment: number) => {
-  const inventory = await findManyTyped<InventoryItem>('inventory');
-  const item = inventory.find(i => i.id === itemId);
+export const updateInventoryStock = async (id: string, quantity: number) => {
+  const result = await InventoryModel.updateOne(
+    { id },
+    { $set: { quantity, lastRestocked: new Date() } }
+  );
   
-  if (item) {
-    item.quantity = Math.max(0, item.quantity + adjustment);
-    if (adjustment > 0) {
-      item.lastRestocked = new Date().toISOString();
-    }
-    
-    const result = await updateOneTyped<InventoryItem>(
-      'inventory',
-      { id: itemId },
-      { $set: item }
-    );
-    
-    if (result.modifiedCount > 0) {
-      return item;
-    }
-  }
-  return null;
-}
+  return result.modifiedCount > 0;
+};
 
 
 // Reporting
-const getOrderTotal = (order: Order) => {
+const getOrderTotal = (order: Order): number => {
   return order.items.reduce((total, item) => {
-    const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-    const mainItemPrice = item.menuItem.price + extrasTotal;
-    return total + (mainItemPrice * (item.cookedCount + item.quantity));
+    return total + (item.menuItem.price * item.quantity);
   }, 0);
 };
 
-export const getSalesReport = async (dateRange?: DateRange) => {
+export const getSalesReport = async (dateRange: DateRange) => {
   const orders = await getInitialOrders();
-  const completedOrders = orders.filter(o => {
-    if (o.status !== 'completed' || !o.completedAt) return false;
-    if (!dateRange || !dateRange.from) return true;
-    const completedAt = new Date(o.completedAt);
-    const to = dateRange.to || new Date();
-    return completedAt >= dateRange.from && completedAt <= to;
+  
+  // Filter orders by date range
+  const filteredOrders = orders.filter(order => {
+    if (!order.completedAt) return false;
+    const completedAt = new Date(order.completedAt);
+    return completedAt >= dateRange.from! && completedAt <= (dateRange.to || new Date());
   });
-
-  if (completedOrders.length === 0) return null;
-
-  const totalRevenue = completedOrders.reduce((acc, order) => acc + getOrderTotal(order), 0);
-  const totalOrders = completedOrders.length;
+  
+  // Calculate statistics
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+  const totalOrders = filteredOrders.length;
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  const dailySales: { [key: string]: number } = {};
-  if (dateRange?.from) {
-    const interval = eachDayOfInterval({ start: dateRange.from, end: dateRange.to || dateRange.from });
-    interval.forEach(day => {
-      const formattedDay = format(day, 'MMM d');
-      dailySales[formattedDay] = 0;
+  
+  // Group by day for chart data
+  const dailySales: { date: string; revenue: number }[] = [];
+  const days = eachDayOfInterval({ start: dateRange.from!, end: dateRange.to || new Date() });
+  
+  days.forEach(day => {
+    const dayOrders = filteredOrders.filter(order => {
+      if (!order.completedAt) return false;
+      const completedAt = new Date(order.completedAt);
+      return format(completedAt, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
     });
-  }
-
-  completedOrders.forEach(order => {
-    if(!order.completedAt) return;
-    const day = format(new Date(order.completedAt), 'MMM d');
-    if (dailySales[day] !== undefined) {
-      dailySales[day] += getOrderTotal(order);
-    }
+    
+    const dayRevenue = dayOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+    dailySales.push({
+      date: format(day, 'MMM dd'),
+      revenue: dayRevenue
+    });
   });
-
+  
   return {
     totalRevenue,
     totalOrders,
     avgOrderValue,
-    dailySales: Object.entries(dailySales).map(([date, total]) => ({ date, total })),
+    dailySales
   };
 };
 
-export const getItemSalesReport = async (dateRange?: DateRange) => {
+export const getItemsReport = async (dateRange: DateRange) => {
   const orders = await getInitialOrders();
-  const completedOrders = orders.filter(o => {
-    if (o.status !== 'completed' || !o.completedAt) return false;
-    if (!dateRange || !dateRange.from) return true;
-    const completedAt = new Date(o.completedAt);
-    const to = dateRange.to || new Date();
-    return completedAt >= dateRange.from && completedAt <= to;
+  
+  // Filter orders by date range
+  const filteredOrders = orders.filter(order => {
+    if (!order.completedAt) return false;
+    const completedAt = new Date(order.completedAt);
+    return completedAt >= dateRange.from! && completedAt <= (dateRange.to || new Date());
   });
-
-  if (completedOrders.length === 0) return null;
-
-  const itemSales: { [key: string]: { name: string, quantity: number, total: number } } = {};
-
-  completedOrders.forEach(order => {
+  
+  // Aggregate item sales
+  const itemSales: Record<string, { name: string; quantity: number; total: number }> = {};
+  
+  filteredOrders.forEach(order => {
     order.items.forEach(item => {
-      const totalUnits = item.quantity;
-
-      if (!itemSales[item.menuItem.id]) {
-        itemSales[item.menuItem.id] = { name: item.menuItem.name, quantity: 0, total: 0 };
+      const itemId = item.menuItem.id;
+      if (!itemSales[itemId]) {
+        itemSales[itemId] = {
+          name: item.menuItem.name,
+          quantity: 0,
+          total: 0
+        };
       }
-      itemSales[item.menuItem.id].quantity += totalUnits;
-      itemSales[item.menuItem.id].total += item.menuItem.price * totalUnits;
-
-      item.selectedExtras?.forEach(extra => {
-         if (!itemSales[extra.id]) {
-            itemSales[extra.id] = { name: extra.name, quantity: 0, total: 0 };
-        }
-        itemSales[extra.id].quantity += totalUnits;
-        itemSales[extra.id].total += extra.price * totalUnits;
-      });
+      
+      itemSales[itemId].quantity += item.quantity;
+      itemSales[itemId].total += item.menuItem.price * item.quantity;
     });
   });
   
-  if (Object.keys(itemSales).length === 0) return null;
-
-  const allItems = Object.values(itemSales).sort((a, b) => b.quantity - a.quantity);
-
+  // Convert to array and sort
+  const itemsArray = Object.values(itemSales);
+  const bestSelling = [...itemsArray].sort((a, b) => b.quantity - a.quantity);
+  const leastSelling = [...itemsArray].sort((a, b) => a.quantity - b.quantity);
+  
   return {
-    bestSelling: allItems.slice(0, 5),
-    leastSelling: allItems.slice(-5).reverse(),
+    bestSelling,
+    leastSelling
   };
 };
 
-export const getKitchenPerformanceReport = async (dateRange?: DateRange) => {
+export const getKitchenReport = async (dateRange: DateRange) => {
   const orders = await getInitialOrders();
-  const completedOrders = orders.filter(o => {
-    if (o.status !== 'completed' || !o.completedAt) return false;
-    if (!dateRange || !dateRange.from) return true;
-    const completedAt = new Date(o.completedAt);
-    const to = dateRange.to || new Date();
-    return completedAt >= dateRange.from && completedAt <= to;
+  
+  // Filter orders by date range
+  const filteredOrders = orders.filter(order => {
+    if (!order.completedAt) return false;
+    const completedAt = new Date(order.completedAt);
+    return completedAt >= dateRange.from! && completedAt <= (dateRange.to || new Date());
   });
-
-  const validOrders = completedOrders.filter(o => o.completedAt);
-  if (validOrders.length === 0) {
-    return null;
-  }
-
-  const prepTimes = validOrders.map(o => differenceInMinutes(new Date(o.completedAt!), new Date(o.createdAt)));
-  const avgPrepTime = prepTimes.reduce((acc, time) => acc + time, 0) / prepTimes.length;
-
-  const itemPrepTimes: { [key: string]: { name: string; times: number[]; count: number } } = {};
-  validOrders.forEach(order => {
-    const prepTime = differenceInMinutes(new Date(order.completedAt!), new Date(order.createdAt));
-    order.items.forEach(item => {
-      const totalUnits = item.quantity;
-      if (!itemPrepTimes[item.menuItem.id]) {
-        itemPrepTimes[item.menuItem.id] = { name: item.menuItem.name, times: [], count: 0 };
+  
+  // Calculate average preparation time
+  let totalPrepTime = 0;
+  let completedItems = 0;
+  
+  filteredOrders.forEach(order => {
+    if (order.statusHistory) {
+      // Find when the order was created and when it was completed
+      const createdEvent = order.statusHistory.find(event => event.status === 'pending');
+      const completedEvent = order.statusHistory.find(event => event.status === 'completed');
+      
+      if (createdEvent && completedEvent) {
+        const createdTime = new Date(createdEvent.timestamp);
+        const completedTime = new Date(completedEvent.timestamp);
+        const prepTime = differenceInMinutes(completedTime, createdTime);
+        
+        if (prepTime > 0) {
+          totalPrepTime += prepTime;
+          completedItems += order.items.length;
+        }
       }
-      itemPrepTimes[item.menuItem.id].times.push( prepTime );
-      itemPrepTimes[item.menuItem.id].count += totalUnits;
-    });
+    }
   });
-
-  const mostDelayed = Object.values(itemPrepTimes)
+  
+  const avgPrepTime = completedItems > 0 ? totalPrepTime / completedItems : 0;
+  
+  // Find most delayed items (simplified)
+  const itemDelays: Record<string, { name: string; totalTime: number; count: number }> = {};
+  
+  filteredOrders.forEach(order => {
+    if (order.statusHistory) {
+      const createdEvent = order.statusHistory.find(event => event.status === 'pending');
+      const completedEvent = order.statusHistory.find(event => event.status === 'completed');
+      
+      if (createdEvent && completedEvent) {
+        const createdTime = new Date(createdEvent.timestamp);
+        const completedTime = new Date(completedEvent.timestamp);
+        const prepTime = differenceInMinutes(completedTime, createdTime);
+        
+        if (prepTime > 0) {
+          order.items.forEach(item => {
+            const itemId = item.menuItem.id;
+            if (!itemDelays[itemId]) {
+              itemDelays[itemId] = {
+                name: item.menuItem.name,
+                totalTime: 0,
+                count: 0
+              };
+            }
+            
+            itemDelays[itemId].totalTime += prepTime;
+            itemDelays[itemId].count += 1;
+          });
+        }
+      }
+    }
+  });
+  
+  // Calculate average delay per item
+  const delayedItems = Object.values(itemDelays)
     .map(item => ({
       name: item.name,
-      avgTime: item.times.reduce((a, b) => a + b, 0) / item.times.length,
+      avgTime: item.count > 0 ? item.totalTime / item.count : 0
     }))
     .sort((a, b) => b.avgTime - a.avgTime)
-    .slice(0, 5);
-
-  return { avgPrepTime, mostDelayed };
+    .slice(0, 10); // Top 10 most delayed items
+  
+  return {
+    avgPrepTime,
+    mostDelayed: delayedItems
+  };
 };

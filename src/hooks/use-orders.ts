@@ -122,9 +122,27 @@ export const useOrders = () => {
         if (!updatedOrder) return;
         
         try {
+            // Update the order with the new item counts in the database
+            const response = await fetch('/api/orders/update-item-status', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    orderId, 
+                    itemId, 
+                    fromStatus,
+                    updatedOrder
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update item status');
+            }
+            
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
             if (updatedOrder.status !== originalOrder?.status) {
-                const response = await fetch('/api/orders', {
+                const statusResponse = await fetch('/api/orders', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -132,7 +150,7 @@ export const useOrders = () => {
                     body: JSON.stringify({ orderId, newStatus: updatedOrder.status }),
                 });
                 
-                if (!response.ok) {
+                if (!statusResponse.ok) {
                     throw new Error('Failed to update order status');
                 }
             }
@@ -186,9 +204,27 @@ export const useOrders = () => {
         if (!updatedOrder) return;
 
         try {
+            // Update the order with the reverted item counts in the database
+            const response = await fetch('/api/orders/update-item-status', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    orderId, 
+                    itemId, 
+                    toStatus,
+                    updatedOrder
+                }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to revert item status');
+            }
+            
             const originalOrder = originalOrders.find((o: Order) => o.id === orderId);
             if (updatedOrder.status !== originalOrder?.status) {
-                const response = await fetch('/api/orders', {
+                const statusResponse = await fetch('/api/orders', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -196,7 +232,7 @@ export const useOrders = () => {
                     body: JSON.stringify({ orderId, newStatus: updatedOrder.status }),
                 });
                 
-                if (!response.ok) {
+                if (!statusResponse.ok) {
                     throw new Error('Failed to update order status');
                 }
             }

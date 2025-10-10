@@ -1,16 +1,20 @@
 import { NextResponse } from 'next/server';
 import { User } from '@/models';
-import { dbManager } from '@/lib/mongodb';
+import mongoose from 'mongoose';
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
-    await dbManager.connect();
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
     
     const body = await request.json();
     const { role } = body;
 
     // Validate role
-    const validRoles = ['Staff', 'Admin', 'Restaurant Owner'];
+    const validRoles = ['Owner', 'Admin', 'Staff'];
     if (!validRoles.includes(role)) {
       return NextResponse.json(
         { error: 'Invalid role' },

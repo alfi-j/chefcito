@@ -4,11 +4,9 @@ import {
   updateMenuItem, 
   deleteMenuItem,
   deleteMenuItems,
-  updateMenuItemOrder,
   addCategory,
   updateCategory,
-  deleteCategory,
-  isCategoryInUse
+  deleteCategory
 } from '@/lib/mongo-data-service';
 
 export async function POST(request: Request) {
@@ -25,7 +23,7 @@ export async function POST(request: Request) {
         return NextResponse.json(newCategory);
         
       case 'updateCategory':
-        const updatedCategory = await updateCategory(body.data);
+        const updatedCategory = await updateCategory(body.id, body.data);
         return NextResponse.json(updatedCategory);
         
       default:
@@ -48,13 +46,13 @@ export async function PUT(request: Request) {
     const body = await request.json();
     
     switch (body.action) {
-      case 'updateMenuItem':
-        const updatedItem = await updateMenuItem(body.data);
-        return NextResponse.json(updatedItem);
+      case 'updateCategory':
+        const updatedCategory = await updateCategory(body.id, body.data);
+        return NextResponse.json(updatedCategory);
         
-      case 'updateMenuItemOrder':
-        await updateMenuItemOrder(body.itemIds);
-        return NextResponse.json({ success: true });
+      case 'updateMenuItem':
+        const updatedItem = await updateMenuItem(body.id, body.data);
+        return NextResponse.json(updatedItem);
         
       default:
         return NextResponse.json(
@@ -85,13 +83,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ success: true });
         
       case 'deleteCategory':
-        const inUse = await isCategoryInUse(body.id);
-        if (inUse) {
-          return NextResponse.json(
-            { error: 'Category is in use' },
-            { status: 400 }
-          );
-        }
         await deleteCategory(body.id);
         return NextResponse.json({ success: true });
         

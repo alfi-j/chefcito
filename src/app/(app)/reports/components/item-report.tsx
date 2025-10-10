@@ -1,4 +1,3 @@
-
 "use client"
 
 import React from 'react';
@@ -30,13 +29,13 @@ interface ItemReportProps {
 export function ItemReport({ data, loading }: ItemReportProps) {
   const { t } = useI18n();
 
-  const renderTable = (items: ItemSale[], title: string) => (
+  const renderTable = (items: ItemSale[] | undefined, title: string) => (
     <Card>
       <CardHeader>
         <CardTitle className="font-headline">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        {items.length > 0 ? (
+        {items && items.length > 0 ? (
           <div className="border rounded-lg">
             <Table>
               <TableHeader>

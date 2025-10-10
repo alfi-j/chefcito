@@ -1,10 +1,10 @@
 "use client"
 
-import { useRoleAccess, Role } from "@/hooks/use-role-access";
+import { useRoleAccess } from "@/hooks/use-role-access";
 
 interface RoleBasedContentProps {
   children: React.ReactNode;
-  allowedRoles?: Role | Role[];
+  allowedRoles?: 'Owner' | 'Admin' | 'Staff' | ('Owner' | 'Admin' | 'Staff')[];
   allowedMembership?: "free" | "pro";
   fallback?: React.ReactNode;
 }

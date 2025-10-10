@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
   id: string;
   name: string;
   email: string;
   password: string;
-  role: 'Staff' | 'Admin' | 'Restaurant Owner';
+  role: 'Owner' | 'Admin' | 'Staff';
   status: 'On Shift' | 'Off Shift' | 'On Break';
   membership: 'free' | 'pro';
   createdAt?: Date;
@@ -22,7 +22,7 @@ const UserSchema: Schema = new Schema({
   role: {
     type: String,
     required: true,
-    enum: ['Staff', 'Admin', 'Restaurant Owner']
+    enum: ['Owner', 'Admin', 'Staff']
   },
   status: {
     type: String,

@@ -98,21 +98,17 @@ export type InventoryItem = {
   category?: string;
 };
 
-export type Staff = {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Staff' | 'Admin' | 'Restaurant Owner';
-  status: 'On Shift' | 'Off Shift' | 'On Break';
-  membership: 'free' | 'pro';
-}
-
-export type StaffPerformance = Staff & {
+export type StaffPerformance = {
+    id: string;
+    name: string;
+    email: string;
+    role: 'Owner' | 'Admin' | 'Staff';
+    status: 'On Shift' | 'Off Shift' | 'On Break';
+    membership: 'free' | 'pro';
     tablesServed: number;
     totalSales: number;
     avgSaleValue: number;
 };
-
 
 export type ReadyItem = {
   id: string;

@@ -29,7 +29,7 @@ async function initUsers() {
         name: "Restaurant Owner",
         email: "owner@chefcito.com",
         password: "owner123",
-        role: "Restaurant Owner",
+        role: "Owner",
         status: "On Shift",
         membership: "pro"
       },

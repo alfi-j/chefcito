@@ -1,15 +1,13 @@
 import { useUser } from "@/context/user-context";
 
-export type Role = "Restaurant Owner" | "Admin" | "Staff";
-
 export const useRoleAccess = () => {
   const { user } = useUser();
 
-  const hasRole = (roles: Role | Role[]): boolean => {
+  const hasRole = (roles: 'Owner' | 'Admin' | 'Staff' | ('Owner' | 'Admin' | 'Staff')[]): boolean => {
     if (!user) return false;
     
     if (Array.isArray(roles)) {
-      return roles.includes(user.role as Role);
+      return roles.includes(user.role);
     }
     
     return user.role === roles;
@@ -20,7 +18,7 @@ export const useRoleAccess = () => {
     return user.membership === membership;
   };
 
-  const canAccess = (requiredRole?: Role | Role[], requiredMembership?: "free" | "pro"): boolean => {
+  const canAccess = (requiredRole?: 'Owner' | 'Admin' | 'Staff' | ('Owner' | 'Admin' | 'Staff')[], requiredMembership?: "free" | "pro"): boolean => {
     // If no requirements, allow access
     if (!requiredRole && !requiredMembership) return true;
     
@@ -34,7 +32,7 @@ export const useRoleAccess = () => {
   };
 
   // Specific role checks
-  const isOwner = hasRole("Restaurant Owner");
+  const isOwner = hasRole("Owner");
   const isAdmin = hasRole("Admin");
   const isStaff = hasRole("Staff");
 

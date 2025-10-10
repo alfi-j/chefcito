@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { dbManager } from '@/lib/mongodb';
 import { User } from '@/models';
+import mongoose from 'mongoose';
 
 // PUT /api/users/[id] - Update user role
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -8,6 +8,12 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const body = await request.json();
     const { role, membership, status } = body;
     
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
+
     // Update user
     const updatedUser = await User.findOneAndUpdate(
       { id: params.id },
@@ -47,13 +53,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 // DELETE /api/users/[id] - Delete user
 export async function DELETE(request: Request, { params }: { params: { id: string } }) {
   try {
-    // Connect to database
-    await dbManager.connect();
-    const db = await dbManager.getDb();
-    const usersCollection = db.collection('users');
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
 
     // Delete user
-    const result = await usersCollection.deleteOne({ id: params.id });
+    const result = await User.deleteOne({ id: params.id });
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
@@ -75,7 +82,11 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 // GET /api/users/[id] - Get a specific user
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
-    await dbManager.connect();
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
     
     const user = await User.findOne({ id: params.id });
     

@@ -1,4 +1,3 @@
-export { default as Staff, type IStaff } from './Staff';
 export { default as Category, type ICategory } from './Category';
 export { default as MenuItem, type IMenuItem } from './MenuItem';
 export { default as Order, type IOrder } from './Order';

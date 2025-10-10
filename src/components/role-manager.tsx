@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Staff } from "@/lib/types";
 
 export function RoleManager() {
   const { user, updateUserRole } = useUser();
@@ -17,7 +16,7 @@ export function RoleManager() {
     return null;
   }
 
-  const handleRoleChange = (newRole: Staff['role']) => {
+  const handleRoleChange = (newRole: 'Owner' | 'Admin' | 'Staff') => {
     updateUserRole(newRole);
     toast.success("Role Updated", {
       description: `Your role has been updated to ${newRole}`,
@@ -44,7 +43,7 @@ export function RoleManager() {
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Restaurant Owner">Restaurant Owner</SelectItem>
+                <SelectItem value="Owner">Owner</SelectItem>
                 <SelectItem value="Admin">Admin</SelectItem>
                 <SelectItem value="Staff">Staff</SelectItem>
               </SelectContent>
@@ -52,7 +51,7 @@ export function RoleManager() {
           </div>
           <div className="text-sm text-muted-foreground">
             <p>
-              {user.role === "Restaurant Owner" && "As the restaurant owner, you have full access to all system features."}
+              {user.role === "Owner" && "As the restaurant owner, you have full access to all system features."}
               {user.role === "Admin" && "As an admin, you can manage staff and system settings."}
               {user.role === "Staff" && "As a staff member, you have basic access to the system."}
             </p>

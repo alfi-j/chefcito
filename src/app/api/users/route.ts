@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
-import { dbManager } from '@/lib/mongodb';
+import { v4 as uuidv4 } from 'uuid';
+
+import User from '../../../models/User';
+import mongoose from 'mongoose';
+import * as bcrypt from 'bcryptjs';
 
 // POST /api/users - Create a new user
 export async function POST(request: Request) {
   try {
-    await dbManager.connect();
-    const db = await dbManager.getDb();
-    const collection = db.collection('users');
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
     
     const body = await request.json();
     
     // Check if user already exists
-    const existingUser = await collection.findOne({ email: body.email });
+    const existingUser = await User.findOne({ email: body.email });
+    
     if (existingUser) {
       return NextResponse.json(
         { error: 'User with this email already exists' },
@@ -19,16 +26,33 @@ export async function POST(request: Request) {
       );
     }
     
-    // Create new user
-    const result = await collection.insertOne({
-      ...body,
+    // Hash password before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(body.password, salt);
+    
+    // Generate a unique ID
+    const userId = uuidv4();
+    
+    // Create new user object with all required fields
+    const userData = {
+      id: userId,
+      name: body.name,
+      email: body.email,
+      password: hashedPassword,
+      role: body.role,
+      status: body.status || 'Off Shift',
+      membership: body.membership || 'free',
       createdAt: new Date(),
       updatedAt: new Date()
-    });
+    };
+    
+    // Save to User collection
+    const newUser = new User(userData);
+    const savedUser = await newUser.save();
     
     return NextResponse.json({ 
       success: true, 
-      userId: result.insertedId 
+      userId: savedUser._id 
     });
   } catch (error) {
     console.error('Error creating user:', error);
@@ -42,11 +66,14 @@ export async function POST(request: Request) {
 // GET /api/users - Get all users
 export async function GET() {
   try {
-    await dbManager.connect();
-    const db = await dbManager.getDb();
-    const collection = db.collection('users');
+    // Ensure mongoose is connected
+    if (mongoose.connection.readyState !== 1) {
+      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+      await mongoose.connect(MONGODB_URI);
+    }
     
-    const users = await collection.find({}).toArray();
+    // Get users from User collection
+    const users = await User.find({});
     
     return NextResponse.json(users);
   } catch (error) {

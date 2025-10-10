@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import Staff from '../models/Staff';
 import Category from '../models/Category';
 import MenuItem from '../models/MenuItem';
 import Order from '../models/Order';
@@ -8,7 +7,6 @@ import Customer from '../models/Customer';
 import PaymentMethod from '../models/PaymentMethod';
 import User from '../models/User';
 import { IUser } from '../models/User';
-import { IStaff } from '../models/Staff';
 
 class DatabaseService {
   private isConnected = false;
@@ -66,35 +64,6 @@ class DatabaseService {
     );
   }
 
-  // Staff methods
-  async getAllStaff(): Promise<IStaff[]> {
-    return await Staff.find({});
-  }
-
-  async getStaffByEmail(email: string): Promise<IStaff | null> {
-    return await Staff.findOne({ email });
-  }
-
-  async createStaff(staffData: any): Promise<IStaff> {
-    const staff = new Staff(staffData);
-    return await staff.save();
-  }
-
-  async updateStaffRole(id: string, role: string): Promise<IStaff | null> {
-    return await Staff.findOneAndUpdate(
-      { _id: id },
-      { role },
-      { new: true }
-    );
-  }
-
-  async updateStaffMembership(id: string, membership: string): Promise<IStaff | null> {
-    return await Staff.findOneAndUpdate(
-      { _id: id },
-      { membership },
-      { new: true }
-    );
-  }
 
   // Category methods
   async getAllCategories(): Promise<any[]> {
@@ -134,6 +103,11 @@ class DatabaseService {
   async createInventoryItem(itemData: any): Promise<any> {
     const item = new Inventory(itemData);
     return await item.save();
+  }
+
+  // Customer methods
+  async getAllCustomers(): Promise<any[]> {
+    return await Customer.find({});
   }
 
   async createCustomer(customerData: any): Promise<any> {
