@@ -42,16 +42,13 @@ next-env.d.ts
 .vscode/chrome/
 
 # IDEs
-.vscode/*
-!.vscode/chrome/
-!.vscode/launch.json
+.vscode/
 
 .lingma/
-!.lingma/rules/
 
 # genkit
 .genkit/
 .genkit-cache.json
 
 # scripts
-/scripts/*
+/scripts/
