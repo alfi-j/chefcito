@@ -41,9 +41,14 @@ next-env.d.ts
 .webstudio
 .vscode/chrome/
 
+# IDEs
+.vscode/
+.lingma/
+
 # genkit
 .genkit/
 .genkit-cache.json
 
 # scripts
 /src/scripts/
+/scripts/
