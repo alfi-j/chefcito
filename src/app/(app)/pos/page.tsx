@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import { type MenuItem, type OrderItem, type Order, type Payment } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
@@ -41,9 +41,7 @@ import { getOrderTotal } from '@/lib/utils'
 import { useCallback } from 'react'
 import { type Category } from '@/lib/types'
 
-
-
-export default function PosPage() {
+function PosPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [editingOrderItem, setEditingOrderItem] = useState<OrderItem | null>(null);
@@ -315,8 +313,6 @@ export default function PosPage() {
        currentOrder.addItem(item, 1, []);
     }
   };
-  
-
 
   const handleEditItem = (orderItem: OrderItem) => {
     setEditingOrderItem(orderItem);
@@ -465,10 +461,6 @@ export default function PosPage() {
     }
   }
 
-
-
-
-  
   const displayCategories = Array.isArray(categories) ? categories.filter(c => !c.isModifierGroup) : [];
   const displayItems = Array.isArray(categories) && Array.isArray(menuItems) 
     ? menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
@@ -561,5 +553,13 @@ export default function PosPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function PosPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PosPageContent />
+    </Suspense>
   );
 }

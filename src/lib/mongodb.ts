@@ -114,10 +114,23 @@ class DatabaseManager {
       }
     }
   };
+  
+  isConnected = (): boolean => {
+    return !!this.clientPromise;
+  };
 }
 
 // Export a singleton instance
 export const dbManager = new DatabaseManager();
+
+// Add the missing functions
+export const connectToDatabase = async () => {
+  await dbManager.connect();
+};
+
+export const isDatabaseConnected = () => {
+  return dbManager.isConnected();
+};
 
 // Helper functions for common operations with timeout handling
 export const findOne = async <T>(collectionName: string, filter: any = {}): Promise<T | null> => {

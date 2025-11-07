@@ -6,3 +6,4 @@ export { default as Customer, type ICustomer } from './Customer';
 export { default as Payment, type IPayment } from './Payment';
 export { default as User, type IUser } from './User';
 export { default as Workstation, type IWorkstation } from './Workstation';
+export { default as Restaurant, type IRestaurant } from './Restaurant';
