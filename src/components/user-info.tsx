@@ -1,11 +1,13 @@
 "use client"
 
-import { useUser } from "@/context/user-context";
+import { useUserStore } from "@/lib/stores/user-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useI18nStore } from '@/lib/stores/i18n-store';
 
 export function UserInfo() {
-  const { user } = useUser();
+  const { user } = useUserStore();
+  const { t } = useI18nStore();
 
   if (!user) {
     return null;
@@ -14,26 +16,26 @@ export function UserInfo() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Information</CardTitle>
-        <CardDescription>Role and membership details</CardDescription>
+        <CardTitle>{t('profile.user_info_title')}</CardTitle>
+        <CardDescription>{t('profile.user_info_desc')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-medium">Name:</span>
+          <span className="font-medium">{t('profile.name')}:</span>
           <span>{user.name}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="font-medium">Email:</span>
+          <span className="font-medium">{t('profile.email')}:</span>
           <span>{user.email}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="font-medium">Role:</span>
+          <span className="font-medium">{t('profile.role')}:</span>
           <Badge variant={user.role === "Owner" ? "default" : user.role === "Admin" ? "secondary" : "outline"}>
             {user.role}
           </Badge>
         </div>
         <div className="flex items-center justify-between">
-          <span className="font-medium">Membership:</span>
+          <span className="font-medium">{t('profile.membership')}:</span>
           <Badge variant={user.membership === "pro" ? "default" : "secondary"}>
             {user.membership.charAt(0).toUpperCase() + user.membership.slice(1)}
           </Badge>

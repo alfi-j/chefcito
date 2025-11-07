@@ -26,4 +26,6 @@ const MenuItemSchema: Schema = new Schema({
   sortIndex: { type: Number, default: 0 }
 });
 
-export default mongoose.model<IMenuItem>('MenuItem', MenuItemSchema);
+// Prevent model recompilation in development mode
+const MenuItem = mongoose.models.MenuItem || mongoose.model<IMenuItem>('MenuItem', MenuItemSchema, 'menuitems');
+export default MenuItem;

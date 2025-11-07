@@ -10,12 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useI18n } from '@/context/i18n-context';
+import { useI18nStore } from '@/lib/stores/i18n-store';
 
 interface ItemSale {
   name: string;
   quantity: number;
-  total: number;
+  revenue: number;
 }
 
 interface ItemReportProps {
@@ -27,7 +27,7 @@ interface ItemReportProps {
 }
 
 export function ItemReport({ data, loading }: ItemReportProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const renderTable = (items: ItemSale[] | undefined, title: string) => (
     <Card>
@@ -50,7 +50,7 @@ export function ItemReport({ data, loading }: ItemReportProps) {
                   <TableRow key={index}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-right">{item.quantity}</TableCell>
-                    <TableCell className="text-right font-semibold">${item.total.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-semibold">${item.revenue.toFixed(2)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

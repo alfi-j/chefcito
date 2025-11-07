@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { type MenuItem, type Category } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Utensils } from 'lucide-react'
-import { useI18n } from '@/context/i18n-context'
+import { useI18nStore } from '@/lib/stores/i18n-store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { useCurrentOrderStore } from '@/lib/stores/current-order-store'
 
 interface RenderedCategory extends Category {
   depth: number;
@@ -19,7 +21,10 @@ interface MenuSelectionProps {
 }
 
 export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectionProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
+  
+  // Get current order items to display badges
+  const orderItems = useCurrentOrderStore(state => state.items);
 
   const renderedCategories = useMemo(() => {
     const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
@@ -152,25 +157,37 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
           <div className="flex-grow relative mt-4">
             <ScrollArea className="absolute inset-0">
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 p-1">
-                {itemsForActiveCategory.map(item => (
-                  <Card 
-                    key={item.id} 
-                    className="cursor-pointer hover:shadow-lg hover:border-primary transition-all flex flex-col overflow-hidden group"
-                    onClick={() => onAddItem(item)}
-                  >
-                    <div className="w-full aspect-square relative bg-muted flex items-center justify-center">
-                        {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
-                            <Image src={item.imageUrl} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={item.aiHint} />
-                        ) : (
-                            <Utensils className="w-1/2 h-1/2 text-muted-foreground/50" />
-                        )}
-                    </div>
-                    <CardFooter className="p-2 flex-grow flex flex-col items-start">
-                      <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
-                      <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
-                    </CardFooter>
-                  </Card>
-                ))}
+                {itemsForActiveCategory.map(item => {
+                  // Count how many of this item are in the current order
+                  const itemCount = orderItems
+                    .filter(orderItem => orderItem.menuItem.id === item.id)
+                    .reduce((sum, orderItem) => sum + orderItem.quantity, 0);
+                  
+                  return (
+                    <Card 
+                      key={item.id} 
+                      className="cursor-pointer hover:shadow-lg hover:border-primary transition-all flex flex-col overflow-hidden group relative"
+                      onClick={() => onAddItem(item)}
+                    >
+                      <div className="w-full aspect-square relative bg-muted flex items-center justify-center">
+                          {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
+                              <Image src={item.imageUrl} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={item.aiHint} />
+                          ) : (
+                              <Utensils className="w-1/2 h-1/2 text-muted-foreground/50" />
+                          )}
+                          {itemCount > 0 && (
+                            <Badge className="absolute top-1 right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                              {itemCount}
+                            </Badge>
+                          )}
+                      </div>
+                      <CardFooter className="p-2 flex-grow flex flex-col items-start">
+                        <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
+                        <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
               </div>
             </ScrollArea>
           </div>

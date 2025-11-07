@@ -7,19 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 
-export const getOrderTotal = (order: Order) => {
-    return order.items.reduce((total, item) => {
+export const getOrderTotal = (order: Order) => 
+    order.items.reduce((total, item) => {
         const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-        const mainItemPrice = item.menuItem.price + extrasTotal;
-        const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-        return total + (mainItemPrice * totalUnits);
+        return total + (item.menuItem.price + extrasTotal) * item.quantity;
     }, 0);
-};
 
 export const getItemTotal = (item: OrderItem) => {
     const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-    return (item.menuItem.price + extrasPrice) * totalUnits;
+    return (item.menuItem.price + extrasPrice) * item.quantity;
 };
 
 export const groupReadyItemsByTable = (orders: Order[]): Record<string, ReadyItem[]> => {
@@ -29,16 +25,15 @@ export const groupReadyItemsByTable = (orders: Order[]): Record<string, ReadyIte
     .filter(order => order.status === 'pending')
     .forEach(order => {
       order.items
-        .filter(item => item.readyCount > 0)
+        .filter(item => item.status === 'ready')
         .forEach(item => {
           if (!readyItemsByTable[order.table]) {
             readyItemsByTable[order.table] = [];
           }
           
-          for (let i = 0; i < item.readyCount; i++) {
-            const uniqueId = `${item.id}-${i}`;
+          for (let i = 0; i < item.quantity; i++) {
             readyItemsByTable[order.table].push({
-              id: uniqueId,
+              id: `${item.id}-${i}`,
               name: item.menuItem.name,
               orderId: order.id,
               table: order.table,

@@ -1,16 +1,17 @@
-
 "use client"
-import React, { useState, useMemo } from 'react';
-import { type MenuItem, type OrderItem, type Order } from '@/lib/types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { type MenuItem, type OrderItem, type Order, type Payment } from '@/lib/types';
 import { CurrentOrder } from './components/current-order';
 import { MenuSelection } from './components/menu-selection';
 import { AddItemDialog } from './components/add-item-dialog';
 import { PaymentDialog } from './components/payment-dialog';
+import { SheetCart } from './components/sheet-cart';
 import { toast } from "sonner";
-import { useI18n } from '@/context/i18n-context';
-import { useMenu } from '@/hooks/use-menu';
-import { useCurrentOrder } from '@/hooks/use-current-order';
-import { useOrders } from '@/hooks/use-orders';
+import { useI18nStore } from '@/lib/stores/i18n-store';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr-fetcher';
+import { useCurrentOrderStore, useCurrentOrderTotals, useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import {
   Table,
@@ -22,7 +23,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, File, Search, History } from "lucide-react"
+import { MoreHorizontal, File, Search, History, Settings, Home, ClipboardList, Users, BarChart, ShoppingCart, ChefHat } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,53 +35,278 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
-import { OrderDetailsDialog } from './components/dialogs/order-details-dialog'
 import { ReceiptDialog } from './components/dialogs/receipt-dialog'
+import { OrderDetailsDialog } from './components/dialogs/order-details-dialog'
 import { getOrderTotal } from '@/lib/utils'
+import { useCallback } from 'react'
+import { type Category } from '@/lib/types'
 
-const getStatusVariant = (status: Order['status']) => {
-  switch (status) {
-    case 'pending':
-      return 'secondary'
-    case 'completed':
-      return 'default'
-    default:
-      return 'outline'
-  }
-}
 
 
 export default function PosPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [editingOrderItem, setEditingOrderItem] = useState<OrderItem | null>(null);
   const [isPaymentDialogOpen, setPaymentDialogOpen] = useState(false);
-  const { t } = useI18n();
-  
-  const { menuItems, categories, loading: menuLoading, fetchAllData } = useMenu();
-  const currentOrder = useCurrentOrder();
-
-  // State and hooks from former OrdersPage
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const { orders, loading: ordersLoading, fetchOrders, addOrder } = useOrders();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
+  const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
+  
+  const { t } = useI18nStore();
+  
+  // Use SWR directly instead of hooks
+  const { data: menuItems, error: menuItemsError, isLoading: menuItemsLoading } = useSWR<MenuItem[]>('/api/menu', fetcher, {
+    fallbackData: [],
+  });
+  
+  const { data: categories, error: categoriesError, isLoading: categoriesLoading } = useSWR<Category[]>('/api/categories', fetcher, {
+    fallbackData: [],
+  });
+  
+  // Replace the custom hook with Zustand store
+  // const currentOrder = useCurrentOrder();
+  const currentOrderItems = useCurrentOrderStore(state => state.items);
+  const currentOrderTable = useCurrentOrderStore(state => state.table);
+  const currentOrderNotes = useCurrentOrderStore(state => state.notes);
+  const currentOrderType = useCurrentOrderStore(state => state.orderType);
+  const currentOrderDeliveryInfo = useCurrentOrderStore(state => state.deliveryInfo);
+  const currentOrderSetTable = useCurrentOrderStore(state => state.setTable);
+  const currentOrderSetNotes = useCurrentOrderStore(state => state.setNotes);
+  const currentOrderSetOrderType = useCurrentOrderStore(state => state.setOrderType);
+  const currentOrderSetDeliveryInfo = useCurrentOrderStore(state => state.setDeliveryInfo);
+  const currentOrderAddItem = useCurrentOrderStore(state => state.addItem);
+  const currentOrderUpdateItem = useCurrentOrderStore(state => state.updateItem);
+  const currentOrderRemoveItem = useCurrentOrderStore(state => state.removeItem);
+  const currentOrderClearOrder = useCurrentOrderStore(state => state.clearOrder);
+  const currentOrderUpdateItemQuantity = useCurrentOrderStore(state => state.updateItemQuantity);
+  
+  // Use selectors for computed values
+  const { subtotal, tax, total } = useCurrentOrderTotals();
+  const itemCountByCategory = useCurrentOrderItemCountByCategory();
+
+  // Create a currentOrder object that mimics the hook's return value for compatibility
+  const currentOrder = {
+    items: currentOrderItems,
+    table: currentOrderTable,
+    setTable: (value: any) => {
+      if (typeof value === 'function') {
+        // Handle React's setState function form
+        const newValue = value(currentOrderTable);
+        currentOrderSetTable(newValue);
+      } else {
+        // Handle direct value
+        currentOrderSetTable(value);
+      }
+    },
+    notes: currentOrderNotes,
+    setNotes: (value: any) => {
+      if (typeof value === 'function') {
+        // Handle React's setState function form
+        const newValue = value(currentOrderNotes);
+        currentOrderSetNotes(newValue);
+      } else {
+        // Handle direct value
+        currentOrderSetNotes(value);
+      }
+    },
+    orderType: currentOrderType,
+    setOrderType: (value: any) => {
+      if (typeof value === 'function') {
+        // Handle React's setState function form
+        const newValue = value(currentOrderType);
+        currentOrderSetOrderType(newValue);
+      } else {
+        // Handle direct value
+        currentOrderSetOrderType(value);
+      }
+    },
+    deliveryInfo: currentOrderDeliveryInfo,
+    setDeliveryInfo: (value: any) => {
+      if (typeof value === 'function') {
+        // Handle React's setState function form
+        const newValue = value(currentOrderDeliveryInfo);
+        currentOrderSetDeliveryInfo(newValue);
+      } else {
+        // Handle direct value
+        currentOrderSetDeliveryInfo(value);
+      }
+    },
+    addItem: currentOrderAddItem,
+    updateItem: currentOrderUpdateItem,
+    removeItem: currentOrderRemoveItem,
+    clearOrder: currentOrderClearOrder,
+    updateItemQuantity: currentOrderUpdateItemQuantity,
+    subtotal,
+    tax,
+    total,
+    itemCountByCategory
+  };
+
+  // Using SWR to fetch orders
+  const { data: orders, error: ordersError, isLoading: ordersLoading, mutate: mutateOrders } = useSWR<Order[]>('/api/orders', fetcher, {
+    fallbackData: [],
+    revalidateOnMount: true,
+    shouldRetryOnError: true
+  });
+
+  // Check for editOrder parameter and load the order
+  useEffect(() => {
+    const editOrderId = searchParams?.get('editOrder');
+    if (editOrderId && orders && orders.length > 0) {
+      const orderToEdit = orders.find(order => order.id === parseInt(editOrderId));
+      if (orderToEdit) {
+        handleEditOrder(orderToEdit);
+        setIsEditingOrder(orderToEdit);
+        setIsCartOpen(true); // Automatically open the cart when editing an order
+        
+        // Remove the query parameter from the URL
+        const newSearchParams = new URLSearchParams(searchParams);
+        newSearchParams.delete('editOrder');
+        router.replace(`/pos?${newSearchParams.toString()}`, { scroll: false });
+      }
+    }
+  }, [searchParams, orders]);
+  
+  // Fetch payment methods for POS
+  const { data: paymentMethods = [], error: paymentMethodsError } = useSWR<Payment[]>(
+    '/api/payments',
+    fetcher,
+    {
+      fallbackData: [],
+      revalidateOnMount: true,
+      shouldRetryOnError: true
+    }
+  );
+
+  // Combine loading states
+  const loading = menuItemsLoading || categoriesLoading;
+  
+  // Make sure we have default values
+  const safeMenuItems = menuItems || [];
+  const safeCategories = categories || [];
+  const safePaymentMethods = paymentMethods || [];
+  
+  // Fetch all data function for refresh
+  const fetchAllData = useCallback(() => {
+    // Individual hooks handle their own data fetching
+  }, []);
+
+  // If you need to add an order with SWR
+  const addOrder = async (order: Order) => {
+    try {
+      const response = await fetch('/api/orders/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(order),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add order');
+      }
+      
+      // SWR will automatically revalidate and update the orders list
+      mutateOrders();
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding order:', error);
+      throw error;
+    }
+  };
+
+  const handleEditOrder = (order: Order) => {
+    // Clear current order first
+    currentOrder.clearOrder();
+    
+    // Add each item from the selected order to the current order
+    order.items.forEach(item => {
+      const orderItem: any = {
+        ...item,
+        id: `${Date.now()}-${Math.random()}`, // Generate new ID for the order item
+        menuItemId: item.menuItem.id,
+      };
+      currentOrder.addItem(orderItem, item.quantity, item.selectedExtras || [], item.notes);
+    });
+    
+    // Set other order properties
+    if (order.orderType === 'delivery' && order.deliveryInfo) {
+      currentOrder.setDeliveryInfo(order.deliveryInfo);
+    }
+    currentOrder.setOrderType(order.orderType);
+    currentOrder.setTable(order.table);
+    currentOrder.setNotes(order.notes || '');
+  };
+
+  const handleUpdateEditedOrder = async () => {
+    if (!isEditingOrder) return;
+    
+    try {
+      // Prepare updated order data
+      const updatedOrderData = {
+        table: currentOrder.table,
+        items: currentOrder.items,
+        notes: currentOrder.notes,
+        orderType: currentOrder.orderType,
+        deliveryInfo: currentOrder.orderType === 'delivery' ? currentOrder.deliveryInfo : undefined,
+        restaurantId: 'restaurant-1', // Add restaurantId to ensure validation passes
+      };
+      
+      const response = await fetch(`/api/orders/${isEditingOrder.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedOrderData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update order');
+      }
+      
+      // Refresh the orders list
+      mutateOrders();
+      
+      // Clear editing state
+      setIsEditingOrder(null);
+      
+      // Clear current order
+      currentOrder.clearOrder();
+      
+      toast.success(t('orders.toast.updated'), {
+        description: t('orders.toast.updated_desc'),
+        duration: 3000,
+      });
+    } catch (error: any) {
+      toast.error(t('toast.error'), {
+        description: error.message || t('orders.toast.update_error'),
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingOrder(null);
+    currentOrder.clearOrder();
+    
+    toast.info(t('orders.toast.edit_cancelled'), {
+      duration: 3000,
+    });
+  };
 
   const handleAddItemToOrder = (item: MenuItem) => {
     // Open dialog immediately if item has modifiers
-    const hasModifiers = (item.linkedModifiers && item.linkedModifiers.length > 0) || categories.some(c => c.linkedModifiers && c.linkedModifiers.length > 0 && c.name === item.category);
+    const hasModifiers = (item.linkedModifiers && item.linkedModifiers.length > 0) || safeCategories.some((c: Category) => c.linkedModifiers && c.linkedModifiers.length > 0 && c.name === item.category);
 
     if (hasModifiers) {
       const newItem: OrderItem = {
           id: `${item.id}-${Date.now()}`,
           menuItem: item,
           quantity: 1,
-          cookedCount: 0,
-          newCount: 1,
-          cookingCount: 0,
-          readyCount: 0,
-          servedCount: 0,
+          status: 'new',
           selectedExtras: [],
           notes: '',
       };
@@ -90,6 +316,8 @@ export default function PosPage() {
     }
   };
   
+
+
   const handleEditItem = (orderItem: OrderItem) => {
     setEditingOrderItem(orderItem);
   };
@@ -117,18 +345,38 @@ export default function PosPage() {
     }
 
     try {
-      const response = await fetch('/api/orders/add', {
+      // Prepare order data based on order type
+      const orderData: any = {
+        table: currentOrder.table,
+        items: currentOrder.items.map(item => ({
+          id: item.id,
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price,
+          quantity: item.quantity,
+          selectedExtraIds: item.selectedExtras?.map(extra => extra.id) || [],
+          notes: item.notes || '',
+          // Initialize status for KDS tracking
+          status: 'new'
+        })),
+        notes: currentOrder.notes,
+        orderType: currentOrder.orderType,
+        createdAt: new Date().toISOString(),
+        status: 'pending',
+        staffName: 'POS Terminal'
+      };
+
+      // Only include deliveryInfo for delivery orders
+      if (currentOrder.orderType === 'delivery' && currentOrder.deliveryInfo) {
+        orderData.deliveryInfo = currentOrder.deliveryInfo;
+      }
+
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          table: currentOrder.table,
-          items: currentOrder.items,
-          notes: currentOrder.notes,
-          orderType: currentOrder.orderType,
-          deliveryInfo: currentOrder.deliveryInfo
-        }),
+        body: JSON.stringify(orderData),
       });
       
       if (!response.ok) {
@@ -140,7 +388,7 @@ export default function PosPage() {
         duration: 3000,
       });
       currentOrder.clearOrder();
-      fetchOrders(); // Refresh orders list
+      mutateOrders(); // Refresh orders list
     } catch (error: any) {
        toast.error(t('toast.error'), {
         description: error.message || t('pos.toast.send_error'),
@@ -165,153 +413,70 @@ export default function PosPage() {
     
     // Send order as completed
     try {
-       await addOrder({
+      // Prepare order data based on order type
+      const orderData: any = {
         table: currentOrder.table,
-        items: currentOrder.items,
+        items: currentOrder.items.map(item => ({
+          id: item.id,
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price,
+          quantity: item.quantity,
+          selectedExtraIds: item.selectedExtras?.map(extra => extra.id) || [],
+          notes: item.notes || '',
+          // For completed orders, mark all as served
+          status: 'served'
+        })),
         notes: currentOrder.notes,
         orderType: currentOrder.orderType,
-        deliveryInfo: currentOrder.deliveryInfo,
+        status: 'completed',
+        createdAt: new Date().toISOString(),
+        staffName: 'POS Terminal'
+      };
+
+      // Only include deliveryInfo for delivery orders
+      if (currentOrder.orderType === 'delivery' && currentOrder.deliveryInfo) {
+        orderData.deliveryInfo = currentOrder.deliveryInfo;
+      }
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
       });
-      // In a real app we'd likely mark this new order as paid immediately.
-      // For mock purposes, we just add it and then show success.
-       toast.success(t('pos.toast.payment_success_title'), {
-          description: t('pos.toast.payment_success_desc'),
-          duration: 3000,
+
+      if (!response.ok) {
+        throw new Error('Failed to process payment');
+      }
+
+      toast.success(t('pos.toast.payment_success_title'), {
+        description: t('pos.toast.payment_success_desc'),
+        duration: 3000,
       });
       currentOrder.clearOrder();
-      fetchOrders(); // Refresh orders list
+      mutateOrders(); // Refresh orders list
     } catch (error: any) {
-       toast.error(t('toast.error'), {
+      toast.error(t('toast.error'), {
         description: error.message || t('pos.toast.send_error'),
         duration: 3000,
       });
     }
   }
 
-  // Functions from former OrdersPage
-  const handleViewDetails = (order: Order) => {
-    setSelectedOrder(order);
-    setIsDetailsOpen(true);
-  }
 
-  const handleViewReceipt = (order: Order) => {
-    setSelectedOrder(order);
-    setIsReceiptOpen(true);
-  }
 
-  const filteredOrders = useMemo(() => {
-    let filtered = orders;
 
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(order => order.status === activeTab);
-    }
-
-    if (searchQuery) {
-        filtered = filtered.filter(order => String(order.id).includes(searchQuery));
-    }
-    
-    return filtered.sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }, [orders, activeTab, searchQuery]);
   
-  const renderOrders = (orderList: Order[]) => {
-    if (ordersLoading) {
-      return <div className="flex justify-center items-center h-64"><p>{t('orders.loading')}</p></div>;
-    }
-    if (orderList.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
-          <History className="w-16 h-16 mb-4 text-muted-foreground/50"/>
-          <p className="font-semibold">{t('orders.no_orders_found')}</p>
-          <p className="text-sm">{t('orders.no_orders_description')}</p>
-        </div>
-      );
-    }
-    return (
-      <>
-        {/* Desktop Table View */}
-        <div className="hidden md:block border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('orders.table.order_id')}</TableHead>
-                <TableHead className="hidden sm:table-cell">{t('orders.table.date')}</TableHead>
-                <TableHead className="hidden md:table-cell">{t('orders.table.table')}</TableHead>
-                <TableHead className="hidden sm:table-cell">{t('orders.table.status')}</TableHead>
-                <TableHead>{t('orders.table.staff')}</TableHead>
-                <TableHead className="text-right">{t('orders.table.total')}</TableHead>
-                <TableHead><span className="sr-only">{t('orders.table.actions')}</span></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orderList.map((order) => (
-                <TableRow key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
-                  <TableCell className="font-medium">#{order.id}</TableCell>
-                  <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
-                  <TableCell className="hidden md:table-cell">{order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}</TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
-                  </TableCell>
-                  <TableCell>{order.staffName || 'N/A'}</TableCell>
-                  <TableCell className="text-right font-semibold">${getOrderTotal(order).toFixed(2)}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">{t('orders.table.toggle_menu')}</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => handleViewDetails(order)}>{t('orders.table.view_details')}</DropdownMenuItem>
-                          {order.status === 'completed' && (
-                              <DropdownMenuItem onSelect={() => handleViewReceipt(order)}>{t('orders.details.view_receipt')}</DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-
-        {/* Mobile Card View */}
-        <div className="md:hidden space-y-4">
-          {orderList.map((order) => (
-            <Card key={order.id} className="cursor-pointer" onClick={() => handleViewDetails(order)}>
-                <CardContent className="p-4 flex flex-col gap-3">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <p className="font-bold text-lg">#{order.id}</p>
-                            <p className="text-sm text-muted-foreground">{order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}</p>
-                        </div>
-                        <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
-                    </div>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                        <p>{format(new Date(order.createdAt), 'PPp')}</p>
-                        <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                        <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); handleViewDetails(order); }}>
-                            {t('orders.table.view_details')}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-          ))}
-        </div>
-      </>
-    );
-  }
+  const displayCategories = Array.isArray(categories) ? categories.filter(c => !c.isModifierGroup) : [];
+  const displayItems = Array.isArray(categories) && Array.isArray(menuItems) 
+    ? menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
+    : [];
   
-  const displayCategories = categories.filter(c => !c.isModifierGroup);
-  const displayItems = menuItems.filter(i => !categories.find(c => c.name === i.category)?.isModifierGroup)
-  
-  const isExistingItem = editingOrderItem ? currentOrder.items.some(i => i.id === editingOrderItem.id) : false;
+  const isExistingItem = editingOrderItem ? 
+    // We need to access the items from the currentOrder hook
+    currentOrder.items.some(i => i.id === editingOrderItem.id) : false;
   const isDialog = !!editingOrderItem;
   const dialogItem = editingOrderItem?.menuItem;
   
@@ -339,8 +504,8 @@ export default function PosPage() {
           orderItem={isExistingItem ? editingOrderItem : null}
           onSave={handleDialogSave}
           onRemove={currentOrder.removeItem}
-          menuItems={menuItems}
-          categories={categories}
+          menuItems={safeMenuItems}
+          categories={safeCategories}
         />
       )}
       
@@ -350,65 +515,50 @@ export default function PosPage() {
         orderItems={currentOrder.items}
         totalAmount={currentOrder.total}
         onConfirmPayment={handlePaymentSuccess}
+        paymentMethods={safePaymentMethods}
       />
       
       <OrderDetailsDialog 
         isOpen={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
         order={selectedOrder}
-        onViewReceipt={handleViewReceipt}
+        onViewReceipt={() => {}}
       />
+      
       <ReceiptDialog
         isOpen={isReceiptOpen}
         onOpenChange={setIsReceiptOpen}
         order={selectedOrder}
       />
-      
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-10 gap-4 items-start h-full">
-            <div className="md:col-span-6 h-full">
-            <MenuSelection menuItems={displayItems} categories={displayCategories} onAddItem={handleAddItemToOrder} />
-            </div>
-            <div className="md:col-span-4 h-full">
-            <CurrentOrder 
-                order={currentOrder}
-                onSendToKitchen={handleSendToKitchen}
-                onPayment={handleOpenPaymentDialog}
-                onEditItem={handleEditItem}
+        
+      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 overflow-hidden md:pt-6 pt-4">
+        {/* Order History Button and Cart Button */}
+        <div className="flex justify-end">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => { 
+              console.log('Navigating to orders page');
+              router.push('/orders');
+            }}>
+              <History className="h-5 w-5" />
+            </Button>
+            <SheetCart 
+              open={isCartOpen}
+              onOpenChange={setIsCartOpen}
+              onSendToKitchen={isEditingOrder ? handleUpdateEditedOrder : handleSendToKitchen}
+              onPayment={handleOpenPaymentDialog}
+              onEditItem={handleEditItem}
             />
-            </div>
+          </div>
         </div>
-
-        <Card>
-            <CardHeader>
-                <CardTitle className="font-headline">{t('orders.title')}</CardTitle>
-                <CardDescription>{t('orders.description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-4">
-                        <TabsList className="grid w-full grid-cols-3 sm:w-auto">
-                            <TabsTrigger value="all">{t('orders.tabs.all')}</TabsTrigger>
-                            <TabsTrigger value="pending">{t('orders.tabs.pending')}</TabsTrigger>
-                            <TabsTrigger value="completed">{t('orders.tabs.completed')}</TabsTrigger>
-                        </TabsList>
-                        <div className="relative w-full sm:max-w-xs">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder={t('orders.table.search_placeholder')}
-                            className="pl-8 w-full"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        </div>
-                    </div>
-                    <TabsContent value="all">{renderOrders(filteredOrders)}</TabsContent>
-                    <TabsContent value="pending">{renderOrders(filteredOrders)}</TabsContent>
-                    <TabsContent value="completed">{renderOrders(filteredOrders)}</TabsContent>
-                </Tabs>
-            </CardContent>
-        </Card>
+        
+        {/* Menu Items Section */}
+        <div className="flex-1 overflow-hidden">
+          <MenuSelection 
+            menuItems={displayItems}
+            categories={displayCategories}
+            onAddItem={handleAddItemToOrder}
+          />
+        </div>
       </div>
     </>
   );

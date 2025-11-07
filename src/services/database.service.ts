@@ -4,7 +4,7 @@ import MenuItem from '../models/MenuItem';
 import Order from '../models/Order';
 import Inventory from '../models/Inventory';
 import Customer from '../models/Customer';
-import PaymentMethod from '../models/PaymentMethod';
+import Payment from '../models/Payment';
 import User from '../models/User';
 import { IUser } from '../models/User';
 
@@ -115,13 +115,13 @@ class DatabaseService {
     return await customer.save();
   }
 
-  // PaymentMethod methods
+  // Payment methods
   async getAllPaymentMethods(): Promise<any[]> {
-    return await PaymentMethod.find({});
+    return await Payment.find({});
   }
 
   async createPaymentMethod(methodData: any): Promise<any> {
-    const method = new PaymentMethod(methodData);
+    const method = new Payment(methodData);
     return await method.save();
   }
 }

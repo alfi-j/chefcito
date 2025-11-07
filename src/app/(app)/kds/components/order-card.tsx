@@ -1,20 +1,21 @@
-
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem as OrderItemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { formatTimeAgo } from "@/lib/time-utils"
 import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyNote } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
-import { useTimeAgo } from "@/hooks/use-time-ago"
+import { useI18nStore } from "@/lib/stores/i18n-store"
 import { OrderItem } from "./order-item"
+import { KDS_STATES } from "@/lib/kds-constants"
 
 interface OrderCardProps {
   order: Order
   items: OrderItemType[]; // Now accepts a filtered list of items
-  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: 'New' | 'Cooking' | 'Serve') => void
-  onRevertItemStatus: (orderId: number, itemId: string, toStatus: 'New' | 'Cooking' | 'Serve') => void
+  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: string) => void
+  onRevertItemStatus: (orderId: number, itemId: string, toStatus: string) => void
   onDragStart: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDrop: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
@@ -23,16 +24,30 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
-  const timeAgo = useTimeAgo(order.createdAt);
+  // Ensure createdAt is a Date object
+  const createdAtDate = useMemo(() => {
+    return order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+  }, [order.createdAt]);
+
+  const { language } = useI18nStore();
+  const [timeAgo, setTimeAgo] = useState<string>(formatTimeAgo(createdAtDate, language));
   
   const [now, setNow] = useState(new Date().getTime());
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(new Date().getTime()), 60000); // Update every minute for urgency check
+    // Update timeAgo immediately
+    setTimeAgo(formatTimeAgo(createdAtDate, language));
+    
+    // Update timeAgo every minute
+    const interval = setInterval(() => {
+      setTimeAgo(formatTimeAgo(createdAtDate, language));
+      setNow(new Date().getTime());
+    }, 60000);
+    
     return () => clearInterval(interval);
-  }, []);
+  }, [createdAtDate, language]);
 
-  const elapsedMinutes = (now - order.createdAt.getTime()) / (1000 * 60);
+  const elapsedMinutes = (now - createdAtDate.getTime()) / (1000 * 60);
   const isUrgent = elapsedMinutes > 10;
   const isVeryUrgent = elapsedMinutes > 20;
 
@@ -76,7 +91,9 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
   }
   
   const currentTab = useMemo(() => {
-      if (items.some(i => i.newCount > 0 || i.cookingCount > 0)) {
+      // Check if any item has status that indicates it's in kitchen workflow
+      if (items.some(i => i.status?.toString().toLowerCase() === KDS_STATES.NEW?.toString().toLowerCase() || 
+                        i.status?.toString().toLowerCase() === KDS_STATES.IN_PROGRESS?.toString().toLowerCase())) {
           return 'kitchen';
       }
       return 'serving';

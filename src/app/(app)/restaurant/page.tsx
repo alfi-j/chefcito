@@ -1,6 +1,7 @@
 "use client"
-import React, { useState, useCallback, useMemo, type DragEvent } from 'react';
+import React, { useState, useCallback, useMemo, type DragEvent, useEffect } from 'react';
 import Image from 'next/image'
+import { debugMenu, debugInventory } from '@/lib/debug-utils';
 import {
   Table,
   TableBody,
@@ -25,6 +26,7 @@ import {
   Edit,
   Package,
   CreditCard,
+  Monitor,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -34,11 +36,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { type MenuItem, type PaymentMethod, type Category, type InventoryItem } from "@/lib/types"
+import { type MenuItem, type Payment, type Category, type InventoryItem } from "@/lib/types"
+import { type IWorkstation } from '@/models/Workstation'
+import { WorkstationList } from './components/workstation-list'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { useI18n } from '@/context/i18n-context'
-import { useMenu } from '@/hooks/use-menu'
+import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useMenuStore } from '@/lib/stores/menu-store'
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
@@ -75,7 +79,7 @@ function InventoryList({
   onAdjustStock: (itemId: string, adjustment: number) => Promise<void>,
   onDeleteItem: (itemId: string) => Promise<void>
 }) {
-    const { t } = useI18n();
+    const { t } = useI18nStore();
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<InventoryItem | undefined>(undefined);
     const [searchQuery, setSearchQuery] = useState('');
@@ -115,7 +119,7 @@ function InventoryList({
          if (filteredItems.length === 0) {
             return (
                 <div className="text-center text-muted-foreground py-10">
-                    <p>{t('orders.no_orders_found')}</p>
+                    <p>{t('restaurant.inventory.no_items_found')}</p>
                 </div>
             )
         }
@@ -165,7 +169,7 @@ function InventoryList({
                 </div>
 
                 {/* Desktop View */}
-                <div className="hidden md:block border rounded-lg">
+                <div className="hidden md:block border rounded-lg overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -305,67 +309,27 @@ function MenuList({
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
-  const [dragOverItemId, setDragOverItemId] = useState<string | null>(null);
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const handleOpenItemDialog = (item?: MenuItem) => {
+    debugMenu('handleOpenItemDialog called with item: %O', item);
     setEditingItem(item);
     setIsItemDialogOpen(true);
-  };
-  
-  const handleDragStart = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
-    setDraggedItemId(itemId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragEnd = () => {
-    setDraggedItemId(null);
-    setDragOverItemId(null);
-  };
-
-  const handleDragOver = (e: DragEvent<HTMLTableRowElement>) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = async (e: DragEvent<HTMLTableRowElement>, dropItemId: string) => {
-    e.preventDefault();
-    if (draggedItemId === null || draggedItemId === dropItemId) {
-      handleDragEnd();
-      return;
-    }
-    
-    const fromIndex = menuItems.findIndex(item => item.id === draggedItemId);
-    const toIndex = menuItems.findIndex(item => item.id === dropItemId);
-    
-    if (fromIndex === -1 || toIndex === -1) {
-      handleDragEnd();
-      return;
-    }
-
-    const reorderedItems = [...menuItems];
-    const [removed] = reorderedItems.splice(fromIndex, 1);
-    reorderedItems.splice(toIndex, 0, removed);
-    
-    onReorderItems(reorderedItems); // Optimistic update via prop
-    
-    handleDragEnd();
-  };
-  
-  const handleDragEnter = (e: DragEvent<HTMLTableRowElement>, itemId: string) => {
-    e.preventDefault();
-    if (draggedItemId !== itemId) {
-      setDragOverItemId(itemId);
-    }
+    debugMenu('Dialog state set - isOpen: %s', true);
   };
   
   const onDeleteMultiple = async () => {
-    await onDeleteMultipleItems(selectedItemIds);
+    debugMenu('onDeleteMultiple called with selectedItemIds: %O', selectedItemIds);
+    // Delete multiple menu items
+    for (const id of selectedItemIds) {
+      debugMenu('Deleting item with id: %s', id);
+      await onDeleteItem(id);
+    }
     setSelectedItemIds([]);
   };
 
@@ -384,8 +348,6 @@ function MenuList({
       setSelectedItemIds(prev => prev.filter(id => id !== itemId));
     }
   }
-  
-  const isSortingEnabled = !searchQuery && categoryFilter === 'all';
   
   const categoryMap = useMemo(() => {
     const map = new Map<number, Category>();
@@ -470,12 +432,11 @@ function MenuList({
       items = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
-    if (!isSortingEnabled) {
-      items.sort((a, b) => a.name.localeCompare(b.name));
-    }
+    // Always sort items alphabetically since we're removing drag and drop
+    items.sort((a, b) => a.name.localeCompare(b.name));
 
     return items;
-  }, [menuItems, categoryFilter, searchQuery, isSortingEnabled, categories, getDescendantCategoryNames]);
+  }, [menuItems, categoryFilter, searchQuery, categories, getDescendantCategoryNames]);
 
 
   const numSelected = selectedItemIds.length;
@@ -483,202 +444,194 @@ function MenuList({
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-          <div className="flex-1">
-            <CardTitle className="font-headline">{t('restaurant.menu.title')}</CardTitle>
-            <CardDescription>{t('restaurant.menu.desc')}</CardDescription>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto md:justify-end">
-            <div className="relative w-full sm:w-auto grow sm:grow-0">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-              type="search"
-              placeholder={t('restaurant.menu.search_placeholder')}
-              className="pl-8 w-full sm:w-[200px] lg:w-[250px]"
-              value={searchQuery}
-              onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setSelectedItemIds([]);
-              }}
-              />
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div className="flex-1">
+              <CardTitle className="font-headline">{t('restaurant.menu.title')}</CardTitle>
+              <CardDescription>{t('restaurant.menu.desc')}</CardDescription>
             </div>
-            <Select
-                value={categoryFilter}
-                onValueChange={(value) => {
-                    setCategoryFilter(value);
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto md:justify-end">
+              <div className="relative w-full sm:w-auto grow sm:grow-0">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder={t('restaurant.menu.search_placeholder')}
+                className="pl-8 w-full sm:w-[200px] lg:w-[250px]"
+                value={searchQuery}
+                onChange={(e) => {
+                    setSearchQuery(e.target.value);
                     setSelectedItemIds([]);
                 }}
-            >
-                <SelectTrigger className="w-full sm:w-auto min-w-[180px] grow sm:grow-0">
-                <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                  {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
-                    <SelectItem key={cat.id} value={cat.name}>
-                      <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-            </Select>
-            <TooltipProvider>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <CategoryDialog 
-                        categories={categories} 
-                        onUpdate={(category) => onUpdateCategories(category)}
-                        trigger={
-                          <Button variant="outline" size="icon">
-                            <FolderKanban className="h-4 w-4" />
-                            <span className="sr-only">{t('restaurant.menu.manage_categories')}</span>
-                          </Button>
-                        }
-                      />
-
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>{t('restaurant.menu.manage_categories')}</p>
-                  </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Button onClick={() => handleOpenItemDialog()} size="icon">
-                          <PlusCircle className="h-4 w-4" />
-                           <span className="sr-only">{t('restaurant.menu.add_item')}</span>
-                      </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                      <p>{t('restaurant.menu.add_item')}</p>
-                  </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-      </CardHeader>
-
-      <MenuItemDialog
-        isOpen={isItemDialogOpen}
-        onOpenChange={setIsItemDialogOpen}
-        item={editingItem}
-        onSave={onSaveItem}
-        categories={categories}
-      />
-
-      <CardContent>
-        {numSelected > 0 && (
-            <BatchActionsToolbar 
-              selectedCount={numSelected}
-              onDelete={onDeleteMultiple}
-            />
-        )}
-        <div className="border rounded-lg">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead className="w-8"></TableHead>
-                  <TableHead className="hidden w-[100px] sm:table-cell">
-                      {t('restaurant.menu.table.image')}
-                  </TableHead>
-                  <TableHead>{t('restaurant.menu.table.name')}</TableHead>
-                  <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
-                  <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
-                  <TableHead>
-                      <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
-                  </TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredItems.map((item) => (
-                <TableRow 
-                    key={item.id}
-                    data-state={selectedItemIds.includes(item.id) && "selected"}
-                    draggable={isSortingEnabled}
-                    onDragStart={(e) => handleDragStart(e, item.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, item.id)}
-                    onDragEnter={(e) => handleDragEnter(e, item.id)}
-                    className={cn(
-                        "transition-all",
-                        isSortingEnabled && "cursor-grab",
-                        draggedItemId === item.id && "opacity-50",
-                        dragOverItemId === item.id && "bg-primary/10"
-                    )}
-                >
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedItemIds.includes(item.id)}
-                        onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
-                        aria-label="Select row"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </TableCell>
-                    <TableCell className="w-8">
-                    {isSortingEnabled && <GripVertical className="h-5 w-5 text-muted-foreground" />}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                    {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
-                        <Image
-                        alt={item.name}
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={item.imageUrl}
-                        width="64"
-                        data-ai-hint={item.aiHint}
-                        />
-                    ) : (
-                        <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                        <Utensils className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                    )}
-                    </TableCell>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                    <Badge variant="secondary">{item.category}</Badge>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                    <Badge variant={item.available ? "default" : "destructive"}>
-                        {item.available ? t('restaurant.menu.status.available') : t('restaurant.menu.status.unavailable')}
-                    </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
-                    <TableCell>
-                    <div className="flex justify-end">
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                />
+              </div>
+              <Select
+                  value={categoryFilter}
+                  onValueChange={(value) => {
+                      setCategoryFilter(value);
+                      setSelectedItemIds([]);
+                  }}
+              >
+                  <SelectTrigger className="w-full sm:w-auto min-w-[180px] grow sm:grow-0">
+                  <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
+                    {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+              </Select>
+              <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <CategoryDialog 
+                          categories={categories} 
+                          onUpdate={(category) => onUpdateCategories(category)}
+                          trigger={
+                            <Button variant="outline" size="icon">
+                              <FolderKanban className="h-4 w-4" />
+                              <span className="sr-only">{t('restaurant.menu.manage_categories')}</span>
                             </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                            <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
-                    </TableCell>
-                </TableRow>
-                ))}
-            </TableBody>
-            </Table>
-        </div>
-      </CardContent>
-    </Card>
+                          }
+                        />
+
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t('restaurant.menu.manage_categories')}</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button onClick={() => handleOpenItemDialog()} size="icon">
+                            <PlusCircle className="h-4 w-4" />
+                             <span className="sr-only">{t('restaurant.menu.add_item')}</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{t('restaurant.menu.add_item')}</p>
+                    </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
+        </CardHeader>
+
+
+
+        <CardContent>
+          {numSelected > 0 && (
+              <BatchActionsToolbar 
+                selectedCount={numSelected}
+                onDelete={onDeleteMultiple}
+              />
+          )}
+          <div className="border rounded-lg overflow-x-auto">
+              <Table>
+              <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                        aria-label={t('restaurant.menu.table.select_all')}
+                      />
+                    </TableHead>
+                    <TableHead className="hidden w-[100px] sm:table-cell">
+                        {t('restaurant.menu.table.image')}
+                    </TableHead>
+                    <TableHead>{t('restaurant.menu.table.name')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
+                    <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
+                    <TableHead>
+                        <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                    </TableHead>
+                  </TableRow>
+              </TableHeader>
+              <TableBody>
+                  {filteredItems.map((item) => (
+                  <TableRow 
+                      key={item.id}
+                      data-state={selectedItemIds.includes(item.id) && "selected"}
+                  >
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedItemIds.includes(item.id)}
+                          onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
+                          aria-label={t('restaurant.menu.table.select_row')}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                      {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
+                          <Image
+                          alt={item.name}
+                          className="aspect-square rounded-md object-cover"
+                          height="64"
+                          src={item.imageUrl}
+                          width="64"
+                          data-ai-hint={item.aiHint}
+                          />
+                      ) : (
+                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                          <Utensils className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                      )}
+                      </TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                      <Badge variant="secondary">{item.category}</Badge>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                      <Badge variant={item.available ? "default" : "destructive"}>
+                          {item.available ? t('restaurant.menu.table.status.available') : t('restaurant.menu.table.status.unavailable')}
+                      </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                      <div className="flex justify-end">
+                          <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                              </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                              <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                          </DropdownMenuContent>
+                          </DropdownMenu>
+                      </div>
+                      </TableCell>
+                  </TableRow>
+                  ))}
+              </TableBody>
+              </Table>
+          </div>
+        </CardContent>
+      </Card>
+      <MenuItemDialog 
+        item={editingItem}
+        categories={categories} 
+        onSave={onSaveItem}
+        isOpen={isItemDialogOpen}
+        onOpenChange={(open) => {
+          setIsItemDialogOpen(open);
+          if (!open) {
+            setEditingItem(undefined);
+          }
+        }}
+      />
+    </>
   )
 }
 
@@ -689,12 +642,12 @@ function PaymentMethods({
   onDelete,
   onToggle,
 }: {
-  paymentMethods: PaymentMethod[],
-  onSave: (method: PaymentMethod | Omit<PaymentMethod, 'id'>) => Promise<void>,
+  paymentMethods: Payment[],
+  onSave: (method: Payment | Omit<Payment, 'id'>) => Promise<void>,
   onDelete: (id: string) => Promise<void>,
   onToggle: (id: string, enabled: boolean) => Promise<void>,
 }) {
-    const { t } = useI18n();
+    const { t } = useI18nStore();
     
     return (
         <Card>
@@ -705,7 +658,7 @@ function PaymentMethods({
                   <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
                 </div>
                 <PaymentMethodDialog onSave={onSave}>
-                <Button>
+                <Button className="w-full sm:w-auto">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t('restaurant.payment_methods.add_method')}
                 </Button>
@@ -713,7 +666,7 @@ function PaymentMethods({
             </div>
             </CardHeader>
             <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
-            <div className="border rounded-lg">
+            <div className="border rounded-lg overflow-x-auto">
                 <Table>
                 <TableHeader>
                     <TableRow>
@@ -736,7 +689,7 @@ function PaymentMethods({
                                   id={`enabled-switch-mobile-${method.id}`}
                                   checked={method.enabled} 
                                   onCheckedChange={(checked) => onToggle(method.id, checked)}
-                                  aria-label={`Enable ${method.name}`}
+                                  aria-label={t('restaurant.payment_methods.aria_enable', { name: method.name })}
                                 />
                             </div>
                         </TableCell>
@@ -747,7 +700,7 @@ function PaymentMethods({
                         <Switch 
                             checked={method.enabled} 
                             onCheckedChange={(checked) => onToggle(method.id, checked)}
-                            aria-label={`Enable ${method.name}`}
+                            aria-label={t('restaurant.payment_methods.aria_enable', { name: method.name })}
                         />
                         </TableCell>
                         <TableCell>
@@ -771,28 +724,467 @@ function PaymentMethods({
 }
 
 export default function RestaurantPage() {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
   
   const {
     menuItems,
     categories,
-    inventoryItems,
-    paymentMethods,
     loading,
     addCategory,
-    updateMenuItemOrder,
     addMenuItem,
     updateMenuItem,
     deleteMenuItem,
-    deleteMenuItems,
-    addInventoryItem,
-    updateInventoryItem,
-    adjustInventoryStock,
-    deleteInventoryItem,
-    addPaymentMethod,
-    updatePaymentMethod,
-    deletePaymentMethod,
-  } = useMenu();
+
+    fetchMenuData
+  } = useMenuStore();
+  
+  const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+  
+  const handleOpenItemDialog = (item?: MenuItem) => {
+    setEditingItem(item);
+    setIsItemDialogOpen(true);
+  };
+  
+  const onDeleteMultiple = async () => {
+    for (const id of selectedItemIds) {
+      await deleteMenuItem(id);
+    }
+    setSelectedItemIds([]);
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItemIds(filteredItems.map(item => item.id));
+    } else {
+      setSelectedItemIds([]);
+    }
+  }
+
+  const handleRowSelect = (itemId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItemIds(prev => [...prev, itemId]);
+    } else {
+      setSelectedItemIds(prev => prev.filter(id => id !== itemId));
+    }
+  }
+  
+  const categoryMap = useMemo(() => {
+    const map = new Map<number, Category>();
+    categories.forEach(c => map.set(c.id, c));
+    return map;
+  }, [categories]);
+
+  const categoryChildrenMap = useMemo(() => {
+    const map = new Map<number, number[]>();
+    categories.forEach(c => {
+        if (c.parentId) {
+            if (!map.has(c.parentId)) {
+                map.set(c.parentId, []);
+            }
+            map.get(c.parentId)!.push(c.id);
+        }
+    });
+    return map;
+  }, [categories]);
+
+  const getDescendantCategoryNames = useCallback((categoryId: number): string[] => {
+    const names: string[] = [];
+    const queue: number[] = [categoryId];
+    const visited = new Set<number>();
+
+    while(queue.length > 0) {
+        const currentId = queue.shift()!;
+        if (visited.has(currentId)) continue;
+        visited.add(currentId);
+        
+        const category = categoryMap.get(currentId);
+        if (category) {
+            names.push(category.name);
+        }
+
+        const children = categoryChildrenMap.get(currentId);
+        if (children) {
+            queue.push(...children);
+        }
+    }
+    return names;
+  }, [categoryMap, categoryChildrenMap]);
+  
+  const renderedCategories = useMemo(() => {
+    const categoryIdMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const roots: Category[] = [];
+
+    categories.forEach(category => {
+        if (category.parentId && categoryIdMap.has(category.parentId)) {
+            categoryIdMap.get(category.parentId)!.children.push(category as any);
+        } else {
+            roots.push(category);
+        }
+    });
+    
+    const flattened: RenderedCategory[] = [];
+    const traverse = (category: Category, depth: number) => {
+        flattened.push({ ...category, depth });
+        const children = categoryIdMap.get(category.id)?.children || [];
+        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+    };
+
+    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    return flattened;
+  }, [categories]);
+
+
+  const filteredItems = useMemo(() => {
+    let items = [...menuItems];
+    
+    if (categoryFilter !== 'all') {
+      const selectedCategory = categories.find(c => c.name === categoryFilter);
+      if (selectedCategory) {
+        const relevantCategoryNames = getDescendantCategoryNames(selectedCategory.id);
+        items = items.filter(item => relevantCategoryNames.includes(item.category));
+      } else {
+        items = [];
+      }
+    }
+
+    if (searchQuery) {
+      items = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    // Always sort items alphabetically since we're removing drag and drop
+    items.sort((a, b) => a.name.localeCompare(b.name));
+
+    return items;
+  }, [menuItems, categoryFilter, searchQuery, categories, getDescendantCategoryNames]);
+
+
+  const numSelected = selectedItemIds.length;
+  const numVisible = filteredItems.length;
+  const isAllSelected = numVisible > 0 && numSelected === numVisible;
+
+  const handleSaveItem = async (itemData: Omit<MenuItem, "id">) => {
+    if (editingItem) {
+      // Update existing item
+      await updateMenuItem(editingItem.id, itemData);
+    } else {
+      // Add new item
+      await addMenuItem(itemData);
+    }
+    setIsItemDialogOpen(false);
+    setEditingItem(undefined);
+  };
+
+  // Additional state for inventory and payment methods
+  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<Payment[]>([]);
+  
+  // Fetch initial data
+  useEffect(() => {
+    fetchMenuData();
+    
+    // Fetch inventory items
+    const fetchInventoryItems = async () => {
+      try {
+        const response = await fetch('/api/inventory');
+        const result = await response.json();
+        if (result.success) {
+          setInventoryItems(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching inventory items:', error);
+      }
+    };
+    
+    // Fetch payment methods
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await fetch('/api/payments');
+        const result = await response.json();
+        if (result.success) {
+          setPaymentMethods(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      }
+    };
+    
+    fetchInventoryItems();
+    fetchPaymentMethods();
+  }, [fetchMenuData]);
+  
+  // Inventory functions
+  const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
+    try {
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(itemData),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setInventoryItems(prev => [...prev, result.data]);
+      }
+    } catch (error) {
+      console.error('Error adding inventory item:', error);
+    }
+  };
+  
+  const updateInventoryItem = async (id: string, itemData: Partial<InventoryItem>) => {
+    try {
+      const response = await fetch(`/api/inventory/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: itemData }),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setInventoryItems(prev => prev.map(item => item.id === id ? result.data : item));
+      }
+    } catch (error) {
+      console.error('Error updating inventory item:', error);
+    }
+  };
+  
+  const deleteInventoryItem = async (id: string) => {
+    try {
+      const response = await fetch(`/api/inventory/${id}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setInventoryItems(prev => prev.filter(item => item.id !== id));
+      }
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+    }
+  };
+  
+  const adjustInventoryStock = async (id: string, adjustment: number) => {
+    debugInventory('adjustInventoryStock: called with id %s and adjustment %d', id, adjustment);
+    try {
+      const item = inventoryItems.find(i => i.id === id);
+      if (item) {
+        const newQuantity = Math.max(0, item.quantity + adjustment);
+        debugInventory('adjustInventoryStock: calculated new quantity %d for item %s', newQuantity, id);
+        // For stock adjustment, we need to send a specific action
+        const response = await fetch(`/api/inventory/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            action: 'adjustStock',
+            amount: newQuantity  // Send the new quantity, not the adjustment
+          }),
+        });
+        
+        const result = await response.json();
+        debugInventory('adjustInventoryStock: API response %O', result);
+        if (result.success) {
+          // Update with the data from the API response
+          setInventoryItems(prev => prev.map(item => item.id === id ? result.data : item));
+          debugInventory('adjustInventoryStock: successfully updated local state for item %s', id);
+        } else {
+          debugInventory('adjustInventoryStock: API returned error %s', result.error);
+        }
+      } else {
+        debugInventory('adjustInventoryStock: item with id %s not found', id);
+      }
+    } catch (error) {
+      debugInventory('adjustInventoryStock: error adjusting inventory stock: %O', error);
+      console.error('Error adjusting inventory stock:', error);
+    }
+  };
+  
+  // Payment method functions
+  const addPaymentMethod = async (methodData: Omit<Payment, 'id'>) => {
+    try {
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(methodData),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setPaymentMethods(prev => [...prev, result.data]);
+      }
+    } catch (error) {
+      console.error('Error adding payment method:', error);
+    }
+  };
+  
+  const updatePaymentMethod = async (id: string, methodData: Partial<Payment>) => {
+    try {
+      const response = await fetch(`/api/payments/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(methodData),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setPaymentMethods(prev => prev.map(method => method.id === id ? result.data : method));
+      }
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+    }
+  };
+  
+  const deletePaymentMethod = async (id: string) => {
+    try {
+      const response = await fetch(`/api/payments/${id}`, {
+        method: 'DELETE',
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setPaymentMethods(prev => prev.filter(method => method.id !== id));
+        toast.success(t('restaurant.payment_methods.delete_success'));
+      } else {
+        toast.error(result.error || t('restaurant.payment_methods.delete_error'));
+      }
+    } catch (error) {
+      console.error('Error deleting payment method:', error);
+      toast.error(t('restaurant.payment_methods.delete_error'));
+    }
+  };
+  
+  // Menu item functions
+  const updateMenuItemOrder = async (categoryId: number, itemIds: string[]) => {
+    // This is a placeholder - actual implementation would depend on how ordering works
+    console.log('Update menu item order:', categoryId, itemIds);
+  };
+  
+  const handleDeleteMenuItems = async (ids: string[]) => {
+    // Delete multiple menu items
+    for (const id of ids) {
+      await deleteMenuItem(id);
+    }
+  };
+  
+  // Workstation state
+  const [workstations, setWorkstations] = useState<IWorkstation[]>([]);
+  const [workstationsLoading, setWorkstationsLoading] = useState(false);
+  const [workstationsError, setWorkstationsError] = useState<string | null>(null);
+  
+  // Fetch workstations
+  useEffect(() => {
+    const fetchWorkstations = async () => {
+      setWorkstationsLoading(true);
+      setWorkstationsError(null);
+      try {
+        const response = await fetch('/api/workstations');
+        const result = await response.json();
+        if (result.success) {
+          setWorkstations(result.data);
+        } else {
+          setWorkstationsError(result.error || t('restaurant.workstations.fetch_error'));
+        }
+      } catch (error: any) {
+        console.error('Error fetching workstations:', error);
+        setWorkstationsError(error.message || t('restaurant.workstations.fetch_error'));
+      } finally {
+        setWorkstationsLoading(false);
+      }
+    };
+    
+    fetchWorkstations();
+  }, []);
+  
+  // Workstation CRUD operations
+  const addWorkstation = async (workstationData: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => {
+    try {
+      const response = await fetch('/api/workstations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workstationData),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // Refresh the workstations list to get the updated data with positions
+        const refreshResponse = await fetch('/api/workstations');
+        const refreshResult = await refreshResponse.json();
+        if (refreshResult.success) {
+          setWorkstations(refreshResult.data);
+        }
+      } else {
+        throw new Error(result.error || 'Failed to add workstation');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  const updateWorkstation = async (id: string, workstationData: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => {
+    try {
+      const response = await fetch('/api/workstations', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, ...workstationData }),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // Refresh the workstations list to get the updated data
+        const refreshResponse = await fetch('/api/workstations');
+        const refreshResult = await refreshResponse.json();
+        if (refreshResult.success) {
+          setWorkstations(refreshResult.data);
+        }
+      } else {
+        throw new Error(result.error || 'Failed to update workstation');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+  
+  const deleteWorkstation = async (id: string) => {
+    try {
+      const response = await fetch('/api/workstations', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        // Refresh the workstations list to get the updated data
+        const refreshResponse = await fetch('/api/workstations');
+        const refreshResult = await refreshResponse.json();
+        if (refreshResult.success) {
+          setWorkstations(refreshResult.data);
+        }
+      } else {
+        throw new Error(result.error || 'Failed to delete workstation');
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
 
 
   if (loading) {
@@ -809,11 +1201,20 @@ export default function RestaurantPage() {
           <h1 className="text-3xl font-headline font-bold">{t('restaurant.title')}</h1>
         </div>
 
-        <Tabs defaultValue="menu" className="space-y-4">
-            <TabsList>
-                <TabsTrigger value="menu">{t('restaurant.menu.title')}</TabsTrigger>
-                <TabsTrigger value="inventory">{t('restaurant.inventory.title')}</TabsTrigger>
-                <TabsTrigger value="payment">{t('restaurant.payment_methods.title')}</TabsTrigger>
+        <Tabs defaultValue="menu" className="space-y-4 w-full">
+            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(4, minmax(0, 1fr))` }}>
+                <TabsTrigger value="menu" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  {t('restaurant.menu.title')}
+                </TabsTrigger>
+                <TabsTrigger value="inventory" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  {t('restaurant.inventory.title')}
+                </TabsTrigger>
+                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  {t('restaurant.payment_methods.title')}
+                </TabsTrigger>
+                <TabsTrigger value="workstations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  {t('restaurant.workstations.title')}
+                </TabsTrigger>
             </TabsList>
             <TabsContent value="menu" className="mt-4">
                  <MenuList 
@@ -822,21 +1223,51 @@ export default function RestaurantPage() {
                     onUpdateCategories={addCategory} 
                     onSaveItem={(item: any) => item.id ? updateMenuItem(item.id, item) : addMenuItem(item)}
                     onDeleteItem={deleteMenuItem}
-                    onDeleteMultipleItems={deleteMenuItems}
+                    onDeleteMultipleItems={handleDeleteMenuItems}
                     onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
+                 />
+                 <MenuItemDialog 
+                    item={editingItem}
+                    categories={categories} 
+                    onSave={async (itemData) => {
+                      if (editingItem && editingItem.id) {
+                        // Update existing item
+                        await updateMenuItem(editingItem.id, itemData);
+                      } else {
+                        // Add new item
+                        await addMenuItem(itemData);
+                      }
+                      setIsItemDialogOpen(false);
+                      setEditingItem(undefined);
+                    }}
+                    isOpen={isItemDialogOpen}
+                    onOpenChange={(open) => {
+                      setIsItemDialogOpen(open);
+                      if (!open) {
+                        setEditingItem(undefined);
+                      }
+                    }}
                  />
             </TabsContent>
             <TabsContent value="inventory" className="mt-4">
                 <InventoryList 
                     items={inventoryItems} 
                     menuItems={menuItems} 
-                    onSave={(item) => 'id' in item ? updateInventoryItem(item.id, item) : addInventoryItem({ ...item, lastRestocked: new Date().toISOString() })}
+                    onSave={async (item) => {
+                      if ('id' in item) {
+                        await updateInventoryItem(item.id, item);
+                      } else {
+                        // Remove lastRestocked from the item before adding
+                        const { lastRestocked, ...itemData } = item as any;
+                        await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
+                      }
+                    }}
                     onAdjustStock={adjustInventoryStock}
                     onDeleteItem={deleteInventoryItem}
                 />
 
             </TabsContent>
-             <TabsContent value="payment" className="mt-4">
+             <TabsContent value="payments" className="mt-4">
                 <PaymentMethods 
                     paymentMethods={paymentMethods}
                     onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
@@ -844,6 +1275,17 @@ export default function RestaurantPage() {
                     onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
                 />
 
+            </TabsContent>
+            <TabsContent value="workstations" className="mt-4">
+                <WorkstationList
+                  workstations={workstations}
+                  loading={workstationsLoading}
+                  error={workstationsError}
+                  onAdd={addWorkstation}
+                  onUpdate={updateWorkstation}
+                  onDelete={deleteWorkstation}
+                  onReorder={(updatedWorkstations) => setWorkstations(updatedWorkstations)}
+                />
             </TabsContent>
         </Tabs>
       </div>

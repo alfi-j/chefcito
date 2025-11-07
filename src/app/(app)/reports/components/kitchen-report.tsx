@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useI18n } from '@/context/i18n-context';
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { Badge } from '@/components/ui/badge';
 
 interface PerformanceData {
@@ -24,7 +24,7 @@ interface KitchenReportProps {
 }
 
 export function KitchenReport({ data, loading }: KitchenReportProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   if (loading) {
     return <div className="flex justify-center items-center h-full min-h-[400px]"><p>{t('reports.loading')}</p></div>;

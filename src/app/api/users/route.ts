@@ -5,14 +5,18 @@ import User from '../../../models/User';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
+// Helper function to ensure database connection
+async function ensureDbConnection() {
+  if (mongoose.connection.readyState !== 1) {
+    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+    await mongoose.connect(MONGODB_URI);
+  }
+}
+
 // POST /api/users - Create a new user
 export async function POST(request: Request) {
   try {
-    // Ensure mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-      await mongoose.connect(MONGODB_URI);
-    }
+    await ensureDbConnection();
     
     const body = await request.json();
     
@@ -64,13 +68,40 @@ export async function POST(request: Request) {
 }
 
 // GET /api/users - Get all users
-export async function GET() {
-  try {
-    // Ensure mongoose is connected
-    if (mongoose.connection.readyState !== 1) {
-      const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-      await mongoose.connect(MONGODB_URI);
+export async function GET(request: Request, { params }: { params?: { id: string } }) {
+  // Handle GET /api/users/[id] - get specific user
+  if (params?.id) {
+    try {
+      await ensureDbConnection();
+      
+      const { id } = await params;
+      const user = await User.findOne({ id });
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Remove password from response
+      const userObject = user.toObject();
+      // @ts-ignore - password is required in the schema but we want to remove it from the response
+      delete userObject.password;
+      
+      return NextResponse.json(userObject);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      return NextResponse.json(
+        { error: 'Failed to fetch user' },
+        { status: 500 }
+      );
     }
+  }
+  
+  // Handle GET /api/users - get all users
+  try {
+    await ensureDbConnection();
     
     // Get users from User collection
     const users = await User.find({});
@@ -80,6 +111,124 @@ export async function GET() {
     console.error('Error fetching users:', error);
     return NextResponse.json(
       { error: 'Failed to fetch users' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/users/[id] - Update user
+export async function PUT(request: Request, { params }: { params?: { id: string } }) {
+  try {
+    await ensureDbConnection();
+    
+    const body = await request.json();
+    
+    // Handle PUT /api/users/[id]/role - update user role
+    if (params?.id) {
+      const { id } = await params;
+      
+      // Check if we're updating the role specifically
+      if (body.action === 'updateRole') {
+        const { role } = body;
+        
+        // Validate role
+        const validRoles = ['Owner', 'Admin', 'Staff'];
+        if (!validRoles.includes(role)) {
+          return NextResponse.json(
+            { error: 'Invalid role' },
+            { status: 400 }
+          );
+        }
+        
+        // Update user role
+        const updatedUser = await User.findOneAndUpdate(
+          { id },
+          { role },
+          { new: true }
+        );
+        
+        if (!updatedUser) {
+          return NextResponse.json(
+            { error: 'User not found' },
+            { status: 404 }
+          );
+        }
+        
+        // Return updated user without password
+        const userObject = updatedUser.toObject();
+        // @ts-ignore - password is required in the schema but we want to remove it from the response
+        delete userObject.password;
+        
+        return NextResponse.json(userObject);
+      }
+      
+      // Update user general info
+      const { role, membership, status } = body;
+      
+      // Update user
+      const updatedUser = await User.findOneAndUpdate(
+        { id },
+        { 
+          ...(role && { role }),
+          ...(membership && { membership }),
+          ...(status && { status })
+        },
+        { new: true }
+      );
+      
+      if (!updatedUser) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+      
+      // Remove password from response
+      const userObject = updatedUser.toObject();
+      // @ts-ignore - password is required in the schema but we want to remove it from the response
+      delete userObject.password;
+      
+      return NextResponse.json({
+        success: true,
+        user: userObject
+      });
+    }
+    
+    return NextResponse.json(
+      { error: 'User ID is required' },
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return NextResponse.json(
+      { error: 'Failed to update user' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/users/[id] - Delete user
+export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+  try {
+    await ensureDbConnection();
+    
+    const { id } = await params;
+    
+    // Delete user
+    const result = await User.deleteOne({ id });
+    
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }

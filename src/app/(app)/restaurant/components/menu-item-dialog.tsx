@@ -1,6 +1,6 @@
-
 "use client"
-import React, { useState, useEffect, useMemo } from 'react'
+
+import React, { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -8,199 +8,227 @@ import {
   DialogTitle,
   DialogFooter,
   DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
+import { Textarea } from "@/components/ui/textarea"
+import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
-import { type MenuItem, type Category } from "@/lib/types"
-import { useI18n } from '@/context/i18n-context'
-import { MultiSelect } from './multi-select'
 import { ScrollArea } from '@/components/ui/scroll-area'
-
-interface RenderedCategory extends Category {
-  depth: number;
-}
+import { toast } from "sonner";
+import { useI18nStore } from '@/lib/stores/i18n-store'
+import { type MenuItem, type Category } from "@/lib/types"
+import { MultiSelect } from './multi-select'
 
 interface MenuItemDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
   item?: MenuItem;
-  onSave: (item: MenuItem | Omit<MenuItem, "id">) => void;
   categories: Category[];
+  onSave: (item: Omit<MenuItem, "id">) => void;
+  trigger?: React.ReactNode;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function MenuItemDialog({
-  isOpen,
-  onOpenChange,
-  item,
-  onSave,
-  categories,
-}: MenuItemDialogProps) {
-  const { t } = useI18n();
-  const isEditMode = !!item;
-
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState<string | number>('');
-  const [category, setCategory] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [available, setAvailable] = useState(true);
-  const [linkedModifiers, setLinkedModifiers] = useState<string[]>([]);
+export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOpenChange }: MenuItemDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [name, setName] = useState(item?.name || '');
+  const [price, setPrice] = useState(item?.price?.toString() || '');
+  const [description, setDescription] = useState(item?.description || '');
+  const [category, setCategory] = useState(item?.category || '');
+  const [imageUrl, setImageUrl] = useState(item?.imageUrl || '');
+  const [aiHint, setAiHint] = useState(item?.aiHint || '');
+  const [linkedModifiers, setLinkedModifiers] = useState<string[]>(item?.linkedModifiers || []);
+  const { t } = useI18nStore();
   
-  const resetState = () => {
-    setName(item?.name ?? '');
-    setDescription(item?.description ?? '');
- setPrice(item?.price !== undefined ? item.price.toString() : ''); // Ensure price is string for input
- setCategory(item?.category ?? '');
+  // Use external open state if provided, otherwise use internal state
+  const open = isOpen !== undefined ? isOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
+  
+  const modifierGroups = categories
+    .filter(c => c.isModifierGroup)
+    .map(c => ({ value: c.name, label: c.name }));
+
+  const resetForm = () => {
+    setName(item?.name || '');
+    setPrice(item?.price?.toString() || '');
+    setDescription(item?.description || '');
+    setCategory(item?.category || '');
     setImageUrl(item?.imageUrl || '');
-    setAvailable(item?.available ?? true);
+    setAiHint(item?.aiHint || '');
     setLinkedModifiers(item?.linkedModifiers || []);
   };
 
+  // Reset form when item changes
   useEffect(() => {
-    if (isOpen) {
-      resetState();
+    if (item) {
+      resetForm();
     }
-  }, [isOpen, item]);
+  }, [item]);
 
-  const handleSubmit = () => {
-    const finalPrice = typeof price === 'string' ? parseFloat(price) : price;
-    if (isNaN(finalPrice)) return;
-
-    const itemData = {
-      name,
-      description,
-      price: finalPrice,
-      category,
-      imageUrl,
-      available,
-      linkedModifiers,
-      sortIndex: 0, // Adding default sortIndex
-    };
-
-    if (isEditMode && item) {
-      onSave({ id: item.id, ...itemData });
-    } else {
-      onSave(itemData);
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open);
+    if (!open) {
+      resetForm();
     }
-    onOpenChange(false);
   };
-  
-  const renderedCategories = useMemo(() => {
-    const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
-    const roots: Category[] = [];
 
-    categories.forEach(category => {
-        if (category.parentId && categoryMap.has(category.parentId)) {
-            (categoryMap.get(category.parentId) as any).children.push(category);
-        } else {
-            roots.push(category);
-        }
-    });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    const flattened: RenderedCategory[] = [];
-    const traverse = (category: Category, depth: number) => {
-        flattened.push({ ...category, depth });
-        const children = (categoryMap.get(category.id) as any)?.children || [];
-        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
-    };
-
-    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
-    return flattened.filter(c => !c.isModifierGroup);
-  }, [categories]);
-  
-  const modifierGroups = useMemo(() => 
-    categories
-        .filter(c => c.isModifierGroup)
-        .map(c => ({ value: c.name, label: c.name })), 
-    [categories]
-  );
-  
-  const handleNumericInputChange = (setter: React.Dispatch<React.SetStateAction<string | number>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*\.?\d*$/.test(value)) {
-        setter(value);
+    if (!name.trim() || !price || !category) {
+      toast.error(t('toast.error'), { description: t('restaurant.menu_item_dialog.validation_error'), duration: 3000 });
+      return;
     }
-  }
+
+    try {
+      const priceNum = parseFloat(price);
+      if (isNaN(priceNum) || priceNum < 0) {
+        toast.error(t('toast.error'), { description: t('restaurant.menu_item_dialog.invalid_price'), duration: 3000 });
+        return;
+      }
+
+      await onSave({
+        name: name.trim(),
+        price: priceNum,
+        description: description.trim() || undefined,
+        category,
+        imageUrl: imageUrl.trim() || '/placeholder-menu-item.jpg',
+        aiHint: aiHint.trim() || undefined,
+        linkedModifiers: linkedModifiers.length > 0 ? linkedModifiers : undefined,
+        sortIndex: 0
+      });
+
+      handleOpenChange(false);
+      toast.success(t('toast.success'), { description: item ? t('restaurant.menu_item_dialog.updated') : t('restaurant.menu_item_dialog.added'), duration: 3000 });
+    } catch (error: any) {
+      toast.error(t('toast.error'), { description: error.message || t('restaurant.menu_item_dialog.error'), duration: 3000 });
+    }
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6">
-          <DialogTitle className="font-headline text-2xl">{isEditMode ? t('restaurant.item_dialog.edit_title') : t('restaurant.item_dialog.add_title')}</DialogTitle>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="font-headline">
+            {item ? t('restaurant.menu_item_dialog.edit_title') : t('restaurant.menu_item_dialog.add_title')}
+          </DialogTitle>
           <DialogDescription>
-            {isEditMode ? t('restaurant.item_dialog.edit_desc') : t('restaurant.item_dialog.add_desc')}
+            {item ? t('restaurant.menu_item_dialog.edit_desc') : t('restaurant.menu_item_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
+        
+        <ScrollArea className="flex-1 pr-4 -mr-4">
+          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.name')}
+              </label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('restaurant.menu_item_dialog.name_placeholder')}
+              />
+            </div>
 
-        <div className="flex-1 min-h-0 overflow-y-auto">
-            <ScrollArea className="h-full">
-              <div className="space-y-4 p-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">{t('restaurant.item_dialog.name')}</Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="price">{t('restaurant.item_dialog.price')}</Label>
-                            <Input id="price" type="text" inputMode="decimal" value={price} onChange={handleNumericInputChange(setPrice)} />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="description">{t('restaurant.item_dialog.description')}</Label>
-                        <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="category">{t('restaurant.item_dialog.category')}</Label>
-                        <Select value={category} onValueChange={setCategory}>
-                            <SelectTrigger id="category">
-                                <SelectValue placeholder={t('restaurant.item_dialog.select_category')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {renderedCategories.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.name}>
-                                        <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="imageUrl">{t('restaurant.item_dialog.image_url')}</Label>
-                        <Input id="imageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://placehold.co/400x400.png" />
-                    </div>
-                     <div className="space-y-2">
-                        <Label>{t('restaurant.item_dialog.linked_modifiers')}</Label>
-                        <MultiSelect
-                            options={modifierGroups}
-                            selected={linkedModifiers}
-                            onChange={setLinkedModifiers}
-                            placeholder={t('restaurant.item_dialog.select_modifiers')}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {t('restaurant.item_dialog.modifiers_desc')}
-                        </p>
-                    </div>
-                    <div className="flex items-center space-x-2 pt-2">
-                        <Switch id="available" checked={available} onCheckedChange={setAvailable} />
-                        <Label htmlFor="available">{t('restaurant.item_dialog.available')}</Label>
-                    </div>
-                </div>
-            </ScrollArea>
-        </div>
+            <div className="space-y-2">
+              <label htmlFor="price" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.price')}
+              </label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder={t('restaurant.menu_item_dialog.price_placeholder')}
+              />
+            </div>
 
-        <DialogFooter className="flex flex-col sm:flex-row sm:justify-end gap-2 p-6 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-          <Button onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.description')}
+              </label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={t('restaurant.menu_item_dialog.description_placeholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="category" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.category')}
+              </label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('restaurant.menu_item_dialog.category_placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories
+                    .filter(c => !c.isModifierGroup)
+                    .map((cat) => (
+                      <SelectItem key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="imageUrl" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.image_url')}
+              </label>
+              <Input
+                id="imageUrl"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder={t('restaurant.menu_item_dialog.image_url_placeholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="aiHint" className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.ai_hint')}
+              </label>
+              <Textarea
+                id="aiHint"
+                value={aiHint}
+                onChange={(e) => setAiHint(e.target.value)}
+                placeholder={t('restaurant.menu_item_dialog.ai_hint_placeholder')}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium leading-none">
+                {t('restaurant.menu_item_dialog.linked_modifiers')}
+              </label>
+              <MultiSelect
+                options={modifierGroups}
+                selected={linkedModifiers}
+                onChange={setLinkedModifiers}
+              />
+            </div>
+          </form>
+        </ScrollArea>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => handleOpenChange(false)}>
+            {t('dialog.cancel')}
+          </Button>
+          <Button type="submit" onClick={handleSubmit}>
+            {item ? t('dialog.save') : t('dialog.add')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

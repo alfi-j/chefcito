@@ -1,4 +1,3 @@
-
 "use client"
 import React from 'react'
 import {
@@ -12,7 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useI18n } from '@/context/i18n-context'
+import { useI18nStore } from '@/lib/stores/i18n-store'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -23,7 +22,7 @@ interface DeleteConfirmationDialogProps {
 }
 
 export function DeleteConfirmationDialog({ children, count, onConfirm }: DeleteConfirmationDialogProps) {
-    const { t } = useI18n();
+    const { t } = useI18nStore();
     return (
         <AlertDialog>
             <AlertDialogTrigger asChild>

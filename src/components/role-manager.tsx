@@ -1,17 +1,20 @@
 "use client"
 
-import { useUser } from "@/context/user-context";
-import { useRoleAccess } from "@/hooks/use-role-access";
+import { useUserStore } from "@/lib/stores/user-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useI18nStore } from '@/lib/stores/i18n-store';
 
 export function RoleManager() {
-  const { user, updateUserRole } = useUser();
-  const { isOwner, isAdmin } = useRoleAccess();
-
+  const { user, updateUserRole } = useUserStore();
+  const { t } = useI18nStore();
+  
   // Only owners and admins can manage roles
+  const isOwner = user?.role === "Owner";
+  const isAdmin = user?.role === "Admin";
+  
   if (!isOwner && !isAdmin) {
     return null;
   }
@@ -31,29 +34,29 @@ export function RoleManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Role Management</CardTitle>
-        <CardDescription>Manage your user role</CardDescription>
+        <CardTitle>{t('profile.role_management_title')}</CardTitle>
+        <CardDescription>{t('profile.role_management_desc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           <div>
-            <h3 className="font-medium mb-2">Change Role</h3>
+            <h3 className="font-medium mb-2">{t('profile.change_role')}</h3>
             <Select value={user.role} onValueChange={handleRoleChange}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select a role" />
+                <SelectValue placeholder={t('profile.select_role')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Owner">Owner</SelectItem>
-                <SelectItem value="Admin">Admin</SelectItem>
-                <SelectItem value="Staff">Staff</SelectItem>
+                <SelectItem value="Owner">{t('profile.roles.owner')}</SelectItem>
+                <SelectItem value="Admin">{t('profile.roles.admin')}</SelectItem>
+                <SelectItem value="Staff">{t('profile.roles.staff')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="text-sm text-muted-foreground">
             <p>
-              {user.role === "Owner" && "As the restaurant owner, you have full access to all system features."}
-              {user.role === "Admin" && "As an admin, you can manage staff and system settings."}
-              {user.role === "Staff" && "As a staff member, you have basic access to the system."}
+              {user.role === "Owner" && t('profile.role_descriptions.owner')}
+              {user.role === "Admin" && t('profile.role_descriptions.admin')}
+              {user.role === "Staff" && t('profile.role_descriptions.staff')}
             </p>
           </div>
         </div>

@@ -1,29 +1,56 @@
 import { 
-  MenuItem, 
-  Category, 
-  Order, 
-  OrderItem, 
-  PaymentMethod, 
-  Customer, 
-  InventoryItem
-} from './types';
+  type ICategory as Category, 
+  type IMenuItem as MenuItem, 
+  type IOrder as Order, 
+  type IInventoryItem as Inventory, 
+  type ICustomer as Customer, 
+  type IUser as User, 
+  type IWorkstation as Workstation, 
+  type IPayment as Payment
+} from '@/models';
 import { DateRange } from 'react-day-picker';
-import { 
-  User as UserModel,
-  Category as CategoryModel,
-  MenuItem as MenuItemModel,
-  Order as OrderModel,
-  Inventory as InventoryModel,
-  Customer as CustomerModel,
-  PaymentMethod as PaymentMethodModel
-} from '../models';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
+import { type OrderItem } from './types';
+import debug from 'debug';
+
+// Direct model imports to avoid recompilation issues
+import CategoryModel from '../models/Category';
+import MenuItemModel from '../models/MenuItem';
+import OrderModel from '../models/Order';
+import InventoryModel from '../models/Inventory';
+import CustomerModel from '../models/Customer';
+import PaymentModel from '../models/Payment';
+import UserModel from '../models/User';
+import WorkstationModel from '../models/Workstation';
+
+
+// Import Mongoose and database service
+import mongoose from 'mongoose';
+import databaseService from '../services/database.service';
+
+// Debug loggers
+import { debugInventory, debugOrders } from './debug-utils';
 
 // Generate a random ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+// Initialize database connection
+const initializeDatabase = async () => {
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+  
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await databaseService.connect(MONGODB_URI);
+    } catch (error) {
+      console.error('Failed to initialize database connection:', error);
+      throw error;
+    }
+  }
+};
+
 // Helper function to get all menu items for order inflation
 const getAllMenuItems = async () => {
+  await initializeDatabase();
   const menuItems = await MenuItemModel.find({});
   return menuItems.map(item => item.toObject());
 };
@@ -45,22 +72,17 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
       return extraItem;
     }));
 
-    // Compatibility for new data structure
+    // Ensure item has a status field with default value if missing
+    let status: 'new' | 'in-progress' | 'ready' | 'served' | string = item.status || 'new';
+
     const quantity = item.quantity || 0;
-    const newCount = item.newCount ?? (item.status === 'New' ? quantity : 0);
-    const cookingCount = item.cookingCount ?? (item.status === 'Cooking' ? quantity : 0);
-    const readyCount = item.readyCount ?? (item.status === 'Ready' ? (item.cookedCount || 0) : 0);
-    const totalQuantity = newCount + cookingCount + readyCount + (item.servedCount || 0) + (item.cookedCount || 0);
 
     return {
       ...item,
       menuItem,
       selectedExtras: selectedExtras.filter(e => e !== null) as MenuItem[],
-      quantity: totalQuantity || quantity,
-      newCount: newCount,
-      cookingCount: cookingCount,
-      readyCount: readyCount,
-      servedCount: item.servedCount || 0,
+      quantity: quantity,
+      status: status,
     };
   }));
 
@@ -74,7 +96,8 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 
 // Users
 export const getUsers = async () => {
-  const users = await UserModel.find({});
+  await initializeDatabase();
+  const users = await UserModel.find({}).maxTimeMS(10000);
   return users.map(user => user.toObject());
 };
 
@@ -109,7 +132,8 @@ export const getUserPerformance = async (dateRange?: DateRange) => {
 
 // Customers
 export const getCustomers = async (): Promise<Customer[]> => {
-  const customers = await CustomerModel.find({});
+  await initializeDatabase();
+  const customers = await CustomerModel.find({}).maxTimeMS(10000);
   return customers.map(customer => customer.toObject());
 };
 
@@ -138,8 +162,21 @@ export const deleteCustomer = async (id: string) => {
 
 // Categories
 export const getCategories = async (): Promise<Category[]> => {
-  const categories = await CategoryModel.find({});
-  return categories.map(category => category.toObject());
+  try {
+    await initializeDatabase();
+    const categories = await CategoryModel.find({}).maxTimeMS(10000);
+    return categories.map(category => category.toObject());
+  } catch (error: any) {
+    console.error('Error fetching categories from database:', error);
+    // Provide more context in the error message
+    if (error.name === 'MongoNetworkError' || error.name === 'MongooseServerSelectionError') {
+      throw new Error('Database connection failed. Please check your MongoDB connection.');
+    }
+    if (error.name === 'MongoTimeoutError' || (error.message && error.message.includes('buffering timed out'))) {
+      throw new Error('Database operation timed out. The database may be slow or unreachable.');
+    }
+    throw new Error(`Database error: ${error.message}`);
+  }
 };
 
 export const addCategory = async (categoryData: Omit<Category, 'id'>) => {
@@ -167,15 +204,15 @@ export const deleteCategory = async (id: string) => {
 
 // Menu Items
 export const getMenuItems = async (): Promise<MenuItem[]> => {
-  const menuItems = await MenuItemModel.find({});
+  await initializeDatabase();
+  const menuItems = await MenuItemModel.find({}).maxTimeMS(10000);
   return menuItems.map(item => item.toObject());
 };
 
 export const addMenuItem = async (itemData: Omit<MenuItem, 'id'>) => {
   const newItem = new MenuItemModel({ 
     id: generateId(),
-    ...itemData,
-    sortIndex: 0 // Default sort index
+    ...itemData
   });
   await newItem.save();
   return newItem.toObject();
@@ -195,66 +232,41 @@ export const deleteMenuItem = async (id: string) => {
   return result.deletedCount > 0;
 };
 
-export const deleteMenuItems = async (ids: string[]) => {
-  // In a real implementation, we would do a bulk delete operation
-  // For now, we'll just return true to indicate success
-  return true;
-};
-
 // Orders
-export const getInitialOrders = async (menuItems?: MenuItem[]): Promise<Order[]> => {
-  const allMenuItems = menuItems || await getAllMenuItems();
-  const orders = await OrderModel.find({});
-  
-  const inflatedOrders = await Promise.all(
-    orders.map(order => inflateOrder(order.toObject(), allMenuItems))
-  );
-  
-  return inflatedOrders;
+const getOrderTotal = (order: Order): number => {
+  return order.items.reduce((total, item) => {
+    return total + (item.menuItem.price * item.quantity);
+  }, 0);
 };
 
-export const addOrder = async (orderData: any) => {
-  const newOrder = new OrderModel({
-    id: Date.now(),
-    ...orderData,
-    createdAt: new Date(),
-    status: 'pending',
-    statusHistory: [{ status: 'pending', timestamp: new Date() }],
-    staffName: '', // This would typically come from the authenticated user
-  });
+export const getInitialOrders = async (): Promise<Order[]> => {
+  await initializeDatabase();
+  const orders = await OrderModel.find({}).sort({ createdAt: -1 }).maxTimeMS(10000);
+  const menuItems = await getAllMenuItems();
+  return Promise.all(orders.map(order => inflateOrder(order.toObject(), menuItems)));
+};
+
+export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
+  // Get the highest existing order ID and increment by 1
+  const latestOrder = await OrderModel.findOne({}).sort({ id: -1 }).limit(1);
+  const newId = latestOrder ? latestOrder.id + 1 : 1;
   
+  const newOrder = new OrderModel({ 
+    id: newId,
+    createdAt: new Date(),
+    ...orderData
+  });
   await newOrder.save();
   return newOrder.toObject();
 };
 
-export const updateOrderItemStatus = async (payload: { 
-  orderId: number; 
-  itemId: string; 
-  fromStatus?: 'New' | 'Cooking' | 'Serve';
-  toStatus?: 'New' | 'Cooking' | 'Serve';
-  updatedOrder: any;
-}) => {
-  const { orderId, updatedOrder } = payload;
-  
-  // Update the order with new item counts
-  const result = await OrderModel.updateOne(
-    { id: orderId },
-    { $set: { items: updatedOrder.items } }
-  );
-  
-  return result.modifiedCount > 0;
-};
-
-export const updateOrderStatus = async (payload: { orderId: number; newStatus: 'pending' | 'completed' }) => {
-  const order = await OrderModel.findOne({ id: payload.orderId });
-  
+export const updateOrderStatus = async (id: number, newStatus: string) => {
+  const order = await OrderModel.findOne({ id });
   if (order) {
-    order.status = payload.newStatus;
     const now = new Date();
-    
-    if(payload.newStatus === 'completed' && !order.completedAt) {
+    if (newStatus === 'completed') {
       order.completedAt = now;
-    } else if (payload.newStatus === 'pending') {
+    } else {
       // Remove completedAt timestamp if reverted
       order.completedAt = undefined;
     }
@@ -263,7 +275,7 @@ export const updateOrderStatus = async (payload: { orderId: number; newStatus: '
       order.statusHistory = [];
     }
     
-    order.statusHistory.push({ status: payload.newStatus, timestamp: now });
+    order.statusHistory.push({ status: newStatus, timestamp: now });
     
     await order.save();
     return true;
@@ -271,48 +283,158 @@ export const updateOrderStatus = async (payload: { orderId: number; newStatus: '
   return false;
 };
 
-export const toggleOrderPin = async (payload: { orderId: number; isPinned: boolean }) => {
+export const deleteOrder = async (id: number) => {
+  debugOrders('deleteOrder: called with id %d', id);
+  console.log('deleteOrder: called with id:', id);
+  
+  try {
+    // Initialize database connection
+    await initializeDatabase();
+    
+    // First check if the order exists
+    const orderExists = await OrderModel.findOne({ id });
+    debugOrders('deleteOrder: order exists check %O', orderExists);
+    console.log('deleteOrder: order exists check:', orderExists);
+    
+    if (!orderExists) {
+      debugOrders('deleteOrder: order with id %d not found', id);
+      console.log('deleteOrder: order with id not found:', id);
+      return false;
+    }
+    
+    const result = await OrderModel.deleteOne({ id });
+    debugOrders('deleteOrder: deleteOne result %O', result);
+    console.log('deleteOrder: deleteOne result:', result);
+    console.log('deleteOrder: deletedCount:', result.deletedCount);
+    return result.deletedCount > 0;
+  } catch (error) {
+    debugOrders('deleteOrder: error %O', error);
+    console.error('deleteOrder: error:', error);
+    return false;
+  }
+};
+
+export const updateOrder = async (id: number, orderData: Partial<Order>) => {
   const result = await OrderModel.updateOne(
-    { id: payload.orderId },
-    { $set: { isPinned: payload.isPinned } }
+    { id },
+    { $set: orderData }
   );
   
   return result.modifiedCount > 0;
+};
+
+export const toggleOrderPin = async ({ orderId }: { orderId: number }) => {
+  try {
+    const order = await OrderModel.findOne({ id: orderId });
+    if (!order) {
+      return { success: false, error: 'Order not found' };
+    }
+    
+    order.isPinned = !order.isPinned;
+    await order.save();
+    
+    return { success: true, isPinned: order.isPinned };
+  } catch (error: any) {
+    console.error('Error toggling order pin:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+export const updateOrderItemStatus = async ({ orderId, itemId, status }: { orderId: number; itemId: string; status: string }) => {
+  try {
+    const order = await OrderModel.findOne({ id: orderId });
+    if (!order) {
+      throw new Error('Order not found');
+    }
+    
+    const item = order.items.find((item: any) => item.id === itemId);
+    if (!item) {
+      throw new Error('Item not found in order');
+    }
+    
+    item.status = status;
+    await order.save();
+    
+    return true;
+  } catch (error: any) {
+    console.error('Error updating order item status:', error);
+    throw error;
+  }
 };
 
 // Payment Methods
-export const getPaymentMethods = async (): Promise<PaymentMethod[]> => {
-  const paymentMethods = await PaymentMethodModel.find({});
+export const getPaymentMethods = async (): Promise<Payment[]> => {
+  await initializeDatabase();
+  const paymentMethods = await PaymentModel.find({}).maxTimeMS(10000);
   return paymentMethods.map(method => method.toObject());
 };
 
-export const addPaymentMethod = async (methodData: Omit<PaymentMethod, 'id'>) => {
-  const newMethod = new PaymentMethodModel({ 
-    id: generateId(),
-    ...methodData
-  });
-  await newMethod.save();
-  return newMethod.toObject();
+export const addPaymentMethod = async (methodData: Omit<Payment, 'id'>) => {
+  try {
+    // Ensure banks array is handled properly for new payment methods
+    const newMethodData = { ...methodData };
+    if (newMethodData.type && newMethodData.type !== 'bank_transfer') {
+      // If type is not bank_transfer, ensure banks array is empty
+      newMethodData.banks = [];
+    }
+    
+    const newMethod = new PaymentModel({ 
+      id: generateId(),
+      ...newMethodData
+    });
+    await newMethod.save();
+    return newMethod.toObject();
+  } catch (error) {
+    console.error('Error adding payment method:', error);
+    throw error;
+  }
 };
 
-export const updatePaymentMethod = async (id: string, methodData: Partial<PaymentMethod>) => {
-  const result = await PaymentMethodModel.updateOne(
-    { id },
-    { $set: methodData }
-  );
-  
-  return result.modifiedCount > 0;
+export const updatePaymentMethod = async (id: string, methodData: Partial<Payment>) => {
+  try {
+    // Ensure banks array is handled properly
+    const updateData = { ...methodData };
+    if (updateData.type && updateData.type !== 'bank_transfer') {
+      // If type is not bank_transfer, ensure banks array is empty
+      updateData.banks = [];
+    }
+    
+    const result = await PaymentModel.updateOne(
+      { id },
+      { $set: updateData }
+    );
+    
+    if (result.modifiedCount > 0) {
+      // Return the updated payment method
+      const updatedMethod = await PaymentModel.findOne({ id });
+      return updatedMethod ? updatedMethod.toObject() : null;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    throw error;
+  }
 };
 
 export const deletePaymentMethod = async (id: string) => {
-  const result = await PaymentMethodModel.deleteOne({ id });
-  return result.deletedCount > 0;
+  try {
+    const result = await PaymentModel.deleteOne({ id });
+    return result.deletedCount > 0;
+  } catch (error) {
+    console.error('Error deleting payment method:', error);
+    throw error;
+  }
 };
 
+
+
 // Inventory
-export const getInventory = async (): Promise<InventoryItem[]> => {
-  const inventory = await InventoryModel.find({});
-  return inventory.map(item => {
+export const getInventory = async (): Promise<Inventory[]> => {
+  debugInventory('getInventory: called');
+  await initializeDatabase();
+  const inventory = await InventoryModel.find({}).maxTimeMS(10000);
+  const result = inventory.map(item => {
     const itemObj = item.toObject();
     // Convert Date to string for lastRestocked
     return {
@@ -320,9 +442,12 @@ export const getInventory = async (): Promise<InventoryItem[]> => {
       lastRestocked: itemObj.lastRestocked.toISOString()
     };
   });
+  debugInventory('getInventory: returning %d items', result.length);
+  return result;
 };
 
-export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id'>) => {
+export const addInventoryItem = async (itemData: Omit<Inventory, 'id'>) => {
+  debugInventory('addInventoryItem: called with data %O', itemData);
   const newItem = new InventoryModel({ 
     id: generateId(),
     ...itemData,
@@ -330,38 +455,57 @@ export const addInventoryItem = async (itemData: Omit<InventoryItem, 'id'>) => {
   });
   await newItem.save();
   const savedItem = newItem.toObject();
-  return {
+  const result = {
     ...savedItem,
     lastRestocked: savedItem.lastRestocked.toISOString()
   };
+  debugInventory('addInventoryItem: successfully added item with id %s', result.id);
+  return result;
 };
 
-export const updateInventoryItem = async (id: string, itemData: Partial<InventoryItem>) => {
+export const updateInventoryItem = async (id: string, itemData: Partial<Inventory>) => {
+  debugInventory('updateInventoryItem: called with id %s and data %O', id, itemData);
   const result = await InventoryModel.updateOne(
     { id },
     { $set: itemData }
   );
-  
+  debugInventory('updateInventoryItem: modified %d documents', result.modifiedCount);
   return result.modifiedCount > 0;
 };
 
 export const deleteInventoryItem = async (id: string) => {
+  debugInventory('deleteInventoryItem: called with id %s', id);
   const result = await InventoryModel.deleteOne({ id });
+  debugInventory('deleteInventoryItem: deleted %d documents', result.deletedCount);
   return result.deletedCount > 0;
 };
 
 export const updateInventoryStock = async (id: string, quantity: number) => {
+  debugInventory('updateInventoryStock: called with id %s and quantity %d', id, quantity);
   const result = await InventoryModel.updateOne(
     { id },
     { $set: { quantity, lastRestocked: new Date() } }
   );
+  debugInventory('updateInventoryStock: modified %d documents', result.modifiedCount);
   
-  return result.modifiedCount > 0;
+  if (result.modifiedCount > 0) {
+    // Return the updated inventory item
+    const updatedItem = await InventoryModel.findOne({ id });
+    if (updatedItem) {
+      const itemObj = updatedItem.toObject();
+      return {
+        ...itemObj,
+        lastRestocked: itemObj.lastRestocked.toISOString()
+      };
+    }
+  }
+  
+  return null;
 };
 
 
 // Reporting
-const getOrderTotal = (order: Order): number => {
+const getOrderTotalReport = (order: Order): number => {
   return order.items.reduce((total, item) => {
     return total + (item.menuItem.price * item.quantity);
   }, 0);
@@ -378,7 +522,7 @@ export const getSalesReport = async (dateRange: DateRange) => {
   });
   
   // Calculate statistics
-  const totalRevenue = filteredOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+  const totalRevenue = filteredOrders.reduce((sum, order) => sum + getOrderTotalReport(order), 0);
   const totalOrders = filteredOrders.length;
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
   
@@ -393,7 +537,7 @@ export const getSalesReport = async (dateRange: DateRange) => {
       return format(completedAt, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
     });
     
-    const dayRevenue = dayOrders.reduce((sum, order) => sum + getOrderTotal(order), 0);
+    const dayRevenue = dayOrders.reduce((sum, order) => sum + getOrderTotalReport(order), 0);
     dailySales.push({
       date: format(day, 'MMM dd'),
       revenue: dayRevenue
@@ -437,14 +581,12 @@ export const getItemsReport = async (dateRange: DateRange) => {
     });
   });
   
-  // Convert to array and sort
-  const itemsArray = Object.values(itemSales);
-  const bestSelling = [...itemsArray].sort((a, b) => b.quantity - a.quantity);
-  const leastSelling = [...itemsArray].sort((a, b) => a.quantity - b.quantity);
+  // Convert to array and sort by quantity
+  const sortedItems = Object.values(itemSales).sort((a, b) => b.quantity - a.quantity);
   
   return {
-    bestSelling,
-    leastSelling
+    bestSelling: sortedItems.slice(0, 10),
+    leastSelling: sortedItems.slice(-10).reverse()
   };
 };
 
@@ -460,72 +602,100 @@ export const getKitchenReport = async (dateRange: DateRange) => {
   
   // Calculate average preparation time
   let totalPrepTime = 0;
-  let completedItems = 0;
+  let completedItemCount = 0;
+  
+  const itemPrepTimes: Record<string, { name: string; totalTime: number; count: number }> = {};
   
   filteredOrders.forEach(order => {
-    if (order.statusHistory) {
-      // Find when the order was created and when it was completed
-      const createdEvent = order.statusHistory.find(event => event.status === 'pending');
-      const completedEvent = order.statusHistory.find(event => event.status === 'completed');
-      
-      if (createdEvent && completedEvent) {
-        const createdTime = new Date(createdEvent.timestamp);
-        const completedTime = new Date(completedEvent.timestamp);
-        const prepTime = differenceInMinutes(completedTime, createdTime);
-        
-        if (prepTime > 0) {
-          totalPrepTime += prepTime;
-          completedItems += order.items.length;
-        }
+    if (!order.completedAt || !order.createdAt) return;
+    
+    const prepTime = differenceInMinutes(new Date(order.completedAt), new Date(order.createdAt));
+    totalPrepTime += prepTime;
+    
+    order.items.forEach(item => {
+      const itemId = item.menuItem.id;
+      if (!itemPrepTimes[itemId]) {
+        itemPrepTimes[itemId] = {
+          name: item.menuItem.name,
+          totalTime: 0,
+          count: 0
+        };
       }
-    }
+      
+      itemPrepTimes[itemId].totalTime += prepTime;
+      itemPrepTimes[itemId].count += 1;
+    });
+    
+    completedItemCount += order.items.length;
   });
   
-  const avgPrepTime = completedItems > 0 ? totalPrepTime / completedItems : 0;
+  const avgPrepTime = completedItemCount > 0 ? totalPrepTime / completedItemCount : 0;
   
-  // Find most delayed items (simplified)
-  const itemDelays: Record<string, { name: string; totalTime: number; count: number }> = {};
+  // Calculate average prep time per item
+  const itemsWithAvgTime = Object.entries(itemPrepTimes).map(([id, data]) => ({
+    ...data,
+    avgTime: data.count > 0 ? data.totalTime / data.count : 0
+  }));
   
-  filteredOrders.forEach(order => {
-    if (order.statusHistory) {
-      const createdEvent = order.statusHistory.find(event => event.status === 'pending');
-      const completedEvent = order.statusHistory.find(event => event.status === 'completed');
-      
-      if (createdEvent && completedEvent) {
-        const createdTime = new Date(createdEvent.timestamp);
-        const completedTime = new Date(completedEvent.timestamp);
-        const prepTime = differenceInMinutes(completedTime, createdTime);
-        
-        if (prepTime > 0) {
-          order.items.forEach(item => {
-            const itemId = item.menuItem.id;
-            if (!itemDelays[itemId]) {
-              itemDelays[itemId] = {
-                name: item.menuItem.name,
-                totalTime: 0,
-                count: 0
-              };
-            }
-            
-            itemDelays[itemId].totalTime += prepTime;
-            itemDelays[itemId].count += 1;
-          });
-        }
-      }
-    }
-  });
-  
-  // Calculate average delay per item
-  const delayedItems = Object.values(itemDelays)
-    .map(item => ({
-      name: item.name,
-      avgTime: item.count > 0 ? item.totalTime / item.count : 0
-    }))
+  // Sort by average time (descending) to find most delayed items
+  const mostDelayedItems = itemsWithAvgTime
     .sort((a, b) => b.avgTime - a.avgTime)
-    .slice(0, 10); // Top 10 most delayed items
+    .slice(0, 10);
   
   return {
     avgPrepTime,
-    mostDelayed: delayedItems
+    mostDelayedItems
   };
+};
+
+// Workstations
+export const getWorkstations = async (): Promise<Workstation[]> => {
+  await initializeDatabase();
+  const workstations = await WorkstationModel.find({}).sort({ position: 1 }).maxTimeMS(10000);
+  return workstations.map(workstation => workstation.toObject());
+};
+
+export const addWorkstation = async (workstationData: Omit<Workstation, 'id'>) => {
+  // Get the highest position value and add 1
+  const workstations = await getWorkstations();
+  const maxPosition = workstations.length > 0 ? Math.max(...workstations.map(w => w.position || 0)) : 0;
+  
+  const newWorkstation = new WorkstationModel({ 
+    id: generateId(),
+    ...workstationData,
+    position: maxPosition + 1
+  });
+  await newWorkstation.save();
+  return newWorkstation.toObject();
+};
+
+export const updateWorkstation = async (id: string, workstationData: Partial<Workstation>) => {
+  const result = await WorkstationModel.updateOne(
+    { id },
+    { $set: workstationData }
+  );
+  
+  return result.modifiedCount > 0;
+};
+
+export const deleteWorkstation = async (id: string) => {
+  const result = await WorkstationModel.deleteOne({ id });
+  return result.deletedCount > 0;
+};
+
+export const updateWorkstationPositions = async (positions: { id: string; position: number }[]) => {
+  try {
+    const bulkOps = positions.map(({ id, position }) => ({
+      updateOne: {
+        filter: { id },
+        update: { $set: { position } }
+      }
+    }));
+    
+    const result = await WorkstationModel.bulkWrite(bulkOps);
+    return result.modifiedCount || 0;
+  } catch (error) {
+    console.error('Error updating workstation positions:', error);
+    throw error;
+  }
 };

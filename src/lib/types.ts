@@ -15,11 +15,7 @@ export type OrderItem = {
   id:string;
   menuItem: MenuItem;
   quantity: number; // This will be the total quantity for the item line
-  cookedCount: number;
-  newCount: number;
-  cookingCount: number;
-  readyCount: number;
-  servedCount: number; // For FOH to track
+  status: 'new' | 'in-progress' | 'ready' | 'served' | string; // Status tracking for workstation workflow
   selectedExtras?: MenuItem[];
   splitId?: number;
   notes?: string;
@@ -68,7 +64,7 @@ export type Category = {
     parentId?: number | null;
 };
 
-export type PaymentMethod = {
+export type Payment = {
   id: string;
   name: string;
   type: 'cash' | 'card' | 'bank_transfer';

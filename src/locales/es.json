@@ -108,29 +108,33 @@
     "orders": {
         "title": "Historial de Órdenes",
         "description": "Ver y gestionar todas las órdenes de los clientes.",
+        "back_to_pos": "Volver al POS",
         "loading": "Cargando historial de órdenes...",
         "no_orders_found": "No se encontraron órdenes.",
+        "error": "Error al cargar órdenes. Por favor intente nuevamente.",
         "no_orders_description": "Las nuevas órdenes aparecerán aquí a medida que se creen.",
         "tabs": {
-            "all": "Todas",
-            "pending": "Pendientes",
-            "completed": "Completadas"
+            "all": "Todas las Órdenes",
+            "pending": "Órdenes Pendientes",
+            "completed": "Órdenes Completadas"
         },
         "status": {
-            "pending": "Pendiente",
+            "pending": "En Progreso",
             "completed": "Completada"
         },
         "table": {
-            "order_id": "ID de Orden",
-            "date": "Fecha",
-            "table": "Mesa",
-            "staff": "Personal",
-            "status": "Estado",
-            "total": "Total",
+            "order_id": "Orden #",
+            "date": "Fecha y Hora",
+            "table": "Mesa #",
+            "staff": "Miembro del Personal",
+            "status": "Estado de Orden",
+            "total": "Monto Total",
             "actions": "Acciones",
             "toggle_menu": "Alternar menú",
+            "edit": "Editar Orden",
             "view_details": "Ver Detalles",
-            "search_placeholder": "Buscar por ID de Orden o Mesa..."
+            "delete": "Eliminar Orden",
+            "search_placeholder": "Buscar por Orden # o Mesa #..."
         },
         "details": {
             "title": "Detalles de la Orden",
@@ -148,6 +152,14 @@
             "print_toast_desc": "Enviado a la impresora.",
             "download_toast_title": "Descargando Recibo",
             "download_toast_desc": "Su recibo se descargará en breve."
+        },
+        "pagination": {
+            "showing": "Mostrando",
+            "of": "de",
+            "results": "resultados",
+            "page": "Página",
+            "previous": "Anterior",
+            "next": "Siguiente"
         },
         "toast": {
             "fetch_error": "No se pudo cargar el historial de órdenes."
@@ -173,11 +185,13 @@
                 "actions": "Acciones",
                 "toggle_menu": "Alternar menú",
                 "edit": "Editar",
-                "delete": "Eliminar"
-            },
-             "status": {
-                "available": "Disponible",
-                "unavailable": "No disponible"
+                "delete": "Eliminar",
+                "select_all": "Seleccionar todo",
+                "select_row": "Seleccionar fila",
+                "status": {
+                    "available": "Disponible",
+                    "unavailable": "No disponible"
+                }
             }
         },
         "inventory": {
@@ -196,6 +210,7 @@
                 "low_stock": "Stock Bajo",
                 "out_of_stock": "Agotado"
             },
+            "no_items_found": "No se encontraron artículos de inventario.",
             "dialog": {
                 "edit_title": "Editar Artículo de Inventario",
                 "add_title": "Añadir Nuevo Artículo al Inventario",
@@ -221,7 +236,7 @@
             "confirm": "Sí, eliminar"
         },
         "payment_methods": {
-            "title": "Métodos de Pago",
+            "title": "Pagos",
             "desc": "Gestiona las opciones de pago disponibles en la caja.",
             "add_method": "Añadir Método",
             "table": {
@@ -234,7 +249,10 @@
                 "cash": "Efectivo",
                 "card": "Tarjeta",
                 "bank_transfer": "Transferencia Bancaria"
-            }
+            },
+            "aria_enable": "Habilitar {{name}}",
+            "delete_success": "Método de pago eliminado correctamente.",
+            "delete_error": "Error al eliminar el método de pago. Por favor intente nuevamente."
         },
         "item_dialog": {
             "edit_title": "Editar Artículo del Menú",
@@ -251,6 +269,30 @@
             "select_modifiers": "Seleccionar modificadores...",
             "modifiers_desc": "Los modificadores estarán disponibles para este artículo en el TPV.",
             "available": "Disponible"
+        },
+        "menu_item_dialog": {
+            "edit_title": "Editar Artículo del Menú",
+            "add_title": "Añadir Nuevo Artículo al Menú",
+            "edit_desc": "Realiza cambios en el artículo del menú aquí. Haz clic en guardar cuando termines.",
+            "add_desc": "Añade un nuevo artículo a tu menú. Haz clic en crear cuando termines.",
+            "name": "Nombre",
+            "name_placeholder": "Ingrese el nombre del artículo",
+            "description": "Descripción",
+            "description_placeholder": "Ingrese la descripción del artículo",
+            "price": "Precio",
+            "price_placeholder": "0.00",
+            "category": "Categoría",
+            "category_placeholder": "Seleccione una categoría",
+            "image_url": "URL de la Imagen",
+            "image_url_placeholder": "https://ejemplo.com/imagen.jpg",
+            "ai_hint": "Sugerencia de IA",
+            "ai_hint_placeholder": "Ingrese una sugerencia para contenido generado por IA",
+            "linked_modifiers": "Modificadores Vinculados",
+            "validation_error": "Por favor, complete todos los campos obligatorios.",
+            "invalid_price": "Por favor, ingrese un precio válido.",
+            "updated": "Artículo del menú actualizado.",
+            "added": "Artículo del menú añadido.",
+            "error": "Ocurrió un error. Por favor intente nuevamente."
         },
         "category_dialog": {
             "title": "Gestionar Categorías",
@@ -304,6 +346,33 @@
             "inventory_stock_update_error": "Error al actualizar el stock del inventario.",
             "inventory_item_deleted": "Artículo de inventario eliminado.",
             "inventory_item_delete_error": "Error al eliminar el artículo de inventario."
+        },
+        "workstations": {
+            "title": "Estaciones de Trabajo",
+            "name": "Nombre de Estación",
+            "add_workstation": "Añadir Estación",
+            "edit_workstation": "Editar Estación",
+            "default": "Por defecto",
+            "states": {
+                "title": "Estados",
+                "new": "Nombre Estado Nuevo",
+                "in_progress": "Nombre Estado En Progreso",
+                "ready": "Nombre Estado Listo"
+            },
+            "actions": "Acciones",
+            "toggle_menu": "Alternar menú",
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "no_workstations": "No se encontraron estaciones de trabajo.",
+            "updated_success": "Estación actualizada correctamente.",
+            "created_success": "Estación creada correctamente.",
+            "deleted_success": "{{name}} eliminado correctamente.",
+            "error": "Ocurrió un error. Por favor intente nuevamente.",
+            "errors": {
+                "name_required": "El nombre de la estación es obligatorio.",
+                "states_required": "Todos los estados de la estación son obligatorios.",
+                "states_unique": "Los nombres de los estados de la estación deben ser únicos."
+            }
         }
     },
     "reports": {
@@ -351,17 +420,48 @@
     },
     "profile": {
         "title": "Perfil",
+        "description": "Gestiona la configuración y preferencias de tu perfil.",
         "account_title": "Mi Cuenta",
         "account_desc": "Actualiza la configuración de tu cuenta.",
+        "personal_info": "Información Personal",
+        "personal_info_desc": "Actualiza tus datos personales aquí.",
         "name": "Nombre",
         "email": "Correo Electrónico",
         "save_button": "Guardar Cambios",
+        "logout": "Cerrar Sesión",
+        "logout_desc": "Finaliza tu sesión y cierra sesión en la aplicación.",
+        "logout_button": "Cerrar Sesión",
         "password_section_title": "Cambiar Contraseña",
         "password_section_desc": "Actualiza tu contraseña aquí. Por favor, ten cuidado.",
         "current_password": "Contraseña Actual",
         "new_password": "Nueva Contraseña",
         "confirm_password": "Confirmar Nueva Contraseña",
         "change_password_button": "Cambiar Contraseña",
+        "user_info_title": "Información del Usuario",
+        "user_info_desc": "Detalles de rol y membresía",
+        "role": "Rol",
+        "membership": "Membresía",
+        "membership_title": "Membresía",
+        "membership_desc": "Gestiona tu plan de membresía",
+        "current_plan": "Plan Actual",
+        "full_access": "Acceso completo a todas las funciones",
+        "limited_access": "Acceso limitado a funciones básicas",
+        "upgrade_to_pro": "Actualizar a Pro",
+        "downgrade_to_free": "Degradar a Gratis",
+        "role_management_title": "Gestión de Roles",
+        "role_management_desc": "Gestiona tu rol de usuario",
+        "change_role": "Cambiar Rol",
+        "select_role": "Selecciona un rol",
+        "roles": {
+            "owner": "Propietario",
+            "admin": "Administrador",
+            "staff": "Empleado"
+        },
+        "role_descriptions": {
+            "owner": "Como propietario del restaurante, tienes acceso completo a todas las funciones del sistema.",
+            "admin": "Como administrador, puedes gestionar el personal y la configuración del sistema.",
+            "staff": "Como miembro del personal, tienes acceso básico al sistema."
+        },
         "toast": {
             "profile_updated": "Información del perfil guardada.",
             "password_mismatch": "Las nuevas contraseñas no coinciden.",

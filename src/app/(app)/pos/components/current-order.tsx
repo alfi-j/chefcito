@@ -1,4 +1,3 @@
-
 "use client"
 import Image from 'next/image'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,8 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
 import { Send, CreditCard, Utensils, StickyNote, Package, PersonStanding, PlusCircle, MinusCircle } from 'lucide-react'
-import { useI18n } from '@/context/i18n-context'
-import type { useCurrentOrder } from '@/hooks/use-current-order'
+import { useI18nStore } from '@/lib/stores/i18n-store'
 import {
   Select,
   SelectContent,
@@ -20,16 +18,39 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
+import { useCurrentOrderStore, useCurrentOrderTotals, useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store'
+
+// Define the type for our current order object
+interface CurrentOrderType {
+  items: OrderItem[];
+  table: number;
+  setTable: (value: number | ((prev: number) => number)) => void;
+  notes: string;
+  setNotes: (value: string | ((prev: string) => string)) => void;
+  orderType: OrderType;
+  setOrderType: (value: OrderType | ((prev: OrderType) => OrderType)) => void;
+  deliveryInfo: DeliveryInfo;
+  setDeliveryInfo: (value: DeliveryInfo | ((prev: DeliveryInfo) => DeliveryInfo)) => void;
+  addItem: (itemToAdd: any, quantity: number, selectedExtras: any[], notes?: string) => void;
+  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: any[], notes?: string) => void;
+  removeItem: (itemId: string) => void;
+  clearOrder: () => void;
+  updateItemQuantity: (itemId: string, adjustment: number) => void;
+  subtotal: number;
+  tax: number;
+  total: number;
+  itemCountByCategory: Record<string, number>;
+}
 
 interface CurrentOrderProps {
-  order: ReturnType<typeof useCurrentOrder>;
+  order: CurrentOrderType;
   onSendToKitchen: () => void;
   onPayment: () => void;
   onEditItem: (item: OrderItem) => void;
 }
 
 export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: CurrentOrderProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
   const { 
     items, subtotal, tax, total, clearOrder, 
     table, setTable, notes, setNotes,

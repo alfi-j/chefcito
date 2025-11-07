@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,163 +10,147 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useI18n } from '@/context/i18n-context';
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { CreditCard, DollarSign, Users, PlusCircle, Trash2, Landmark, CheckCircle, CircleDashed, Check } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { getPaymentMethods } from '@/lib/data-service';
-import { type PaymentMethod, type OrderItem, type BillSplit } from '@/lib/types';
-import { Switch } from '@/components/ui/switch';
+import { type OrderItem, type Payment } from '@/lib/types';
+import { useCurrentOrderTotals } from '@/lib/stores/current-order-store';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 
 interface PaymentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   orderItems: OrderItem[];
   totalAmount: number;
-  onConfirmPayment: () => void;
+  onConfirmPayment: (paymentData: { method: Payment; amount: number; splitDetails?: any[] }) => void;
+  paymentMethods: Payment[];
 }
 
-const calculateItemTotal = (item: OrderItem) => {
-    const extrasPrice = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-    const totalUnits = (item.cookedCount || 0) + (item.quantity || 0);
-    return (item.menuItem.price + extrasPrice) * totalUnits;
+const getIconForMethod = (type: string) => {
+  switch (type) {
+    case 'card': return <CreditCard className="h-4 w-4" />;
+    case 'bank_transfer': return <Landmark className="h-4 w-4" />;
+    default: return <DollarSign className="h-4 w-4" />;
+  }
 };
 
-export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPayment, orderItems: originalOrderItems }: PaymentDialogProps) {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod | null>(null);
+export function PaymentDialog({ isOpen, onOpenChange, orderItems, totalAmount, onConfirmPayment, paymentMethods }: PaymentDialogProps) {
+  const { t } = useI18nStore();
+  const { subtotal, tax } = useCurrentOrderTotals();
+  
+  const [selectedMethodId, setSelectedMethodId] = useState<string>('');
+  const [splitMethod, setSplitMethod] = useState<'equally' | 'by_item' | 'by_person'>('equally');
+  const [numPeople, setNumPeople] = useState<number>(2);
+  const [splitDetails, setSplitDetails] = useState<{ itemId: string; person: number }[]>([]);
+  const [amount, setAmount] = useState<string>('');
   const [selectedBank, setSelectedBank] = useState<string>('');
-  const [isSplittingBill, setIsSplittingBill] = useState(false);
+  const [bills, setBills] = useState<{ id: number; items: { itemId: string; quantity: number }[]; amount: number }[]>([{ id: 1, items: [], amount: 0 }]);
+  const [activeBillId, setActiveBillId] = useState<number>(1);
   
-  const [splits, setSplits] = useState<BillSplit[]>([]);
-  const [items, setItems] = useState<OrderItem[]>([]);
+  const selectedMethod = paymentMethods.find(m => m.id === selectedMethodId);
 
-  const { t } = useI18n();
-  
-  const initializeSplits = (count: number) => {
-     const newSplits = Array.from({ length: count }, (_, i) => ({
-      id: Date.now() + i,
-      total: 0,
-    }));
-    setSplits(newSplits);
-  }
-
-  useEffect(() => {
-    if (isOpen) {
-      const fetchMethods = async () => {
-          try {
-              const response = await fetch('/api/payment-methods'); // Replace with your actual API endpoint
-              if (!response.ok) {
-                  throw new Error('Failed to fetch payment methods');
-              }
-              const methods = await response.json();
-              const enabledMethods = methods.filter((m: PaymentMethod) => m.enabled);
-              setPaymentMethods(enabledMethods);
-              if (enabledMethods.length > 0) {
-                const defaultMethod = enabledMethods[0];
-                setSelectedMethod(defaultMethod);
-                if (defaultMethod.type === 'bank_transfer' && defaultMethod.banks && defaultMethod.banks.length > 0) {
-                  setSelectedBank(defaultMethod.banks[0]);
-                } else {
-                  setSelectedBank('');
-                }
-              }
-          } catch (error) {
-              console.error('Error fetching payment methods:', error);
-              // Handle error, show a message to the user, etc.
-          }
-      }
-      fetchMethods();
-      setIsSplittingBill(false);
-      setSplits([]);
-      setItems(JSON.parse(JSON.stringify(originalOrderItems.map(item => ({...item, splitId: undefined})))));
-    }
-  }, [isOpen, originalOrderItems]);
-  
   const handleMethodChange = (value: string) => {
-    const method = paymentMethods.find(m => m.id === value);
-    if(method) {
-      setSelectedMethod(method);
-       if (method.type === 'bank_transfer' && method.banks && method.banks.length > 0) {
-        setSelectedBank(method.banks[0]);
+    setSelectedMethodId(value);
+    setSelectedBank('');
+  }
+
+  const handleSplitMethodChange = (value: 'equally' | 'by_item' | 'by_person') => {
+    setSplitMethod(value);
+    if (value === 'equally') {
+      setBills([{ id: 1, items: [], amount: 0 }]);
+      setActiveBillId(1);
+    }
+  }
+
+  const handleAddBill = () => {
+    const newBillId = bills.length + 1;
+    setBills([...bills, { id: newBillId, items: [], amount: 0 }]);
+    setActiveBillId(newBillId);
+  }
+
+  const handleRemoveBill = (id: number) => {
+    if (bills.length === 1) return;
+    setBills(bills.filter(bill => bill.id !== id));
+    setActiveBillId(bills[0].id);
+  }
+
+  const handleAssignItem = (itemId: string, person: number) => {
+    setSplitDetails(currentDetails => {
+      const existingDetail = currentDetails.find(detail => detail.itemId === itemId);
+      if (existingDetail) {
+        return currentDetails.map(detail => detail.itemId === itemId ? { ...detail, person } : detail);
       } else {
-        setSelectedBank('');
+        return [...currentDetails, { itemId, person }];
       }
-    }
+    });
   }
 
-  const handleSplitToggle = (checked: boolean) => {
-    setIsSplittingBill(checked);
-    if (checked) {
-      initializeSplits(2);
-    } else {
-      setSplits([]);
-      // Clear splitId from all items
-      setItems(currentItems => currentItems.map(it => ({ ...it, splitId: undefined })));
-    }
-  }
-
-  const addSplit = () => {
-    const newSplit = { id: Date.now(), total: 0 };
-    setSplits(s => [...s, newSplit]);
-  }
-
-  const removeSplit = (id: number) => {
-    setSplits(s => s.filter(split => split.id !== id));
-    // Unassign items from the removed split
-    setItems(currentItems => currentItems.map(item => item.splitId === id ? { ...item, splitId: undefined } : item));
-  }
-
-  const handleItemAssignment = (itemId: string, splitId: string) => {
-    setItems(currentItems =>
-      currentItems.map(item => {
-        if (item.id === itemId) {
-          return { ...item, splitId: splitId === 'unassigned' ? undefined : Number(splitId) };
+  const handleItemQuantityChange = (itemId: string, quantity: number) => {
+    setBills(currentBills => {
+      return currentBills.map(bill => {
+        if (bill.id === activeBillId) {
+          const existingItem = bill.items.find(item => item.itemId === itemId);
+          const orderItem = orderItems.find(orderItem => orderItem.id === itemId);
+          if (!orderItem) return bill;
+          
+          if (existingItem) {
+            return {
+              ...bill,
+              items: bill.items.map(item => item.itemId === itemId ? { ...item, quantity } : item),
+              amount: bill.amount + (quantity - existingItem.quantity) * orderItem.menuItem.price,
+            };
+          } else {
+            return {
+              ...bill,
+              items: [...bill.items, { itemId, quantity }],
+              amount: bill.amount + quantity * orderItem.menuItem.price,
+            };
+          }
         }
-        return item;
-      })
-    );
-  };
-  
-  const unassignedItems = useMemo(() => {
-    return items.filter(item => !item.splitId);
-  }, [items]);
-
-  // Recalculate split totals whenever items change
-  useEffect(() => {
-    if (!isSplittingBill) return;
-
-    setSplits(currentSplits => {
-      return currentSplits.map(split => {
-        const splitItems = items.filter(item => item.splitId === split.id);
-        const total = splitItems.reduce((acc, currentItem) => acc + calculateItemTotal(currentItem), 0);
-        return { ...split, total };
+        return bill;
       });
     });
-  }, [items, isSplittingBill]);
-  
-  const allItemsAssigned = isSplittingBill && unassignedItems.length === 0;
-  const canConfirm = !isSplittingBill || allItemsAssigned;
+  }
 
-  const getIconForMethod = (type: PaymentMethod['type']) => {
-    switch (type) {
-      case 'card': return <CreditCard className="h-5 w-5" />;
-      case 'cash': return <DollarSign className="h-5 w-5" />;
-      case 'bank_transfer': return <Landmark className="h-5 w-5" />;
-      default: return null;
-    }
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAmount(e.target.value);
+  }
+
+  const handleBankChange = (value: string) => {
+    setSelectedBank(value);
+  }
+
+  const handleConfirm = () => {
+    if (!selectedMethod) return;
+    if (selectedMethod?.type === 'bank_transfer' && !selectedBank) return;
+    if (splitMethod === 'equally' && bills[0].amount !== totalAmount) return;
+    if (splitMethod === 'by_item' && splitDetails.length !== orderItems.length) return;
+    if (splitMethod === 'by_person' && bills.reduce((acc, bill) => acc + bill.amount, 0) !== totalAmount) return;
+
+    const paymentData = {
+      method: selectedMethod,
+      amount: Number(amount) || totalAmount,
+      splitDetails: splitMethod === 'equally' ? undefined : splitMethod === 'by_item' ? splitDetails : bills,
+    };
+
+    onConfirmPayment(paymentData);
+    onOpenChange(false);
+  }
+
+  const canConfirm = () => {
+    if (selectedMethod?.type === 'bank_transfer' && !selectedBank) return false;
+    if (splitMethod === 'equally' && bills[0].amount !== totalAmount) return false;
+    if (splitMethod === 'by_item' && splitDetails.length !== orderItems.length) return false;
+    if (splitMethod === 'by_person' && bills.reduce((acc, bill) => acc + bill.amount, 0) !== totalAmount) return false;
+    return true;
   }
 
   return (
@@ -189,7 +173,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                         <RadioGroup 
                         className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2"
                         onValueChange={handleMethodChange}
-                        value={selectedMethod?.id}
+                        value={selectedMethodId}
                         >
                         {paymentMethods.map(method => (
                             <div key={method.id}>
@@ -210,7 +194,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     {selectedMethod?.type === 'bank_transfer' && (
                         <div className="space-y-2">
                             <Label htmlFor="bank" className="font-semibold text-base">{t('pos.payment_dialog.bank')}</Label>
-                            <Select value={selectedBank} onValueChange={setSelectedBank}>
+                            <Select value={selectedBank} onValueChange={handleBankChange}>
                             <SelectTrigger id="bank">
                                 <SelectValue placeholder={t('pos.payment_dialog.select_bank')} />
                             </SelectTrigger>
@@ -228,10 +212,46 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                     <div className="space-y-3">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-2">
-                                <Switch id="split-bill-switch" checked={isSplittingBill} onCheckedChange={handleSplitToggle} />
+                                <Switch id="split-bill-switch" checked={splitMethod !== 'equally'} onCheckedChange={() => handleSplitMethodChange(splitMethod === 'equally' ? 'by_item' : 'equally')} />
                                 <Label htmlFor="split-bill-switch" className="font-semibold flex items-center gap-2 text-base"><Users className="h-5 w-5"/>{t('pos.payment_dialog.split_bill')}</Label>
                             </div>
                         </div>
+                        {splitMethod !== 'equally' && (
+                            <div className="space-y-2">
+                                <RadioGroup 
+                                className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                                onValueChange={handleSplitMethodChange}
+                                value={splitMethod}
+                                >
+                                <div>
+                                <RadioGroupItem value="by_item" id="by-item" className="peer sr-only" />
+                                <Label
+                                    htmlFor="by-item"
+                                    className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                >
+                                    <span className="font-semibold">{t('pos.payment_dialog.by_item')}</span>
+                                    <Check className="h-4 w-4 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
+                                </Label>
+                                </div>
+                                <div>
+                                <RadioGroupItem value="by_person" id="by-person" className="peer sr-only" />
+                                <Label
+                                    htmlFor="by-person"
+                                    className="flex items-center gap-3 rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                >
+                                    <span className="font-semibold">{t('pos.payment_dialog.by_person')}</span>
+                                    <Check className="h-4 w-4 ml-auto text-primary opacity-0 peer-data-[state=checked]:opacity-100" />
+                                </Label>
+                                </div>
+                                </RadioGroup>
+                                {splitMethod === 'by_person' && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="num-people" className="font-semibold text-base">{t('pos.payment_dialog.num_people')}</Label>
+                                        <Input type="number" id="num-people" value={numPeople} onChange={(e) => setNumPeople(Number(e.target.value))} className="w-full" />
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </ScrollArea>
@@ -239,22 +259,29 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
             {/* Right Side: Order Summary / Item Assignment */}
             <ScrollArea className="h-full -mx-4">
               <div className="space-y-3 px-4">
-                {isSplittingBill ? (
+                {splitMethod === 'equally' ? (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-base">{t('pos.payment_dialog.enter_amount')}</Label>
+                      <Input type="number" value={amount} onChange={handleAmountChange} className="w-full" />
+                    </div>
+                  </>
+                ) : splitMethod === 'by_item' ? (
                   <>
                     <div className="space-y-2">
                       <Label className="font-semibold text-base">{t('pos.payment_dialog.assign_items_for')}</Label>
                       <div className="space-y-2">
-                        {items.map((item) => (
+                        {orderItems.map((item) => (
                           <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
                             <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center cursor-pointer">
                               <div>
                                 <span className="font-medium text-base">{item.quantity}x {item.menuItem.name}</span>
-                                <p className="text-sm text-muted-foreground">${calculateItemTotal(item).toFixed(2)}</p>
+                                <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
                               </div>
                             </Label>
                             <Select
-                              value={item.splitId ? String(item.splitId) : 'unassigned'}
-                              onValueChange={(value) => handleItemAssignment(item.id, value)}
+                              value={splitDetails.find(detail => detail.itemId === item.id)?.person ? String(splitDetails.find(detail => detail.itemId === item.id)?.person) : 'unassigned'}
+                              onValueChange={(value) => handleAssignItem(item.id, Number(value))}
                             >
                               <SelectTrigger className="w-[140px]">
                                 <SelectValue placeholder="Assign..." />
@@ -262,8 +289,8 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                               <SelectContent>
                                 <SelectItem value="unassigned">{t('pos.payment_dialog.unassigned_items')}</SelectItem>
                                 <Separator />
-                                {splits.map((split, index) => (
-                                  <SelectItem key={split.id} value={String(split.id)}>{t('pos.payment_dialog.bill')} {index + 1}</SelectItem>
+                                {Array.from({ length: numPeople }, (_, i) => (
+                                  <SelectItem key={i} value={String(i + 1)}>{t('pos.payment_dialog.person')} {i + 1}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -271,58 +298,60 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
                         ))}
                       </div>
                     </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-base">{t('pos.payment_dialog.assign_items_for')}</Label>
+                      <div className="space-y-2">
+                        {orderItems.map((item) => (
+                          <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
+                            <Label htmlFor={`item-${item.id}`} className="flex-1 flex justify-between items-center cursor-pointer">
+                              <div>
+                                <span className="font-medium text-base">{item.quantity}x {item.menuItem.name}</span>
+                                <p className="text-sm text-muted-foreground">${item.menuItem.price.toFixed(2)}</p>
+                              </div>
+                            </Label>
+                            <Input
+                              type="number"
+                              id={`item-${item.id}`}
+                              value={bills.find(bill => bill.id === activeBillId)?.items.find(it => it.itemId === item.id)?.quantity || 0}
+                              onChange={(e) => handleItemQuantityChange(item.id, Number(e.target.value))}
+                              className="w-[140px]"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                     <Separator />
                     <div className="space-y-2">
                       <Label className="font-semibold text-base">{t('pos.payment_dialog.bill_summary')}</Label>
-                      {splits.map((split, index) => (
-                        <div key={split.id} className="flex justify-between items-center p-2 rounded-md bg-muted/50">
+                      {bills.map((bill, index) => (
+                        <div key={bill.id} className="flex justify-between items-center p-2 rounded-md bg-muted/50">
                            <div className="font-semibold text-base">
                               {t('pos.payment_dialog.bill')} {index + 1}
                           </div>
                           <div className="flex items-center gap-2">
-                              <span className="font-bold text-primary text-base">${split.total.toFixed(2)}</span>
+                              <span className="font-bold text-primary text-base">${bill.amount.toFixed(2)}</span>
                               <Button
                                   variant="ghost"
                                   size="icon"
                                   className="h-6 w-6 text-destructive/70 hover:text-destructive"
-                                  onClick={(e) => { e.stopPropagation(); removeSplit(split.id); }}
-                                  disabled={splits.length <= 1}
+                                  onClick={(e) => { e.stopPropagation(); handleRemoveBill(bill.id); }}
+                                  disabled={bills.length <= 1}
                               >
                                   <Trash2 className="h-4 w-4"/>
                               </Button>
                           </div>
                         </div>
                       ))}
-                       <Button variant="outline" size="sm" onClick={addSplit} className="mt-2 w-full">
+                       <Button variant="outline" size="sm" onClick={handleAddBill} className="mt-2 w-full">
                           <PlusCircle className="mr-2 h-4 w-4" />
                           {t('pos.payment_dialog.add_bill')}
                       </Button>
                     </div>
                   </>
-                ) : (
-                  <>
-                    <Label className="font-semibold text-base">{t('pos.payment_dialog.order_summary')}</Label>
-                    <div className="space-y-3">
-                        {items.map(item => (
-                            <div key={item.id} className="flex items-center gap-3 p-2 rounded-md bg-muted/50">
-                                <Label className="flex-1 flex justify-between items-center text-base">
-                                    <span>{item.quantity}x {item.menuItem.name}</span>
-                                    <span>${calculateItemTotal(item).toFixed(2)}</span>
-                                </Label>
-                            </div>
-                        ))}
-                    </div>
-                  </>
                 )}
-                 {isSplittingBill && (
-                      <div className={cn(
-                          "flex items-center gap-2 font-medium pt-2 text-base",
-                          allItemsAssigned ? "text-green-600" : "text-destructive"
-                      )}>
-                          {allItemsAssigned ? <CheckCircle className="h-4 w-4"/> : <CircleDashed className="h-4 w-4"/>}
-                          <span>{allItemsAssigned ? t('pos.payment_dialog.all_items_assigned') : t('pos.payment_dialog.items_unassigned')}</span>
-                      </div>
-                  )}
               </div>
             </ScrollArea>
         </div>
@@ -333,7 +362,7 @@ export function PaymentDialog({ isOpen, onOpenChange, totalAmount, onConfirmPaym
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-            <Button onClick={onConfirmPayment} disabled={!canConfirm || (selectedMethod?.type === 'bank_transfer' && !selectedBank)}>{t('pos.payment_dialog.confirm')}</Button>
+            <Button onClick={handleConfirm} disabled={!canConfirm()}>{t('pos.payment_dialog.confirm')}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

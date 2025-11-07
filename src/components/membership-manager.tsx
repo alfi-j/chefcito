@@ -1,13 +1,15 @@
 "use client"
 
-import { useUser } from "@/context/user-context";
+import { useUserStore } from "@/lib/stores/user-store";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useI18nStore } from '@/lib/stores/i18n-store';
 
 export function MembershipManager() {
-  const { user, updateMembership } = useUser();
+  const { user, updateMembership } = useUserStore();
+  const { t } = useI18nStore();
 
   if (!user) {
     return null;
@@ -32,17 +34,17 @@ export function MembershipManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Membership</CardTitle>
-        <CardDescription>Manage your membership plan</CardDescription>
+        <CardTitle>{t('profile.membership_title')}</CardTitle>
+        <CardDescription>{t('profile.membership_desc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium">Current Plan</h3>
+            <h3 className="font-medium">{t('profile.current_plan')}</h3>
             <p className="text-sm text-muted-foreground">
               {user.membership === "pro" 
-                ? "Full access to all features" 
-                : "Limited access to basic features"}
+                ? t('profile.full_access') 
+                : t('profile.limited_access')}
             </p>
           </div>
           <Badge variant={user.membership === "pro" ? "default" : "secondary"}>
@@ -52,9 +54,9 @@ export function MembershipManager() {
       </CardContent>
       <CardFooter className="flex justify-between">
         {user.membership === "free" ? (
-          <Button onClick={handleUpgrade}>Upgrade to Pro</Button>
+          <Button onClick={handleUpgrade}>{t('profile.upgrade_to_pro')}</Button>
         ) : (
-          <Button variant="outline" onClick={handleDowngrade}>Downgrade to Free</Button>
+          <Button variant="outline" onClick={handleDowngrade}>{t('profile.downgrade_to_free')}</Button>
         )}
       </CardFooter>
     </Card>

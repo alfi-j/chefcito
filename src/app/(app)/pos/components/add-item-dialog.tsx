@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -14,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useI18n } from '@/context/i18n-context';
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { type MenuItem, type Category, type OrderItem } from '@/lib/types';
 import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -33,7 +32,7 @@ interface AddItemDialogProps {
 }
 
 export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, onRemove, menuItems, categories }: AddItemDialogProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   const [notes, setNotes] = useState('');

@@ -108,29 +108,33 @@
     "orders": {
         "title": "Order History",
         "description": "View and manage all customer orders.",
+        "back_to_pos": "Back to POS",
         "loading": "Loading order history...",
         "no_orders_found": "No orders found.",
+        "error": "Failed to load orders. Please try again.",
         "no_orders_description": "New orders will appear here as they are created.",
         "tabs": {
-            "all": "All",
-            "pending": "Pending",
-            "completed": "Completed"
+            "all": "All Orders",
+            "pending": "Pending Orders",
+            "completed": "Completed Orders"
         },
         "status": {
-            "pending": "Pending",
+            "pending": "In Progress",
             "completed": "Completed"
         },
         "table": {
-            "order_id": "Order ID",
-            "date": "Date",
-            "table": "Table",
-            "staff": "Staff",
-            "status": "Status",
-            "total": "Total",
+            "order_id": "Order #",
+            "date": "Date & Time",
+            "table": "Table #",
+            "staff": "Staff Member",
+            "status": "Order Status",
+            "total": "Total Amount",
             "actions": "Actions",
             "toggle_menu": "Toggle menu",
+            "edit": "Edit Order",
             "view_details": "View Details",
-            "search_placeholder": "Search by Order ID or Table..."
+            "delete": "Delete Order",
+            "search_placeholder": "Search by Order # or Table #..."
         },
         "details": {
             "title": "Order Details",
@@ -148,6 +152,14 @@
             "print_toast_desc": "Sent to printer.",
             "download_toast_title": "Downloading Receipt",
             "download_toast_desc": "Your receipt will download shortly."
+        },
+        "pagination": {
+            "showing": "Showing",
+            "of": "of",
+            "results": "results",
+            "page": "Page",
+            "previous": "Previous",
+            "next": "Next"
         },
         "toast": {
             "fetch_error": "Could not fetch order history."
@@ -173,11 +185,13 @@
                 "actions": "Actions",
                 "toggle_menu": "Toggle menu",
                 "edit": "Edit",
-                "delete": "Delete"
-            },
-            "status": {
-                "available": "Available",
-                "unavailable": "Unavailable"
+                "delete": "Delete",
+                "select_all": "Select all",
+                "select_row": "Select row",
+                "status": {
+                    "available": "Available",
+                    "unavailable": "Unavailable"
+                }
             }
         },
          "inventory": {
@@ -196,6 +210,7 @@
                 "low_stock": "Low Stock",
                 "out_of_stock": "Out of Stock"
             },
+            "no_items_found": "No inventory items found.",
             "dialog": {
                 "edit_title": "Edit Inventory Item",
                 "add_title": "Add New Inventory Item",
@@ -221,7 +236,7 @@
             "confirm": "Yes, delete"
         },
         "payment_methods": {
-            "title": "Payment Methods",
+            "title": "Payments",
             "desc": "Manage the payment options available at checkout.",
             "add_method": "Add Method",
             "table": {
@@ -234,7 +249,10 @@
                 "cash": "Cash",
                 "card": "Card",
                 "bank_transfer": "Bank Transfer"
-            }
+            },
+            "aria_enable": "Enable {{name}}",
+            "delete_success": "Payment method deleted successfully.",
+            "delete_error": "Failed to delete payment method. Please try again."
         },
         "item_dialog": {
             "edit_title": "Edit Menu Item",
@@ -251,6 +269,30 @@
             "select_modifiers": "Select modifiers...",
             "modifiers_desc": "Modifiers will be available for this item at the POS.",
             "available": "Available"
+        },
+        "menu_item_dialog": {
+            "edit_title": "Edit Menu Item",
+            "add_title": "Add New Menu Item",
+            "edit_desc": "Make changes to the menu item here. Click save when you're done.",
+            "add_desc": "Add a new item to your menu. Click save when you're done.",
+            "name": "Name",
+            "name_placeholder": "Enter item name",
+            "description": "Description",
+            "description_placeholder": "Enter item description",
+            "price": "Price",
+            "price_placeholder": "0.00",
+            "category": "Category",
+            "category_placeholder": "Select a category",
+            "image_url": "Image URL",
+            "image_url_placeholder": "https://example.com/image.jpg",
+            "ai_hint": "AI Hint",
+            "ai_hint_placeholder": "Enter hint for AI-generated content",
+            "linked_modifiers": "Linked Modifiers",
+            "validation_error": "Please fill in all required fields.",
+            "invalid_price": "Please enter a valid price.",
+            "updated": "Menu item updated.",
+            "added": "Menu item added.",
+            "error": "An error occurred. Please try again."
         },
         "category_dialog": {
             "title": "Manage Categories",
@@ -304,6 +346,34 @@
             "inventory_stock_update_error": "Failed to update inventory stock.",
             "inventory_item_deleted": "Inventory item deleted.",
             "inventory_item_delete_error": "Failed to delete inventory item."
+        },
+        "workstations": {
+            "title": "Workstations",
+            "name": "Workstation Name",
+            "add_workstation": "Add Workstation",
+            "edit_workstation": "Edit Workstation",
+            "default": "Default",
+            "states": {
+                "title": "States",
+                "new": "New State Name",
+                "in_progress": "In Progress State Name",
+                "ready": "Ready State Name"
+            },
+            "actions": "Actions",
+            "toggle_menu": "Toggle menu",
+            "edit": "Edit",
+            "delete": "Delete",
+            "no_workstations": "No workstations found.",
+            "updated_success": "Workstation updated successfully.",
+            "created_success": "Workstation created successfully.",
+            "deleted_success": "{{name}} deleted successfully.",
+            "positions_updated": "Workstation positions updated successfully.",
+            "error": "An error occurred. Please try again.",
+            "errors": {
+                "name_required": "Workstation name is required.",
+                "states_required": "All workstation states are required.",
+                "states_unique": "Workstation state names must be unique."
+            }
         }
     },
     "reports": {
@@ -351,17 +421,48 @@
     },
     "profile": {
         "title": "Profile",
+        "description": "Manage your profile settings and preferences.",
         "account_title": "My Account",
         "account_desc": "Update your account settings.",
+        "personal_info": "Personal Information",
+        "personal_info_desc": "Update your personal details here.",
         "name": "Name",
         "email": "Email",
         "save_button": "Save Changes",
+        "logout": "Logout",
+        "logout_desc": "End your session and logout from the application.",
+        "logout_button": "Logout",
         "password_section_title": "Change Password",
         "password_section_desc": "Update your password here. Please be careful.",
         "current_password": "Current Password",
         "new_password": "New Password",
         "confirm_password": "Confirm New Password",
         "change_password_button": "Change Password",
+        "user_info_title": "User Information",
+        "user_info_desc": "Role and membership details",
+        "role": "Role",
+        "membership": "Membership",
+        "membership_title": "Membership",
+        "membership_desc": "Manage your membership plan",
+        "current_plan": "Current Plan",
+        "full_access": "Full access to all features",
+        "limited_access": "Limited access to basic features",
+        "upgrade_to_pro": "Upgrade to Pro",
+        "downgrade_to_free": "Downgrade to Free",
+        "role_management_title": "Role Management",
+        "role_management_desc": "Manage your user role",
+        "change_role": "Change Role",
+        "select_role": "Select a role",
+        "roles": {
+            "owner": "Owner",
+            "admin": "Admin",
+            "staff": "Staff"
+        },
+        "role_descriptions": {
+            "owner": "As the restaurant owner, you have full access to all system features.",
+            "admin": "As an admin, you can manage staff and system settings.",
+            "staff": "As a staff member, you have basic access to the system."
+        },
         "toast": {
             "profile_updated": "Profile information saved.",
             "password_mismatch": "New passwords do not match.",

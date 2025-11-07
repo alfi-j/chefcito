@@ -1,21 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ICategory extends Document {
-  id: number;
+  id: string; // Changed from number to string for consistency
   name: string;
+  parentId?: string; // Changed from number to string for consistency
   isModifierGroup?: boolean;
-  linkedModifiers?: string[];
-  parentId?: number | null;
-  depth?: number;
+  children?: ICategory[];
 }
 
 const CategorySchema: Schema = new Schema({
-  id: { type: Number, required: true, unique: true },
+  id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  isModifierGroup: { type: Boolean, default: false },
-  linkedModifiers: [{ type: String }],
-  parentId: { type: Number, default: null },
-  depth: { type: Number, default: 0 }
+  parentId: { type: String, required: false },
+  isModifierGroup: { type: Boolean, default: false }
 });
 
-export default mongoose.model<ICategory>('Category', CategorySchema);
+// Prevent model recompilation in development mode
+const Category = mongoose.models.Category || mongoose.model<ICategory>('Category', CategorySchema, 'categories');
+export default Category;

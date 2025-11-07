@@ -23,8 +23,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pencil, Trash2, Check } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { toast } from "sonner";
-import { useI18n } from '@/context/i18n-context'
-import { useMenu } from '@/hooks/use-menu'
+import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useMenuStore } from '@/lib/stores/menu-store'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
@@ -38,7 +38,8 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { t } = useI18n();
+  const { t } = useI18nStore();
+  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenuStore();
   
   const modifierGroups = useMemo(() => 
     categories
@@ -46,8 +47,6 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
         .map(c => ({ value: c.name, label: c.name })), 
     [categories]
   );
-
-  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenu();
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;

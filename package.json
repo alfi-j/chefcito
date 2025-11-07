@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack -p 9002",
+    "dev": "next dev --turbopack",
+    "dev:debug": "cross-env DEBUG=chefcito:* next dev --turbopack",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
@@ -15,7 +16,11 @@
     "db:check": "tsx src/scripts/check-database.ts",
     "db:cleanup": "tsx src/scripts/cleanup-database.ts",
     "db:cleanup-duplicates": "tsx src/scripts/cleanup-duplicated-documents.ts",
-    "db:cleanup-collections": "node src/scripts/cleanup-collections.js"
+    "db:cleanup-collections": "node src/scripts/cleanup-collections.js",
+    "db:update-workstations": "node scripts/update-workstations-schema.mjs",
+    "db:setup-default-workstations": "node scripts/setup-default-workstations.mjs",
+    "db:ensure-default-workstations": "node scripts/ensure-default-workstations.mjs",
+    "db:rename-cocina-to-kitchen": "node scripts/rename-cocina-to-kitchen.mjs"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",
@@ -48,7 +53,8 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
-    "dotenv": "^16.5.0",
+    "debug": "^4.4.3",
+    "dotenv": "^16.6.1",
     "embla-carousel-react": "^8.6.0",
     "firebase": "^11.9.1",
     "genkit": "^1.13.0",
@@ -66,17 +72,21 @@
     "react-icons": "^5.2.1",
     "recharts": "^2.15.1",
     "sonner": "^1.5.0",
+    "swr": "^2.3.6",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^13.0.0",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/debug": "^4.1.12",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^10.1.0",
     "genkit-cli": "^1.13.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",

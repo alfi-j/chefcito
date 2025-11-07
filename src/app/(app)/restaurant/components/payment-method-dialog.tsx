@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { type PaymentMethod } from "@/lib/types"
-import { useI18n } from '@/context/i18n-context'
+import { type Payment } from "@/lib/types"
+import { useI18nStore } from '@/lib/stores/i18n-store'
 import { PlusCircle, Trash2 } from 'lucide-react'
 
 export function PaymentMethodDialog({ 
@@ -30,12 +30,12 @@ export function PaymentMethodDialog({
   onSave,
 }: { 
   children: React.ReactNode, 
-  method?: PaymentMethod,
-  onSave: (method: PaymentMethod | Omit<PaymentMethod, 'id'>) => void,
+  method?: Payment,
+  onSave: (method: Payment | Omit<Payment, 'id'>) => void,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const isEditMode = !!method;
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const [name, setName] = useState('');
   const [type, setType] = useState<'cash' | 'card' | 'bank_transfer'>('card');
@@ -57,7 +57,7 @@ export function PaymentMethodDialog({
       name,
       type,
       enabled: method?.enabled ?? true,
-      banks: type === 'bank_transfer' ? banks : undefined
+      ...(type === 'bank_transfer' ? { banks } : { banks: [] })
     };
     if (isEditMode) {
       onSave({ id: method.id, ...methodData });

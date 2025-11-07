@@ -1,4 +1,3 @@
-
 "use client"
 
 import React, { useState, useEffect } from 'react';
@@ -8,27 +7,27 @@ import { DateRangePicker } from "./components/date-range-picker";
 import { SalesReport } from "./components/sales-report";
 import { ItemReport } from "./components/item-report";
 import { KitchenReport } from "./components/kitchen-report";
-import { useI18n } from '@/context/i18n-context';
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { File } from 'lucide-react';
 import { toast } from 'sonner';
-import { useReports } from '@/hooks/use-reports';
+import { useReportsStore } from '@/lib/stores/reports-store';
 
 export default function ReportsPage() {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
     to: new Date(),
   });
   
-  const { reports, loading, fetchReports } = useReports(date);
+  const { sales, items, kitchen, loading, fetchReports } = useReportsStore();
 
   useEffect(() => {
     // Fetch reports whenever the date range changes or on initial load.
-    fetchReports();
-  }, [date]);
+    fetchReports(date);
+  }, [date, fetchReports]);
 
   const handleExport = () => {
     // This is a mock export. In a real app, this would trigger a download.
@@ -57,13 +56,13 @@ export default function ReportsPage() {
           <TabsTrigger value="kitchen">{t('reports.tabs.kitchen')}</TabsTrigger>
         </TabsList>
         <TabsContent value="sales">
-          <SalesReport data={reports.sales} loading={loading} />
+          <SalesReport data={sales} loading={loading} />
         </TabsContent>
         <TabsContent value="items">
-          <ItemReport data={reports.items} loading={loading} />
+          <ItemReport data={items} loading={loading} />
         </TabsContent>
         <TabsContent value="kitchen">
-          <KitchenReport data={reports.kitchen} loading={loading} />
+          <KitchenReport data={kitchen} loading={loading} />
         </TabsContent>
       </Tabs>
     </div>

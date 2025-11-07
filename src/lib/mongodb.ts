@@ -33,7 +33,6 @@ if (MONGODB_URI && !process.env.MONGODB_DB && MONGODB_URI.startsWith('mongodb+sr
   }
 }
 
-
 // Global variables to maintain connection across hot reloads in development
 declare global {
   var _mongoClientPromise: Promise<MongoClient> | undefined;
@@ -53,27 +52,56 @@ class DatabaseManager {
     // In development, store the promise in a global variable to avoid multiple connections
     if (process.env.NODE_ENV === 'development') {
       if (!global._mongoClientPromise) {
-        this.client = new MongoClient(MONGODB_URI);
+        this.client = new MongoClient(MONGODB_URI, {
+          serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 5s
+          socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+          maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+          connectTimeoutMS: 10000, // Connection timeout 10s
+          retryWrites: true,
+          retryReads: true
+        });
         global._mongoClientPromise = this.client.connect();
       }
       this.clientPromise = global._mongoClientPromise;
     } else {
       // In production, create a new connection
-      this.client = new MongoClient(MONGODB_URI);
+      this.client = new MongoClient(MONGODB_URI, {
+        serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 5s
+        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+        maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+        connectTimeoutMS: 10000, // Connection timeout 10s
+        retryWrites: true,
+        retryReads: true
+      });
       this.clientPromise = this.client.connect();
     }
+
+    // Add connection error handling
+    this.clientPromise.catch(err => {
+      console.error('MongoDB connection error:', err);
+    });
 
     return this.clientPromise;
   };
 
   getDb = async (): Promise<Db> => {
-    const client = await this.connect();
-    return client.db(dbName);
+    try {
+      const client = await this.connect();
+      return client.db(dbName);
+    } catch (error) {
+      console.error('Error getting database connection:', error);
+      throw new Error(`Database connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   getCollection = async (collectionName: string) => {
-    const db = await this.getDb();
-    return db.collection(collectionName);
+    try {
+      const db = await this.getDb();
+      return db.collection(collectionName);
+    } catch (error) {
+      console.error(`Error getting collection ${collectionName}:`, error);
+      throw new Error(`Failed to access collection ${collectionName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   close = async () => {
@@ -91,25 +119,46 @@ class DatabaseManager {
 // Export a singleton instance
 export const dbManager = new DatabaseManager();
 
-// Helper functions for common operations
+// Helper functions for common operations with timeout handling
 export const findOne = async <T>(collectionName: string, filter: any = {}): Promise<T | null> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return (await collection.findOne(filter)) as T | null;
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return (await collection.findOne(filter)) as T | null;
+  } catch (error) {
+    console.error(`Error finding document in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const findMany = async <T>(collectionName: string, filter: any = {}): Promise<T[]> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return (await collection.find(filter).toArray()) as T[];
+  try {
+    await dbManager.connect();
+    const collection = await dbManager.getCollection(collectionName);
+    return (await collection.find(filter).maxTimeMS(10000).toArray()) as T[];
+  } catch (error) {
+    console.error(`Error finding documents in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const insertOne = async <T extends Document>(collectionName: string, document: T): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.insertOne(document);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.insertOne(document);
+  } catch (error) {
+    console.error(`Error inserting document in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const insertMany = async <T extends Document>(collectionName: string, documents: T[]): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.insertMany(documents);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.insertMany(documents);
+  } catch (error) {
+    console.error(`Error inserting documents in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const updateOne = async <T>(
@@ -117,8 +166,13 @@ export const updateOne = async <T>(
   filter: any,
   update: any
 ): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.updateOne(filter, update);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.updateOne(filter, update);
+  } catch (error) {
+    console.error(`Error updating document in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const updateMany = async <T>(
@@ -126,16 +180,31 @@ export const updateMany = async <T>(
   filter: any,
   update: any
 ): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.updateMany(filter, update);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.updateMany(filter, update);
+  } catch (error) {
+    console.error(`Error updating documents in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const deleteOne = async (collectionName: string, filter: any): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.deleteOne(filter);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.deleteOne(filter);
+  } catch (error) {
+    console.error(`Error deleting document in ${collectionName}:`, error);
+    throw error;
+  }
 };
 
 export const deleteMany = async (collectionName: string, filter: any): Promise<any> => {
-  const collection = await dbManager.getCollection(collectionName);
-  return await collection.deleteMany(filter);
+  try {
+    const collection = await dbManager.getCollection(collectionName);
+    return await collection.deleteMany(filter);
+  } catch (error) {
+    console.error(`Error deleting documents in ${collectionName}:`, error);
+    throw error;
+  }
 };

@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner";
-import { useI18n } from "@/context/i18n-context"
-import { useUser } from "@/context/user-context"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useUserStore } from "@/lib/stores/user-store"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Simple cookie utility
 const setCookie = (name: string, value: string, days: number) => {
@@ -23,14 +23,14 @@ const setCookie = (name: string, value: string, days: number) => {
 
 export function LoginForm() {
     const router = useRouter()
-    const { t } = useI18n();
-    const { login } = useUser();
+    const { t } = useI18nStore();
+    const { login } = useUserStore();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        // Using the new login function from user context
+        // Using the new login function from user store
         const success = await login(email, password);
         
         if (success) {
@@ -69,7 +69,7 @@ export function LoginForm() {
 
 export function SignupForm() {
     const router = useRouter()
-    const { t } = useI18n();
+    const { t } = useI18nStore();
     const [activeTab, setActiveTab] = useState<"owner" | "staff">("owner");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");

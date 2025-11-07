@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -14,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useI18n } from "@/context/i18n-context"
+import { useI18nStore } from "@/lib/stores/i18n-store"
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date?: DateRange,
@@ -27,7 +26,7 @@ export function DateRangePicker({
   date: initialDate,
   onDateChange
 }: DateRangePickerProps) {
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   return (

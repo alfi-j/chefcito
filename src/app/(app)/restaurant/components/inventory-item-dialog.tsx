@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type InventoryItem, type MenuItem } from "@/lib/types"
-import { useI18n } from '@/context/i18n-context'
+import { useI18nStore } from '@/lib/stores/i18n-store'
 import { MultiSelect } from './multi-select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -31,7 +31,7 @@ export function InventoryItemDialog({
   menuItems: MenuItem[],
 }) {
   const isEditMode = !!item;
-  const { t } = useI18n();
+  const { t } = useI18nStore();
 
   const [name, setName] = useState('');
   const [quantity, setQuantity] = useState<string | number>('');

@@ -1,4 +1,3 @@
-
 "use client"
 import Link from "next/link"
 import {
@@ -33,10 +32,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { I18nProvider, useI18n } from "@/context/i18n-context"
-import { DataProvider } from "@/context/data-context"
+import { useI18nStore } from "@/lib/stores/i18n-store"
 
 // Simple cookie utility
 const eraseCookie = (name: string) => {
@@ -48,7 +46,12 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [fontSize, setFontSize] = useState("medium")
-  const { t } = useI18n()
+  const { t } = useI18nStore()
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Current pathname:', pathname);
+  }, [pathname]);
 
   const menuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
@@ -115,9 +118,8 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
       {/* Mobile Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-10 bg-background/95 border-t backdrop-blur-sm md:hidden">
-
-        <div className="grid h-16 grid-cols-4 max-w-lg mx-auto justify-items-center"> {/* Adjust grid columns and add justify-items-center */}
-          {menuItems.filter(item => !item.isHidden && ["/pos", "/kds", "/restaurant", "/reports"].includes(item.href)).map((item) => {
+        <div className="flex h-16 max-w-lg mx-auto justify-around items-center">
+          {menuItems.filter(item => !item.isHidden).map((item) => {
             const isActive = pathname.startsWith(item.href);
             return (
               <Link key={item.href} href={item.href} className={cn(
@@ -137,18 +139,15 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  // Remove I18nProvider wrapper and just render the content directly
   return (
-    <I18nProvider>
-      <DataProvider>
-        <AppLayoutContent>{children}</AppLayoutContent>
-      </DataProvider>
-    </I18nProvider>
+    <AppLayoutContent>{children}</AppLayoutContent>
   )
 }
 
 function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void }) {
   const { theme, setTheme } = useTheme()
-  const { t, language, setLanguage } = useI18n()
+  const { t, language, setLanguage } = useI18nStore()
   const router = useRouter();
 
   return (
