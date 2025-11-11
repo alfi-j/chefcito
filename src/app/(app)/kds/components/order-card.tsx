@@ -21,9 +21,12 @@ interface OrderCardProps {
   onDragEnter: (e: DragEvent<HTMLDivElement>, orderId: number) => void;
   isDraggingOver: boolean;
   onTogglePin: (orderId: number) => void;
+  workstationIndex: number;
+  totalWorkstations: number;
+  workstationName?: string;
 }
 
-export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin }: OrderCardProps) {
+export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, isDraggingOver, onTogglePin, workstationIndex, totalWorkstations, workstationName }: OrderCardProps) {
   // Ensure createdAt is a Date object
   const createdAtDate = useMemo(() => {
     return order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
@@ -92,8 +95,21 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
   
   const currentTab = useMemo(() => {
       // Check if any item has status that indicates it's in kitchen workflow
-      if (items.some(i => i.status?.toString().toLowerCase() === KDS_STATES.NEW?.toString().toLowerCase() || 
-                        i.status?.toString().toLowerCase() === KDS_STATES.IN_PROGRESS?.toString().toLowerCase())) {
+      if (items.some(i => {
+        const normalizedStatus = i.status?.toString().toLowerCase();
+        const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
+        const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+        const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+        
+        // If the item is assigned to a specific workstation, we need to check that workstation's logic
+        // For now, we'll use a simple approach based on status
+        return normalizedStatus === kdsNew || 
+               normalizedStatus === kdsInProgress ||
+               normalizedStatus === 'new' || 
+               normalizedStatus === 'in-progress' ||
+               normalizedStatus === kdsReady ||
+               normalizedStatus === 'ready';
+      })) {
           return 'kitchen';
       }
       return 'serving';
@@ -109,6 +125,10 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
       onDrop={(e) => onDrop(e, order.id)}
       onDragOver={handleDragOver}
       onDragEnter={(e) => onDragEnter(e, order.id)}
+      onDragEnd={(e) => {
+        // Clean up drag state
+        e.preventDefault();
+      }}
     >
       <Card 
         className={cn(
@@ -176,6 +196,9 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
                         currentTab={currentTab}
                         onUpdateItemStatus={onUpdateItemStatus} 
                         onRevertItemStatus={onRevertItemStatus}
+                        workstationIndex={workstationIndex}
+                        totalWorkstations={totalWorkstations}
+                        workstationName={workstationName}
                       />
                     ))}
                   </div>

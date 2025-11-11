@@ -11,16 +11,18 @@ interface OrderItemProps {
     currentTab: 'kitchen' | 'serving';
     onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: string) => void;
     onRevertItemStatus: (orderId: number, itemId: string, toStatus: string) => void;
+    workstationIndex: number;
+    totalWorkstations: number;
+    workstationName?: string;
 }
 
 const statusColors: Record<string, string> = {
   [KDS_STATES.NEW]: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
   [KDS_STATES.IN_PROGRESS]: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
   [KDS_STATES.READY]: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
-  'Served': 'bg-gray-500/10 text-gray-800 dark:text-gray-300 hover:bg-gray-500/20',
 };
 
-export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus }: OrderItemProps) {
+export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName }: OrderItemProps) {
 
   const ItemInfo = () => (
     <div className="flex-1 min-w-0">
@@ -74,7 +76,6 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
                     <RotateCcw className={cn("h-4 w-4", {
                         "text-yellow-700": status === KDS_STATES.IN_PROGRESS,
                         "text-green-700": status === KDS_STATES.READY,
-                        "text-gray-700": status === 'Served'
                     })} />
                 </button>
               )}
@@ -84,52 +85,90 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
     );
   }
 
-  // Normalize status for comparison
-  const normalizedStatus = item.status?.toString().toLowerCase();
-  const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
-  const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
-  const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+  // Get current state index
+  const getCurrentStateIndex = (status: string | undefined): number => {
+    if (!status) return -1;
+    
+    // Normalize the status for comparison
+    const normalizedStatus = status.toString().toLowerCase();
+    const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
+    const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+    const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+    
+    if (normalizedStatus === kdsNew || normalizedStatus === 'new') return 0;
+    if (normalizedStatus === kdsInProgress || normalizedStatus === 'in-progress') return 1;
+    if (normalizedStatus === kdsReady || normalizedStatus === 'ready') return 2;
+    
+    // Default to New state if unrecognized
+    return 0;
+  };
+
+  const currentStateIndex = getCurrentStateIndex(item.status);
+  
+  // Check if this is the last workstation or a "Completed" workstation
+  const isCompletedWorkstation = workstationIndex === totalWorkstations - 1 || workstationName === 'Completed';
   
   return (
     <div className="space-y-1">
-      {currentTab === 'kitchen' && normalizedStatus === kdsNew && (
+      {/* For all workstations except the last one, show only New and In Progress states */}
+      {!isCompletedWorkstation && currentTab === 'kitchen' && (currentStateIndex === 0 || currentStateIndex === 1) && (
+        <>
+          {currentStateIndex === 0 && (
+            <StatusRow 
+                status={KDS_STATES.NEW}
+                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW)}
+            />
+          )}
+          {currentStateIndex === 1 && (
+            <StatusRow 
+                status={KDS_STATES.IN_PROGRESS}
+                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
+                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.NEW)}
+            />
+          )}
+        </>
+      )}
+      
+      {/* For the last workstation (Completed), show only Ready and Served states */}
+      {isCompletedWorkstation && (
+        <>
+          {(currentStateIndex === 2 || item.status?.toString().toLowerCase() === 'ready') && (
+            <StatusRow 
+                status={KDS_STATES.READY}
+                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.READY)}
+                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
+            />
+          )}
+          {item.status === 'served' && (
+            <StatusRow 
+                status={'Served'}
+                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.READY)}
+            />
+          )}
+        </>
+      )}
+      
+      {/* Fallback for any items that don't match the above conditions */}
+      {!isCompletedWorkstation && currentTab === 'kitchen' && currentStateIndex !== 0 && currentStateIndex !== 1 && currentStateIndex !== -1 && (
+        <StatusRow 
+            status={item.status || KDS_STATES.NEW}
+            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || KDS_STATES.NEW)}
+        />
+      )}
+      
+      {/* Add a fallback for serving tab as well */}
+      {!isCompletedWorkstation && currentTab === 'serving' && currentStateIndex !== 2 && currentStateIndex !== -1 && (
+        <StatusRow 
+            status={item.status || KDS_STATES.NEW}
+            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || KDS_STATES.NEW)}
+        />
+      )}
+      
+      {/* Handle case where status is undefined or unrecognized */}
+      {currentStateIndex === -1 && (
         <StatusRow 
             status={KDS_STATES.NEW}
             onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW)}
-        />
-      )}
-      {currentTab === 'kitchen' && normalizedStatus === kdsInProgress && (
-        <StatusRow 
-            status={KDS_STATES.IN_PROGRESS}
-            onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
-            onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.NEW)}
-        />
-      )}
-      {currentTab === 'serving' && normalizedStatus === kdsReady && (
-        <StatusRow 
-            status={KDS_STATES.READY}
-            onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.READY)}
-            onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
-        />
-      )}
-      {normalizedStatus === 'served' && (
-        <StatusRow 
-            status="Served"
-            onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.READY)}
-        />
-      )}
-      {/* Fallback for any items that don't match the above conditions */}
-      {currentTab === 'kitchen' && normalizedStatus !== kdsNew && normalizedStatus !== kdsInProgress && normalizedStatus !== 'served' && (
-        <StatusRow 
-            status={item.status || 'Unknown'}
-            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || '')}
-        />
-      )}
-      {/* Add a fallback for serving tab as well */}
-      {currentTab === 'serving' && normalizedStatus !== kdsReady && normalizedStatus !== 'served' && (
-        <StatusRow 
-            status={item.status || 'Unknown'}
-            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || '')}
         />
       )}
     </div>

@@ -10,26 +10,65 @@ import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
 import { KDS_STATES } from '@/lib/kds-constants';
 
-
 export default function KdsPage() {
   const [activeTab, setActiveTab] = useState<string>(""); // Will be set to first workstation
   const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
   const [dragOverOrderId, setDragOverOrderId] = useState<number | null>(null);
   const { t } = useI18nStore();
   
-  // Using SWR directly instead of the custom hook
+  // Using SWR with optimized configuration for faster loading
   const { data: orders = [], error, isLoading: loading, mutate } = useSWR<Order[]>('/api/orders', fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
-    shouldRetryOnError: true
+    shouldRetryOnError: true,
+    refreshInterval: 0, // Disable polling since we're using SSE
+    dedupingInterval: 1000, // Reduce deduping interval
+    loadingTimeout: 2000, // Reduce loading timeout
+    errorRetryCount: 2, // Reduce retry count
+    errorRetryInterval: 3000, // Reduce retry interval
+    keepPreviousData: true
   });
   
-  // Fetch workstations
+  // Fetch workstations with optimized configuration
   const { data: workstations = [], isLoading: workstationsLoading } = useSWR<IWorkstation[]>('/api/workstations', fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
-    shouldRetryOnError: true
+    shouldRetryOnError: true,
+    refreshInterval: 0, // Disable polling
+    dedupingInterval: 3000,
+    loadingTimeout: 3000,
+    errorRetryCount: 2,
+    errorRetryInterval: 5000,
+    keepPreviousData: true
   });
+
+  // Set up Server-Sent Events for real-time updates
+  useEffect(() => {
+    // Create EventSource connection
+    const eventSource = new EventSource('/api/orders/events');
+    
+    // Listen for order updates
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'orders_update') {
+          // Revalidate orders data when we receive an update event
+          mutate();
+        }
+      } catch (error) {
+        console.error('Error parsing SSE message:', error);
+      }
+    };
+    
+    eventSource.onerror = (error) => {
+      console.error('SSE error:', error);
+    };
+    
+    // Clean up the connection on component unmount
+    return () => {
+      eventSource.close();
+    };
+  }, [mutate]);
 
   // Set the first workstation as the default tab when workstations load
   useEffect(() => {
@@ -40,29 +79,116 @@ export default function KdsPage() {
     }
   }, [workstations, workstationsLoading, activeTab]);
 
-  // Debugging: Log the orders data
-  useEffect(() => {
-    if (orders && orders.length > 0) {
-      console.log('KDS Orders Data:', orders);
-    }
-  }, [orders]);
-
-  const updateItemStatus = async (orderId: number, itemId: string, fromStatus: 'new' | 'in-progress' | 'ready' | 'served' | string) => {
+  const updateItemStatus = async (orderId: number, itemId: string, fromStatus: 'new' | 'in-progress' | 'ready' | string) => {
     try {
       // Find the current workstation
-      const currentWs = workstations.find((ws, index) => 
-        `workstation-${ws.id || index + 1}` === activeTab) || 
+      const currentWsIndex = workstations.findIndex((ws, index) => 
+        `workstation-${ws.id || index + 1}` === activeTab);
+      
+      const currentWs = workstations[currentWsIndex] || 
         workstations[0] || { states: { new: 'new', inProgress: 'in-progress', ready: 'ready' } };
       
       // Map the status to what the API expects based on workstation states
       let status: string;
-      if (fromStatus === currentWs.states.new) {
+      let moveToNextWorkstation = false;
+      let nextWorkstationId: string | undefined;
+      
+      // Use index-based state transitions for more reliable logic
+      const normalizedFromStatus = fromStatus.toString().toLowerCase();
+      const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
+      const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+      const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+      
+      // Check if we're in the last workstation (which is the Completed tab)
+      const isCompletedWorkstation = currentWsIndex === workstations.length - 1;
+      
+      if (normalizedFromStatus === kdsNew) {
+        // Move from New to In Progress
         status = currentWs.states.inProgress;
-      } else if (fromStatus === currentWs.states.inProgress) {
+      } else if (normalizedFromStatus === kdsInProgress) {
+        // Move from In Progress to Ready
+        status = currentWs.states.ready;
+        // If this is not the last workstation, we should move to the next one
+        if (currentWsIndex < workstations.length - 1 && !isCompletedWorkstation) {
+          moveToNextWorkstation = true;
+          nextWorkstationId = workstations[currentWsIndex + 1].id;
+        }
+      } else if (normalizedFromStatus === kdsReady) {
+        // When item is marked as ready, move to next workstation if not at last one
+        // Otherwise mark the entire order as completed
+        if (currentWsIndex < workstations.length - 1 && !isCompletedWorkstation) {
+          // Move to next workstation and reset to New state
+          const nextWs = workstations[currentWsIndex + 1];
+          status = nextWs.states.new;
+          moveToNextWorkstation = true;
+          nextWorkstationId = nextWs.id;
+        } else if (isCompletedWorkstation) {
+          // In the completed workstation, mark ready items as served
+          status = 'served';
+        } else {
+          // Last workstation reached, mark item as completed (served)
+          status = 'served';
+        }
+      } else if (fromStatus === 'served') {
+        // Keep as served
+        status = 'served';
+      } else {
+        // For custom statuses, move to in-progress
+        status = currentWs.states.inProgress;
+      }
+
+      const response = await fetch(`/api/orders`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          orderId,
+          itemId,
+          status,
+          moveToNextWorkstation,
+          nextWorkstationId
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update item status');
+      }
+
+      // Refresh the orders list with revalidation
+      mutate();
+    } catch (error) {
+      console.error('Error updating item status:', error);
+    }
+  };
+
+  const revertItemStatus = async (orderId: number, itemId: string, toStatus: 'new' | 'in-progress' | 'ready' | string) => {
+    try {
+      // Find the current workstation
+      const currentWsIndex = workstations.findIndex((ws, index) => 
+        `workstation-${ws.id || index + 1}` === activeTab);
+      
+      const currentWs = workstations[currentWsIndex] || 
+        workstations[0] || { states: { new: 'new', inProgress: 'in-progress', ready: 'ready' } };
+      
+      // Map the status to what the API expects based on workstation states
+      let status: string;
+      
+      // Use index-based state transitions for more reliable logic
+      const normalizedToStatus = toStatus.toString().toLowerCase();
+      const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
+      const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+      const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+      
+      if (normalizedToStatus === kdsNew) {
+        status = currentWs.states.new;
+      } else if (normalizedToStatus === kdsInProgress) {
+        status = currentWs.states.inProgress;
+      } else if (normalizedToStatus === kdsReady) {
         status = currentWs.states.ready;
       } else {
-        // For custom statuses or ready state, move to served
-        status = 'served';
+        // For custom statuses, use as is
+        status = toStatus;
       }
 
       const response = await fetch(`/api/orders`, {
@@ -78,35 +204,10 @@ export default function KdsPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update item status');
-      }
-
-      // Refresh the orders list
-      mutate();
-    } catch (error) {
-      console.error('Error updating item status:', error);
-    }
-  };
-
-  const revertItemStatus = async (orderId: number, itemId: string, toStatus: 'new' | 'in-progress' | 'ready' | 'served' | string) => {
-    try {
-      const response = await fetch(`/api/orders`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          orderId,
-          itemId,
-          status: toStatus
-        }),
-      });
-
-      if (!response.ok) {
         throw new Error('Failed to revert item status');
       }
 
-      // Refresh the orders list
+      // Refresh the orders list with revalidation
       mutate();
     } catch (error) {
       console.error('Error reverting item status:', error);
@@ -130,7 +231,7 @@ export default function KdsPage() {
         throw new Error('Failed to toggle order pin');
       }
 
-      // Refresh the orders list
+      // Refresh the orders list with revalidation
       mutate();
     } catch (error) {
       console.error('Error toggling order pin:', error);
@@ -140,6 +241,8 @@ export default function KdsPage() {
   const handleDragStart = (e: DragEvent<HTMLDivElement>, orderId: number) => {
     setDraggedOrderId(orderId);
     e.dataTransfer.effectAllowed = 'move';
+    // Add data to transfer
+    e.dataTransfer.setData('text/plain', orderId.toString());
   };
 
   const handleDragEnd = () => {
@@ -147,34 +250,41 @@ export default function KdsPage() {
     setDragOverOrderId(null);
   };
 
-  const handleDrop = (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
+  const handleDrop = async (e: DragEvent<HTMLDivElement>, dropOrderId: number) => {
     e.preventDefault();
     if (draggedOrderId === null || draggedOrderId === dropOrderId) {
       handleDragEnd();
       return;
     }
 
-    const draggedOrder = orders.find((o: Order) => o.id === draggedOrderId);
-    const dropOrder = orders.find((o: Order) => o.id === dropOrderId);
+    // Reorder the orders by swapping positions
+    try {
+      // Send reorder request to the server to swap the two orders
+      const response = await fetch(`/api/orders`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          type: 'reorder',
+          orderId: draggedOrderId,
+          targetOrderId: dropOrderId // Send the target order ID to swap with
+        }),
+      });
 
-    if (!draggedOrder || !dropOrder) {
-      handleDragEnd();
-      return;
+      if (!response.ok) {
+        throw new Error('Failed to reorder orders');
+      }
+      
+      // Optimistically update the UI without waiting for revalidation
+      // This makes the UI feel more responsive
+      mutate();
+      
+    } catch (error) {
+      console.error('Error reordering orders:', error);
+      // Revalidate to ensure UI is consistent with server state on error
+      mutate();
     }
-    
-    // Determine which list we are in based on activeTab
-    const orderList = activeTab ? workstationOrders[activeTab] || [] : [];
-    
-    const fromIndex = orderList.findIndex((o: Order) => o.id === draggedOrderId);
-    const toIndex = orderList.findIndex((o: Order) => o.id === dropOrderId);
-
-    if (fromIndex === -1 || toIndex === -1) {
-       handleDragEnd();
-       return;
-    }
-
-    // Note: We don't need setOrders anymore since we're using SWR
-    // The mutate function will handle updating the data
 
     handleDragEnd();
   };
@@ -189,70 +299,145 @@ export default function KdsPage() {
     }
   };
 
+  // Memoize workstation orders computation with better performance
   const workstationOrders = useMemo(() => {
     // Create a map of workstation orders
     const wsOrders: Record<string, Order[]> = {};
     
     // Initialize with all workstations
     workstations.forEach((ws, index) => {
-      wsOrders[`workstation-${ws.id || index + 1}`] = [];
+      const wsId = `workstation-${ws.id || index + 1}`;
+      wsOrders[wsId] = [];
     });
     
-    // Show all orders with all items in the first tab
-    // Filter orders to only include those with items in initial states
-    const ordersWithInitialItems = orders.filter((order: Order) => 
-      order.status === 'pending' && order.items.some((i: OrderItem) => 
-        i.status?.toString().toLowerCase() === KDS_STATES.NEW?.toString().toLowerCase() ||
-        i.status?.toString().toLowerCase() === 'new' ||
-        i.status?.toString().toLowerCase() === 'in-progress' ||
-        i.status?.toString().toLowerCase() === KDS_STATES.IN_PROGRESS?.toString().toLowerCase()
-      )
-    );
+    console.log('Workstations:', workstations);
+    console.log('Orders:', orders);
     
-    // Filter completed orders
-    const completedOrders = orders.filter((order: Order) => 
-      order.items.every((i: OrderItem) => 
-        i.status?.toString().toLowerCase() === 'served' ||
-        i.status?.toString().toLowerCase() === 'completed'
-      )
-    );
-    
-    if (workstations.length > 0) {
-      // Put all orders in the first workstation tab
-      const firstWsId = `workstation-${workstations[0].id || 1}`;
-      wsOrders[firstWsId] = ordersWithInitialItems;
+    // Distribute orders based on item statuses and workstation assignments
+    orders.forEach((order: Order) => {
+      // Skip completed orders unless they belong to a "Completed" workstation
+      const isOrderCompleted = order.status === 'completed';
       
-      // Find "Completed" workstation if it exists
-      const completeWs = workstations.find(ws => ws.name === 'Completed');
-      if (completeWs) {
-        wsOrders[`workstation-${completeWs.id}`] = completedOrders;
-      }
-      
-      // Also initialize other workstation tabs as empty
-      for (let i = 1; i < workstations.length; i++) {
-        const wsId = `workstation-${workstations[i].id || i + 1}`;
-        if (!wsOrders[wsId]) {
-          wsOrders[wsId] = [];
+      if (isOrderCompleted) {
+        // Find "Completed" workstation if it exists
+        const completeWs = workstations.find(ws => ws.name === 'Completed');
+        if (completeWs) {
+          const wsId = `workstation-${completeWs.id}`;
+          if (!wsOrders[wsId]) wsOrders[wsId] = [];
+          wsOrders[wsId].push(order);
         }
+        return; // Skip to next order
       }
-    } else {
-      // Handle default workstation if no workstations exist
+      
+      // For each workstation, check if any items belong to it
+      workstations.forEach((ws, wsIndex) => {
+        const wsId = `workstation-${ws.id || wsIndex + 1}`;
+        if (!wsOrders[wsId]) wsOrders[wsId] = [];
+        
+        // Check if any item in this order belongs to this workstation
+        const itemsForThisWorkstation = order.items.filter((i: OrderItem) => {
+          // If item has a workstationId, check if it matches current workstation
+          if (i.workstationId) {
+            console.log(`Item ${i.id} has workstationId ${i.workstationId}, checking against workstation ${ws.id}`);
+            const match = i.workstationId === ws.id;
+            console.log(`Match result: ${match}`);
+            return match;
+          }
+          
+          // For items without explicit workstationId:
+          // First workstation gets New and In Progress items
+          // Last workstation gets Ready and Served items
+          // Middle workstations don't get items without explicit workstation assignment
+          const normalizedStatus = i.status?.toString().toLowerCase();
+          const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
+          const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+          const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
+          
+          if (wsIndex === 0) {
+            // First workstation gets New and In Progress items
+            return normalizedStatus === kdsNew ||
+                   normalizedStatus === 'new' ||
+                   normalizedStatus === 'in-progress' ||
+                   normalizedStatus === kdsInProgress;
+          } else if (wsIndex === workstations.length - 1) {
+            // Last workstation gets Ready and Served items
+            return normalizedStatus === kdsReady ||
+                   normalizedStatus === 'ready' ||
+                   i.status === 'served';
+          } else {
+            // Middle workstations (like "Meseros") don't automatically get items
+            // They only get items that are explicitly assigned to them via workstationId
+            return false;
+          }
+        });
+        
+        console.log(`Workstation ${ws.name} (${ws.id}) has ${itemsForThisWorkstation.length} items from order ${order.id}`);
+        
+        // Add order to workstation if it has items for that workstation
+        if (itemsForThisWorkstation.length > 0) {
+          // Create a copy of the order with only the items for this workstation
+          const orderCopy: Order = {
+            ...order,
+            items: itemsForThisWorkstation
+          };
+          
+          // Check if an order with the same ID already exists in this workstation
+          const existingOrderIndex = wsOrders[wsId].findIndex(o => o.id === orderCopy.id);
+          if (existingOrderIndex !== -1) {
+            // If order already exists, merge the items
+            wsOrders[wsId][existingOrderIndex] = {
+              ...wsOrders[wsId][existingOrderIndex],
+              items: [
+                ...wsOrders[wsId][existingOrderIndex].items,
+                ...orderCopy.items
+              ]
+            };
+          } else {
+            // Add new order
+            wsOrders[wsId].push(orderCopy);
+          }
+        }
+      });
+    });
+    
+    // Handle case with no workstations
+    if (workstations.length === 0) {
+      // Filter orders to only include those with items in initial states
+      const ordersWithInitialItems = orders.filter((order: Order) => 
+        order.status === 'pending' && order.items.some((i: OrderItem) => {
+          const normalizedStatus = i.status?.toString().toLowerCase();
+          return normalizedStatus === KDS_STATES.NEW?.toString().toLowerCase() ||
+                 normalizedStatus === 'new' ||
+                 normalizedStatus === 'in-progress' ||
+                 normalizedStatus === KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
+        })
+      );
       wsOrders['workstation-1'] = ordersWithInitialItems;
     }
     
-    // Sort each workstation's orders
+    // Sort each workstation's orders by position, then by pinned status and creation date
     Object.keys(wsOrders).forEach(key => {
-      const unpinned = wsOrders[key].filter((o: Order) => !o.isPinned);
-      const pinned = wsOrders[key].filter((o: Order) => o.isPinned)
-        .sort((a: Order, b: Order) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      wsOrders[key] = [...pinned, ...unpinned];
+      wsOrders[key] = wsOrders[key].sort((a: Order, b: Order) => {
+        // If one is pinned and the other isn't, pinned comes first
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+        
+        // If both are pinned or both are unpinned, sort by position
+        if (a.position !== undefined && b.position !== undefined) {
+          return a.position - b.position;
+        }
+        
+        // If position is not defined, sort by creation date (newest first)
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
     });
+    
+    console.log('Final workstation orders:', wsOrders);
     
     return wsOrders;
   }, [orders, workstations]);
 
-  
-  const renderOrderList = (orderList: Order[]) => {
+  const renderOrderList = (orderList: Order[], workstationIndex: number) => {
     if (loading) {
         return <div className="flex justify-center items-center h-[calc(100vh-200px)]"><p>{t('kds.loading')}</p></div>
     }
@@ -264,12 +449,12 @@ export default function KdsPage() {
       );
     }
     return (
-       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 items-start" onDragEnd={handleDragEnd}>
+       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 items-start" onDragOver={(e) => e.preventDefault()}>
         {orderList.map((order) => (
           <OrderCard 
             key={order.id}
             order={order}
-            items={order.items}
+            items={order.items} // These are already the filtered items for this workstation
             onUpdateItemStatus={updateItemStatus}
             onRevertItemStatus={revertItemStatus}
             onDragStart={handleDragStart}
@@ -277,6 +462,9 @@ export default function KdsPage() {
             onDragEnter={handleDragEnter}
             isDraggingOver={dragOverOrderId === order.id}
             onTogglePin={togglePinOrder}
+            workstationIndex={workstationIndex}
+            totalWorkstations={workstations.length}
+            workstationName={workstations[workstationIndex]?.name}
           />
         ))}
       </div>
@@ -305,7 +493,7 @@ export default function KdsPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="workstation-1" className="pt-4 sm:pt-6">
-            {renderOrderList([])}
+            {renderOrderList([], 0)}
           </TabsContent>
         </Tabs>
       </Card>
@@ -322,12 +510,11 @@ export default function KdsPage() {
         <Tabs value={firstWsId} onValueChange={setActiveTab} className="p-4 sm:p-6">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${workstations.length}, minmax(0, 1fr))` }}>
             {workstations.map((ws, index) => {
-              const orderCount = index === 0 ? 
-                workstationOrders[`workstation-${ws.id || index + 1}`]?.length || 0 : 
-                0;
+              const wsId = `workstation-${ws.id || index + 1}`;
+              const orderCount = workstationOrders[wsId]?.length || 0;
               
               return (
-                <TabsTrigger key={ws.id || index} value={`workstation-${ws.id || index + 1}`}>
+                <TabsTrigger key={ws.id || index} value={wsId}>
                   {ws.name} ({orderCount})
                 </TabsTrigger>
               );
@@ -337,7 +524,7 @@ export default function KdsPage() {
             const wsId = `workstation-${ws.id || index + 1}`;
             return (
               <TabsContent key={ws.id || index} value={wsId} className="pt-4 sm:pt-6">
-                {index === 0 ? renderOrderList(workstationOrders[wsId] || []) : renderOrderList([])}
+                {renderOrderList(workstationOrders[wsId] || [], index)}
               </TabsContent>
             );
           })}
@@ -351,15 +538,9 @@ export default function KdsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4 sm:p-6">
         <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Math.max(workstations.length, 1)}, minmax(0, 1fr))` }}>
           {workstations.map((ws, index) => {
-            // For the first tab, show the actual count, for others show 0
-            let orderCount = 0;
+            // Show count of orders for each workstation
             const wsId = `workstation-${ws.id || index + 1}`;
-            
-            if (index === 0) {
-              orderCount = workstationOrders[wsId]?.length || 0;
-            } else if (ws.name === 'Complete') {
-              orderCount = workstationOrders[wsId]?.length || 0;
-            }
+            const orderCount = workstationOrders[wsId]?.length || 0;
             
             return (
               <TabsTrigger key={ws.id || index} value={wsId}>
@@ -377,13 +558,13 @@ export default function KdsPage() {
           const wsId = `workstation-${ws.id || index + 1}`;
           return (
             <TabsContent key={ws.id || index} value={wsId} className="pt-4 sm:pt-6">
-              {renderOrderList(workstationOrders[wsId] || [])}
+              {renderOrderList(workstationOrders[wsId] || [], index)}
             </TabsContent>
           );
         })}
         {workstations.length === 0 && (
           <TabsContent value="workstation-1" className="pt-4 sm:pt-6">
-            {renderOrderList(workstationOrders['workstation-1'] || [])}
+            {renderOrderList(workstationOrders['workstation-1'] || [], 0)}
           </TabsContent>
         )}
       </Tabs>

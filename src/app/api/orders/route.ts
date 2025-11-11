@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus } from '@/lib/mongo-data-service';
+import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions } from '@/lib/mongo-data-service';
 import { getMenuItems } from '@/lib/mongo-data-service';
 import { debugOrders } from '@/lib/debug-utils';
+
+// Import the SSE update function
+import { sendOrderUpdate } from './events/route';
 
 // Define response structure
 interface ApiResponse<T> {
@@ -19,6 +22,15 @@ function createApiResponse<T>(data?: T, error?: string): ApiResponse<T> {
     error,
     timestamp: new Date().toISOString()
   };
+}
+
+// Helper function to send SSE updates after order changes
+function notifyOrderUpdate() {
+  try {
+    sendOrderUpdate();
+  } catch (error) {
+    console.error('Error sending SSE update:', error);
+  }
 }
 
 export async function GET(request: Request, { params }: { params?: { id: string } }) {
@@ -102,6 +114,10 @@ export async function POST(request: Request) {
     debugOrders('POST: order data %O', orderData);
     const newOrder = await addOrder(orderData);
     debugOrders('POST: successfully created order with id %d', newOrder.id);
+    
+    // Notify clients of the update
+    notifyOrderUpdate();
+    
     return NextResponse.json(
       createApiResponse(newOrder),
       { status: 201 }
@@ -150,7 +166,8 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
         updateData.items = updateData.items.map((item: any) => ({
           ...item,
           menuItemId: item.menuItem?.id || item.menuItemId,
-          selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || item.selectedExtraIds || []
+          selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || item.selectedExtraIds || [],
+          workstationId: item.workstationId || null // Preserve workstationId
         }));
       }
       
@@ -165,6 +182,10 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
       }
       
       debugOrders('PUT: successfully updated order %d', orderId);
+      
+      // Notify clients of the update
+      notifyOrderUpdate();
+      
       return NextResponse.json(
         createApiResponse({ success: true }),
         { status: 200 }
@@ -186,10 +207,14 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
     
     // Handle update item status
     if ('itemId' in body && 'status' in body) {
-      const { orderId, itemId, status } = body;
+      const { orderId, itemId, status, moveToNextWorkstation, nextWorkstationId } = body;
       debugOrders('PUT: updating item %s status to %s in order %d', itemId, status, orderId);
-      const result = await updateOrderItemStatus({ orderId, itemId, status });
+      const result = await updateOrderItemStatus({ orderId, itemId, status, moveToNextWorkstation, nextWorkstationId });
       debugOrders('PUT: successfully updated item status');
+      
+      // Notify clients of the update
+      notifyOrderUpdate();
+      
       return NextResponse.json(
         createApiResponse(result),
         { status: 200 }
@@ -201,6 +226,10 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
     debugOrders('PUT: updating order %d status to %s', orderId, newStatus);
     await updateOrderStatus(orderId, newStatus);
     debugOrders('PUT: successfully updated order status');
+    
+    // Notify clients of the update
+    notifyOrderUpdate();
+    
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }
@@ -251,6 +280,10 @@ export async function PATCH(request: Request, { params }: { params?: { id: strin
       }
       
       debugOrders('PATCH: successfully toggled pin for order %d', orderId);
+      
+      // Notify clients of the update
+      notifyOrderUpdate();
+      
       return NextResponse.json(
         createApiResponse(result),
         { status: 200 }
@@ -265,9 +298,40 @@ export async function PATCH(request: Request, { params }: { params?: { id: strin
     }
   }
   
-  // Handle PATCH /api/orders - toggle order pin (legacy)
+  // Handle PATCH /api/orders - toggle order pin (legacy) or reorder
   try {
-    const { orderId } = await request.json();
+    const body = await request.json();
+    debugOrders('PATCH: received body %O', body);
+    
+    // Handle order reordering
+    if (body.type === 'reorder') {
+      const { orderId, targetOrderId } = body;
+      debugOrders('PATCH: swapping order %d with order %d', orderId, targetOrderId);
+      
+      // Use the actual function to swap order positions
+      const result = await swapOrderPositions(orderId, targetOrderId);
+      
+      if (!result.success) {
+        debugOrders('PATCH: failed to swap orders: %s', result.error);
+        return NextResponse.json(
+          createApiResponse(undefined, result.error || 'Failed to swap orders'),
+          { status: 500 }
+        );
+      }
+      
+      debugOrders('PATCH: successfully swapped orders');
+      
+      // Notify clients of the update
+      notifyOrderUpdate();
+      
+      return NextResponse.json(
+        createApiResponse(result),
+        { status: 200 }
+      );
+    }
+    
+    // Handle existing pin functionality if no type is specified
+    const { orderId } = body;
     debugOrders('PATCH: toggling pin for order (legacy) %d', orderId);
     const result = await toggleOrderPin({ orderId });
     
@@ -280,15 +344,19 @@ export async function PATCH(request: Request, { params }: { params?: { id: strin
     }
     
     debugOrders('PATCH: successfully toggled pin for order %d', orderId);
+    
+    // Notify clients of the update
+    notifyOrderUpdate();
+    
     return NextResponse.json(
       createApiResponse(result),
       { status: 200 }
     );
   } catch (error: any) {
-    debugOrders('PATCH: error toggling order pin (legacy): %O', error);
-    console.error('Error toggling order pin:', error);
+    debugOrders('PATCH: error in order operation: %O', error);
+    console.error('Error in order operation:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to toggle order pin'),
+      createApiResponse(undefined, error.message || 'Failed to process order operation'),
       { status: 500 }
     );
   }
@@ -327,6 +395,10 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
     }
     
     debugOrders('DELETE: successfully deleted order %d', orderId);
+    
+    // Notify clients of the update
+    notifyOrderUpdate();
+    
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }

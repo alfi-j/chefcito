@@ -10,6 +10,7 @@ export interface IOrder extends Document {
   status: 'pending' | 'completed';
   statusHistory?: { status: 'pending' | 'completed'; timestamp: Date }[];
   isPinned?: boolean;
+  position?: number;
   createdAt: Date;
   completedAt?: Date;
 }
@@ -23,7 +24,9 @@ const OrderItemSchema: Schema = new Schema({
   selectedExtras: { type: [String], default: [] },
   notes: { type: String, default: '' },
   // Status field for workstation workflow
-  status: { type: String, default: 'new', required: true }
+  status: { type: String, default: 'new', required: true },
+  // Track which workstation this item belongs to
+  workstationId: { type: String, default: null }
 });
 
 const OrderSchema: Schema = new Schema({
@@ -38,6 +41,7 @@ const OrderSchema: Schema = new Schema({
     timestamp: { type: Date }
   }],
   isPinned: { type: Boolean, default: false },
+  position: { type: Number, default: 0 },
   createdAt: { type: Date, required: true },
   completedAt: { type: Date }
 });
@@ -47,6 +51,7 @@ OrderSchema.index({ createdAt: -1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ table: 1 });
 OrderSchema.index({ isPinned: -1, createdAt: 1 });
+OrderSchema.index({ position: 1 });
 
 // Prevent model recompilation in development mode
 const Order = mongoose.models.Order || mongoose.model<IOrder>('Order', OrderSchema, 'orders');

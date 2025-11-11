@@ -19,23 +19,32 @@ import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface AddItemDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem;
   orderItem?: OrderItem | null;
-  onSave: (quantity: number, selectedExtras: MenuItem[], notes: string) => void;
+  onSave: (quantity: number, selectedExtras: MenuItem[], notes: string, workstationId?: string) => void;
   onRemove?: (itemId: string) => void;
   menuItems: MenuItem[];
   categories: Category[];
+  workstations?: any[];
 }
 
-export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, onRemove, menuItems, categories }: AddItemDialogProps) {
+export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, onRemove, menuItems, categories, workstations }: AddItemDialogProps) {
   const { t } = useI18nStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   const [notes, setNotes] = useState('');
+  const [workstationId, setWorkstationId] = useState<string | undefined>(undefined);
   
   const isEditMode = !!orderItem;
 
@@ -84,6 +93,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
       setQuantity(orderItem?.quantity || 1);
       setSelectedExtras(orderItem?.selectedExtras || []);
       setNotes(orderItem?.notes || '');
+      setWorkstationId(orderItem?.workstationId || undefined);
     }
   }, [isOpen, orderItem]);
   
@@ -98,7 +108,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
   }
 
   const handleConfirm = () => {
-    onSave(quantity, selectedExtras, notes);
+    onSave(quantity, selectedExtras, notes, workstationId);
   };
   
   const handleRemove = () => {
@@ -158,6 +168,25 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                     <Label className="font-semibold text-base" htmlFor="item-notes">{t('pos.add_item_dialog.item_notes')}</Label>
                     <Textarea id="item-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('pos.add_item_dialog.item_notes_placeholder')} />
                 </div>
+                
+                {workstations && workstations.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-base">{t('pos.add_item_dialog.workstation')}</Label>
+                    <Select value={workstationId ?? "default"} onValueChange={(value) => setWorkstationId(value === "default" ? undefined : value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('pos.add_item_dialog.select_workstation')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">{t('pos.add_item_dialog.default_workstation')}</SelectItem>
+                        {workstations.map((ws: any) => (
+                          <SelectItem key={ws.id} value={ws.id}>
+                            {ws.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                     <Label className="font-semibold text-base">{t('pos.add_item_dialog.quantity')}</Label>

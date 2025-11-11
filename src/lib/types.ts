@@ -19,6 +19,7 @@ export type OrderItem = {
   selectedExtras?: MenuItem[];
   splitId?: number;
   notes?: string;
+  workstationId?: string; // Track which workstation this item belongs to
 };
 
 export type OrderStatusUpdate = {
@@ -42,6 +43,7 @@ export type Order = {
   completedAt?: Date;
   table: number;
   isPinned?: boolean;
+  position?: number;
   customerId?: string;
   staffName?: string;
   statusHistory?: OrderStatusUpdate[];

@@ -17,8 +17,8 @@ interface CurrentOrderState {
   setOrderType: (orderType: OrderType) => void;
   setDeliveryInfo: (deliveryInfo: DeliveryInfo) => void;
   
-  addItem: (itemToAdd: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => void;
-  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string) => void;
+  addItem: (itemToAdd: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string, workstationId?: string) => void;
+  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string, workstationId?: string) => void;
   updateItemQuantity: (itemId: string, adjustment: number) => void;
   removeItem: (itemId: string) => void;
   clearOrder: () => void;
@@ -41,11 +41,12 @@ export const useCurrentOrderStore = create<CurrentOrderState>()((set, get) => ({
   setOrderType: (orderType) => set({ orderType }),
   setDeliveryInfo: (deliveryInfo) => set({ deliveryInfo }),
   
-  addItem: (itemToAdd, quantity, selectedExtras, notes) => set((state) => {
+  addItem: (itemToAdd, quantity, selectedExtras, notes, workstationId) => set((state) => {
     const existingItemIndex = state.items.findIndex(i => 
       i.menuItem.id === itemToAdd.id && 
       JSON.stringify(i.selectedExtras?.map(e => e.id).sort()) === JSON.stringify(selectedExtras.map(e => e.id).sort()) &&
-      i.notes === (notes || undefined)
+      i.notes === (notes || undefined) &&
+      i.workstationId === workstationId
     );
 
     if (existingItemIndex > -1) {
@@ -64,19 +65,21 @@ export const useCurrentOrderStore = create<CurrentOrderState>()((set, get) => ({
         status: KDS_STATES.NEW,
         selectedExtras,
         notes,
+        workstationId: workstationId || undefined
       };
       return { items: [...state.items, newItem] };
     }
   }),
   
-  updateItem: (itemId, newQuantity, newSelectedExtras, notes) => set((state) => ({
+  updateItem: (itemId, newQuantity, newSelectedExtras, notes, workstationId) => set((state) => ({
     items: state.items.map(item =>
       item.id === itemId
         ? { 
             ...item, 
             quantity: newQuantity, 
             selectedExtras: newSelectedExtras, 
-            notes 
+            notes,
+            workstationId
           }
         : item
     )

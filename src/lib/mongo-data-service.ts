@@ -1,13 +1,12 @@
 import { 
-  type ICategory as Category, 
-  type IMenuItem as MenuItem, 
-  type IOrder as Order, 
-  type IInventoryItem as Inventory, 
-  type ICustomer as Customer, 
-  type IUser as User, 
-  type IWorkstation as Workstation, 
-  type IPayment as Payment
-} from '@/models';
+  type MenuItem, 
+  type Order, 
+  type InventoryItem as Inventory, 
+  type Customer, 
+  type Payment,
+  type Category
+} from '@/lib/types';
+import { type IWorkstation as Workstation, type IUser as User } from '@/models';
 import { DateRange } from 'react-day-picker';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { type OrderItem } from './types';
@@ -83,6 +82,7 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
       selectedExtras: selectedExtras.filter(e => e !== null) as MenuItem[],
       quantity: quantity,
       status: status,
+      workstationId: item.workstationId || null // Preserve workstationId
     };
   }));
 
@@ -241,7 +241,7 @@ const getOrderTotal = (order: Order): number => {
 
 export const getInitialOrders = async (): Promise<Order[]> => {
   await initializeDatabase();
-  const orders = await OrderModel.find({}).sort({ createdAt: -1 }).maxTimeMS(10000);
+  const orders = await OrderModel.find({}).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000); // Reduce timeout
   const menuItems = await getAllMenuItems();
   return Promise.all(orders.map(order => inflateOrder(order.toObject(), menuItems)));
 };
@@ -340,20 +340,47 @@ export const toggleOrderPin = async ({ orderId }: { orderId: number }) => {
   }
 };
 
-export const updateOrderItemStatus = async ({ orderId, itemId, status }: { orderId: number; itemId: string; status: string }) => {
+export const updateOrderItemStatus = async ({ orderId, itemId, status, moveToNextWorkstation, nextWorkstationId }: { orderId: number; itemId: string; status: string, moveToNextWorkstation?: boolean, nextWorkstationId?: string }) => {
   try {
     const order = await OrderModel.findOne({ id: orderId });
     if (!order) {
       throw new Error('Order not found');
     }
     
-    const item = order.items.find((item: any) => item.id === itemId);
-    if (!item) {
+    // Find the item index
+    const itemIndex = order.items.findIndex((item: any) => item.id === itemId);
+    if (itemIndex === -1) {
       throw new Error('Item not found in order');
     }
     
-    item.status = status;
-    await order.save();
+    // Create update object with only the fields we want to change
+    const updateFields: any = {};
+    
+    // If we're moving to the next workstation, we need to reset status to 'new'
+    // and assign the item to the next workstation
+    if (moveToNextWorkstation && nextWorkstationId) {
+      updateFields['items.$.status'] = 'new'; // Reset to new when moving to next workstation
+      updateFields['items.$.workstationId'] = nextWorkstationId; // Assign to next workstation
+    } else {
+      updateFields['items.$.status'] = status;
+    }
+    
+    // Update only the specific item using positional operator
+    await OrderModel.updateOne(
+      { id: orderId, 'items.id': itemId },
+      { $set: updateFields }
+    );
+    
+    // After updating, check if all items are served to mark order as completed
+    const updatedOrder = await OrderModel.findOne({ id: orderId });
+    if (updatedOrder) {
+      const allItemsServed = updatedOrder.items.every((i: any) => i.status === 'served');
+      if (allItemsServed) {
+        updatedOrder.status = 'completed';
+        updatedOrder.completedAt = new Date();
+        await updatedOrder.save();
+      }
+    }
     
     return true;
   } catch (error: any) {
@@ -696,6 +723,83 @@ export const updateWorkstationPositions = async (positions: { id: string; positi
     return result.modifiedCount || 0;
   } catch (error) {
     console.error('Error updating workstation positions:', error);
+    throw error;
+  }
+};
+
+// Add this new function for reordering orders
+export const updateOrderPositions = async (orderId: number, newPosition: number) => {
+  try {
+    // First, get all orders sorted by their current positions
+    const orders = await OrderModel.find({}).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000); // Reduce timeout
+    
+    // Find the order we're moving
+    const orderIndex = orders.findIndex(order => order.id === orderId);
+    
+    if (orderIndex === -1) {
+      return { success: false, error: 'Order not found' };
+    }
+    
+    // Remove the order from its current position
+    const [movedOrder] = orders.splice(orderIndex, 1);
+    
+    // Insert it at the new position
+    orders.splice(newPosition, 0, movedOrder);
+    
+    // Update all orders with their new positions
+    const bulkOps = orders.map((order, index) => ({
+      updateOne: {
+        filter: { id: order.id },
+        update: { $set: { position: index } }
+      }
+    }));
+    
+    if (bulkOps.length > 0) {
+      await OrderModel.bulkWrite(bulkOps, { maxTimeMS: 5000 }); // Add timeout
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating order positions:', error);
+    throw error;
+  }
+};
+
+export const swapOrderPositions = async (orderId1: number, orderId2: number) => {
+  try {
+    // Get the two orders we want to swap with timeout
+    const [order1, order2] = await Promise.all([
+      OrderModel.findOne({ id: orderId1 }).maxTimeMS(3000),
+      OrderModel.findOne({ id: orderId2 }).maxTimeMS(3000)
+    ]);
+    
+    if (!order1 || !order2) {
+      return { success: false, error: 'One or both orders not found' };
+    }
+    
+    // Get their current positions
+    const position1 = order1.position || 0;
+    const position2 = order2.position || 0;
+    
+    // Swap their positions using bulk write for better performance
+    await OrderModel.bulkWrite([
+      {
+        updateOne: {
+          filter: { id: orderId1 },
+          update: { $set: { position: position2 } }
+        }
+      },
+      {
+        updateOne: {
+          filter: { id: orderId2 },
+          update: { $set: { position: position1 } }
+        }
+      }
+    ], { maxTimeMS: 5000 });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error swapping order positions:', error);
     throw error;
   }
 };

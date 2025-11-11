@@ -20,7 +20,8 @@
     "db:update-workstations": "node scripts/update-workstations-schema.mjs",
     "db:setup-default-workstations": "node scripts/setup-default-workstations.mjs",
     "db:ensure-default-workstations": "node scripts/ensure-default-workstations.mjs",
-    "db:rename-cocina-to-kitchen": "node scripts/rename-cocina-to-kitchen.mjs"
+    "db:rename-cocina-to-kitchen": "node scripts/rename-cocina-to-kitchen.mjs",
+    "db:reset-orders-for-kds": "node scripts/reset-orders-for-kds.js"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",

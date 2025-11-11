@@ -12,7 +12,9 @@ export const fetcher = async <T>(url: string): Promise<T> => {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
-      }
+      },
+      // Add a timeout to prevent hanging requests
+      signal: AbortSignal.timeout(5000)
     });
     
     // If the status code is not in the range 200-299
@@ -83,25 +85,25 @@ export const swrConfig: SWRConfiguration = {
   revalidateIfStale: true,
   
   // Refresh interval in milliseconds (0 means no auto-refresh)
-  refreshInterval: 30000, // Refresh every 30 seconds
+  refreshInterval: 15000, // Refresh every 15 seconds (reduced from 30)
   
   // Deduping interval to prevent duplicate requests
-  dedupingInterval: 2000,
+  dedupingInterval: 1000, // Reduced from 2000
   
   // Number of times to retry on error
-  errorRetryCount: 3,
+  errorRetryCount: 2, // Reduced from 3
   
   // Interval between error retries
-  errorRetryInterval: 5000,
+  errorRetryInterval: 3000, // Reduced from 5000
   
   // Keep previous data while fetching new data
   keepPreviousData: true,
   
   // Focus throttle interval
-  focusThrottleInterval: 5000,
+  focusThrottleInterval: 3000, // Reduced from 5000
   
   // Loading timeout
-  loadingTimeout: 3000,
+  loadingTimeout: 2000, // Reduced from 3000
   
   // Disable suspense by default
   suspense: false,
