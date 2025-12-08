@@ -1,8 +1,7 @@
-
 import { type NextRequest, NextResponse } from 'next/server'
 
-// This middleware checks if the user is authenticated.
-export function middleware(request: NextRequest) {
+// This proxy checks if the user is authenticated.
+export function proxy(request: NextRequest) {
   // Development mode: Bypassing authentication.
   return NextResponse.next();
 
