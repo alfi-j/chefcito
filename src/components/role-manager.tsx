@@ -1,14 +1,15 @@
 "use client"
 
-import { useUserStore } from "@/lib/stores/user-store";
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { useI18nStore } from '@/lib/stores/i18n-store';
 
 export function RoleManager() {
-  const { user, updateUserRole } = useUserStore();
+  const user = useNormalizedUserStore().getCurrentUser();
+  const { updateUserRole } = useNormalizedUserStore();
   const { t } = useI18nStore();
   
   // Only owners and admins can manage roles
@@ -20,7 +21,7 @@ export function RoleManager() {
   }
 
   const handleRoleChange = (newRole: 'Owner' | 'Admin' | 'Staff') => {
-    updateUserRole(newRole);
+    updateUserRole(user.id, newRole);
     toast.success("Role Updated", {
       description: `Your role has been updated to ${newRole}`,
       duration: 3000,

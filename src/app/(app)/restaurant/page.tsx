@@ -1,8 +1,11 @@
 "use client"
 import React, { useState, useCallback, useMemo, type DragEvent, useEffect } from 'react';
 import Image from 'next/image'
-import { debugMenu, debugInventory } from '@/lib/debug-utils';
-import {
+
+import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized';
+import { debugMenu, debugInventory } from '@/lib/helpers';
+import { 
   Table,
   TableBody,
   TableCell,
@@ -41,8 +44,6 @@ import { type IWorkstation } from '@/models/Workstation'
 import { WorkstationList } from './components/workstation-list'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
-import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useMenuStore } from '@/lib/stores/menu-store'
 import { MenuItemDialog } from './components/menu-item-dialog'
 import { CategoryDialog } from './components/category-dialog'
 import { PaymentMethodDialog } from './components/payment-method-dialog'
@@ -55,7 +56,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/helpers'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -351,13 +352,13 @@ function MenuList({
   
   const categoryMap = useMemo(() => {
     const map = new Map<number, Category>();
-    categories.forEach(c => map.set(c.id, c));
+    categories.forEach((c: Category) => map.set(c.id, c));
     return map;
   }, [categories]);
 
   const categoryChildrenMap = useMemo(() => {
     const map = new Map<number, number[]>();
-    categories.forEach(c => {
+    categories.forEach((c: Category) => {
         if (c.parentId) {
             if (!map.has(c.parentId)) {
                 map.set(c.parentId, []);
@@ -392,10 +393,10 @@ function MenuList({
   }, [categoryMap, categoryChildrenMap]);
   
   const renderedCategories = useMemo(() => {
-    const categoryIdMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const categoryIdMap = new Map(categories.map((c: Category) => [c.id, {...c, children: [] as Category[]}]));
     const roots: Category[] = [];
 
-    categories.forEach(category => {
+    categories.forEach((category: Category) => {
         if (category.parentId && categoryIdMap.has(category.parentId)) {
             categoryIdMap.get(category.parentId)!.children.push(category as any);
         } else {
@@ -407,10 +408,10 @@ function MenuList({
     const traverse = (category: Category, depth: number) => {
         flattened.push({ ...category, depth });
         const children = categoryIdMap.get(category.id)?.children || [];
-        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
     };
 
-    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    roots.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((root: Category) => traverse(root, 0));
     return flattened;
   }, [categories]);
 
@@ -603,9 +604,9 @@ function MenuList({
                               <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
                               </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                               <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                              <DropdownMenuItem onSelect={(e) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                              <DropdownMenuItem onSelect={(e: any) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
                           </DropdownMenuContent>
@@ -726,17 +727,21 @@ function PaymentMethods({
 export default function RestaurantPage() {
   const { t } = useI18nStore();
   
+  const menuStore = useNormalizedMenuStore();
+  const menuItems = menuStore.getMenuItems();
+  const categories = menuStore.getCategories();
+  
   const {
-    menuItems,
-    categories,
     loading,
+    error,
+    
     addCategory,
     addMenuItem,
     updateMenuItem,
     deleteMenuItem,
 
     fetchMenuData
-  } = useMenuStore();
+  } = menuStore;
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
@@ -774,13 +779,13 @@ export default function RestaurantPage() {
   
   const categoryMap = useMemo(() => {
     const map = new Map<number, Category>();
-    categories.forEach(c => map.set(c.id, c));
+    categories.forEach((c: Category) => map.set(c.id, c));
     return map;
   }, [categories]);
 
   const categoryChildrenMap = useMemo(() => {
     const map = new Map<number, number[]>();
-    categories.forEach(c => {
+    categories.forEach((c: Category) => {
         if (c.parentId) {
             if (!map.has(c.parentId)) {
                 map.set(c.parentId, []);
@@ -815,10 +820,10 @@ export default function RestaurantPage() {
   }, [categoryMap, categoryChildrenMap]);
   
   const renderedCategories = useMemo(() => {
-    const categoryIdMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const categoryIdMap = new Map(categories.map((c: Category) => [c.id, {...c, children: [] as Category[]}]));
     const roots: Category[] = [];
 
-    categories.forEach(category => {
+    categories.forEach((category: Category) => {
         if (category.parentId && categoryIdMap.has(category.parentId)) {
             categoryIdMap.get(category.parentId)!.children.push(category as any);
         } else {
@@ -830,10 +835,10 @@ export default function RestaurantPage() {
     const traverse = (category: Category, depth: number) => {
         flattened.push({ ...category, depth });
         const children = categoryIdMap.get(category.id)?.children || [];
-        children.sort((a,b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1));
+        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
     };
 
-    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    roots.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((root: Category) => traverse(root, 0));
     return flattened;
   }, [categories]);
 
@@ -1108,7 +1113,7 @@ export default function RestaurantPage() {
   }, []);
   
   // Workstation CRUD operations
-  const addWorkstation = async (workstationData: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => {
+  const addWorkstation = async (workstationData: Partial<IWorkstation> & { name: string }) => {
     try {
       const response = await fetch('/api/workstations', {
         method: 'POST',
@@ -1134,7 +1139,7 @@ export default function RestaurantPage() {
     }
   };
   
-  const updateWorkstation = async (id: string, workstationData: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => {
+  const updateWorkstation = async (id: string, workstationData: Partial<IWorkstation> & { name: string }) => {
     try {
       const response = await fetch('/api/workstations', {
         method: 'PUT',

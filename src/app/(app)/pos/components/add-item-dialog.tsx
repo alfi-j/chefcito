@@ -135,10 +135,10 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
 
         <ScrollArea className="flex-1 -mx-6">
             <div className="px-4 space-y-4">
-                {Object.entries(availableModifierGroups).map(([groupName, modifiers]) => {
+                {Object.entries(availableModifierGroups).map(([groupName, modifiers], index) => {
                   if (modifiers.length === 0) return null;
                   return (
-                    <div key={groupName} className="space-y-2">
+                    <div key={`${groupName}-${index}`} className="space-y-2">
                         <Label className="font-semibold text-base">{groupName}</Label>
                         <div className="space-y-2">
                             {modifiers.map(modifier => (
@@ -178,8 +178,8 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="default">{t('pos.add_item_dialog.default_workstation')}</SelectItem>
-                        {workstations.map((ws: any) => (
-                          <SelectItem key={ws.id} value={ws.id}>
+                        {workstations.map((ws: any, index: number) => (
+                          <SelectItem key={`${ws.id}-${index}`} value={ws.id}>
                             {ws.name}
                           </SelectItem>
                         ))}

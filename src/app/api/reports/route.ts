@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getInitialOrders } from '@/lib/mongo-data-service';
+import { getInitialOrders } from '@/lib/database-service';
 import { format, eachDayOfInterval, parseISO, differenceInMinutes } from 'date-fns';
 import { type DateRange } from 'react-day-picker';
 import { MenuItem } from '@/lib/types';

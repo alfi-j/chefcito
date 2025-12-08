@@ -30,14 +30,14 @@ import { useI18nStore } from '@/lib/stores/i18n-store'
 import { type IWorkstation } from '@/models/Workstation'
 import { WorkstationDialog } from './workstation-dialog'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/helpers'
 
 interface WorkstationListProps {
   workstations: IWorkstation[]
   loading: boolean
   error: string | null
-  onAdd: (workstation: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => Promise<void>
-  onUpdate: (id: string, workstation: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => Promise<void>
+  onAdd: (workstation: Partial<IWorkstation> & { name: string }) => Promise<void>
+  onUpdate: (id: string, workstation: Partial<IWorkstation> & { name: string }) => Promise<void>
   onDelete: (id: string) => Promise<void>
   onReorder?: (workstations: IWorkstation[]) => void
 }
@@ -54,7 +54,7 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
     setIsDialogOpen(true)
   }
 
-  const handleSave = async (workstationData: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => {
+  const handleSave = async (workstationData: Partial<IWorkstation> & { name: string }) => {
     try {
       if (editingWorkstation) {
         await onUpdate(editingWorkstation.id, workstationData)
@@ -209,10 +209,6 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
                 <TableRow>
                   <TableHead className="w-8"></TableHead>
                   <TableHead>{t('restaurant.workstations.name')}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t('restaurant.workstations.states.new')}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t('restaurant.workstations.states.in_progress')}</TableHead>
-                  <TableHead className="hidden sm:table-cell">{t('restaurant.workstations.states.ready')}</TableHead>
-                  <TableHead className="sm:hidden">{t('restaurant.workstations.states.title')}</TableHead>
                   <TableHead>
                     <span className="sr-only">{t('restaurant.workstations.actions')}</span>
                   </TableHead>
@@ -221,7 +217,7 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
               <TableBody>
                 {workstations.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                       <p>{t('restaurant.workstations.no_workstations')}</p>
                     </TableCell>
                   </TableRow>
@@ -247,24 +243,11 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {workstation.name}
-                          {['Kitchen', 'Completed'].includes(workstation.name) && (
+                          {['Kitchen', 'Ready'].includes(workstation.name) && (
                             <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
                               {t('restaurant.workstations.default')}
                             </span>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">{workstation.states.new}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{workstation.states.inProgress}</TableCell>
-                      <TableCell className="hidden sm:table-cell">{workstation.states.ready}</TableCell>
-                      <TableCell className="sm:hidden">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-muted-foreground">{t('restaurant.workstations.states.new')}</span>
-                          <span>{workstation.states.new}</span>
-                          <span className="text-xs text-muted-foreground">{t('restaurant.workstations.states.in_progress')}</span>
-                          <span>{workstation.states.inProgress}</span>
-                          <span className="text-xs text-muted-foreground">{t('restaurant.workstations.states.ready')}</span>
-                          <span>{workstation.states.ready}</span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -282,7 +265,7 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
                                 {t('restaurant.workstations.edit')}
                               </DropdownMenuItem>
                               {/* Prevent deletion of default workstations */}
-                              {!['Kitchen', 'Completed'].includes(workstation.name) && (
+                              {!['Kitchen', 'Ready'].includes(workstation.name) && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem 

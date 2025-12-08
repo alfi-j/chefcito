@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { type Order, type OrderItem } from "@/lib/types"
 import { useI18nStore } from "@/lib/stores/i18n-store"
 import { format } from "date-fns"
-import { getItemTotal, getOrderTotal } from "@/lib/utils"
+import { getItemTotal, getOrderTotal } from "@/lib/helpers"
 import { Package, PersonStanding } from "lucide-react"
 
 interface OrderDetailsDialogProps {

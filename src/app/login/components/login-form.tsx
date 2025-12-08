@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner";
 import { useI18nStore } from "@/lib/stores/i18n-store"
-import { useUserStore } from "@/lib/stores/user-store"
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Simple cookie utility
@@ -24,7 +24,7 @@ const setCookie = (name: string, value: string, days: number) => {
 export function LoginForm() {
     const router = useRouter()
     const { t } = useI18nStore();
-    const { login } = useUserStore();
+    const { login } = useNormalizedUserStore();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     

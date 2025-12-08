@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Check, Clock, CookingPot, Utensils } from 'lucide-react'
 import { type OrderItem } from '@/lib/types'
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { KDS_STATES } from '@/lib/kds-constants'
+import { KDS_STATES } from '@/lib/constants'
 
 interface OrderItemCardProps {
   item: OrderItem

@@ -1,18 +1,33 @@
 "use client";
 
-import { useUsers } from "@/hooks/use-users";
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr-fetcher';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
-export function UserListSWR() {
-  const { users, isLoading, isError, isValidating } = useUsers({
-    refreshInterval: 30000, // Refresh every 30 seconds
-  });
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Owner' | 'Admin' | 'Staff';
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+  membership: 'free' | 'pro';
+}
 
-  if (isError) {
+export function UserListSWR() {
+  const { data, error, isLoading, isValidating } = useSWR<User[]>(
+    '/api/users',
+    fetcher,
+    {
+      fallbackData: [],
+      refreshInterval: 30000, // Refresh every 30 seconds
+    }
+  );
+
+  if (error) {
     return (
       <Card>
         <CardHeader>
@@ -24,7 +39,7 @@ export function UserListSWR() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error loading users</AlertTitle>
             <AlertDescription>
-              {isError.message || "An unexpected error occurred while loading users. Please try again later."}
+              {error.message || "An unexpected error occurred while loading users. Please try again later."}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -56,7 +71,7 @@ export function UserListSWR() {
           </div>
         ) : (
           <div className="space-y-4">
-            {users.map((user) => (
+            {data?.map((user) => (
               <div key={user.id} className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{user.name}</p>

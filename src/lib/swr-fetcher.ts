@@ -14,7 +14,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
         'Content-Type': 'application/json',
       },
       // Add a timeout to prevent hanging requests
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(15000)
     });
     
     // If the status code is not in the range 200-299
@@ -59,6 +59,10 @@ export const fetcher = async <T>(url: string): Promise<T> => {
       throw new Error('Network error: Unable to connect to the server. Please check your internet connection.');
     }
     
+    if (error.name === 'TimeoutError') {
+      throw new Error('Request timeout: The server took too long to respond. Please try again later.');
+    }
+    
     if (error.status === 503) {
       throw new Error('Service unavailable: Database connection failed. Please try again later.');
     }
@@ -85,25 +89,25 @@ export const swrConfig: SWRConfiguration = {
   revalidateIfStale: true,
   
   // Refresh interval in milliseconds (0 means no auto-refresh)
-  refreshInterval: 15000, // Refresh every 15 seconds (reduced from 30)
+  refreshInterval: 30000, // Refresh every 30 seconds
   
   // Deduping interval to prevent duplicate requests
-  dedupingInterval: 1000, // Reduced from 2000
+  dedupingInterval: 2000,
   
   // Number of times to retry on error
-  errorRetryCount: 2, // Reduced from 3
+  errorRetryCount: 3,
   
   // Interval between error retries
-  errorRetryInterval: 3000, // Reduced from 5000
+  errorRetryInterval: 5000,
   
   // Keep previous data while fetching new data
   keepPreviousData: true,
   
   // Focus throttle interval
-  focusThrottleInterval: 3000, // Reduced from 5000
+  focusThrottleInterval: 5000,
   
   // Loading timeout
-  loadingTimeout: 2000, // Reduced from 3000
+  loadingTimeout: 5000,
   
   // Disable suspense by default
   suspense: false,

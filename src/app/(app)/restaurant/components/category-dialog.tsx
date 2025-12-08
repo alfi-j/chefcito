@@ -24,7 +24,7 @@ import { Pencil, Trash2, Check } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { toast } from "sonner";
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useMenuStore } from '@/lib/stores/menu-store'
+import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
@@ -39,7 +39,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
   const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const { t } = useI18nStore();
-  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenuStore();
+  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useNormalizedMenuStore();
   
   const modifierGroups = useMemo(() => 
     categories

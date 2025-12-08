@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCategories } from '@/lib/mongo-data-service';
+import { getCategories } from '@/lib/database-service';
 
 export async function GET() {
   try {

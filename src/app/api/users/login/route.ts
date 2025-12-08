@@ -3,7 +3,7 @@ import { User } from '@/models';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { debugAuth } from '@/lib/debug-utils';
+import { debugAuth } from '@/lib/helpers';
 
 export async function POST(request: Request) {
   try {

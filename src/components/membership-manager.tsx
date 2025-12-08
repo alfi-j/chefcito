@@ -1,14 +1,15 @@
 "use client"
 
-import { useUserStore } from "@/lib/stores/user-store";
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { useI18nStore } from '@/lib/stores/i18n-store';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { useI18nStore } from '@/lib/stores/i18n-store';
 
 export function MembershipManager() {
-  const { user, updateMembership } = useUserStore();
+  const user = useNormalizedUserStore().getCurrentUser();
+  const { updateMembership } = useNormalizedUserStore();
   const { t } = useI18nStore();
 
   if (!user) {
@@ -16,7 +17,7 @@ export function MembershipManager() {
   }
 
   const handleUpgrade = () => {
-    updateMembership("pro");
+    updateMembership(user.id, "pro");
     toast.success("Membership Upgraded", {
       description: "You have successfully upgraded to Pro membership!",
       duration: 3000,
@@ -24,7 +25,7 @@ export function MembershipManager() {
   };
 
   const handleDowngrade = () => {
-    updateMembership("free");
+    updateMembership(user.id, "free");
     toast.success("Membership Updated", {
       description: "You have downgraded to Free membership.",
       duration: 3000,

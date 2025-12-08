@@ -7,8 +7,8 @@ import {
   updateCategory,
   deleteCategory,
   getMenuItems
-} from '@/lib/mongo-data-service';
-import { debugMenu } from '@/lib/debug-utils';
+} from '@/lib/database-service';
+import { debugMenu } from '@/lib/helpers';
 
 export async function GET() {
   try {

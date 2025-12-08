@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPaymentMethods, addPaymentMethod } from '@/lib/mongo-data-service';
+import { getPaymentMethods, addPaymentMethod } from '@/lib/database-service';
 
 // GET /api/payments - get all payment methods
 export async function GET() {

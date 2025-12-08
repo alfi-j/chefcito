@@ -94,7 +94,7 @@
         "no_orders": "No orders in this category.",
         "tabs": {
             "pending": "Pending",
-            "completed": "Completed",
+            "completed": "Ready",
             "kitchen": "Kitchen",
             "serving": "Serving"
         },
@@ -116,11 +116,11 @@
         "tabs": {
             "all": "All Orders",
             "pending": "Pending Orders",
-            "completed": "Completed Orders"
+            "completed": "Ready Orders"
         },
         "status": {
             "pending": "In Progress",
-            "completed": "Completed"
+            "completed": "Ready"
         },
         "table": {
             "order_id": "Order #",
@@ -370,9 +370,7 @@
             "positions_updated": "Workstation positions updated successfully.",
             "error": "An error occurred. Please try again.",
             "errors": {
-                "name_required": "Workstation name is required.",
-                "states_required": "All workstation states are required.",
-                "states_unique": "Workstation state names must be unique."
+                "name_required": "Workstation name is required."
             }
         }
     },

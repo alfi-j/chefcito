@@ -26,7 +26,9 @@ const OrderItemSchema: Schema = new Schema({
   // Status field for workstation workflow
   status: { type: String, default: 'new', required: true },
   // Track which workstation this item belongs to
-  workstationId: { type: String, default: null }
+  workstationId: { type: String, default: null },
+  // Position field for ordering items
+  position: { type: Number, default: 0 }
 });
 
 const OrderSchema: Schema = new Schema({

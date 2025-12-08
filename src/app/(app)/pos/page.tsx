@@ -35,10 +35,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { format } from 'date-fns'
 import { ReceiptDialog } from './components/dialogs/receipt-dialog'
 import { OrderDetailsDialog } from './components/dialogs/order-details-dialog'
-import { getOrderTotal } from '@/lib/utils'
+import { getOrderTotal } from '@/lib/helpers'
 import { useCallback } from 'react'
 import { type Category } from '@/lib/types'
-import { useCurrentOrderStore, useCurrentOrderTotals, useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
+import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals, useCurrentOrderItemCountByCategoryCompat as useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
 import { fetcher } from '@/lib/swr-fetcher';
 
 function PosPageContent() {
@@ -85,20 +85,22 @@ function PosPageContent() {
   );
   
   // Zustand store
-  const currentOrderItems = useCurrentOrderStore(state => state.items);
-  const currentOrderTable = useCurrentOrderStore(state => state.table);
-  const currentOrderNotes = useCurrentOrderStore(state => state.notes);
-  const currentOrderType = useCurrentOrderStore(state => state.orderType);
-  const currentOrderDeliveryInfo = useCurrentOrderStore(state => state.deliveryInfo);
-  const currentOrderSetTable = useCurrentOrderStore(state => state.setTable);
-  const currentOrderSetNotes = useCurrentOrderStore(state => state.setNotes);
-  const currentOrderSetOrderType = useCurrentOrderStore(state => state.setOrderType);
-  const currentOrderSetDeliveryInfo = useCurrentOrderStore(state => state.setDeliveryInfo);
-  const currentOrderAddItem = useCurrentOrderStore(state => state.addItem);
-  const currentOrderUpdateItem = useCurrentOrderStore(state => state.updateItem);
-  const currentOrderRemoveItem = useCurrentOrderStore(state => state.removeItem);
-  const currentOrderClearOrder = useCurrentOrderStore(state => state.clearOrder);
-  const currentOrderUpdateItemQuantity = useCurrentOrderStore(state => state.updateItemQuantity);
+  const {
+    items: currentOrderItems,
+    table: currentOrderTable,
+    notes: currentOrderNotes,
+    orderType: currentOrderType,
+    deliveryInfo: currentOrderDeliveryInfo,
+    setTable: currentOrderSetTable,
+    setNotes: currentOrderSetNotes,
+    setOrderType: currentOrderSetOrderType,
+    setDeliveryInfo: currentOrderSetDeliveryInfo,
+    addItem: currentOrderAddItem,
+    updateItem: currentOrderUpdateItem,
+    removeItem: currentOrderRemoveItem,
+    clearOrder: currentOrderClearOrder,
+    updateItemQuantity: currentOrderUpdateItemQuantity
+  } = useCurrentOrderStore();
   
   // Computed values from Zustand
   const { subtotal, tax, total } = useCurrentOrderTotals();
@@ -280,10 +282,14 @@ function PosPageContent() {
     }
 
     try {
+      // Get the first workstation (if available)
+      const workstations = await fetch('/api/workstations').then(res => res.json());
+      const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
+      
       // Prepare order data based on order type
       const orderData: any = {
         table: currentOrderTable,
-        items: currentOrderItems.map(item => {
+        items: currentOrderItems.map((item: OrderItem) => {
           console.log('Sending item to kitchen:', item);
           return {
             id: item.id,
@@ -295,7 +301,7 @@ function PosPageContent() {
             notes: item.notes || '',
             // Initialize status for KDS tracking
             status: 'new',
-            workstationId: item.workstationId || null
+            workstationId: item.workstationId || (firstWorkstation ? firstWorkstation.id : null)
           };
         }),
         notes: currentOrderNotes,
@@ -354,10 +360,14 @@ function PosPageContent() {
     
     // Send order as completed
     try {
+      // Get the first workstation (if available)
+      const workstations = await fetch('/api/workstations').then(res => res.json());
+      const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
+      
       // Prepare order data based on order type
       const orderData: any = {
         table: currentOrderTable,
-        items: currentOrderItems.map(item => ({
+        items: currentOrderItems.map((item: OrderItem) => ({
           id: item.id,
           menuItemId: item.menuItem.id,
           name: item.menuItem.name,
@@ -367,7 +377,7 @@ function PosPageContent() {
           notes: item.notes || '',
           // For completed orders, mark all as served
           status: 'served',
-          workstationId: item.workstationId || null
+          workstationId: item.workstationId || (firstWorkstation ? firstWorkstation.id : null)
         })),
         notes: currentOrderNotes,
         orderType: currentOrderType,
@@ -414,7 +424,7 @@ function PosPageContent() {
   
   const isExistingItem = editingOrderItem ? 
     // We need to access the items from the currentOrder hook
-    currentOrderItems.some(i => i.id === editingOrderItem.id) : false;
+    currentOrderItems.some((i: OrderItem) => i.id === editingOrderItem.id) : false;
   const isDialog = !!editingOrderItem;
   const dialogItem = editingOrderItem?.menuItem;
   

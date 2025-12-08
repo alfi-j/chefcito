@@ -33,7 +33,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
 import React, { useState, useEffect } from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/helpers"
 import { useI18nStore } from "@/lib/stores/i18n-store"
 
 // Simple cookie utility
@@ -214,7 +214,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={language} onValueChange={(value) => setLanguage(value as 'en' | 'es')}>
+              <DropdownMenuRadioGroup value={language} onValueChange={(value: string) => setLanguage(value as 'en' | 'es')}>
                 <DropdownMenuRadioItem value="en">{t('userMenu.language.en')}</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="es">{t('userMenu.language.es')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>

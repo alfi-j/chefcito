@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pencil, Trash2, ImageOff } from "lucide-react"
 import { type MenuItem, type Category } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useMenuStore } from '@/lib/stores/menu-store'
+import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
 import { DeleteConfirmationDialog } from './delete-confirmation-dialog'
 import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
@@ -31,7 +31,7 @@ interface RenderedCategory extends Category {
 
 export function MenuItemList({ menuItems = [], categories = [], onEdit }: MenuItemListProps) {
   const { t } = useI18nStore()
-  const { deleteMenuItem } = useMenuStore()
+  const { deleteMenuItem } = useNormalizedMenuStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
 

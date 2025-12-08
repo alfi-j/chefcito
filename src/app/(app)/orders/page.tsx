@@ -5,6 +5,8 @@ import { useI18nStore } from '@/lib/stores/i18n-store';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type Order } from '@/lib/types';
+import { getOrderTotal } from '@/lib/helpers';
+import { debugOrders } from '@/lib/helpers';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
@@ -27,12 +29,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { getOrderTotal } from '@/lib/utils';
+import { toast } from 'sonner';
 import { MoreHorizontal, Search, ChevronLeft, ChevronRight, Home } from "lucide-react"
 import { OrderDetailsDialog } from '@/app/(app)/pos/components/dialogs/order-details-dialog';
 import { ReceiptDialog } from '@/app/(app)/pos/components/dialogs/receipt-dialog';
-import { toast } from 'sonner';
-import { debugOrders } from '@/lib/debug-utils';
 
 const getStatusVariant = (status: Order['status']) => {
   switch (status) {

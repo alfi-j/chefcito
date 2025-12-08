@@ -2,9 +2,17 @@ import { create } from 'zustand';
 import { type MenuItem, type Category } from '@/lib/types';
 import { toast } from 'sonner';
 
-interface MenuState {
-  menuItems: MenuItem[];
-  categories: Category[];
+// Define normalized entities
+interface NormalizedEntities {
+  menuItems: Record<string, MenuItem>;
+  categories: Record<number, Category>;
+}
+
+interface NormalizedState {
+  entities: NormalizedEntities;
+}
+
+interface NormalizedMenuState extends NormalizedState {
   loading: boolean;
   error: string | null;
   
@@ -21,11 +29,22 @@ interface MenuState {
   
   // Data fetching
   fetchMenuData: () => Promise<void>;
+  
+  // Selector helpers
+  getMenuItems: () => MenuItem[];
+  getCategories: () => Category[];
 }
 
-export const useMenuStore = create<MenuState>()((set, get) => ({
-  menuItems: [],
-  categories: [],
+// Initial state
+const initialState: NormalizedState = {
+  entities: {
+    menuItems: {},
+    categories: {}
+  }
+};
+
+export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) => ({
+  ...initialState,
   loading: false,
   error: null,
   
@@ -46,7 +65,13 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       
       const newItem = await response.json();
       set((state) => ({
-        menuItems: [...state.menuItems, newItem],
+        entities: {
+          ...state.entities,
+          menuItems: {
+            ...state.entities.menuItems,
+            [newItem.id]: newItem
+          }
+        }
       }));
       
       toast.success('Menu item added successfully');
@@ -79,9 +104,16 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       
       const updatedItem = await response.json();
       set((state) => ({
-        menuItems: state.menuItems.map((item) =>
-          item.id === id ? { ...item, ...updatedItem } : item
-        ),
+        entities: {
+          ...state.entities,
+          menuItems: {
+            ...state.entities.menuItems,
+            [id]: { 
+              ...(state.entities.menuItems[id] || {}),
+              ...updatedItem 
+            }
+          }
+        }
       }));
       
       toast.success('Menu item updated successfully');
@@ -112,9 +144,17 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
         throw new Error(errorData.error || 'Failed to delete menu item');
       }
       
-      set((state) => ({
-        menuItems: state.menuItems.filter((item) => item.id !== id),
-      }));
+      set((state) => {
+        const newMenuItems = { ...state.entities.menuItems };
+        delete newMenuItems[id];
+        
+        return {
+          entities: {
+            ...state.entities,
+            menuItems: newMenuItems
+          }
+        };
+      });
       
       toast.success('Menu item deleted successfully');
       return true;
@@ -146,7 +186,13 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       
       const newCategory = await response.json();
       set((state) => ({
-        categories: [...state.categories, newCategory],
+        entities: {
+          ...state.entities,
+          categories: {
+            ...state.entities.categories,
+            [newCategory.id]: newCategory
+          }
+        }
       }));
       
       toast.success('Category added successfully');
@@ -178,9 +224,16 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       }
       
       set((state) => ({
-        categories: state.categories.map((category) =>
-          category.id === id ? { ...category, ...categoryData } : category
-        ),
+        entities: {
+          ...state.entities,
+          categories: {
+            ...state.entities.categories,
+            [id]: { 
+              ...(state.entities.categories[id] || {}),
+              ...categoryData 
+            }
+          }
+        }
       }));
       
       toast.success('Category updated successfully');
@@ -207,9 +260,17 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
         throw new Error(errorData.error || 'Failed to delete category');
       }
       
-      set((state) => ({
-        categories: state.categories.filter((category) => category.id !== id),
-      }));
+      set((state) => {
+        const newCategories = { ...state.entities.categories };
+        delete newCategories[id];
+        
+        return {
+          entities: {
+            ...state.entities,
+            categories: newCategories
+          }
+        };
+      });
       
       toast.success('Category deleted successfully');
       return true;
@@ -228,8 +289,8 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
     try {
       // This would typically be implemented on the backend
       // For now, we'll check if any menu items are using this category
-      const { menuItems } = get();
-      return menuItems.some((item) => item.category === id.toString());
+      const { entities } = get();
+      return Object.values(entities.menuItems).some((item) => item.category === id.toString());
     } catch (error) {
       return false;
     }
@@ -248,9 +309,24 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       const categoriesResult = await categoriesResponse.json();
       
       if (menuItemsResult.success && categoriesResult.success) {
+        // Normalize menu items
+        const menuItems: Record<string, MenuItem> = {};
+        menuItemsResult.data.forEach((item: MenuItem) => {
+          menuItems[item.id] = item;
+        });
+        
+        // Normalize categories
+        const categories: Record<number, Category> = {};
+        categoriesResult.data.forEach((category: Category) => {
+          categories[category.id] = category;
+        });
+        
         set({
-          menuItems: menuItemsResult.data,
-          categories: categoriesResult.data,
+          entities: {
+            ...get().entities,
+            menuItems,
+            categories
+          },
           loading: false,
         });
       } else {
@@ -267,4 +343,15 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
       set({ error: errorMessage, loading: false });
     }
   },
+  
+  // Selector helpers
+  getMenuItems: () => {
+    const { entities } = get();
+    return Object.values(entities.menuItems);
+  },
+  
+  getCategories: () => {
+    const { entities } = get();
+    return Object.values(entities.categories);
+  }
 }));

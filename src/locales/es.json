@@ -94,7 +94,7 @@
         "no_orders": "No hay órdenes en esta categoría.",
         "tabs": {
             "pending": "Pendientes",
-            "completed": "Completadas",
+            "completed": "Listas",
             "kitchen": "Cocina",
             "serving": "Servicio"
         },
@@ -116,11 +116,11 @@
         "tabs": {
             "all": "Todas las Órdenes",
             "pending": "Órdenes Pendientes",
-            "completed": "Órdenes Completadas"
+            "completed": "Órdenes Listas"
         },
         "status": {
             "pending": "En Progreso",
-            "completed": "Completada"
+            "completed": "Lista"
         },
         "table": {
             "order_id": "Orden #",
@@ -369,9 +369,7 @@
             "deleted_success": "{{name}} eliminado correctamente.",
             "error": "Ocurrió un error. Por favor intente nuevamente.",
             "errors": {
-                "name_required": "El nombre de la estación es obligatorio.",
-                "states_required": "Todos los estados de la estación son obligatorios.",
-                "states_unique": "Los nombres de los estados de la estación deben ser únicos."
+                "name_required": "El nombre de la estación es obligatorio."
             }
         }
     },

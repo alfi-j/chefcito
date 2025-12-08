@@ -4,21 +4,15 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
-import { Send, CreditCard, Utensils, StickyNote, Package, PersonStanding, PlusCircle, MinusCircle } from 'lucide-react'
-import { useI18nStore } from '@/lib/stores/i18n-store'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
-import { useCurrentOrderStore, useCurrentOrderTotals, useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store'
+import { Textarea } from '@/components/ui/textarea'
+import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
+import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals, useCurrentOrderItemCountByCategoryCompat as useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store'
+import { MinusCircle, Package, PersonStanding, PlusCircle, Send, StickyNote, CreditCard, Utensils } from 'lucide-react'
 
 // Define the type for our current order object
 interface CurrentOrderType {

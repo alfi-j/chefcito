@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { useMemo } from 'react';
-import { type OrderItem, type MenuItem, type OrderType, type DeliveryInfo } from '@/lib/types';
-import { KDS_STATES } from '@/lib/kds-constants';
+import { 
+  OrderItem, 
+  MenuItem, 
+  OrderType, 
+  DeliveryInfo
+} from '@/lib/types';
+import { KDS_STATES } from '@/lib/constants';
+import { NormalizedState } from '@/lib/types';
 
-interface CurrentOrderState {
-  items: OrderItem[];
-  table: number;
-  notes: string;
-  orderType: OrderType;
-  deliveryInfo: DeliveryInfo;
-  
+// Define the store state
+interface NormalizedCurrentOrderState extends NormalizedState {
   // Actions
   setItems: (items: OrderItem[]) => void;
   setTable: (table: number) => void;
@@ -17,49 +18,145 @@ interface CurrentOrderState {
   setOrderType: (orderType: OrderType) => void;
   setDeliveryInfo: (deliveryInfo: DeliveryInfo) => void;
   
-  addItem: (itemToAdd: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string, workstationId?: string) => void;
-  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string, workstationId?: string) => void;
+  addItem: (
+    itemToAdd: MenuItem, 
+    quantity: number, 
+    selectedExtras: MenuItem[], 
+    notes?: string, 
+    workstationId?: string
+  ) => void;
+  
+  updateItem: (
+    itemId: string, 
+    newQuantity: number, 
+    newSelectedExtras: MenuItem[], 
+    notes?: string, 
+    workstationId?: string
+  ) => void;
+  
   updateItemQuantity: (itemId: string, adjustment: number) => void;
   removeItem: (itemId: string) => void;
   clearOrder: () => void;
 }
 
-export const useCurrentOrderStore = create<CurrentOrderState>()((set, get) => ({
-  items: [],
-  table: 1,
-  notes: '',
-  orderType: 'dine-in',
-  deliveryInfo: {
-    name: '',
-    address: '',
-    phone: ''
+// Initial state
+const initialState: NormalizedState = {
+  entities: {
+    orderItems: {},
+    menuItems: {}
   },
+  currentOrder: {
+    itemIds: [],
+    table: 1,
+    notes: '',
+    orderType: 'dine-in' as OrderType,
+    deliveryInfo: {
+      name: '',
+      address: '',
+      phone: ''
+    }
+  }
+};
+
+// Create a stable initial state for server-side rendering
+let serverSnapshot: NormalizedState;
+const getServerSnapshot = (): NormalizedState => {
+  if (!serverSnapshot) {
+    serverSnapshot = JSON.parse(JSON.stringify(initialState));
+  }
+  return serverSnapshot;
+};
+
+export const useNormalizedCurrentOrderStore = create<NormalizedCurrentOrderState>()((set, get) => ({
+  ...getServerSnapshot(),
   
-  setItems: (items) => set({ items }),
-  setTable: (table) => set({ table }),
-  setNotes: (notes) => set({ notes }),
-  setOrderType: (orderType) => set({ orderType }),
-  setDeliveryInfo: (deliveryInfo) => set({ deliveryInfo }),
+  setItems: (items) => set((state) => {
+    // Create a copy of the state
+    const newState = {...state};
+    newState.currentOrder = {...newState.currentOrder};
+    newState.currentOrder.itemIds = [];
+    newState.entities = {...newState.entities};
+    newState.entities.orderItems = {};
+    
+    // Add new items
+    items.forEach(item => {
+      newState.entities.orderItems[item.id] = item;
+      newState.currentOrder.itemIds.push(item.id);
+    });
+    
+    return newState;
+  }),
+  
+  setTable: (table) => set((state) => ({
+    ...state,
+    currentOrder: {
+      ...state.currentOrder,
+      table
+    }
+  })),
+  
+  setNotes: (notes) => set((state) => ({
+    ...state,
+    currentOrder: {
+      ...state.currentOrder,
+      notes
+    }
+  })),
+  
+  setOrderType: (orderType) => set((state) => ({
+    ...state,
+    currentOrder: {
+      ...state.currentOrder,
+      orderType
+    }
+  })),
+  
+  setDeliveryInfo: (deliveryInfo) => set((state) => ({
+    ...state,
+    currentOrder: {
+      ...state.currentOrder,
+      deliveryInfo
+    }
+  })),
   
   addItem: (itemToAdd, quantity, selectedExtras, notes, workstationId) => set((state) => {
-    const existingItemIndex = state.items.findIndex(i => 
-      i.menuItem.id === itemToAdd.id && 
-      JSON.stringify(i.selectedExtras?.map(e => e.id).sort()) === JSON.stringify(selectedExtras.map(e => e.id).sort()) &&
-      i.notes === (notes || undefined) &&
-      i.workstationId === workstationId
-    );
-
-    if (existingItemIndex > -1) {
-      const newItems = [...state.items];
-      const existingItem = newItems[existingItemIndex];
-      newItems[existingItemIndex] = {
+    // Create a copy of the state
+    const newState = {...state};
+    newState.entities = {...newState.entities};
+    newState.entities.menuItems = {...newState.entities.menuItems};
+    newState.entities.orderItems = {...newState.entities.orderItems};
+    newState.currentOrder = {...newState.currentOrder};
+    newState.currentOrder.itemIds = [...newState.currentOrder.itemIds];
+    
+    // First, ensure the menu item is in our entities
+    if (!newState.entities.menuItems[itemToAdd.id]) {
+      newState.entities.menuItems[itemToAdd.id] = itemToAdd;
+    }
+    
+    // Check for existing item with same properties
+    const existingItemKey = Object.keys(newState.entities.orderItems).find((key) => {
+      const item = newState.entities.orderItems[key];
+      return (
+        item.menuItem.id === itemToAdd.id &&
+        JSON.stringify(item.selectedExtras?.map((e: MenuItem) => e.id).sort()) === 
+          JSON.stringify(selectedExtras.map((e: MenuItem) => e.id).sort()) &&
+        item.notes === (notes || undefined) &&
+        item.workstationId === workstationId
+      );
+    });
+    
+    if (existingItemKey) {
+      // Update quantity of existing item
+      const existingItem = newState.entities.orderItems[existingItemKey];
+      newState.entities.orderItems[existingItemKey] = {
         ...existingItem,
-        quantity: existingItem.quantity + quantity,
+        quantity: existingItem.quantity + quantity
       };
-      return { items: newItems };
     } else {
+      // Create new item
+      const newItemId = `${itemToAdd.id}-${Date.now()}`;
       const newItem: OrderItem = {
-        id: `${itemToAdd.id}-${Date.now()}`,
+        id: newItemId,
         menuItem: itemToAdd,
         quantity,
         status: KDS_STATES.NEW,
@@ -67,62 +164,101 @@ export const useCurrentOrderStore = create<CurrentOrderState>()((set, get) => ({
         notes,
         workstationId: workstationId || undefined
       };
-      return { items: [...state.items, newItem] };
+      
+      newState.entities.orderItems[newItemId] = newItem;
+      newState.currentOrder.itemIds.push(newItemId);
     }
+    
+    return newState;
   }),
   
-  updateItem: (itemId, newQuantity, newSelectedExtras, notes, workstationId) => set((state) => ({
-    items: state.items.map(item =>
-      item.id === itemId
-        ? { 
-            ...item, 
-            quantity: newQuantity, 
-            selectedExtras: newSelectedExtras, 
-            notes,
-            workstationId
-          }
-        : item
-    )
-  })),
+  updateItem: (itemId, newQuantity, newSelectedExtras, notes, workstationId) => set((state) => {
+    // Create a copy of the state
+    const newState = {...state};
+    newState.entities = {...newState.entities};
+    newState.entities.orderItems = {...newState.entities.orderItems};
+    newState.currentOrder = {...newState.currentOrder};
+    
+    if (newState.entities.orderItems[itemId]) {
+      newState.entities.orderItems[itemId] = {
+        ...newState.entities.orderItems[itemId],
+        quantity: newQuantity,
+        selectedExtras: newSelectedExtras,
+        notes,
+        workstationId
+      };
+    }
+    
+    return newState;
+  }),
   
   updateItemQuantity: (itemId, adjustment) => set((state) => {
-    const itemIndex = state.items.findIndex(item => item.id === itemId);
-    if (itemIndex === -1) return state;
+    // Create a copy of the state
+    const newState = {...state};
+    newState.entities = {...newState.entities};
+    newState.entities.orderItems = {...newState.entities.orderItems};
+    newState.currentOrder = {...newState.currentOrder};
     
-    const newItems = [...state.items];
-    const item = newItems[itemIndex];
+    const item = newState.entities.orderItems[itemId];
+    if (!item) return state;
     
     const newQuantity = item.quantity + adjustment;
-
+    
     if (newQuantity <= 0) {
       // Remove item if quantity is zero or less
-      return { items: newItems.filter(i => i.id !== itemId) };
+      delete newState.entities.orderItems[itemId];
+      newState.currentOrder.itemIds = newState.currentOrder.itemIds.filter((id: string) => id !== itemId);
     } else {
-      newItems[itemIndex] = { 
-          ...item, 
-          quantity: newQuantity,
+      // Update quantity
+      newState.entities.orderItems[itemId] = {
+        ...item,
+        quantity: newQuantity
       };
-      return { items: newItems };
     }
+    
+    return newState;
   }),
   
-  removeItem: (itemId) => set((state) => ({
-    items: state.items.filter(item => item.id !== itemId)
-  })),
-  
-  clearOrder: () => set({
-    items: [],
-    table: 1,
-    notes: '',
-    orderType: 'dine-in',
-    deliveryInfo: { name: '', address: '', phone: '' }
+  removeItem: (itemId) => set((state) => {
+    // Create a copy of the state
+    const newState = {...state};
+    newState.entities = {...newState.entities};
+    newState.entities.orderItems = {...newState.entities.orderItems};
+    newState.currentOrder = {...newState.currentOrder};
+    
+    delete newState.entities.orderItems[itemId];
+    newState.currentOrder.itemIds = newState.currentOrder.itemIds.filter((id: string) => id !== itemId);
+    
+    return newState;
   }),
+  
+  clearOrder: () => set((state) => ({
+    ...state,
+    currentOrder: {
+      ...state.currentOrder,
+      itemIds: [],
+      table: 1,
+      notes: '',
+      orderType: 'dine-in',
+      deliveryInfo: { name: '', address: '', phone: '' }
+    }
+    // Note: We're keeping the entities for menu items, categories, etc. as they're shared
+  }))
 }));
 
-// Computed values - these will be used as selectors
-export const useCurrentOrderTotals = () => {
-  const items = useCurrentOrderStore(state => state.items);
+// Selectors - these provide backward compatibility with existing components
+export const useNormalizedCurrentOrderItems = () => {
+  const state = useNormalizedCurrentOrderStore();
+  return state.currentOrder.itemIds.map(
+    id => state.entities.orderItems[id]
+  );
+};
+
+// Reuse the existing selector logic from the original store to avoid duplication
+export const useNormalizedCurrentOrderTotals = () => {
+  const items = useNormalizedCurrentOrderItems();
   
+  // Reuse the same calculation logic as in the original store
   return useMemo(() => {
     const subtotal = items.reduce((acc, item) => {
       const extrasPrice = item.selectedExtras?.reduce((extraAcc, extra) => extraAcc + extra.price, 0) || 0;
@@ -134,9 +270,11 @@ export const useCurrentOrderTotals = () => {
   }, [items]);
 };
 
-export const useCurrentOrderItemCountByCategory = () => {
-  const items = useCurrentOrderStore(state => state.items);
+// Reuse the existing selector logic from the original store to avoid duplication
+export const useNormalizedCurrentOrderItemCountByCategory = () => {
+  const items = useNormalizedCurrentOrderItems();
   
+  // Reuse the same calculation logic as in the original store
   return useMemo(() => {
     const counts: Record<string, number> = {};
     items.forEach(item => {
@@ -145,4 +283,53 @@ export const useCurrentOrderItemCountByCategory = () => {
     });
     return counts;
   }, [items]);
+};
+
+// Backward compatibility selectors - these mimic the old store's return values
+export const useCurrentOrderStoreCompat = () => {
+  const state = useNormalizedCurrentOrderStore();
+  const items = useNormalizedCurrentOrderItems();
+  const table = state.currentOrder.table;
+  const notes = state.currentOrder.notes;
+  const orderType = state.currentOrder.orderType;
+  const deliveryInfo = state.currentOrder.deliveryInfo;
+  
+  const setItems = state.setItems;
+  const setTable = state.setTable;
+  const setNotes = state.setNotes;
+  const setOrderType = state.setOrderType;
+  const setDeliveryInfo = state.setDeliveryInfo;
+  
+  const addItem = state.addItem;
+  const updateItem = state.updateItem;
+  const updateItemQuantity = state.updateItemQuantity;
+  const removeItem = state.removeItem;
+  const clearOrder = state.clearOrder;
+  
+  return {
+    items,
+    table,
+    notes,
+    orderType,
+    deliveryInfo,
+    setItems,
+    setTable,
+    setNotes,
+    setOrderType,
+    setDeliveryInfo,
+    addItem,
+    updateItem,
+    updateItemQuantity,
+    removeItem,
+    clearOrder
+  };
+};
+
+// Compatibility selectors for computed values
+export const useCurrentOrderTotalsCompat = () => {
+  return useNormalizedCurrentOrderTotals();
+};
+
+export const useCurrentOrderItemCountByCategoryCompat = () => {
+  return useNormalizedCurrentOrderItemCountByCategory();
 };

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { updateInventoryItem, updateInventoryStock, deleteInventoryItem } from '@/lib/mongo-data-service';
-import { debugInventory } from '@/lib/debug-utils';
+import { updateInventoryItem, updateInventoryStock, deleteInventoryItem } from '@/lib/database-service';
+import { debugInventory } from '@/lib/helpers';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {

@@ -2,13 +2,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { type MenuItem, type Category } from '@/lib/types'
+import { type MenuItem, type Category, type OrderItem } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Utensils } from 'lucide-react'
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { useCurrentOrderStore } from '@/lib/stores/current-order-store'
+import { useCurrentOrderStoreCompat as useCurrentOrderStore } from '@/lib/stores/current-order-store'
 
 interface RenderedCategory extends Category {
   depth: number;
@@ -24,7 +24,19 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
   const { t } = useI18nStore();
   
   // Get current order items to display badges
-  const orderItems = useCurrentOrderStore(state => state.items);
+  const { items: orderItems, addItem: addItemToOrder } = useCurrentOrderStore();
+
+  // Memoize badge counts to avoid recalculating for each item
+  const badgeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    orderItems.forEach((orderItem: OrderItem) => {
+      const itemId = orderItem.menuItem?.id;
+      if (itemId) {
+        counts[itemId] = (counts[itemId] || 0) + orderItem.quantity;
+      }
+    });
+    return counts;
+  }, [orderItems]);
 
   const renderedCategories = useMemo(() => {
     const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
@@ -87,28 +99,30 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     return map;
   }, [categories]);
 
-  const getDescendantCategoryNames = (categoryId: number): string[] => {
-    const names: string[] = [];
-    const queue: number[] = [categoryId];
-    const visited = new Set<number>();
+  const getDescendantCategoryNames = useMemo(() => {
+    return (categoryId: number): string[] => {
+      const names: string[] = [];
+      const queue: number[] = [categoryId];
+      const visited = new Set<number>();
 
-    while(queue.length > 0) {
-        const currentId = queue.shift()!;
-        if (visited.has(currentId)) continue;
-        visited.add(currentId);
-        
-        const category = categoryMap.get(currentId);
-        if (category) {
-            names.push(category.name);
-        }
+      while(queue.length > 0) {
+          const currentId = queue.shift()!;
+          if (visited.has(currentId)) continue;
+          visited.add(currentId);
+          
+          const category = categoryMap.get(currentId);
+          if (category) {
+              names.push(category.name);
+          }
 
-        const children = categoryChildrenMap.get(currentId);
-        if (children) {
-            queue.push(...children);
-        }
-    }
-    return names;
-  }
+          const children = categoryChildrenMap.get(currentId);
+          if (children) {
+              queue.push(...children);
+          }
+      }
+      return names;
+    };
+  }, [categoryMap, categoryChildrenMap]);
 
   const itemsForActiveCategory = useMemo(() => {
     if (activeCategoryName === 'all') return menuItems;
@@ -119,7 +133,13 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     const relevantCategoryNames = getDescendantCategoryNames(activeCategory.id);
     
     return menuItems.filter(item => relevantCategoryNames.includes(item.category));
-  }, [activeCategoryName, menuItems, categories, categoryMap, categoryChildrenMap]);
+  }, [activeCategoryName, menuItems, categories, getDescendantCategoryNames]);
+  
+  // New function to directly add item to cart without opening dialog
+  const handleItemClick = (item: MenuItem) => {
+    // Add directly to the store
+    addItemToOrder(item, 1, [], undefined, undefined);
+  };
   
   if (categories.filter(c => !c.isModifierGroup).length === 0) {
     return (
@@ -158,16 +178,14 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
             <ScrollArea className="absolute inset-0">
               <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 p-1">
                 {itemsForActiveCategory.map(item => {
-                  // Count how many of this item are in the current order
-                  const itemCount = orderItems
-                    .filter(orderItem => orderItem.menuItem.id === item.id)
-                    .reduce((sum, orderItem) => sum + orderItem.quantity, 0);
+                  // Get badge count from memoized counts
+                  const itemCount = badgeCounts[item.id] || 0;
                   
                   return (
                     <Card 
                       key={item.id} 
                       className="cursor-pointer hover:shadow-lg hover:border-primary transition-all flex flex-col overflow-hidden group relative"
-                      onClick={() => onAddItem(item)}
+                      onClick={() => handleItemClick(item)}
                     >
                       <div className="w-full aspect-square relative bg-muted flex items-center justify-center">
                           {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (

@@ -8,8 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, PlusCircle, MinusCircle, X } from 'lucide-react';
 import { useI18nStore } from '@/lib/stores/i18n-store';
-import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types';
-import { useCurrentOrderStore, useCurrentOrderTotals, useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
+import { type OrderItem, type OrderType, type DeliveryInfo, type MenuItem } from '@/lib/types';
+import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals, useCurrentOrderItemCountByCategoryCompat as useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
 import {
   Card,
   CardContent,
@@ -41,18 +41,20 @@ interface SheetCartProps {
 
 export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonText, open, onOpenChange }: SheetCartProps) {
   const { t } = useI18nStore();
-  const items = useCurrentOrderStore(state => state.items);
-  const table = useCurrentOrderStore(state => state.table);
-  const setTable = useCurrentOrderStore(state => state.setTable);
-  const notes = useCurrentOrderStore(state => state.notes);
-  const setNotes = useCurrentOrderStore(state => state.setNotes);
-  const orderType = useCurrentOrderStore(state => state.orderType);
-  const setOrderType = useCurrentOrderStore(state => state.setOrderType);
-  const deliveryInfo = useCurrentOrderStore(state => state.deliveryInfo);
-  const setDeliveryInfo = useCurrentOrderStore(state => state.setDeliveryInfo);
-  const clearOrder = useCurrentOrderStore(state => state.clearOrder);
-  const updateItemQuantity = useCurrentOrderStore(state => state.updateItemQuantity);
-  const removeItem = useCurrentOrderStore(state => state.removeItem);
+  const { 
+    items,
+    table,
+    setTable,
+    notes,
+    setNotes,
+    orderType,
+    setOrderType,
+    deliveryInfo,
+    setDeliveryInfo,
+    clearOrder,
+    updateItemQuantity,
+    removeItem
+  } = useCurrentOrderStore();
   
   const { subtotal, tax, total } = useCurrentOrderTotals();
   const itemCountByCategory = useCurrentOrderItemCountByCategory();
@@ -78,9 +80,10 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-96 p-0">
-        <ScrollArea className="h-full">
-          <Card className="border-0 shadow-none">
+      <SheetContent {...({} as any)} className="p-0 w-full md:max-w-md [&>button]:hidden">
+        <div className="flex flex-col h-full">
+          <ScrollArea className="h-full flex-1">
+          <Card className="border-0 shadow-none h-full flex flex-col">
             <CardHeader className="p-4 border-b">
               <div className="flex justify-between items-center">
                 <SheetTitle className="font-headline text-lg">
@@ -94,7 +97,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
               </div>
             </CardHeader>
             
-            <CardContent className="p-0">
+            <CardContent className="p-0 flex-grow flex flex-col min-h-0">
               {items.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-40 text-center text-muted-foreground p-4">
                   <Utensils className="w-10 h-10 mb-2" />
@@ -103,7 +106,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                 </div>
               ) : (
                 <>
-                  <div className="p-4">
+                  <div className="p-4 flex-shrink-0">
                     <Tabs value={orderType} onValueChange={(value) => setOrderType(value as OrderType)} className="w-full">
                       <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="dine-in">
@@ -186,76 +189,80 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                     </div>
                   </div>
                   
-                  <div className="px-4">
-                    <div className="space-y-2">
-                      {items.map(item => (
-                        <div 
-                          key={item.id} 
-                          onClick={() => onEditItem(item)} 
-                          className="p-2 -mx-2 rounded-md hover:bg-muted/50 cursor-pointer relative"
-                        >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute top-1 right-1 h-6 w-6"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeItem(item.id);
-                            }}
+                  <div className="px-4 flex-grow overflow-hidden">
+                    <ScrollArea className="h-full pb-4">
+                      <div className="space-y-2">
+                        {items.map((item: OrderItem) => (
+                          <div 
+                            key={item.id} 
+                            onClick={() => onEditItem(item)} 
+                            className="p-2 rounded-md hover:bg-muted/50 cursor-pointer relative"
                           >
-                            <X className="h-3.5 w-3.5" />
-                          </Button>
-                          
-                          <div className="flex items-start gap-3 pr-6">
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-6 w-6" 
-                                onClick={(e) => handleQuantityChange(item.id, -1, e)}
-                              >
-                                <MinusCircle className="h-3.5 w-3.5"/>
-                              </Button>
-                              <span className="font-bold text-base w-5 text-center">{item.quantity}</span>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-6 w-6" 
-                                onClick={(e) => handleQuantityChange(item.id, 1, e)}
-                              >
-                                <PlusCircle className="h-3.5 w-3.5"/>
-                              </Button>
-                            </div>
-                            <div className="flex-grow min-w-0">
-                              <p className="font-semibold text-sm leading-tight">{item.menuItem.name}</p>
-                              {item.selectedExtras && item.selectedExtras.length > 0 && (
-                                <div className="mt-0.5 text-xs text-muted-foreground">
-                                  {item.selectedExtras.map(extra => (
-                                    <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
-                                  ))}
-                                </div>
-                              )}
-                              {item.notes && (
-                                <div className="mt-0.5 text-xs text-muted-foreground flex items-start gap-1.5">
-                                  <StickyNote className="w-3 h-3 mt-0.5 text-primary/80 flex-shrink-0"/>
-                                  <p className="italic truncate">{item.notes}</p>
-                                </div>
-                              )}
-                            </div>
-                            <div className="text-sm font-semibold">
-                              ${((item.menuItem.price + (item.selectedExtras?.reduce((acc, e) => acc + e.price, 0) || 0)) * item.quantity).toFixed(2)}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                removeItem(item.id);
+                              }}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                            
+                            <div className="flex items-start gap-3 w-full">
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={(e) => handleQuantityChange(item.id, -1, e)}
+                                >
+                                  <MinusCircle className="h-3.5 w-3.5"/>
+                                </Button>
+                                <span className="font-bold text-base w-5 text-center">{item.quantity}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6"
+                                  onClick={(e) => handleQuantityChange(item.id, 1, e)}
+                                >
+                                  <PlusCircle className="h-3.5 w-3.5"/>
+                                </Button>
+                              </div>
+                              
+                              <div className="flex-grow min-w-0">
+                                <p className="font-semibold text-sm leading-tight">{item.menuItem.name}</p>
+                                {item.selectedExtras && item.selectedExtras.length > 0 && (
+                                  <div className="mt-0.5 text-xs text-muted-foreground">
+                                    {item.selectedExtras.map((extra: MenuItem) => (
+                                      <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
+                                    ))}
+                                  </div>
+                                )}
+                                {item.notes && (
+                                  <div className="mt-0.5 text-xs text-muted-foreground flex items-start gap-1.5">
+                                    <StickyNote className="w-3 h-3 mt-0.5 text-primary/80 flex-shrink-0"/>
+                                    <p className="italic truncate">{item.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="text-sm font-semibold ml-auto pr-8">
+                                ${((item.menuItem.price + (item.selectedExtras?.reduce((acc: number, e: MenuItem) => acc + e.price, 0) || 0)) * item.quantity).toFixed(2)}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
                   </div>
                 </>
               )}
             </CardContent>
             
             {items.length > 0 && (
-              <CardFooter className="flex-col !p-4 border-t bg-card">
+              <CardFooter className="flex-col !p-4 border-t bg-card flex-shrink-0">
                 <div className="w-full space-y-1 text-sm py-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
@@ -286,6 +293,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
             )}
           </Card>
         </ScrollArea>
+          </div>
       </SheetContent>
     </Sheet>
   );

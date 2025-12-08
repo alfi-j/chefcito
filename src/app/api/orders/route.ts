@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions } from '@/lib/mongo-data-service';
-import { getMenuItems } from '@/lib/mongo-data-service';
-import { debugOrders } from '@/lib/debug-utils';
+import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions } from '@/lib/database-service';
+import { getMenuItems } from '@/lib/database-service';
+import { debugOrders } from '@/lib/helpers';
 
 // Import the SSE update function
 import { sendOrderUpdate } from './events/route';
@@ -165,6 +165,8 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
       if (updateData.items) {
         updateData.items = updateData.items.map((item: any) => ({
           ...item,
+          name: item.name || item.menuItem?.name,  // Preserve name field
+          price: item.price || item.menuItem?.price,  // Preserve price field
           menuItemId: item.menuItem?.id || item.menuItemId,
           selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || item.selectedExtraIds || [],
           workstationId: item.workstationId || null // Preserve workstationId
@@ -207,9 +209,17 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
     
     // Handle update item status
     if ('itemId' in body && 'status' in body) {
-      const { orderId, itemId, status, moveToNextWorkstation, nextWorkstationId } = body;
+      const { orderId, itemId, status, moveToNextWorkstation, moveToPreviousWorkstation, nextWorkstationId, previousWorkstationId } = body;
       debugOrders('PUT: updating item %s status to %s in order %d', itemId, status, orderId);
-      const result = await updateOrderItemStatus({ orderId, itemId, status, moveToNextWorkstation, nextWorkstationId });
+      const result = await updateOrderItemStatus({ 
+        orderId, 
+        itemId, 
+        status, 
+        moveToNextWorkstation, 
+        moveToPreviousWorkstation,  // Add this parameter
+        nextWorkstationId, 
+        previousWorkstationId       // Add this parameter
+      });
       debugOrders('PUT: successfully updated item status');
       
       // Notify clients of the update
@@ -217,6 +227,45 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
       
       return NextResponse.json(
         createApiResponse(result),
+        { status: 200 }
+      );
+    }
+    
+    // Handle update item positions
+    if (body.type === 'updateItemPositions') {
+      const { orderId, positions } = body;
+      debugOrders('PUT: updating item positions in order %d with data %O', orderId, positions);
+      
+      // Get the order
+      const orders = await getInitialOrders();
+      const order = orders.find(o => o.id === orderId);
+      
+      if (!order) {
+        return NextResponse.json(
+          createApiResponse(undefined, "Order not found"),
+          { status: 404 }
+        );
+      }
+      
+      // Update item positions
+      const updatedItems = order.items.map(item => {
+        const positionUpdate = positions.find((p: any) => p.itemId === item.id);
+        if (positionUpdate) {
+          return { ...item, position: positionUpdate.position };
+        }
+        return item;
+      });
+      
+      // Update the order in the database
+      await updateOrder(orderId, { items: updatedItems });
+      
+      debugOrders('PUT: successfully updated item positions');
+      
+      // Notify clients of the update
+      notifyOrderUpdate();
+      
+      return NextResponse.json(
+        createApiResponse({ success: true }),
         { status: 200 }
       );
     }

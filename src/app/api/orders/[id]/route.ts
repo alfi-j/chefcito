@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { deleteOrder } from '@/lib/mongo-data-service';
-import { debugOrders } from '@/lib/debug-utils';
+import { deleteOrder } from '@/lib/database-service';
+import { debugOrders } from '@/lib/helpers';
 
 // Define response structure
 interface ApiResponse<T> {

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pencil, Trash2 } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useMenuStore } from '@/lib/stores/menu-store'
+import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
 import { DeleteConfirmationDialog } from './delete-confirmation-dialog'
 import { toast } from "sonner"
 
@@ -22,7 +22,7 @@ interface RenderedCategory extends Category {
 
 export function CategoryList({ categories = [], onEdit }: CategoryListProps) {
   const { t } = useI18nStore()
-  const { deleteCategory, isCategoryInUse } = useMenuStore()
+  const { deleteCategory, isCategoryInUse } = useNormalizedMenuStore()
 
   const renderedCategories = useMemo(() => {
     if (!categories || categories.length === 0) return [];

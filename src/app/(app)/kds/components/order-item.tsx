@@ -2,33 +2,47 @@
 
 import { type Order, type OrderItem as OrderItemType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import useNormalizedKDSStore from '@/lib/stores/kds-store-normalized';
 import { RotateCcw } from "lucide-react";
-import { KDS_STATES } from "@/lib/kds-constants";
+import { KDS_STATES } from "@/lib/constants";
+import { debugKDS } from "@/lib/helpers";
 
 interface OrderItemProps {
-    item: OrderItemType;
-    orderId: number;
-    currentTab: 'kitchen' | 'serving';
-    onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: string) => void;
-    onRevertItemStatus: (orderId: number, itemId: string, toStatus: string) => void;
-    workstationIndex: number;
-    totalWorkstations: number;
-    workstationName?: string;
+  item: OrderItemType;
+  orderId: number;
+  currentTab: 'kitchen' | 'serving';
+  onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: string) => void;
+  onRevertItemStatus: (orderId: number, itemId: string, toStatus: string) => void;
+  workstationIndex: number;
+  totalWorkstations: number;
+  workstationName?: string;
+  isLastWorkstation?: boolean;
 }
 
 const statusColors: Record<string, string> = {
   [KDS_STATES.NEW]: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
   [KDS_STATES.IN_PROGRESS]: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
   [KDS_STATES.READY]: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
+  'served': 'bg-gray-500/10 text-gray-800 dark:text-gray-300',
 };
 
-export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName }: OrderItemProps) {
+export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderItemProps) {
+  debugKDS('OrderItem rendered:', { 
+    orderId, 
+    itemId: item.id,
+    itemName: item.menuItem.name,
+    status: item.status,
+    workstationId: item.workstationId,
+    workstationIndex,
+    totalWorkstations,
+    workstationName
+  });
 
   const ItemInfo = () => (
     <div className="flex-1 min-w-0">
       <div className="flex items-start gap-1.5">
-          <span className="font-bold text-xl leading-tight">{item.quantity}x</span>
-          <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
+        <span className="font-bold text-xl leading-tight">{item.quantity}x</span>
+        <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
       </div>
       {item.selectedExtras && item.selectedExtras.length > 0 && (
         <div className="pl-6 text-sm text-muted-foreground font-medium">
@@ -38,48 +52,55 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         </div>
       )}
       {item.notes && (
-          <p className="pl-6 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
+        <p className="pl-6 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
       )}
     </div>
   );
 
-  const StatusRow = ({ 
-      status, 
-      onClick, 
-      onRevert, 
-    }: {
-      status: string,
-      onClick?: () => void,
-      onRevert?: () => void,
+  const StatusRow = ({
+    status,
+    displayStatus,
+    onClick,
+    onRevert,
+  }: {
+    status: string,
+    displayStatus?: string,
+    onClick?: () => void,
+    onRevert?: () => void,
   }) => {
     const canRevert = !!onRevert;
-    
+    const label = displayStatus || status;
+
     return (
-      <div 
+      <div
         className={cn(
-            "p-1 rounded-md transition-all group", 
-            statusColors[status] || 'bg-muted',
-            onClick && "cursor-pointer"
+          "p-1 rounded-md transition-all group",
+          statusColors[status] || 'bg-muted',
+          onClick && "cursor-pointer"
         )}
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
         <div className="flex justify-between items-center gap-2">
-            <ItemInfo />
-            <div className="flex items-center gap-2">
-              <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{status}</div>
-              {canRevert && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); onRevert(); }}
-                    className="p-1 -m-1 rounded-full hover:bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label={`Revert status`}
-                >
-                    <RotateCcw className={cn("h-4 w-4", {
-                        "text-yellow-700": status === KDS_STATES.IN_PROGRESS,
-                        "text-green-700": status === KDS_STATES.READY,
-                    })} />
-                </button>
-              )}
-            </div>
+          <ItemInfo />
+          <div className="flex items-center gap-2">
+            <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{label}</div>
+            {canRevert && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onRevert(); }}
+                className={cn("p-1 -m-1 rounded-full hover:bg-black/10 transition-opacity", {
+                  "opacity-0 group-hover:opacity-100": status !== KDS_STATES.READY,
+                  "opacity-100": status === KDS_STATES.READY
+                })}
+                aria-label={`Revert status`}
+              >
+                <RotateCcw className={cn("h-4 w-4", {
+                  "text-yellow-700": status === KDS_STATES.IN_PROGRESS,
+                  "text-green-700": status === KDS_STATES.READY,
+                  "text-gray-700": status === 'served',
+                })} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -87,90 +108,157 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
 
   // Get current state index
   const getCurrentStateIndex = (status: string | undefined): number => {
-    if (!status) return -1;
-    
+    if (!status) return 0; // Default to New
+
     // Normalize the status for comparison
     const normalizedStatus = status.toString().toLowerCase();
     const kdsNew = KDS_STATES.NEW?.toString().toLowerCase();
     const kdsInProgress = KDS_STATES.IN_PROGRESS?.toString().toLowerCase();
     const kdsReady = KDS_STATES.READY?.toString().toLowerCase();
-    
+
     if (normalizedStatus === kdsNew || normalizedStatus === 'new') return 0;
     if (normalizedStatus === kdsInProgress || normalizedStatus === 'in-progress') return 1;
     if (normalizedStatus === kdsReady || normalizedStatus === 'ready') return 2;
-    
-    // Default to New state if unrecognized
-    return 0;
+
+    return 0; // Default to New
   };
 
   const currentStateIndex = getCurrentStateIndex(item.status);
   
-  // Check if this is the last workstation or a "Completed" workstation
-  const isCompletedWorkstation = workstationIndex === totalWorkstations - 1 || workstationName === 'Completed';
-  
-  return (
-    <div className="space-y-1">
-      {/* For all workstations except the last one, show only New and In Progress states */}
-      {!isCompletedWorkstation && currentTab === 'kitchen' && (currentStateIndex === 0 || currentStateIndex === 1) && (
-        <>
-          {currentStateIndex === 0 && (
-            <StatusRow 
-                status={KDS_STATES.NEW}
-                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW)}
+  // Special handling for items in the Ready workstation
+  const isInReadyWorkstation = isLastWorkstation;
+
+  // Switch case for rendering based on current state
+  switch (currentStateIndex) {
+    case 0: // New state
+      // In Ready workstation, items should not be in New state
+      if (isInReadyWorkstation) {
+        return (
+          <div className="space-y-1">
+            <StatusRow
+              status={KDS_STATES.READY}
+              displayStatus="Ready"
+              onRevert={() => {
+                debugKDS('READY item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.IN_PROGRESS });
+                onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+              }}
             />
-          )}
-          {currentStateIndex === 1 && (
-            <StatusRow 
-                status={KDS_STATES.IN_PROGRESS}
-                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
-                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.NEW)}
-            />
-          )}
-        </>
-      )}
+          </div>
+        );
+      }
       
-      {/* For the last workstation (Completed), show only Ready and Served states */}
-      {isCompletedWorkstation && (
-        <>
-          {(currentStateIndex === 2 || item.status?.toString().toLowerCase() === 'ready') && (
-            <StatusRow 
-                status={KDS_STATES.READY}
-                onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.READY)}
-                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS)}
-            />
-          )}
-          {item.status === 'served' && (
-            <StatusRow 
-                status={'Served'}
-                onRevert={() => onRevertItemStatus(orderId, item.id, KDS_STATES.READY)}
-            />
-          )}
-        </>
-      )}
+      // Check if we can rollback (i.e., if there's a previous workstation)
+      const { getPreviousWorkstation } = useNormalizedKDSStore.getState();
+      const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
       
-      {/* Fallback for any items that don't match the above conditions */}
-      {!isCompletedWorkstation && currentTab === 'kitchen' && currentStateIndex !== 0 && currentStateIndex !== 1 && currentStateIndex !== -1 && (
-        <StatusRow 
-            status={item.status || KDS_STATES.NEW}
-            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || KDS_STATES.NEW)}
-        />
-      )}
-      
-      {/* Add a fallback for serving tab as well */}
-      {!isCompletedWorkstation && currentTab === 'serving' && currentStateIndex !== 2 && currentStateIndex !== -1 && (
-        <StatusRow 
-            status={item.status || KDS_STATES.NEW}
-            onClick={() => onUpdateItemStatus(orderId, item.id, item.status || KDS_STATES.NEW)}
-        />
-      )}
-      
-      {/* Handle case where status is undefined or unrecognized */}
-      {currentStateIndex === -1 && (
-        <StatusRow 
+      return (
+        <div className="space-y-1">
+          <StatusRow
             status={KDS_STATES.NEW}
-            onClick={() => onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW)}
-        />
-      )}
-    </div>
-  )
+            onClick={() => {
+              debugKDS('NEW item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });
+              onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW);
+            }}
+            onRevert={canRollback ? () => {
+              debugKDS('NEW item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.IN_PROGRESS });
+              onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+            } : undefined}
+          />
+        </div>
+      );
+    
+    case 1: // In Progress state
+      // In Ready workstation, items should not be in In Progress state
+      if (isInReadyWorkstation) {
+        return (
+          <div className="space-y-1">
+            <StatusRow
+              status={KDS_STATES.READY}
+              displayStatus="Ready"
+              onRevert={() => {
+                debugKDS('READY item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.IN_PROGRESS });
+                onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+              }}
+            />
+          </div>
+        );
+      }
+      
+      return (
+        <div className="space-y-1">
+          <StatusRow
+            status={KDS_STATES.IN_PROGRESS}
+            onClick={() => {
+              debugKDS('IN_PROGRESS item clicked:', { orderId, itemId: item.id, status: KDS_STATES.IN_PROGRESS });
+              // When clicking on In Progress, advance to next workstation with New status
+              onUpdateItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+            }}
+            onRevert={() => {
+              debugKDS('IN_PROGRESS item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.NEW });
+              onRevertItemStatus(orderId, item.id, KDS_STATES.NEW);
+            }}
+          />
+        </div>
+      );
+    
+    case 2: // Ready state
+      // Only show Ready status in the last workstation
+      if (isInReadyWorkstation) {
+        return (
+          <div className="space-y-1">
+            <StatusRow
+              status={KDS_STATES.READY}
+              displayStatus="Ready"
+              onClick={() => {
+                // Only allow advancing to next workstation if not in the Ready workstation
+                if (!isInReadyWorkstation) {
+                  debugKDS('READY item clicked:', { orderId, itemId: item.id, status: KDS_STATES.READY });
+                  // When a ready item is clicked, we want to move it to the next workstation
+                  // So we pass 'Ready' as the fromStatus to trigger the moveToNextWorkstation logic
+                  onUpdateItemStatus(orderId, item.id, KDS_STATES.READY);
+                }
+              }}
+              onRevert={() => {
+                debugKDS('READY item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.IN_PROGRESS });
+                onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+              }}
+            />
+          </div>
+        );
+      } else {
+        // If somehow an item has Ready status in a non-last workstation, 
+        // show it as New with rollback functionality to previous workstation
+        const { getPreviousWorkstation } = useNormalizedKDSStore.getState();
+        const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
+        
+        return (
+          <div className="space-y-1">
+            <StatusRow
+              status={KDS_STATES.NEW}
+              onClick={() => {
+                debugKDS('NEW item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });
+                onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW);
+              }}
+              onRevert={canRollback ? () => {
+                debugKDS('NEW item reverted:', { orderId, itemId: item.id, toStatus: KDS_STATES.IN_PROGRESS });
+                onRevertItemStatus(orderId, item.id, KDS_STATES.IN_PROGRESS);
+              } : undefined}
+            />
+          </div>
+        );
+      }
+    
+    default:
+      return (
+        <div className="space-y-1">
+          <StatusRow
+            status={KDS_STATES.NEW}
+            onClick={() => {
+              debugKDS('DEFAULT item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });
+              onUpdateItemStatus(orderId, item.id, KDS_STATES.NEW);
+            }}
+          />
+        </div>
+      );
+  }
 }

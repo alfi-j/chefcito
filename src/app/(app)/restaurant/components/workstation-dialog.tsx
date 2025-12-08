@@ -18,15 +18,12 @@ interface WorkstationDialogProps {
   workstation?: IWorkstation
   isOpen: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (workstation: Partial<IWorkstation> & { name: string; states: { new: string; inProgress: string; ready: string } }) => void
+  onSave: (workstation: Partial<IWorkstation> & { name: string }) => void
 }
 
 export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }: WorkstationDialogProps) {
   const { t } = useI18nStore()
   const [name, setName] = useState(workstation?.name || '')
-  const [newState, setNewState] = useState(workstation?.states.new || 'new')
-  const [inProgressState, setInProgressState] = useState(workstation?.states.inProgress || 'in progress')
-  const [readyState, setReadyState] = useState(workstation?.states.ready || 'ready')
   const [error, setError] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -38,26 +35,9 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
       return
     }
     
-    if (!newState.trim() || !inProgressState.trim() || !readyState.trim()) {
-      setError(t('restaurant.workstations.errors.states_required'))
-      return
-    }
-    
-    // Check for duplicate state names
-    const stateNames = [newState, inProgressState, readyState]
-    if (new Set(stateNames).size !== stateNames.length) {
-      setError(t('restaurant.workstations.errors.states_unique'))
-      return
-    }
-    
     setError('')
     onSave({
-      name: name.trim(),
-      states: {
-        new: newState.trim(),
-        inProgress: inProgressState.trim(),
-        ready: readyState.trim()
-      }
+      name: name.trim()
     })
     onOpenChange(false)
   }
@@ -83,36 +63,6 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="newState">{t('restaurant.workstations.states.new')}</Label>
-              <Input
-                id="newState"
-                value={newState}
-                onChange={(e) => setNewState(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="inProgressState">{t('restaurant.workstations.states.in_progress')}</Label>
-              <Input
-                id="inProgressState"
-                value={inProgressState}
-                onChange={(e) => setInProgressState(e.target.value)}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="readyState">{t('restaurant.workstations.states.ready')}</Label>
-              <Input
-                id="readyState"
-                value={readyState}
-                onChange={(e) => setReadyState(e.target.value)}
                 required
               />
             </div>

@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/helpers"
 import { useI18nStore } from "@/lib/stores/i18n-store"
 import {
   DropdownMenu,

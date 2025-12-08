@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { getInventory, addInventoryItem } from '@/lib/mongo-data-service';
-import { debugInventory } from '@/lib/debug-utils';
+import { getInventory, addInventoryItem } from '@/lib/database-service';
+import { debugInventory } from '@/lib/helpers';
 
 export async function GET(request: Request, { params }: { params?: { id: string } }) {
   debugInventory('GET: request received with params %O', params);

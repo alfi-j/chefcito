@@ -1,6 +1,6 @@
 "use client"
 
-import { useRoleAccess } from "@/hooks/use-role-access";
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
 
 interface RoleBasedContentProps {
   children: React.ReactNode;
@@ -15,11 +15,24 @@ export function RoleBasedContent({
   allowedMembership,
   fallback = null,
 }: RoleBasedContentProps) {
-  const { canAccess } = useRoleAccess();
-
-  if (canAccess(allowedRoles, allowedMembership)) {
+  const user = useNormalizedUserStore().getCurrentUser();
+  
+  // If no roles specified, allow access
+  if (!allowedRoles) return <>{children}</>;
+  
+  // If no user, deny access
+  if (!user) return <>{fallback}</>;
+  
+  // Check role access
+  const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+  const hasRoleAccess = rolesArray.includes(user.role);
+  
+  // Check membership access
+  const hasMembershipAccess = !allowedMembership || user.membership === allowedMembership;
+  
+  if (hasRoleAccess && hasMembershipAccess) {
     return <>{children}</>;
   }
-
+  
   return <>{fallback}</>;
 }

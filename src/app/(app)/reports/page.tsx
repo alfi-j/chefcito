@@ -8,11 +8,11 @@ import { SalesReport } from "./components/sales-report";
 import { ItemReport } from "./components/item-report";
 import { KitchenReport } from "./components/kitchen-report";
 import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useNormalizedReportsStore } from '@/lib/stores/reports-store-normalized';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { File } from 'lucide-react';
 import { toast } from 'sonner';
-import { useReportsStore } from '@/lib/stores/reports-store';
 
 export default function ReportsPage() {
   const { t } = useI18nStore();
@@ -21,8 +21,12 @@ export default function ReportsPage() {
     from: addDays(new Date(), -7),
     to: new Date(),
   });
-  
-  const { sales, items, kitchen, loading, fetchReports } = useReportsStore();
+
+  const reportsStore = useNormalizedReportsStore();
+  const sales = reportsStore.getSalesReport();
+  const items = reportsStore.getItemsReport();
+  const kitchen = reportsStore.getKitchenReport();
+  const { loading, fetchReports } = reportsStore;
 
   useEffect(() => {
     // Fetch reports whenever the date range changes or on initial load.

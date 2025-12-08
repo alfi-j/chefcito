@@ -3,7 +3,7 @@
 import { type OrderItem as OrderItemType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { RotateCcw } from "lucide-react";
-import { KDS_STATES } from "@/lib/kds-constants";
+import { KDS_STATES } from "@/lib/constants";
 
 interface OrderItemDisplayProps {
     item: OrderItemType;

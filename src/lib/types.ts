@@ -20,6 +20,7 @@ export type OrderItem = {
   splitId?: number;
   notes?: string;
   workstationId?: string; // Track which workstation this item belongs to
+  position?: number; // Position field for ordering items
 };
 
 export type OrderStatusUpdate = {
@@ -116,4 +117,26 @@ export type ReadyItem = {
   orderItemId: string;
   selectedExtras?: MenuItem[];
   notes?: string;
+};
+
+// Normalized entity types for current order store
+export interface Entities {
+  orderItems: Record<string, OrderItem>;
+  menuItems: Record<string, MenuItem>;
+}
+
+// IDs for relationships
+export type EntityId = string;
+
+// Normalized state structure
+export interface NormalizedState {
+  entities: Entities;
+  // Current order state
+  currentOrder: {
+    itemIds: EntityId[];
+    table: number;
+    notes: string;
+    orderType: OrderType;
+    deliveryInfo: DeliveryInfo;
+  };
 }

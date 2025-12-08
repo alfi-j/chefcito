@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getWorkstations, addWorkstation, updateWorkstation, deleteWorkstation, updateWorkstationPositions } from '@/lib/mongo-data-service';
+import { getWorkstations, addWorkstation, updateWorkstation, deleteWorkstation, updateWorkstationPositions } from '@/lib/database-service';
 import { IWorkstation } from '@/models/Workstation';
 
 export async function GET() {
@@ -43,40 +43,12 @@ export async function POST(request: Request) {
       );
     }
     
-    // Validate states
-    if (!workstationData.states || 
-        !workstationData.states.new || 
-        !workstationData.states.inProgress || 
-        !workstationData.states.ready) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          error: 'All workstation states are required',
-          message: 'All workstation states are required'
-        },
-        { status: 400 }
-      );
-    }
-    
-    // Check for duplicate state names
-    const stateNames = [
-      workstationData.states.new,
-      workstationData.states.inProgress, 
-      workstationData.states.ready
-    ];
-    
-    if (new Set(stateNames).size !== stateNames.length) {
-      return NextResponse.json(
-        {
-          success: false,
-          data: null,
-          error: 'Workstation state names must be unique',
-          message: 'Workstation state names must be unique'
-        },
-        { status: 400 }
-      );
-    }
+    // Add default states
+    workstationData.states = {
+      new: 'new',
+      inProgress: 'in progress',
+      ready: 'ready'
+    };
     
     const workstation = await addWorkstation(workstationData);
     return NextResponse.json({ 
@@ -157,42 +129,6 @@ export async function PUT(request: Request) {
         },
         { status: 400 }
       );
-    }
-    
-    // Validate states if provided
-    if (updateData.states) {
-      if (!updateData.states.new || 
-          !updateData.states.inProgress || 
-          !updateData.states.ready) {
-        return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            error: 'All workstation states are required',
-            message: 'All workstation states are required'
-          },
-          { status: 400 }
-        );
-      }
-      
-      // Check for duplicate state names
-      const stateNames = [
-        updateData.states.new,
-        updateData.states.inProgress, 
-        updateData.states.ready
-      ];
-      
-      if (new Set(stateNames).size !== stateNames.length) {
-        return NextResponse.json(
-          {
-            success: false,
-            data: null,
-            error: 'Workstation state names must be unique',
-            message: 'Workstation state names must be unique'
-          },
-          { status: 400 }
-        );
-      }
     }
     
     const result = await updateWorkstation(id, updateData);

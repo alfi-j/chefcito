@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Restaurant } from '@/models';
-import { errorReporter } from '@/lib/debug-utils';
-import { connectToDatabase, isDatabaseConnected } from '@/lib/mongodb';
+import { errorReporter } from '@/lib/helpers';
+import { connectToDatabase, isDatabaseConnected } from '@/lib/mongo-init';
 import { v4 as uuidv4 } from 'uuid';
 
 // Define response structure

@@ -4,7 +4,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Minus, Plus, X } from 'lucide-react'
 import { type OrderItem } from '@/lib/types'
-import { useCurrentOrderStore } from '@/lib/stores/current-order-store'
+import { useCurrentOrderStoreCompat as useCurrentOrderStore } from '@/lib/stores/current-order-store'
 import { useI18nStore } from '@/lib/stores/i18n-store'
 
 interface CurrentOrderItemProps {
@@ -13,8 +13,7 @@ interface CurrentOrderItemProps {
 
 export function CurrentOrderItem({ item }: CurrentOrderItemProps) {
   const { t } = useI18nStore()
-  const updateItemQuantity = useCurrentOrderStore(state => state.updateItemQuantity)
-  const removeItem = useCurrentOrderStore(state => state.removeItem)
+  const { updateItemQuantity, removeItem } = useCurrentOrderStore()
 
   const handleIncrement = () => {
     updateItemQuantity(item.id, 1)

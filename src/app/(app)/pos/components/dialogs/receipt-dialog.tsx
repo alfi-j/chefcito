@@ -13,7 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { type Order, type OrderItem } from "@/lib/types"
 import { useI18nStore } from "@/lib/stores/i18n-store"
 import { format } from "date-fns"
-import { getItemTotal, getOrderTotal } from "@/lib/utils"
+import { getItemTotal, getOrderTotal } from "@/lib/helpers"
 import { ChefHat, Download, Printer } from "lucide-react"
 import { toast } from "sonner"
 

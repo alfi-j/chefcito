@@ -1,7 +1,7 @@
 "use client"
 
-import { useUser } from "@/context/user-context";
-import { hasAccess, Feature } from "@/lib/access-control";
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { hasAccess, Feature, User } from "@/lib/constants";
 
 interface FeatureAccessProps {
   feature: Feature;
@@ -14,7 +14,7 @@ export function FeatureAccess({
   children,
   fallback = null,
 }: FeatureAccessProps) {
-  const { user } = useUser();
+  const user = useNormalizedUserStore().getCurrentUser();
 
   if (!user) {
     return <>{fallback}</>;
