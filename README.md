@@ -1,112 +1,110 @@
 # Chefcito
 
-Chefcito is a modern restaurant management system featuring a Point of Sale (POS) and Kitchen Display System (KDS). Built with Next.js and MongoDB, it provides a complete solution for managing orders, kitchen workflows, and restaurant operations.
+Restaurant management system with Point of Sale (POS) and Kitchen Display System (KDS). Built with Next.js, MongoDB, and TypeScript.
 
-## Features
+## Core Features
 
-- Point of Sale (POS) system
-- Kitchen Display System (KDS) with real-time updates
-- Multi-workstation kitchen workflow management
-- Order management
-- Menu management
-- Staff management
+- Real-time order management with Server-Sent Events (SSE)
+- Multi-workstation kitchen workflow with item status tracking (New, In Progress, Ready)
+- Role-based access control (Owner, Admin, Staff)
+- Inventory management
 - Reporting and analytics
-- Real-time updates with Server-Sent Events (SSE)
+- Multi-language support (English/Spanish)
+- Touch-friendly responsive UI
+
+## Technical Architecture
+
+### Main Components
+
+#### Point of Sale (POS) - `/pos`
+- Order creation and customization
+- Payment processing
+- Menu browsing with category filtering
+- Workstation assignment for items
+
+#### Kitchen Display System (KDS) - `/kds`
+- Real-time order visualization
+- Drag-and-drop order prioritization
+- Multi-workstation workflow management
+- Item status progression through workstations
+- SSE for live updates
+
+#### Data Layer
+- MongoDB with Mongoose schemas
+- Normalized data models for Orders, Menu Items, Workstations
+- Indexed queries for performance optimization
+- Docker integration for development environment
+
+#### State Management
+- Zustand stores for client-side state
+- Separate stores for orders, menu, workstations, reports
+- Optimistic UI updates
+- SWR for data fetching and caching
 
 ## Getting Started
 
-1. **Clone the repository**:
+1. **Clone and install**:
    ```bash
    git clone <repository-url>
    cd chefcito
-   ```
-
-2. **Install dependencies**:
-   ```bash
    npm install
    ```
 
-3. **Configure environment variables**:
+2. **Environment setup**:
    - Copy `.env.local.example` to `.env.local`
-   - Update the MongoDB connection string and database name
+   - Configure MongoDB connection string
 
-4. **Initialize the database**:
+3. **Database initialization**:
    ```bash
    npm run db:schema
-   ```
-
-5. **Set up default workstations**:
-   ```bash
    npm run db:setup-default-workstations
    ```
 
-6. **Start the development server**:
+4. **Development server**:
    ```bash
    npm run dev
    ```
+   Access at `http://localhost:9002`
 
-7. **Access the application**:
-   Open your browser to `http://localhost:9002`
+## Workstation Workflow
 
-## System Architecture
+Items progress through workstations in a predefined sequence:
+1. **New**: Item arrives at workstation
+2. **In Progress**: Preparation started
+3. **Ready**: Preparation completed
 
-Chefcito consists of two main components:
-
-### Point of Sale (POS)
-- Located at `/pos`
-- Used for taking orders, managing tables, and processing payments
-- Features a touch-friendly interface with categorized menu items
-- Supports dine-in, takeout, and delivery orders
-- Real-time communication with the kitchen through the KDS
-
-### Kitchen Display System (KDS)
-- Located at `/kds`
-- Displays incoming orders for kitchen staff
-- Supports multiple workstations (e.g., "Kitchen", "Grill", "Fryer")
-- Drag-and-drop functionality for reordering
-- Item status tracking (New, In Progress, Ready)
-- Real-time updates via Server-Sent Events (SSE)
-- Workstation-specific workflows with proper item transitions
-- Custom workstation support with rollback functionality
+The final workstation serves as the "Ready" station for serving staff.
 
 ## Available Scripts
 
-- `npm run dev` - Start the development server
-- `npm run build` - Build the application for production
-- `npm run start` - Start the production server
-- `npm run lint` - Run ESLint
-- `npm run db:schema` - Initialize database schema with collections and indexes
-- `npm run db:init` - Initialize MongoDB with sample data
-- `npm run db:check` - Check current database collections and status
-- `npm run db:setup-default-workstations` - Set up default "Kitchen" and "Ready" workstations
-- `npm run db:ensure-default-workstations` - Ensure default workstations exist in the database
-- `npm run db:rename-cocina-to-kitchen` - Rename "Cocina" workstations to "Kitchen"
-- `npm run db:reset-orders` - Reset orders in the database
-- `npm run dev:debug` - Start development server with debug logging enabled
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Production build
+- `npm run start` - Start production server
+- `npm run lint` - Code linting
+- `npm run db:schema` - Initialize database schema
+- `npm run db:init` - Load sample data
+- `npm run db:setup-default-workstations` - Create Kitchen/Ready workstations
+- `npm run dev:debug` - Debug mode with logging
 
-## Technical Highlights
+## Key Technical Implementations
 
-### Real-time Updates
-- Implemented with Server-Sent Events (SSE) for efficient, real-time communication
-- Orders instantly appear in the KDS when placed through the POS
-- Status changes propagate immediately across all connected clients
+### Real-time Communication
+- SSE endpoints at `/api/orders/events`
+- Automatic revalidation with SWR
+- Instant order propagation from POS to KDS
 
-### Workstation Management
-- Configurable workstations for different kitchen areas
-- Items progress through workstations as they're prepared
-- Visual indicators for item statuses (New, In Progress, Ready)
-- Drag-and-drop reordering capability
+### Workstation System
+- Configurable workstation entities with position ordering
+- Item transitions between workstations
+- Status persistence per workstation
+- Rollback functionality for error correction
 
-### Data Architecture
-- MongoDB database with Mongoose schemas
-- Well-defined data models for Orders, Menu Items, Workstations, and more
-- Efficient indexing for optimal query performance
-
-### State Management
-- Client-side state managed with Zustand
-- Stores for current order, menu items, workstations, and UI state
-- Optimistic UI updates for responsive interactions
+### Data Models
+- Order schema with embedded items
+- Workstation schema with position tracking
+- Menu item normalization with category relationships
+- Indexed queries for performance
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file.
