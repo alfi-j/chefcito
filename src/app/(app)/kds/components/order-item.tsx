@@ -74,7 +74,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
     return (
       <div
         className={cn(
-          "p-1 rounded-md transition-all group",
+          "p-0.5 rounded-md transition-all group",
           statusColors[status] || 'bg-muted',
           onClick && "cursor-pointer"
         )}
@@ -134,7 +134,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       // In Ready workstation, items should not be in New state
       if (isInReadyWorkstation) {
         return (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <StatusRow
               status={KDS_STATES.READY}
               displayStatus="Ready"
@@ -152,7 +152,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
       
       return (
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <StatusRow
             status={KDS_STATES.NEW}
             onClick={() => {
@@ -171,7 +171,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       // In Ready workstation, items should not be in In Progress state
       if (isInReadyWorkstation) {
         return (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <StatusRow
               status={KDS_STATES.READY}
               displayStatus="Ready"
@@ -185,7 +185,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       }
       
       return (
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <StatusRow
             status={KDS_STATES.IN_PROGRESS}
             onClick={() => {
@@ -205,7 +205,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       // Only show Ready status in the last workstation
       if (isInReadyWorkstation) {
         return (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <StatusRow
               status={KDS_STATES.READY}
               displayStatus="Ready"
@@ -232,7 +232,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
         
         return (
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             <StatusRow
               status={KDS_STATES.NEW}
               onClick={() => {
@@ -250,7 +250,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
     
     default:
       return (
-        <div className="space-y-1">
+        <div className="space-y-0.5">
           <StatusRow
             status={KDS_STATES.NEW}
             onClick={() => {

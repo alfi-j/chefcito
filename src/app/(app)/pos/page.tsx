@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, File, Search, History, Settings, Home, ClipboardList, Users, BarChart, ShoppingCart, ChefHat } from "lucide-react"
+import { MoreHorizontal, File, Search, History, Settings, Home, ClipboardList, Users, BarChart, ShoppingCart, ChefHat, X } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +50,8 @@ function PosPageContent() {
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSendingToKitchen, setIsSendingToKitchen] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
   
@@ -281,7 +283,14 @@ function PosPageContent() {
       return;
     }
 
+    // Prevent double submission
+    if (isSendingToKitchen) {
+      return;
+    }
+
     try {
+      setIsSendingToKitchen(true);
+      
       // Get the first workstation (if available)
       const workstations = await fetch('/api/workstations').then(res => res.json());
       const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
@@ -341,6 +350,8 @@ function PosPageContent() {
         description: error.message || t('pos.toast.send_error'),
         duration: 5000,
       });
+    } finally {
+      setIsSendingToKitchen(false);
     }
   };
 
@@ -358,8 +369,15 @@ function PosPageContent() {
   const handlePaymentSuccess = async () => {
     setPaymentDialogOpen(false);
     
+    // Prevent double submission
+    if (isProcessingPayment) {
+      return;
+    }
+    
     // Send order as completed
     try {
+      setIsProcessingPayment(true);
+      
       // Get the first workstation (if available)
       const workstations = await fetch('/api/workstations').then(res => res.json());
       const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
@@ -414,6 +432,8 @@ function PosPageContent() {
         description: error.message || t('pos.toast.send_error'),
         duration: 3000,
       });
+    } finally {
+      setIsProcessingPayment(false);
     }
   }
 
@@ -538,34 +558,59 @@ function PosPageContent() {
         order={selectedOrder}
       />
         
-      <div className="flex flex-1 flex-col gap-4 p-4 md:p-6 overflow-hidden md:pt-6 pt-4">
-        {/* Order History Button and Cart Button */}
+      <div className="flex flex-1 flex-col gap-4 p-1 md:p-1 overflow-hidden md:pt-1 pt-1">
+        {/* Order History Button */}
         <div className="flex justify-end">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => { 
-              console.log('Navigating to orders page');
-              router.push('/orders');
-            }}>
-              <History className="h-5 w-5" />
-            </Button>
-            <SheetCart 
-              open={isCartOpen}
-              onOpenChange={setIsCartOpen}
-              onSendToKitchen={isEditingOrder ? handleUpdateEditedOrder : handleSendToKitchen}
-              onPayment={handleOpenPaymentDialog}
-              onEditItem={handleEditItem}
-            />
-          </div>
+          <Button variant="outline" size="icon" onClick={() => { 
+            console.log('Navigating to orders page');
+            router.push('/orders');
+          }}>
+            <History className="h-5 w-5" />
+          </Button>
         </div>
         
         {/* Menu Items Section */}
-        <div className="flex-1 overflow-hidden">
-          <MenuSelection 
-            menuItems={displayItems}
-            categories={displayCategories}
-            onAddItem={handleAddItemToOrder}
-          />
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden">
+            <MenuSelection 
+              menuItems={displayItems}
+              categories={displayCategories}
+              onAddItem={handleAddItemToOrder}
+            />
+          </div>
+          
+          {/* Persistent Cart Column */}
+          <div className={`flex flex-col h-full transition-all duration-300 ${isCartOpen ? 'w-80 ml-1' : 'w-0 opacity-0'}`}>
+            <div className={`flex-1 ${isCartOpen ? 'block' : 'hidden'}`}>
+              <SheetCart 
+                open={true}
+                onOpenChange={setIsCartOpen}
+                onSendToKitchen={isEditingOrder ? handleUpdateEditedOrder : handleSendToKitchen}
+                onPayment={handleOpenPaymentDialog}
+                onEditItem={handleEditItem}
+                sendButtonText={isEditingOrder ? t('orders.edit_order') : undefined}
+              />
+            </div>
+          </div>
         </div>
+        
+        {/* Cart Toggle Button - Only show when cart is hidden */}
+        {!isCartOpen && (
+          <div className="fixed bottom-6 right-6">
+            <Button 
+              size="icon" 
+              className="rounded-full shadow-lg h-14 w-14"
+              onClick={() => setIsCartOpen(true)}
+            >
+              <ShoppingCart className="h-6 w-6" />
+              {currentOrderItems.length > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0 text-xs rounded-full">
+                  {currentOrderItems.length}
+                </Badge>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </>
   );

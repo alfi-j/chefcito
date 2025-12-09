@@ -164,7 +164,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
         )}
         draggable={!order.isPinned}
       >
-          <CardHeader className="flex-row items-center justify-between space-y-0 p-2">
+          <CardHeader className="flex-row items-center justify-between space-y-0 px-1 py-1">
             <GripVertical className={cn("h-5 w-5 text-muted-foreground", !order.isPinned ? "cursor-grab" : "invisible")} />
             <div className="flex-grow flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
               <CardTitle className="font-headline text-2xl flex items-center gap-2">
@@ -202,7 +202,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
           <div className="p-1 pt-0 flex-1">
             <Separator className="mb-1" />
             {order.notes && (
-                <div className="p-2 mb-1 border-l-4 border-primary bg-primary/10">
+                <div className="p-1 mb-1 border-l-4 border-primary bg-primary/10">
                     <div className="flex items-start gap-2">
                         <StickyNote className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                         <p className="text-sm font-semibold text-primary whitespace-pre-wrap">{order.notes}</p>
@@ -212,7 +212,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
             <CardContent className="space-y-1 h-full p-0">
               {orderedCategories.map((category, index) => (
                 <div key={category}>
-                  {index > 0 && <Separator className="my-2"/>}
+                  {index > 0 && <Separator className="my-1"/>}
                   <h4 className="font-semibold tracking-wide uppercase text-xs px-1 text-muted-foreground/80">{category}</h4>
                   <div className="space-y-1 mt-1">
                     {groupedItems[category].map(item => (
