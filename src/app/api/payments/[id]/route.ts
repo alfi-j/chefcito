@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { getPaymentMethods, updatePaymentMethod, deletePaymentMethod } from '@/lib/database-service';
 
 // GET /api/payments/[id] - get specific payment method
-export async function GET(request: Request, { params }: { params?: { id: string } }) {
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   try {
     if (!params?.id) {
       return NextResponse.json(
@@ -12,7 +13,7 @@ export async function GET(request: Request, { params }: { params?: { id: string 
     }
 
     const payments = await getPaymentMethods();
-    const method = payments.find(m => m.id === params.id);
+    const method = payments.find(m => m.id === (params ? params['id'] : undefined));
     
     if (!method) {
       return NextResponse.json(
@@ -32,7 +33,8 @@ export async function GET(request: Request, { params }: { params?: { id: string 
 }
 
 // PUT /api/payments/[id] - update specific payment method
-export async function PUT(request: Request, { params }: { params?: { id: string } }) {
+export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   try {
     if (!params?.id) {
       return NextResponse.json(
@@ -42,7 +44,7 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
     }
 
     const body = await request.json();
-    const updatedMethod = await updatePaymentMethod(params.id, body);
+    const updatedMethod = await updatePaymentMethod(params ? params['id'] : '', body);
     
     if (updatedMethod) {
       return NextResponse.json({ 
@@ -71,7 +73,8 @@ export async function PUT(request: Request, { params }: { params?: { id: string 
 }
 
 // DELETE /api/payments/[id] - delete specific payment method
-export async function DELETE(request: Request, { params }: { params?: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const params = await context.params;
   try {
     if (!params?.id) {
       return NextResponse.json(
@@ -83,7 +86,7 @@ export async function DELETE(request: Request, { params }: { params?: { id: stri
       );
     }
     
-    const result = await deletePaymentMethod(params.id);
+    const result = await deletePaymentMethod(params ? params['id'] : '');
     if (result) {
       return NextResponse.json({ success: true });
     } else {

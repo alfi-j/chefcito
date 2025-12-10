@@ -561,11 +561,16 @@ function PosPageContent() {
       <div className="flex flex-1 flex-col gap-4 p-1 md:p-1 overflow-hidden md:pt-1 pt-1">
         {/* Order History Button */}
         <div className="flex justify-end">
-          <Button variant="outline" size="icon" onClick={() => { 
-            console.log('Navigating to orders page');
-            router.push('/orders');
-          }}>
+          <Button 
+            variant="outline" 
+            className="bg-yellow-500 hover:bg-yellow-600" 
+            onClick={() => { 
+              console.log('Navigating to orders page');
+              router.push('/orders');
+            }}
+          >
             <History className="h-5 w-5" />
+            <span className="ml-2">Orders</span>
           </Button>
         </div>
         
@@ -588,7 +593,7 @@ function PosPageContent() {
                 onSendToKitchen={isEditingOrder ? handleUpdateEditedOrder : handleSendToKitchen}
                 onPayment={handleOpenPaymentDialog}
                 onEditItem={handleEditItem}
-                sendButtonText={isEditingOrder ? t('orders.edit_order') : undefined}
+                isEditingOrder={!!isEditingOrder}
               />
             </div>
           </div>
@@ -599,7 +604,7 @@ function PosPageContent() {
           <div className="fixed bottom-6 right-6">
             <Button 
               size="icon" 
-              className="rounded-full shadow-lg h-14 w-14"
+              className="rounded-full shadow-lg h-14 w-14 bg-yellow-500 hover:bg-yellow-600"
               onClick={() => setIsCartOpen(true)}
             >
               <ShoppingCart className="h-6 w-6" />

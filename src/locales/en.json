@@ -1,5 +1,8 @@
 
 {
+    "app": {
+        "title": "Chefcito"
+    },
     "pos": {
         "title": "POS",
         "loading": "Loading menu...",
@@ -20,7 +23,10 @@
             "total": "Total",
             "clear_order": "Clear Order",
             "payment": "Payment",
-            "send_to_kitchen": "Send to Kitchen"
+            "send_to_kitchen": "Send to Kitchen",
+            "item": "item",
+            "items": "items",
+            "currency": "$"
         },
         "order_type": {
             "dine_in": "Dine-in",
@@ -188,7 +194,7 @@
                 "delete": "Delete",
                 "select_all": "Select all",
                 "select_row": "Select row",
-                "status": {
+                "item_status": {
                     "available": "Available",
                     "unavailable": "Unavailable"
                 }
@@ -465,7 +471,9 @@
             "profile_updated": "Profile information saved.",
             "password_mismatch": "New passwords do not match.",
             "password_empty": "Please fill in all password fields.",
-            "password_updated": "Password updated successfully."
+            "password_updated": "Password updated successfully.",
+            "role_updated_title": "Role Updated",
+            "role_updated_desc": "Your role has been updated to {{role}}"
         }
     },
     "userMenu": {
@@ -507,7 +515,24 @@
             "title_es": "Idioma",
             "en": "English",
             "es": "Spanish"
-        }
+        },
+        "contact_email": "staff@chefcito.com"
+    },
+    "user": {
+        "account": "Account",
+        "settings": "Settings",
+        "logout": "Logout"
+    },
+    "settings": {
+        "language": "Language",
+        "font_size": "Font Size",
+        "theme": "Theme",
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large",
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System"
     },
     "dialog": {
         "cancel": "Cancel",

@@ -66,7 +66,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
     if (currentItem) {
       return currentItem.label;
     }
-    return "Chefcito";
+    return t('app.title');
   }
 
   const currentPage = getPageTitle();
@@ -82,7 +82,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <Link href="/pos" className="flex items-center gap-2">
             <ChefHat className="w-8 h-8 text-primary" />
-            <span className="text-xl font-headline font-semibold hidden sm:inline-block">Chefcito</span>
+            <span className="text-xl font-headline font-semibold hidden sm:inline-block">{t('app.title')}</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -164,7 +164,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{t('userMenu.staff_member')}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              staff@chefcito.com
+              {t('userMenu.email')}
             </p>
           </div>
         </DropdownMenuLabel>

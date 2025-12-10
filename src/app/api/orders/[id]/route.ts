@@ -20,7 +20,8 @@ function createApiResponse<T>(data?: T, error?: string): ApiResponse<T> {
   };
 }
 
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> } = { params: Promise.resolve({ id: '' }) }) {
+  const { params } = await context;
   try {
     const { id } = await params;
     debugOrders('DELETE: deleting order %s', id);

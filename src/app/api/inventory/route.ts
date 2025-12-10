@@ -2,14 +2,15 @@ import { NextResponse } from 'next/server';
 import { getInventory, addInventoryItem } from '@/lib/database-service';
 import { debugInventory } from '@/lib/helpers';
 
-export async function GET(request: Request, { params }: { params?: { id: string } }) {
-  debugInventory('GET: request received with params %O', params);
-  // Handle GET /api/inventory/[id] - get specific inventory item
-  if (params?.id) {
+export async function GET(request: Request, context: { params: Promise<{}> }) {
+  const resolvedParams = await context.params;
+  // @ts-ignore
+  if (resolvedParams && resolvedParams['id']) {
     // For now, we'll return all inventory and let the frontend filter
     // In a more robust implementation, we'd fetch a specific item
     try {
-      const { id } = await params;
+      // @ts-ignore
+      const { id } = resolvedParams;
       debugInventory('GET: fetching specific item with id %s', id);
       const inventoryItems = await getInventory();
       const item = inventoryItems.find(i => i.id === id);

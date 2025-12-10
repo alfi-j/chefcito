@@ -106,7 +106,7 @@ export function CurrentPageTitleClient({ pathname }: { pathname: string }) {
     if (currentItem) {
       return currentItem.label;
     }
-    return "Chefcito";
+    return t('app.title');
   }
 
   return <>{getPageTitle()}</>

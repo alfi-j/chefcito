@@ -28,18 +28,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { CreditCard, Send, Utensils, Package, PersonStanding, StickyNote } from 'lucide-react';
+import { CreditCard, Save, Send, Utensils, Package, PersonStanding, StickyNote } from 'lucide-react';
 
 interface SheetCartProps {
   onSendToKitchen: () => void;
   onPayment: () => void;
   onEditItem: (item: OrderItem) => void;
   sendButtonText?: string;
+  isEditingOrder?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonText, open, onOpenChange }: SheetCartProps) {
+export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonText, isEditingOrder, open, onOpenChange }: SheetCartProps) {
   const { t } = useI18nStore();
   const { 
     items,
@@ -82,6 +83,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
             onClick={() => {
               if (onOpenChange) onOpenChange(false);
             }}
+            className="bg-red-500 hover:bg-red-600 text-white"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -127,7 +129,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                 </SheetTitle>
                 {items.length > 0 && (
                   <Badge variant="secondary">
-                    {items.length} {items.length === 1 ? 'item' : 'items'}
+                    {items.length} {items.length === 1 ? t('pos.current_order.item') : t('pos.current_order.items')}
                   </Badge>
                 )}
               </div>
@@ -273,7 +275,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                               {item.selectedExtras && item.selectedExtras.length > 0 && (
                                 <div className="mt-0.5 text-xs text-muted-foreground">
                                   {item.selectedExtras.map((extra: MenuItem) => (
-                                    <div key={extra.id}>+ {extra.name} (${extra.price.toFixed(2)})</div>
+                                    <div key={extra.id}>+ {extra.name} ({t('pos.current_order.currency')}{extra.price.toFixed(2)})</div>
                                   ))}
                                 </div>
                               )}
@@ -286,7 +288,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                             </div>
                             
                             <div className="text-sm font-semibold ml-auto pr-6">
-                              ${((item.menuItem.price + (item.selectedExtras?.reduce((acc: number, e: MenuItem) => acc + e.price, 0) || 0)) * item.quantity).toFixed(2)}
+                              {t('pos.current_order.currency')}{((item.menuItem.price + (item.selectedExtras?.reduce((acc: number, e: MenuItem) => acc + e.price, 0) || 0)) * item.quantity).toFixed(2)}
                             </div>
                           </div>
                         </div>
@@ -303,15 +305,15 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
               <div className="w-full space-y-1 text-sm py-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{t('pos.current_order.currency')}{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('pos.current_order.tax')}</span>
-                  <span>${tax.toFixed(2)}</span>
+                  <span>{t('pos.current_order.currency')}{tax.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-base text-primary">
                   <span>{t('pos.current_order.total')}</span>
-                  <span>${total.toFixed(2)}</span>
+                  <span>{t('pos.current_order.currency')}{total.toFixed(2)}</span>
                 </div>
               </div>
               <Separator className="my-1" />
@@ -322,9 +324,18 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
                   {t('pos.current_order.payment')}
                 </Button>
               </div>
-              <Button className="w-full mt-1 py-1" onClick={onSendToKitchen} disabled={!canSendToKitchen}>
-                <Send className="mr-2 h-4 w-4"/>
-                {sendButtonText || t('pos.current_order.send_to_kitchen')}
+              <Button className="w-full mt-1 py-1" onClick={onSendToKitchen} disabled={isEditingOrder ? false : !canSendToKitchen}>
+                {isEditingOrder ? (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    {sendButtonText || t('dialog.save')}
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    {sendButtonText || t('pos.current_order.send_to_kitchen')}
+                  </>
+                )}
               </Button>
             </CardFooter>
           )}

@@ -22,8 +22,8 @@ export function RoleManager() {
 
   const handleRoleChange = (newRole: 'Owner' | 'Admin' | 'Staff') => {
     updateUserRole(user.id, newRole);
-    toast.success("Role Updated", {
-      description: `Your role has been updated to ${newRole}`,
+    toast.success(t('profile.toast.role_updated_title'), {
+      description: t('profile.toast.role_updated_desc', { role: newRole }),
       duration: 3000,
     });
   };

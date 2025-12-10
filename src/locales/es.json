@@ -1,5 +1,8 @@
 
 {
+    "app": {
+        "title": "Chefcito"
+    },
     "pos": {
         "title": "Terminal de Venta",
         "loading": "Cargando menú...",
@@ -20,7 +23,10 @@
             "total": "Total",
             "clear_order": "Limpiar Orden",
             "payment": "Pago",
-            "send_to_kitchen": "Enviar a Cocina"
+            "send_to_kitchen": "Enviar a Cocina",
+            "item": "artículo",
+            "items": "artículos",
+            "currency": "$"
         },
         "order_type": {
             "dine_in": "Para Servir",
@@ -188,7 +194,7 @@
                 "delete": "Eliminar",
                 "select_all": "Seleccionar todo",
                 "select_row": "Seleccionar fila",
-                "status": {
+                "item_status": {
                     "available": "Disponible",
                     "unavailable": "No disponible"
                 }
@@ -464,7 +470,9 @@
             "profile_updated": "Información del perfil guardada.",
             "password_mismatch": "Las nuevas contraseñas no coinciden.",
             "password_empty": "Por favor, rellena todos los campos de contraseña.",
-            "password_updated": "Contraseña actualizada correctamente."
+            "password_updated": "Contraseña actualizada correctamente.",
+            "role_updated_title": "Rol Actualizado",
+            "role_updated_desc": "Tu rol ha sido actualizado a {{role}}"
         }
     },
     "userMenu": {
@@ -505,7 +513,24 @@
             "title": "Idioma",
             "en": "Inglés",
             "es": "Español"
-        }
+        },
+        "contact_email": "staff@chefcito.com"
+    },
+    "user": {
+        "account": "Cuenta",
+        "settings": "Configuración",
+        "logout": "Cerrar Sesión"
+    },
+    "settings": {
+        "language": "Idioma",
+        "font_size": "Tamaño de Fuente",
+        "theme": "Tema",
+        "small": "Pequeño",
+        "medium": "Mediano",
+        "large": "Grande",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "system": "Sistema"
     },
     "dialog": {
         "cancel": "Cancelar",

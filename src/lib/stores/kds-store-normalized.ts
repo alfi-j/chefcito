@@ -117,7 +117,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       // Find workstation by id or fallback to matching by _id if id is undefined
       return sortedWorkstations.findIndex(ws => 
-        ws.id === id || (ws._id && ws._id === id)
+        ws.id === id || (ws._id && ws._id.toString() === id)
       );
     },
     
@@ -127,7 +127,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       // Find current workstation by id or fallback to matching by _id if id is undefined
       const currentIndex = sortedWorkstations.findIndex(ws => 
-        ws.id === currentWorkstationId || (ws._id && ws._id === currentWorkstationId)
+        ws.id === currentWorkstationId || (ws._id && ws._id.toString() === currentWorkstationId)
       );
       if (currentIndex < 0 || currentIndex >= sortedWorkstations.length - 1) {
         return undefined;
@@ -141,7 +141,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       // Find current workstation by id or fallback to matching by _id if id is undefined
       const currentIndex = sortedWorkstations.findIndex(ws => 
-        ws.id === currentWorkstationId || (ws._id && ws._id === currentWorkstationId)
+        ws.id === currentWorkstationId || (ws._id && ws._id.toString() === currentWorkstationId)
       );
       if (currentIndex <= 0) {
         return undefined;
@@ -259,7 +259,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         // Validate transition respects configured workstation order
         // Find current workstation by id or fallback to matching by _id if id is undefined
         const currentItemWsIndex = sortedWorkstations.findIndex(ws => 
-          ws.id === item.workstationId || (ws._id && ws._id === item.workstationId)
+          ws.id === item.workstationId || (ws._id && ws._id.toString() === item.workstationId)
         );
         const targetWsIndex = sortedWorkstations.findIndex(ws => ws.id === targetWorkstation);
         
@@ -346,7 +346,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         // Check if current workstation is the Ready workstation (last in workflow)
         // Find current workstation by id or fallback to matching by _id if id is undefined
         const currentWsIndex = sortedWorkstations.findIndex(ws => 
-          ws.id === item.workstationId || (ws._id && ws._id === item.workstationId)
+          ws.id === item.workstationId || (ws._id && ws._id.toString() === item.workstationId)
         );
         const isLastWorkstation = currentWsIndex === sortedWorkstations.length - 1;
         const isInReadyWorkstation = isLastWorkstation; // Last workstation is always the Ready workstation
@@ -493,7 +493,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
         // Find current workstation by id or fallback to matching by _id if id is undefined
         const currentWsIndex = sortedWorkstations.findIndex(ws => 
-          ws.id === item.workstationId || (ws._id && ws._id === item.workstationId)
+          ws.id === item.workstationId || (ws._id && ws._id.toString() === item.workstationId)
         );
         const isLastWorkstation = currentWsIndex === sortedWorkstations.length - 1;
         const isInReadyWorkstation = isLastWorkstation; // Last workstation is always the Ready workstation
