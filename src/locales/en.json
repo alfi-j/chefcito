@@ -320,8 +320,8 @@
             "name": "Name",
             "type": "Type",
             "select_type": "Select a type",
-            "banks": "Bancos",
-            "add_bank": "Añadir un nuevo banco"
+            "banks": "Banks",
+            "add_bank": "Add a new bank"
         },
         "toast": {
             "fetch_error": "Could not fetch data.",
@@ -351,7 +351,18 @@
             "inventory_item_add_error": "Failed to add inventory item.",
             "inventory_stock_update_error": "Failed to update inventory stock.",
             "inventory_item_deleted": "Inventory item deleted.",
-            "inventory_item_delete_error": "Failed to delete inventory item."
+            "inventory_item_delete_error": "Failed to delete inventory item.",
+            "role_updated": "Role updated successfully",
+            "role_created": "Role created successfully",
+            "operation_failed": "Operation failed",
+            "fetch_roles_failed": "Failed to fetch roles",
+            "fetch_roles_error": "Error fetching roles",
+            "predefined_roles_created": "Predefined roles created successfully",
+            "create_predefined_roles_error": "Error creating predefined roles",
+            "save_role_error": "Error saving role",
+            "role_deleted": "Role deleted successfully",
+            "delete_role_failed": "Failed to delete role",
+            "delete_role_error": "Error deleting role"
         },
         "workstations": {
             "title": "Workstations",
@@ -377,6 +388,72 @@
             "error": "An error occurred. Please try again.",
             "errors": {
                 "name_required": "Workstation name is required."
+            }
+        },
+        "roles": {
+            "access_denied": "Access denied. Only owners can manage roles.",
+            "loading": "Loading roles...",
+            "title": "Roles Management",
+            "description": "Manage user roles and permissions",
+            "add_role": "Add Role",
+            "no_roles": "No roles found. Add your first role to get started.",
+            "tabs": {
+                "roles": "Roles",
+                "assignment": "Role Assignment"
+            },
+            "table": {
+                "name": "Name",
+                "description": "Description",
+                "permissions": "Permissions",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "edit_title": "Edit Role",
+                "add_title": "Create Role",
+                "edit_description": "Make changes to the role here.",
+                "add_description": "Add a new role with specific permissions.",
+                "name": "Name",
+                "description": "Description",
+                "permissions": "Permissions",
+                "update_role": "Update Role",
+                "create_role": "Create Role"
+            },
+            "permissions": {
+                "manage_menu": "Manage Menu",
+                "manage_orders": "Manage Orders",
+                "kds_access": "Access Kitchen Display",
+                "view_reports": "View Reports",
+                "manage_restaurant_settings": "Manage Restaurant Settings",
+                "manage_staff": "Manage Staff",
+                "manage_payments": "Manage Payments",
+                "manage_inventory": "Manage Inventory",
+                "manage_roles": "Manage Roles"
+            },
+            "predefined_roles": {
+                "waiter_desc": "Serving staff who take orders and serve customers",
+                "cashier_desc": "Handles payments and transactions",
+                "kitchen_staff_desc": "Prepares food and manages kitchen operations"
+            },
+            "roles": {
+                "owner": "Owner",
+                "admin": "Admin",
+                "staff": "Staff",
+                "waiter": "Waiter",
+                "cashier": "Cashier",
+                "kitchen_staff": "Kitchen Staff"
+            },
+            "role_descriptions": {
+                "owner": "As the restaurant owner, you have full access to all system features.",
+                "admin": "As an admin, you can manage staff and system settings.",
+                "staff": "As a staff member, you have basic access to the system."
+            },
+            "toast": {
+                "profile_updated": "Profile information saved.",
+                "password_mismatch": "New passwords do not match.",
+                "password_empty": "Please fill in all password fields.",
+                "password_updated": "Password updated successfully.",
+                "role_updated_title": "Role Updated",
+                "role_updated_desc": "Your role has been updated to {{role}}"
             }
         }
     },

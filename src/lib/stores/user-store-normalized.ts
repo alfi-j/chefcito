@@ -7,7 +7,7 @@ interface User {
   name: string;
   email: string;
   password: string;
-  role: 'Owner' | 'Admin' | 'Staff';
+  role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to support custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
   membership: 'free' | 'pro';
   createdAt?: Date;
@@ -29,7 +29,7 @@ interface NormalizedUserState extends NormalizedState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   updateMembership: (userId: string, membership: 'free' | 'pro') => void;
-  updateUserRole: (userId: string, role: 'Owner' | 'Admin' | 'Staff') => void;
+  updateUserRole: (userId: string, role: 'Owner' | 'Admin' | 'Staff' | string) => void;
   refreshUser: (currentEmail: string) => Promise<void>;
   setUser: (user: User | null) => void;
   

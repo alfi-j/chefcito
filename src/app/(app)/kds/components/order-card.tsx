@@ -166,37 +166,45 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
       >
           <CardHeader className="flex-row items-center justify-between space-y-0 px-1 py-1">
             <GripVertical className={cn("h-5 w-5 text-muted-foreground", !order.isPinned ? "cursor-grab" : "invisible")} />
-            <div className="flex-grow flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
-              <CardTitle className="font-headline text-2xl flex items-center gap-2">
-                <ClipboardList className="h-5 w-5" />
-                <span>{order.id}</span>
-              </CardTitle>
-              <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
+            <div className="flex-grow flex flex-col items-center justify-center min-h-[3rem]">
+              <div className="flex items-center justify-center gap-4 w-full">
+                <CardTitle className="font-headline text-2xl flex items-center gap-2">
+                  <ClipboardList className="h-5 w-5" />
+                  <span>{order.id}</span>
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                   <MdOutlineTableRestaurant className="h-5 w-5" />
                   <span>{order.table}</span>
+                </div>
               </div>
               <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
-                  <Clock className="h-5 w-5" />
-                  <span className="whitespace-nowrap">{timeAgo}</span>
-                  {order.status === 'pending' && isVeryUrgent && (
-                    <div className="w-6 h-6 rounded-full bg-destructive animate-blink flex items-center justify-center">
-                      <AlertTriangle className="h-4 w-4 text-destructive-foreground" />
+                <Clock className="h-5 w-5" />
+                <span className="whitespace-nowrap">{timeAgo}</span>
+                {(order.status === 'pending' && isVeryUrgent) || (order.status === 'pending' && isUrgent && !isVeryUrgent) ? (
+                  order.status === 'pending' && isVeryUrgent ? (
+                    <div className="ml-2 w-5 h-5 rounded-full bg-destructive animate-blink flex items-center justify-center">
+                      <AlertTriangle className="h-3 w-3 text-destructive-foreground" />
                     </div>
-                  )}
-                  {order.status === 'pending' && isUrgent && !isVeryUrgent && (
-                     <div className="w-6 h-6 rounded-full bg-yellow-500 animate-blink flex items-center justify-center">
-                      <AlertTriangle className="h-4 w-4 text-black" />
-                     </div>
-                  )}
+                  ) : (
+                    <div className="ml-2 w-5 h-5 rounded-full bg-yellow-500 animate-blink flex items-center justify-center">
+                      <AlertTriangle className="h-3 w-3 text-black" />
+                    </div>
+                  )
+                ) : null}
               </div>
             </div>
-             <button onClick={handlePinClick} className="p-1 rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring">
-              {order.isPinned ? (
-                <Pin className="h-5 w-5 text-primary fill-primary" />
-              ) : (
-                <PinOff className="h-5 w-5 text-muted-foreground" />
-              )}
-            </button>
+            <div className="flex items-center justify-center w-6 h-6">
+              <button 
+                onClick={handlePinClick} 
+                className="p-1 rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {order.isPinned ? (
+                  <Pin className="h-5 w-5 text-primary fill-primary" />
+                ) : (
+                  <PinOff className="h-5 w-5 text-muted-foreground" />
+                )}
+              </button>
+            </div>
           </CardHeader>
           
           <div className="p-1 pt-0 flex-1">
@@ -213,7 +221,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
               {orderedCategories.map((category, index) => (
                 <div key={category}>
                   {index > 0 && <Separator className="my-1"/>}
-                  <h4 className="font-semibold tracking-wide uppercase text-xs px-1 text-muted-foreground/80">{category}</h4>
+                  <h4 className="font-semibold tracking-wide uppercase text-xs text-muted-foreground/80">{category}</h4>
                   <div className="space-y-1 mt-1">
                     {groupedItems[category].map(item => (
                       <OrderItem 

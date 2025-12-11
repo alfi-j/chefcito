@@ -190,104 +190,91 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
         onSave={handleSave}
       />
       
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-            <div className="flex-1">
-              <CardTitle className="font-headline">{t('restaurant.workstations.title')}</CardTitle>
-            </div>
-            <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-              <PlusCircle className="h-4 w-4 mr-2" />
-              {t('restaurant.workstations.add_workstation')}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg overflow-x-auto">
-            <Table>
-              <TableHeader>
+      <div className="p-6">
+        <div className="border rounded-lg overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8"></TableHead>
+                <TableHead>{t('restaurant.workstations.name')}</TableHead>
+                <TableHead>
+                  <span className="sr-only">{t('restaurant.workstations.actions')}</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {workstations.length === 0 ? (
                 <TableRow>
-                  <TableHead className="w-8"></TableHead>
-                  <TableHead>{t('restaurant.workstations.name')}</TableHead>
-                  <TableHead>
-                    <span className="sr-only">{t('restaurant.workstations.actions')}</span>
-                  </TableHead>
+                  <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                    <p>{t('restaurant.workstations.no_workstations')}</p>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workstations.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                      <p>{t('restaurant.workstations.no_workstations')}</p>
+              ) : (
+                workstations.map((workstation) => (
+                  <TableRow 
+                    key={workstation.id || `workstation-${workstation.name}-${workstation.position}`}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, workstation.id)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={handleDragOver}
+                    onDragEnter={(e) => handleDragEnter(e, workstation.id)}
+                    onDrop={(e) => handleDrop(e, workstation.id)}
+                    className={cn(
+                      "cursor-grab",
+                      draggedWorkstationId === workstation.id && "opacity-50",
+                      dragOverWorkstationId === workstation.id && "bg-primary/10"
+                    )}
+                  >
+                    <TableCell className="w-8">
+                      <GripVertical className="h-5 w-5 text-muted-foreground" />
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {workstation.name}
+                        {['Kitchen', 'Ready'].includes(workstation.name) && (
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                            {t('restaurant.workstations.default')}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">{t('restaurant.workstations.toggle_menu')}</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>{t('restaurant.workstations.actions')}</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => handleOpenDialog(workstation)}>
+                              {t('restaurant.workstations.edit')}
+                            </DropdownMenuItem>
+                            {/* Prevent deletion of default workstations */}
+                            {!['Kitchen', 'Ready'].includes(workstation.name) && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-destructive" 
+                                  onSelect={() => handleDelete(workstation.id, workstation.name)}
+                                >
+                                  {t('restaurant.workstations.delete')}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  workstations.map((workstation) => (
-                    <TableRow 
-                      key={workstation.id || `workstation-${workstation.name}-${workstation.position}`}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, workstation.id)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={handleDragOver}
-                      onDragEnter={(e) => handleDragEnter(e, workstation.id)}
-                      onDrop={(e) => handleDrop(e, workstation.id)}
-                      className={cn(
-                        "cursor-grab",
-                        draggedWorkstationId === workstation.id && "opacity-50",
-                        dragOverWorkstationId === workstation.id && "bg-primary/10"
-                      )}
-                    >
-                      <TableCell className="w-8">
-                        <GripVertical className="h-5 w-5 text-muted-foreground" />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {workstation.name}
-                          {['Kitchen', 'Ready'].includes(workstation.name) && (
-                            <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-                              {t('restaurant.workstations.default')}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">{t('restaurant.workstations.toggle_menu')}</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>{t('restaurant.workstations.actions')}</DropdownMenuLabel>
-                              <DropdownMenuItem onSelect={() => handleOpenDialog(workstation)}>
-                                {t('restaurant.workstations.edit')}
-                              </DropdownMenuItem>
-                              {/* Prevent deletion of default workstations */}
-                              {!['Kitchen', 'Ready'].includes(workstation.name) && (
-                                <>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    className="text-destructive" 
-                                    onSelect={() => handleDelete(workstation.id, workstation.name)}
-                                  >
-                                    {t('restaurant.workstations.delete')}
-                                  </DropdownMenuItem>
-                                </>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </>
   )
 }

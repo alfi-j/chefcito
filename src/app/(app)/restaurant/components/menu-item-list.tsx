@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Pencil, Trash2, ImageOff } from "lucide-react"
+import { Pencil, Trash2, ImageOff, Utensils } from "lucide-react"
 import { type MenuItem, type Category } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
@@ -134,7 +134,7 @@ export function MenuItemList({ menuItems = [], categories = [], onEdit }: MenuIt
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
-                        <ImageOff className="w-6 h-6 text-muted-foreground" />
+                        <Utensils className="w-8 h-8 text-muted-foreground" />
                       </div>
                     )}
                   </div>

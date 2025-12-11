@@ -641,8 +641,14 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
           }
         }));
         
-        const response = await fetch(`/api/orders/${orderId}/pin`, {
+        const response = await fetch(`/api/orders`, {
           method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            orderId,
+          }),
         });
         
         if (!response.ok) {

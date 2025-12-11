@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState, useMemo } from 'react'
 import {
@@ -139,12 +138,12 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="font-headline">{t('restaurant.category_dialog.title')}</DialogTitle>
           <DialogDescription>{t('restaurant.category_dialog.desc')}</DialogDescription>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 flex flex-col min-h-0">
           <div className="space-y-2">
             <div className="flex gap-2">
               <Input
@@ -162,7 +161,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
               </Label>
             </div>
           </div>
-          <ScrollArea className="h-64 border rounded-md">
+          <div className="flex-1 overflow-y-auto border rounded-md">
             <div className="p-2 space-y-1">
               {renderedCategories.map(category => (
                 <div key={category.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
@@ -257,9 +256,9 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
                 </div>
               ))}
             </div>
-          </ScrollArea>
+          </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>{t('dialog.close')}</Button>
         </DialogFooter>
       </DialogContent>

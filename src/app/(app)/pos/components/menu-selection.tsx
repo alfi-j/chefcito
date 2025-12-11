@@ -156,9 +156,8 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
   }
   
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="flex-row items-center justify-between">
-        <CardTitle className="font-headline">{t('pos.menu_selection.title')}</CardTitle>
+    <div className="h-full flex flex-col">
+      <div className="flex-row items-center justify-between mb-4">
         <Select value={activeCategoryName} onValueChange={setActiveCategoryName}>
           <SelectTrigger className="w-full sm:w-[280px]">
             <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
@@ -172,11 +171,12 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
             ))}
           </SelectContent>
         </Select>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col min-h-0">
+      </div>
+      <div className="flex-grow flex flex-col min-h-0">
           <div className="flex-grow relative mt-4">
             <ScrollArea className="absolute inset-0">
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 p-1">
+              {/* Grid view for larger screens */}
+              <div className="hidden sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3 p-1">
                 {itemsForActiveCategory.map(item => {
                   // Get badge count from memoized counts
                   const itemCount = badgeCounts[item.id] || 0;
@@ -188,7 +188,7 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                       onClick={() => handleItemClick(item)}
                     >
                       <div className="w-full aspect-square relative bg-muted flex items-center justify-center">
-                          {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") ? (
+                          {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") && item.imageUrl !== '/placeholder-menu-item.jpg' ? (
                               <Image src={item.imageUrl} alt={item.name} fill className="object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={item.aiHint} />
                           ) : (
                               <Utensils className="w-1/2 h-1/2 text-muted-foreground/50" />
@@ -207,9 +207,47 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
                   );
                 })}
               </div>
+              
+              {/* List view for small screens */}
+              <div className="sm:hidden space-y-2 p-1">
+                {itemsForActiveCategory.map(item => {
+                  // Get badge count from memoized counts
+                  const itemCount = badgeCounts[item.id] || 0;
+                  
+                  return (
+                    <Card 
+                      key={item.id} 
+                      className="cursor-pointer hover:shadow-md hover:border-primary transition-all flex items-center gap-3 p-3"
+                      onClick={() => handleItemClick(item)}
+                    >
+                      <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
+                          {item.imageUrl && !item.imageUrl.startsWith("https://placehold.co") && item.imageUrl !== '/placeholder-menu-item.jpg' ? (
+                            <Image src={item.imageUrl} alt={item.name} width={48} height={48} className="rounded-md object-cover" />
+                          ) : (
+                            <Utensils className="w-6 h-6 text-muted-foreground/50" />
+                          )}
+                        </div>
+                        {itemCount > 0 && (
+                          <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full">
+                            {itemCount}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <p className="font-semibold text-sm leading-tight truncate">{item.name}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+                      </div>
+                      <div className="text-sm font-bold text-primary flex-shrink-0">
+                        ${item.price.toFixed(2)}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
             </ScrollArea>
           </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -35,6 +35,7 @@ import { useTheme } from "next-themes"
 import React, { useState, useEffect } from "react"
 import { cn } from "@/lib/helpers"
 import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized"
 
 // Simple cookie utility
 const eraseCookie = (name: string) => {
@@ -47,6 +48,21 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const [fontSize, setFontSize] = useState("medium")
   const { t } = useI18nStore()
+  const { setUser } = useNormalizedUserStore()
+
+  // Initialize user from localStorage on mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('chefcito-user')
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser)
+        setUser(user)
+      } catch (e) {
+        console.error('Error parsing stored user:', e)
+        localStorage.removeItem('chefcito-user')
+      }
+    }
+  }, [setUser])
 
   // Debug logging
   useEffect(() => {
@@ -112,7 +128,7 @@ function AppLayoutContent({ children }: { children: React.ReactNode }) {
       </header>
 
 
-      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-28 md:pb-6")}>
+      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-24 md:pb-6")}>
         {children}
       </main>
 

@@ -170,226 +170,222 @@ export default function OrdersPage() {
         order={selectedOrder}
       />
       
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                variant={activeTab === 'all' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('all')}
-                className="flex-1 min-w-[120px]"
-              >
-                {t('orders.tabs.all')}
-              </Button>
-              <Button 
-                variant={activeTab === 'pending' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('pending')}
-                className="flex-1 min-w-[120px]"
-              >
-                {t('orders.tabs.pending')}
-              </Button>
-              <Button 
-                variant={activeTab === 'completed' ? 'default' : 'outline'} 
-                onClick={() => setActiveTab('completed')}
-                className="flex-1 min-w-[120px]"
-              >
-                {t('orders.tabs.completed')}
-              </Button>
-            </div>
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder={t('orders.table.search_placeholder')}
-                className="pl-8 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+      <div className="p-6">
+        <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant={activeTab === 'all' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('all')}
+              className="flex-1 min-w-[120px]"
+            >
+              {t('orders.tabs.all')}
+            </Button>
+            <Button 
+              variant={activeTab === 'pending' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('pending')}
+              className="flex-1 min-w-[120px]"
+            >
+              {t('orders.tabs.pending')}
+            </Button>
+            <Button 
+              variant={activeTab === 'completed' ? 'default' : 'outline'} 
+              onClick={() => setActiveTab('completed')}
+              className="flex-1 min-w-[120px]"
+            >
+              {t('orders.tabs.completed')}
+            </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {ordersLoading ? (
-            <div className="flex items-center justify-center h-32">
-              <p>{t('orders.loading')}</p>
-            </div>
-          ) : ordersError ? (
-            <div className="flex items-center justify-center h-32">
-              <p className="text-destructive">{t('orders.error')}</p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table View */}
-              <div className="hidden md:block">
-                <Table>
-                  <TableHeader>
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder={t('orders.table.search_placeholder')}
+              className="pl-8 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+        {ordersLoading ? (
+          <div className="flex items-center justify-center h-32">
+            <p>{t('orders.loading')}</p>
+          </div>
+        ) : ordersError ? (
+          <div className="flex items-center justify-center h-32">
+            <p className="text-destructive">{t('orders.error')}</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('orders.table.order_id')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('orders.table.date')}</TableHead>
+                    <TableHead className="hidden md:table-cell">{t('orders.table.table')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('orders.table.status')}</TableHead>
+                    <TableHead>{t('orders.table.staff')}</TableHead>
+                    <TableHead className="text-right">{t('orders.table.total')}</TableHead>
+                    <TableHead><span className="sr-only">{t('orders.table.actions')}</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {currentOrders.length === 0 ? (
                     <TableRow>
-                      <TableHead>{t('orders.table.order_id')}</TableHead>
-                      <TableHead className="hidden sm:table-cell">{t('orders.table.date')}</TableHead>
-                      <TableHead className="hidden md:table-cell">{t('orders.table.table')}</TableHead>
-                      <TableHead className="hidden sm:table-cell">{t('orders.table.status')}</TableHead>
-                      <TableHead>{t('orders.table.staff')}</TableHead>
-                      <TableHead className="text-right">{t('orders.table.total')}</TableHead>
-                      <TableHead><span className="sr-only">{t('orders.table.actions')}</span></TableHead>
+                      <TableCell colSpan={7} className="text-center py-8">
+                        {t('orders.no_orders_found')}
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {currentOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-8">
-                          {t('orders.no_orders_found')}
+                  ) : (
+                    currentOrders.map((order) => (
+                      <TableRow key={order.id} className="cursor-pointer">
+                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
                         </TableCell>
-                      </TableRow>
-                    ) : (
-                      currentOrders.map((order) => (
-                        <TableRow key={order.id} className="cursor-pointer">
-                          <TableCell className="font-medium">#{order.id}</TableCell>
-                          <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
-                          <TableCell className="hidden md:table-cell">
-                            {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge variant={getStatusVariant(order.status)} className="capitalize">
-                              {t(`orders.status.${order.status}`)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{order.staffName || 'N/A'}</TableCell>
-                          <TableCell className="text-right font-semibold">
-                            ${getOrderTotal(order).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex justify-end">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button aria-haspopup="true" size="icon" variant="ghost">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">{t('orders.table.toggle_menu')}</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
-                                  <DropdownMenuItem onClick={() => handleEditOrder(order)}>
-                                    {t('orders.table.edit')}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                                    {t('orders.table.view_details')}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)}>
-                                    {t('orders.table.delete')}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-              
-              {/* Mobile Card View */}
-              <div className="md:hidden space-y-4">
-                {currentOrders.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-32 text-center">
-                    <p>{t('orders.no_orders_found')}</p>
-                  </div>
-                ) : (
-                  currentOrders.map((order) => (
-                    <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-bold text-lg">#{order.id}</p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
-                            </p>
-                          </div>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant={getStatusVariant(order.status)} className="capitalize">
                             {t(`orders.status.${order.status}`)}
                           </Badge>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-3 space-y-1">
-                          <p>{format(new Date(order.createdAt), 'PPp')}</p>
-                          <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
-                        </div>
-                        <div className="mt-4 pt-3 border-t">
-                          <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
-                          <div className="grid grid-cols-2 gap-2 mt-3">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditOrder(order);
-                              }}
-                            >
-                              {t('orders.table.edit')}
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleViewDetails(order);
-                              }}
-                            >
-                              {t('orders.table.view_details')}
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteOrder(order.id);
-                              }}
-                              className="col-span-2"
-                            >
-                              {t('orders.table.delete')}
-                            </Button>
+                        </TableCell>
+                        <TableCell>{order.staffName || 'N/A'}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          ${getOrderTotal(order).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                  <span className="sr-only">{t('orders.table.toggle_menu')}</span>
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => handleEditOrder(order)}>
+                                  {t('orders.table.edit')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewDetails(order)}>
+                                  {t('orders.table.view_details')}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)}>
+                                  {t('orders.table.delete')}
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-              
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-muted-foreground">
-                    {t('orders.pagination.showing')} {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} {t('orders.pagination.of')} {filteredOrders.length} {t('orders.pagination.results')}
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      {t('orders.pagination.previous')}
-                    </Button>
-                    <div className="text-sm font-medium">
-                      {t('orders.pagination.page')} {currentPage} {t('orders.pagination.of')} {totalPages}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                    >
-                      {t('orders.pagination.next')}
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {currentOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-32 text-center">
+                  <p>{t('orders.no_orders_found')}</p>
                 </div>
+              ) : (
+                currentOrders.map((order) => (
+                  <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-bold text-lg">#{order.id}</p>
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
+                          </p>
+                        </div>
+                        <Badge variant={getStatusVariant(order.status)} className="capitalize">
+                          {t(`orders.status.${order.status}`)}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-3 space-y-1">
+                        <p>{format(new Date(order.createdAt), 'PPp')}</p>
+                        <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
+                      </div>
+                      <div className="mt-4 pt-3 border-t">
+                        <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditOrder(order);
+                            }}
+                          >
+                            {t('orders.table.edit')}
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewDetails(order);
+                            }}
+                          >
+                            {t('orders.table.view_details')}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteOrder(order.id);
+                            }}
+                            className="col-span-2"
+                          >
+                            {t('orders.table.delete')}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
               )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-muted-foreground">
+                  {t('orders.pagination.showing')} {startIndex + 1}-{Math.min(endIndex, filteredOrders.length)} {t('orders.pagination.of')} {filteredOrders.length} {t('orders.pagination.results')}
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    {t('orders.pagination.previous')}
+                  </Button>
+                  <div className="text-sm font-medium">
+                    {t('orders.pagination.page')} {currentPage} {t('orders.pagination.of')} {totalPages}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    {t('orders.pagination.next')}
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

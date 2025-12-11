@@ -2,7 +2,7 @@
 
 import { type OrderItem as OrderItemType } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Clock, CookingPot, Check } from "lucide-react";
 import { KDS_STATES } from "@/lib/constants";
 
 interface OrderItemDisplayProps {
@@ -21,28 +21,46 @@ const statusColors: Record<string, string> = {
   'Served': 'bg-gray-500/15 text-gray-800 dark:text-gray-200 hover:bg-gray-500/25',
 };
 
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case KDS_STATES.NEW: return <Clock className="h-4 w-4" />;
+    case KDS_STATES.IN_PROGRESS: return <CookingPot className="h-4 w-4" />;
+    case KDS_STATES.READY: return <Check className="h-4 w-4" />;
+    default: return null;
+  }
+};
+
 export function OrderItemDisplay({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, compact = false }: OrderItemDisplayProps) {
 
   const ItemInfo = ({ count }: { count: number }) => (
     <div className="flex-1 min-w-0 w-full" data-testid="order-item">
-      <div className="flex items-start gap-2">
-          <span className={cn("font-bold leading-tight", {
+      {/* Number and icon in a column, item name centered vertically */}
+      <div className="flex items-center gap-2">
+        <div className={cn("text-center", {
+          "min-w-[2rem]": !compact,
+          "min-w-[1.5rem]": compact
+        })}>
+          <div className={cn("font-bold leading-tight", {
             "text-xl": !compact,
             "text-lg": compact
           })}>
             {count}x
-          </span>
-          <span className={cn("font-bold whitespace-normal break-words leading-tight", {
-            "text-xl": !compact,
-            "text-lg": compact
-          })}>
-            {item.menuItem.name}
-          </span>
+          </div>
+          <div className="mt-1 flex justify-center">
+            {getStatusIcon(item.status)}
+          </div>
+        </div>
+        <span className={cn("font-bold whitespace-normal break-words leading-tight", {
+          "text-xl": !compact,
+          "text-lg": compact
+        })}>
+          {item.menuItem.name}
+        </span>
       </div>
       {item.selectedExtras && item.selectedExtras.length > 0 && (
         <div className={cn("text-muted-foreground font-bold", {
-          "pl-7 text-lg": !compact,
-          "pl-6 text-base": compact
+          "pl-8 text-lg": !compact,
+          "pl-7 text-base": compact
         })}>
           {item.selectedExtras.map(extra => (
             <div key={extra.id}>+ {extra.name}</div>
@@ -51,8 +69,8 @@ export function OrderItemDisplay({ item, orderId, currentTab, onUpdateItemStatus
       )}
       {item.notes && (
           <p className={cn("font-bold italic whitespace-pre-wrap", {
-            "pl-7 text-lg text-primary": !compact,
-            "pl-6 text-base text-primary": compact
+            "pl-8 text-lg text-primary": !compact,
+            "pl-7 text-base text-primary": compact
           })}>
             Notes: {item.notes}
           </p>
@@ -83,7 +101,8 @@ export function OrderItemDisplay({ item, orderId, currentTab, onUpdateItemStatus
         <div className="flex justify-between items-center gap-2">
             <ItemInfo count={item.quantity} />
             <div className="flex items-center gap-2">
-              <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{status}</div>
+              {/* Removed text label */}
+              <div className="font-bold text-xs uppercase w-16 text-center shrink-0"></div>
               {canRevert && (
                 <button
                     onClick={(e) => { e.stopPropagation(); onRevert(); }}

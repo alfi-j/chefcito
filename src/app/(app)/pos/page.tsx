@@ -584,8 +584,8 @@ function PosPageContent() {
             />
           </div>
           
-          {/* Persistent Cart Column */}
-          <div className={`flex flex-col h-full transition-all duration-300 ${isCartOpen ? 'w-80 ml-1' : 'w-0 opacity-0'}`}>
+          {/* Persistent Cart Column - Made wider for better visibility on all screens */}
+          <div className={`flex flex-col h-full transition-all duration-300 ${isCartOpen ? 'w-full md:w-96 lg:w-[32rem] ml-1' : 'w-0 opacity-0'}`}>
             <div className={`flex-1 ${isCartOpen ? 'block' : 'hidden'}`}>
               <SheetCart 
                 open={true}
@@ -601,7 +601,7 @@ function PosPageContent() {
         
         {/* Cart Toggle Button - Only show when cart is hidden */}
         {!isCartOpen && (
-          <div className="fixed bottom-6 right-6">
+          <div className="fixed bottom-20 right-6 z-20">
             <Button 
               size="icon" 
               className="rounded-full shadow-lg h-14 w-14 bg-yellow-500 hover:bg-yellow-600"

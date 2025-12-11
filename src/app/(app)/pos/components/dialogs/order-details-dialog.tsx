@@ -1,4 +1,3 @@
-
 "use client"
 import {
   Dialog,
@@ -9,7 +8,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { type Order, type OrderItem } from "@/lib/types"
@@ -64,91 +62,89 @@ export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg flex flex-col max-h-[90vh]">
+      <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">{t('orders.details.title')} #{order.id}</DialogTitle>
           <DialogDescription>{t('orders.details.description')}</DialogDescription>
         </DialogHeader>
         
-        <div className="flex-1 min-h-0">
-            <ScrollArea className="h-full -mx-6">
-                <div className="px-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <p className="font-semibold">{t('orders.table.date')}</p>
-                            <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPp')}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold">{t('orders.table.status')}</p>
-                            <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
-                        </div>
-                        <div>
-                            <p className="font-semibold">{t('orders.table.staff')}</p>
-                            <p className="text-muted-foreground">{order.staffName || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <p className="font-semibold">{order.orderType === 'dine-in' ? t('pos.current_order.table') : t('pos.order_type.delivery')}</p>
-                            <p className="text-muted-foreground flex items-center gap-2">
-                                {order.orderType === 'dine-in' ? <PersonStanding/> : <Package/>}
-                                {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
-                            </p>
-                        </div>
-                    </div>
-
-                    {order.orderType === 'delivery' && order.deliveryInfo && (
-                        <div>
-                             <h4 className="font-semibold mb-2">{t('orders.details.delivery_info')}</h4>
-                             <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
-                                <p><strong>{t('pos.delivery.name')}:</strong> {order.deliveryInfo.name}</p>
-                                <p><strong>{t('pos.delivery.address')}:</strong> {order.deliveryInfo.address}</p>
-                                <p><strong>{t('pos.delivery.phone')}:</strong> {order.deliveryInfo.phone}</p>
-                             </div>
-                        </div>
-                    )}
-
-                    <Separator />
-                    
+        <div className="flex-1 min-h-0 overflow-y-auto">
+            <div className="px-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <h4 className="font-semibold mb-1">{t('orders.details.items')}</h4>
-                        <div className="divide-y">
-                            {order.items.map(renderItem)}
-                        </div>
+                        <p className="font-semibold">{t('orders.table.date')}</p>
+                        <p className="text-muted-foreground">{format(new Date(order.createdAt), 'PPp')}</p>
                     </div>
-                    
-                    <Separator />
-
-                    <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
-                            <span>${(getOrderTotal(order) / 1.08).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">{t('pos.current_order.tax')}</span>
-                            <span>${(getOrderTotal(order) - (getOrderTotal(order) / 1.08)).toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between font-bold text-base">
-                            <span>{t('pos.current_order.total')}</span>
-                            <span>${getOrderTotal(order).toFixed(2)}</span>
-                        </div>
+                    <div>
+                        <p className="font-semibold">{t('orders.table.status')}</p>
+                        <Badge variant={getStatusVariant(order.status)} className="capitalize">{t(`orders.status.${order.status}`)}</Badge>
                     </div>
-
-                    {order.statusHistory && order.statusHistory.length > 0 && (
-                        <div>
-                            <Separator />
-                            <h4 className="font-semibold my-2">{t('orders.details.status_history')}</h4>
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                {order.statusHistory.map((status, index) => (
-                                    <li key={index} className="flex justify-between">
-                                        <span className="capitalize">{status.status}</span>
-                                        <span>{format(new Date(status.timestamp), 'Pp')}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
-
+                    <div>
+                        <p className="font-semibold">{t('orders.table.staff')}</p>
+                        <p className="text-muted-foreground">{order.staffName || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p className="font-semibold">{order.orderType === 'dine-in' ? t('pos.current_order.table') : t('pos.order_type.delivery')}</p>
+                        <p className="text-muted-foreground flex items-center gap-2">
+                            {order.orderType === 'dine-in' ? <PersonStanding/> : <Package/>}
+                            {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
+                        </p>
+                    </div>
                 </div>
-            </ScrollArea>
+
+                {order.orderType === 'delivery' && order.deliveryInfo && (
+                    <div>
+                         <h4 className="font-semibold mb-2">{t('orders.details.delivery_info')}</h4>
+                         <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md">
+                            <p><strong>{t('pos.delivery.name')}:</strong> {order.deliveryInfo.name}</p>
+                            <p><strong>{t('pos.delivery.address')}:</strong> {order.deliveryInfo.address}</p>
+                            <p><strong>{t('pos.delivery.phone')}:</strong> {order.deliveryInfo.phone}</p>
+                         </div>
+                    </div>
+                )}
+
+                <Separator />
+                
+                <div>
+                    <h4 className="font-semibold mb-1">{t('orders.details.items')}</h4>
+                    <div className="divide-y max-w-md mx-auto">
+                        {order.items.map(renderItem)}
+                    </div>
+                </div>
+                
+                <Separator />
+
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('pos.current_order.subtotal')}</span>
+                        <span>${(getOrderTotal(order) / 1.08).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">{t('pos.current_order.tax')}</span>
+                        <span>${(getOrderTotal(order) - (getOrderTotal(order) / 1.08)).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-base">
+                        <span>{t('pos.current_order.total')}</span>
+                        <span>${getOrderTotal(order).toFixed(2)}</span>
+                    </div>
+                </div>
+
+                {order.statusHistory && order.statusHistory.length > 0 && (
+                    <div>
+                        <Separator />
+                        <h4 className="font-semibold my-2">{t('orders.details.status_history')}</h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground">
+                            {order.statusHistory.map((status, index) => (
+                                <li key={index} className="flex justify-between">
+                                    <span className="capitalize">{status.status}</span>
+                                    <span>{format(new Date(status.timestamp), 'Pp')}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+            </div>
         </div>
         
         <DialogFooter className="pt-4 border-t">

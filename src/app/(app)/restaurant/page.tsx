@@ -4,6 +4,7 @@ import Image from 'next/image'
 
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized';
+import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized';
 import { debugMenu, debugInventory } from '@/lib/helpers';
 import { 
   Table,
@@ -30,6 +31,8 @@ import {
   Package,
   CreditCard,
   Monitor,
+  ChevronDown,
+  Settings,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -42,6 +45,7 @@ import {
 import { type MenuItem, type Payment, type Category, type InventoryItem } from "@/lib/types"
 import { type IWorkstation } from '@/models/Workstation'
 import { WorkstationList } from './components/workstation-list'
+import { RolesList } from './components/roles-list'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { MenuItemDialog } from './components/menu-item-dialog'
@@ -59,7 +63,6 @@ import {
 import { cn } from '@/lib/helpers'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from './components/batch-actions-toolbar'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
 
@@ -238,55 +241,10 @@ function InventoryList({
             onSave={onSave}
             menuItems={menuItems}
         />
-        <Card>
-            <CardHeader>
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                    <div className="flex-1">
-                        <CardTitle className="font-headline">{t('restaurant.inventory.title')}</CardTitle>
-                        <CardDescription>{t('restaurant.inventory.desc')}</CardDescription>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-                        <div className="relative w-full sm:w-auto">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                type="search"
-                                placeholder={t('restaurant.menu.search_placeholder')}
-                                className="pl-8 w-full sm:w-[200px] lg:w-[250px]"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                            <SelectTrigger className="w-full sm:w-auto min-w-[180px]">
-                                <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                                {inventoryCategories.map(cat => (
-                                    <SelectItem key={cat} value={cat!}>{cat}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button onClick={() => handleOpenItemDialog()} size="icon" className="w-full sm:w-10">
-                                        <PlusCircle className="h-4 w-4" />
-                                        <span className="sr-only">{t('restaurant.inventory.add_item')}</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('restaurant.inventory.add_item')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                 {renderContent()}
-            </CardContent>
-        </Card>
+        {/* Removed CardHeader since we're showing this info in the dropdown menu */}
+        <div className="p-6">
+             {renderContent()}
+        </div>
         </>
     )
 }
@@ -446,180 +404,101 @@ function MenuList({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-            <div className="flex-1">
-              <CardTitle className="font-headline">{t('restaurant.menu.title')}</CardTitle>
-              <CardDescription>{t('restaurant.menu.desc')}</CardDescription>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto md:justify-end">
-              <div className="relative w-full sm:w-auto grow sm:grow-0">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                type="search"
-                placeholder={t('restaurant.menu.search_placeholder')}
-                className="pl-8 w-full sm:w-[200px] lg:w-[250px]"
-                value={searchQuery}
-                onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setSelectedItemIds([]);
-                }}
-                />
-              </div>
-              <Select
-                  value={categoryFilter}
-                  onValueChange={(value) => {
-                      setCategoryFilter(value);
-                      setSelectedItemIds([]);
-                  }}
-              >
-                  <SelectTrigger className="w-full sm:w-auto min-w-[180px] grow sm:grow-0">
-                  <SelectValue placeholder={t('restaurant.menu.filter_by_category')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t('restaurant.menu.all_categories')}</SelectItem>
-                    {renderedCategories.filter(c => !c.isModifierGroup).map(cat => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        <span style={{ paddingLeft: `${cat.depth * 1.25}rem` }}>{cat.name}</span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-              </Select>
-              <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div>
-                        <CategoryDialog 
-                          categories={categories} 
-                          onUpdate={(category) => onUpdateCategories(category)}
-                          trigger={
-                            <Button variant="outline" size="icon">
-                              <FolderKanban className="h-4 w-4" />
-                              <span className="sr-only">{t('restaurant.menu.manage_categories')}</span>
-                            </Button>
-                          }
-                        />
-
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t('restaurant.menu.manage_categories')}</p>
-                    </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button onClick={() => handleOpenItemDialog()} size="icon">
-                            <PlusCircle className="h-4 w-4" />
-                             <span className="sr-only">{t('restaurant.menu.add_item')}</span>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>{t('restaurant.menu.add_item')}</p>
-                    </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-        </CardHeader>
-
-
-
-        <CardContent>
-          {numSelected > 0 && (
-              <BatchActionsToolbar 
-                selectedCount={numSelected}
-                onDelete={onDeleteMultiple}
-              />
-          )}
-          <div className="border rounded-lg overflow-x-auto">
-              <Table>
-              <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
+      {/* Removed CardHeader since we're showing this info in the dropdown menu */}
+      <div className="p-6">
+        {numSelected > 0 && (
+            <BatchActionsToolbar 
+              selectedCount={numSelected}
+              onDelete={onDeleteMultiple}
+            />
+        )}
+        <div className="border rounded-lg overflow-x-auto">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                      aria-label={t('restaurant.menu.table.select_all')}
+                    />
+                  </TableHead>
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                      {t('restaurant.menu.table.image')}
+                  </TableHead>
+                  <TableHead>{t('restaurant.menu.table.name')}</TableHead>
+                  <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
+                  <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
+                  <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
+                  <TableHead>
+                      <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
+                  </TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {filteredItems.map((item) => (
+                <TableRow 
+                    key={item.id}
+                    data-state={selectedItemIds.includes(item.id) && "selected"}
+                >
+                    <TableCell>
                       <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
-                        aria-label={t('restaurant.menu.table.select_all')}
+                        checked={selectedItemIds.includes(item.id)}
+                        onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
+                        aria-label={t('restaurant.menu.table.select_row')}
+                        onClick={(e) => e.stopPropagation()}
                       />
-                    </TableHead>
-                    <TableHead className="hidden w-[100px] sm:table-cell">
-                        {t('restaurant.menu.table.image')}
-                    </TableHead>
-                    <TableHead>{t('restaurant.menu.table.name')}</TableHead>
-                    <TableHead className="hidden md:table-cell">{t('restaurant.menu.table.category')}</TableHead>
-                    <TableHead className="hidden sm:table-cell">{t('restaurant.menu.table.status')}</TableHead>
-                    <TableHead className="text-right">{t('restaurant.menu.table.price')}</TableHead>
-                    <TableHead>
-                        <span className="sr-only">{t('restaurant.menu.table.actions')}</span>
-                    </TableHead>
-                  </TableRow>
-              </TableHeader>
-              <TableBody>
-                  {filteredItems.map((item) => (
-                  <TableRow 
-                      key={item.id}
-                      data-state={selectedItemIds.includes(item.id) && "selected"}
-                  >
-                      <TableCell>
-                        <Checkbox
-                          checked={selectedItemIds.includes(item.id)}
-                          onCheckedChange={(checked) => handleRowSelect(item.id, !!checked)}
-                          aria-label={t('restaurant.menu.table.select_row')}
-                          onClick={(e) => e.stopPropagation()}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                    {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
+                        <Image
+                        alt={item.name}
+                        className="aspect-square rounded-md object-cover"
+                        height="64"
+                        src={item.imageUrl}
+                        width="64"
+                        data-ai-hint={item.aiHint}
                         />
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                      {item.imageUrl && !item.imageUrl.startsWith('https://placehold.co') ? (
-                          <Image
-                          alt={item.name}
-                          className="aspect-square rounded-md object-cover"
-                          height="64"
-                          src={item.imageUrl}
-                          width="64"
-                          data-ai-hint={item.aiHint}
-                          />
-                      ) : (
-                          <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
-                          <Utensils className="w-8 h-8 text-muted-foreground" />
-                          </div>
-                      )}
-                      </TableCell>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell className="hidden md:table-cell">
-                      <Badge variant="secondary">{item.category}</Badge>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                      <Badge variant={item.available ? "default" : "destructive"}>
-                          {item.available ? t('restaurant.menu.table.status.available') : t('restaurant.menu.table.status.unavailable')}
-                      </Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
-                      <TableCell>
-                      <div className="flex justify-end">
-                          <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                              <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
-                              </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                              <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                              <DropdownMenuItem onSelect={(e: any) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
-                          </DropdownMenuContent>
-                          </DropdownMenu>
-                      </div>
-                      </TableCell>
-                  </TableRow>
-                  ))}
-              </TableBody>
-              </Table>
-          </div>
-        </CardContent>
-      </Card>
+                    ) : (
+                        <div className="w-16 h-16 bg-muted rounded-md flex items-center justify-center">
+                        <Utensils className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                    )}
+                    </TableCell>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                    <Badge variant="secondary">{item.category}</Badge>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                    <Badge variant={item.available ? "default" : "destructive"}>
+                        {item.available ? t('restaurant.menu.table.item_status.available') : t('restaurant.menu.table.item_status.unavailable')}
+                    </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">${item.price.toFixed(2)}</TableCell>
+                    <TableCell>
+                    <div className="flex justify-end">
+                        <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">{t('restaurant.menu.table.toggle_menu')}</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                            <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={(e: any) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
+                        </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                    </TableCell>
+                </TableRow>
+                ))}
+            </TableBody>
+            </Table>
+        </div>
+      </div>
       <MenuItemDialog 
         item={editingItem}
         categories={categories} 
@@ -651,22 +530,7 @@ function PaymentMethods({
     const { t } = useI18nStore();
     
     return (
-        <Card>
-            <CardHeader className="p-4 sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
-                <div className="flex-1">
-                  <CardTitle className="font-headline text-2xl">{t('restaurant.payment_methods.title')}</CardTitle>
-                  <CardDescription>{t('restaurant.payment_methods.desc')}</CardDescription>
-                </div>
-                <PaymentMethodDialog onSave={onSave}>
-                <Button className="w-full sm:w-auto">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t('restaurant.payment_methods.add_method')}
-                </Button>
-                </PaymentMethodDialog>
-            </div>
-            </CardHeader>
-            <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
+        <div className="p-6">
             <div className="border rounded-lg overflow-x-auto">
                 <Table>
                 <TableHeader>
@@ -719,13 +583,16 @@ function PaymentMethods({
                 </TableBody>
                 </Table>
             </div>
-            </CardContent>
-        </Card>
+        </div>
     )
 }
 
 export default function RestaurantPage() {
   const { t } = useI18nStore();
+  const currentUser = useNormalizedUserStore().getCurrentUser();
+  
+  // Check if current user is an Owner
+  const isOwner = currentUser?.role === 'Owner';
   
   const menuStore = useNormalizedMenuStore();
   const menuItems = menuStore.getMenuItems();
@@ -743,6 +610,7 @@ export default function RestaurantPage() {
     fetchMenuData
   } = menuStore;
   
+  const [activeTab, setActiveTab] = useState('menu');
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1206,93 +1074,126 @@ export default function RestaurantPage() {
           <h1 className="text-3xl font-headline font-bold">{t('restaurant.title')}</h1>
         </div>
 
-        <Tabs defaultValue="menu" className="space-y-4 w-full">
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(4, minmax(0, 1fr))` }}>
-                <TabsTrigger value="menu" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        {/* Replace Tabs with Dropdown Menu */}
+        <div className="space-y-4 w-full">
+          <div className="flex justify-between items-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  {activeTab === 'menu' && t('restaurant.menu.title')}
+                  {activeTab === 'inventory' && t('restaurant.inventory.title')}
+                  {activeTab === 'payments' && t('restaurant.payment_methods.title')}
+                  {activeTab === 'workstations' && t('restaurant.workstations.title')}
+                  {activeTab === 'roles' && 'Roles'}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <DropdownMenuItem onSelect={() => setActiveTab('menu')}>
                   {t('restaurant.menu.title')}
-                </TabsTrigger>
-                <TabsTrigger value="inventory" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setActiveTab('inventory')}>
                   {t('restaurant.inventory.title')}
-                </TabsTrigger>
-                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setActiveTab('payments')}>
                   {t('restaurant.payment_methods.title')}
-                </TabsTrigger>
-                <TabsTrigger value="workstations" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setActiveTab('workstations')}>
                   {t('restaurant.workstations.title')}
-                </TabsTrigger>
-            </TabsList>
-            <TabsContent value="menu" className="mt-4">
-                 <MenuList 
-                    menuItems={menuItems} 
-                    categories={categories} 
-                    onUpdateCategories={addCategory} 
-                    onSaveItem={(item: any) => item.id ? updateMenuItem(item.id, item) : addMenuItem(item)}
-                    onDeleteItem={deleteMenuItem}
-                    onDeleteMultipleItems={handleDeleteMenuItems}
-                    onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
-                 />
-                 <MenuItemDialog 
-                    item={editingItem}
-                    categories={categories} 
-                    onSave={async (itemData) => {
-                      if (editingItem && editingItem.id) {
-                        // Update existing item
-                        await updateMenuItem(editingItem.id, itemData);
-                      } else {
-                        // Add new item
-                        await addMenuItem(itemData);
-                      }
-                      setIsItemDialogOpen(false);
+                </DropdownMenuItem>
+                {isOwner && (
+                  <DropdownMenuItem onSelect={() => setActiveTab('roles')}>
+                    Roles
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="mt-4">
+            {activeTab === 'menu' && (
+              <>
+                <MenuList 
+                  menuItems={menuItems} 
+                  categories={categories} 
+                  onUpdateCategories={addCategory} 
+                  onSaveItem={(item: any) => item.id ? updateMenuItem(item.id, item) : addMenuItem(item)}
+                  onDeleteItem={deleteMenuItem}
+                  onDeleteMultipleItems={handleDeleteMenuItems}
+                  onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
+                />
+                <MenuItemDialog 
+                  item={editingItem}
+                  categories={categories} 
+                  onSave={async (itemData) => {
+                    if (editingItem && editingItem.id) {
+                      // Update existing item
+                      await updateMenuItem(editingItem.id, itemData);
+                    } else {
+                      // Add new item
+                      await addMenuItem(itemData);
+                    }
+                    setIsItemDialogOpen(false);
+                    setEditingItem(undefined);
+                  }}
+                  isOpen={isItemDialogOpen}
+                  onOpenChange={(open) => {
+                    setIsItemDialogOpen(open);
+                    if (!open) {
                       setEditingItem(undefined);
-                    }}
-                    isOpen={isItemDialogOpen}
-                    onOpenChange={(open) => {
-                      setIsItemDialogOpen(open);
-                      if (!open) {
-                        setEditingItem(undefined);
-                      }
-                    }}
-                 />
-            </TabsContent>
-            <TabsContent value="inventory" className="mt-4">
-                <InventoryList 
-                    items={inventoryItems} 
-                    menuItems={menuItems} 
-                    onSave={async (item) => {
-                      if ('id' in item) {
-                        await updateInventoryItem(item.id, item);
-                      } else {
-                        // Remove lastRestocked from the item before adding
-                        const { lastRestocked, ...itemData } = item as any;
-                        await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
-                      }
-                    }}
-                    onAdjustStock={adjustInventoryStock}
-                    onDeleteItem={deleteInventoryItem}
+                    }
+                  }}
                 />
-
-            </TabsContent>
-             <TabsContent value="payments" className="mt-4">
-                <PaymentMethods 
-                    paymentMethods={paymentMethods}
-                    onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
-                    onDelete={deletePaymentMethod}
-                    onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
-                />
-
-            </TabsContent>
-            <TabsContent value="workstations" className="mt-4">
-                <WorkstationList
-                  workstations={workstations}
-                  loading={workstationsLoading}
-                  error={workstationsError}
-                  onAdd={addWorkstation}
-                  onUpdate={updateWorkstation}
-                  onDelete={deleteWorkstation}
-                  onReorder={(updatedWorkstations) => setWorkstations(updatedWorkstations)}
-                />
-            </TabsContent>
-        </Tabs>
+              </>
+            )}
+            
+            {activeTab === 'inventory' && (
+              <InventoryList 
+                items={inventoryItems} 
+                menuItems={menuItems} 
+                onSave={async (item) => {
+                  if ('id' in item) {
+                    await updateInventoryItem(item.id, item);
+                  } else {
+                    // Remove lastRestocked from the item before adding
+                    const { lastRestocked, ...itemData } = item as any;
+                    await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
+                  }
+                }}
+                onAdjustStock={adjustInventoryStock}
+                onDeleteItem={deleteInventoryItem}
+              />
+            )}
+            
+            {activeTab === 'payments' && (
+              <PaymentMethods 
+                paymentMethods={paymentMethods}
+                onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
+                onDelete={deletePaymentMethod}
+                onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
+              />
+            )}
+            
+            {activeTab === 'workstations' && (
+              <WorkstationList
+                workstations={workstations}
+                loading={workstationsLoading}
+                error={workstationsError}
+                onAdd={addWorkstation}
+                onUpdate={updateWorkstation}
+                onDelete={deleteWorkstation}
+                onReorder={(updatedWorkstations) => setWorkstations(updatedWorkstations)}
+              />
+            )}
+            
+            {activeTab === 'roles' && (
+              <div className="p-6">
+                <RolesList />
+              </div>
+            )}
+          </div>
+        </div>
       </div>
   );
 }

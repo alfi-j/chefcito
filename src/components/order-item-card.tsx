@@ -53,8 +53,14 @@ export function OrderItemCard({
       <CardContent className="p-4">
         <div className="flex justify-between items-start">
           <div className="flex-1 min-w-0">
+            {/* Number and icon in a column, item name centered vertically */}
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold">{item.quantity}x</span>
+              <div className="text-center" style={{ minWidth: '2rem' }}>
+                <div className="font-semibold">{item.quantity}x</div>
+                <div className="mt-1 flex justify-center">
+                  {getStatusIcon(item.status)}
+                </div>
+              </div>
               <span className="font-medium truncate">{item.menuItem.name}</span>
             </div>
             
@@ -74,10 +80,7 @@ export function OrderItemCard({
           </div>
           
           <div className="flex flex-col items-end gap-1 ml-2">
-            <div className="flex items-center gap-1 text-xs bg-muted px-2 py-1 rounded">
-              {getStatusIcon(item.status)}
-              <span>{getStatusText(item.status)}</span>
-            </div>
+            {/* Removed the original status display here */}
             
             {showStatusButtons && canUpdateStatus && (
               <div className="flex gap-1 mt-1">

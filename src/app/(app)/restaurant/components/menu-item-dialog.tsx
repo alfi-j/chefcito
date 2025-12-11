@@ -98,7 +98,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
         price: priceNum,
         description: description.trim() || undefined,
         category,
-        imageUrl: imageUrl.trim() || '/placeholder-menu-item.jpg',
+        imageUrl: imageUrl.trim() || '',
         aiHint: aiHint.trim() || undefined,
         linkedModifiers: linkedModifiers.length > 0 ? linkedModifiers : undefined,
         sortIndex: 0
@@ -114,8 +114,8 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="font-headline">
             {item ? t('restaurant.menu_item_dialog.edit_title') : t('restaurant.menu_item_dialog.add_title')}
           </DialogTitle>
@@ -124,8 +124,8 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-4 -mr-4">
-          <form onSubmit={handleSubmit} className="space-y-4 py-2">
+        <div className="flex-1 overflow-y-auto py-2 -mx-6 px-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium leading-none">
                 {t('restaurant.menu_item_dialog.name')}
@@ -220,9 +220,9 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
               />
             </div>
           </form>
-        </ScrollArea>
+        </div>
         
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             {t('dialog.cancel')}
           </Button>

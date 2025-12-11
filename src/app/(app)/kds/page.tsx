@@ -217,7 +217,7 @@ export default function KdsPage() {
       );
     }
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 items-start" onDragOver={(e) => e.preventDefault()}>
+      <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-1 items-start" onDragOver={(e) => e.preventDefault()}>
         {safeOrderList.map((order) => (
           <OrderCard
             key={`${order.id}-${workstationIndex}`} // Add workstationIndex to key to force re-render when workstation changes
@@ -244,17 +244,17 @@ export default function KdsPage() {
   const renderWorkstations = () => {
     if (activeTab === "" && workstationsLoading) {
       return (
-        <Card key="loading-card">
+        <div key="loading-card">
           <div className="flex justify-center items-center h-[calc(100vh-200px)]">
             <p>{t('kds.loading')}</p>
           </div>
-        </Card>
+        </div>
       );
     }
 
     if (activeTab === "" && !workstationsLoading && workstations.length === 0) {
       return (
-        <Card key="empty-card">
+        <div key="empty-card">
           <Tabs value="workstation-1" onValueChange={setActiveTab} className="p-4 sm:p-6">
             <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(1, minmax(0, 1fr))` }}>
               <TabsTrigger value="workstation-1" key="workstation-1">
@@ -265,14 +265,14 @@ export default function KdsPage() {
               {renderOrderList([], 0)}
             </TabsContent>
           </Tabs>
-        </Card>
+        </div>
       );
     }
 
     // Dynamic rendering for all workstation counts
     return (
-      <Card key="workstations-card">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="p-4 sm:p-6">
+      <div key="workstations-card">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="p-2 sm:p-3 sm:px-0">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Math.max(workstations.length, 1)}, minmax(0, 1fr))` }}>
             {workstations.map((ws, index) => {
               const wsId = `workstation-${ws.id}`;
@@ -293,18 +293,18 @@ export default function KdsPage() {
           {workstations.map((ws, index) => {
             const wsId = `workstation-${ws.id}`;
             return (
-              <TabsContent key={`content-${ws.id}`} value={wsId} className="pt-4 sm:p-6">
+              <TabsContent key={`content-${ws.id}`} value={wsId} className="pt-2 sm:p-3 sm:px-0">
                 {renderOrderList(workstationOrders[wsId] || [], index)}
               </TabsContent>
             );
           })}
           {workstations.length === 0 && (
-            <TabsContent value="workstation-1" key="content-workstation-1-empty" className="pt-4 sm:p-6">
+            <TabsContent value="workstation-1" key="content-workstation-1-empty" className="pt-2 sm:p-3 sm:px-0">
               {renderOrderList(workstationOrders['workstation-1'] || [], 0)}
             </TabsContent>
           )}
         </Tabs>
-      </Card>
+      </div>
     );
   };
 

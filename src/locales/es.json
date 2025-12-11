@@ -351,7 +351,18 @@
             "inventory_item_add_error": "Error al añadir el artículo de inventario.",
             "inventory_stock_update_error": "Error al actualizar el stock del inventario.",
             "inventory_item_deleted": "Artículo de inventario eliminado.",
-            "inventory_item_delete_error": "Error al eliminar el artículo de inventario."
+            "inventory_item_delete_error": "Error al eliminar el artículo de inventario.",
+            "role_updated": "Rol actualizado correctamente",
+            "role_created": "Rol creado correctamente",
+            "operation_failed": "Operación fallida",
+            "fetch_roles_failed": "Error al obtener los roles",
+            "fetch_roles_error": "Error al cargar los roles",
+            "predefined_roles_created": "Roles predefinidos creados correctamente",
+            "create_predefined_roles_error": "Error al crear roles predefinidos",
+            "save_role_error": "Error al guardar el rol",
+            "role_deleted": "Rol eliminado correctamente",
+            "delete_role_failed": "Error al eliminar el rol",
+            "delete_role_error": "Error al eliminar el rol"
         },
         "workstations": {
             "title": "Estaciones de Trabajo",
@@ -457,14 +468,57 @@
         "change_role": "Cambiar Rol",
         "select_role": "Selecciona un rol",
         "roles": {
-            "owner": "Propietario",
-            "admin": "Administrador",
-            "staff": "Empleado"
-        },
-        "role_descriptions": {
-            "owner": "Como propietario del restaurante, tienes acceso completo a todas las funciones del sistema.",
-            "admin": "Como administrador, puedes gestionar el personal y la configuración del sistema.",
-            "staff": "Como miembro del personal, tienes acceso básico al sistema."
+            "access_denied": "Acceso denegado. Solo los propietarios pueden gestionar roles.",
+            "loading": "Cargando roles...",
+            "title": "Gestión de Roles",
+            "description": "Gestionar roles y permisos de usuarios",
+            "add_role": "Añadir Rol",
+            "no_roles": "No se encontraron roles. Añade tu primer rol para comenzar.",
+            "tabs": {
+                "roles": "Roles",
+                "assignment": "Asignación de Roles"
+            },
+            "table": {
+                "name": "Nombre",
+                "description": "Descripción",
+                "permissions": "Permisos",
+                "actions": "Acciones"
+            },
+            "dialog": {
+                "edit_title": "Editar Rol",
+                "add_title": "Crear Rol",
+                "edit_description": "Haz cambios en el rol aquí.",
+                "add_description": "Añade un nuevo rol con permisos específicos.",
+                "name": "Nombre",
+                "description": "Descripción",
+                "permissions": "Permisos",
+                "update_role": "Actualizar Rol",
+                "create_role": "Crear Rol"
+            },
+            "permissions": {
+                "manage_menu": "Gestionar Menú",
+                "manage_orders": "Gestionar Pedidos",
+                "kds_access": "Acceso a Pantalla de Cocina",
+                "view_reports": "Ver Informes",
+                "manage_restaurant_settings": "Gestionar Configuración del Restaurante",
+                "manage_staff": "Gestionar Personal",
+                "manage_payments": "Gestionar Pagos",
+                "manage_inventory": "Gestionar Inventario",
+                "manage_roles": "Gestionar Roles"
+            },
+            "predefined_roles": {
+                "waiter_desc": "Personal de servicio que toma pedidos y sirve a los clientes",
+                "cashier_desc": "Maneja pagos y transacciones",
+                "kitchen_staff_desc": "Prepara alimentos y gestiona las operaciones de cocina"
+            },
+            "roles": {
+                "owner": "Propietario",
+                "admin": "Administrador",
+                "staff": "Empleado",
+                "waiter": "Mesero",
+                "cashier": "Cajero",
+                "kitchen_staff": "Personal de Cocina"
+            }
         },
         "toast": {
             "profile_updated": "Información del perfil guardada.",

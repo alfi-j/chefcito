@@ -3,7 +3,7 @@
 import { type Order, type OrderItem as OrderItemType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import useNormalizedKDSStore from '@/lib/stores/kds-store-normalized';
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, CircleAlert, ChefHat, CircleCheckBig } from "lucide-react";
 import { KDS_STATES } from "@/lib/constants";
 import { debugKDS } from "@/lib/helpers";
 
@@ -26,6 +26,15 @@ const statusColors: Record<string, string> = {
   'served': 'bg-gray-500/10 text-gray-800 dark:text-gray-300',
 };
 
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case KDS_STATES.NEW: return <CircleAlert className="h-4 w-4" />;
+    case KDS_STATES.IN_PROGRESS: return <ChefHat className="h-4 w-4" />;
+    case KDS_STATES.READY: return <CircleCheckBig className="h-4 w-4" />;
+    default: return null;
+  }
+};
+
 export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderItemProps) {
   debugKDS('OrderItem rendered:', { 
     orderId, 
@@ -40,19 +49,25 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
 
   const ItemInfo = () => (
     <div className="flex-1 min-w-0">
-      <div className="flex items-start gap-1.5">
-        <span className="font-bold text-xl leading-tight">{item.quantity}x</span>
+      {/* Number and icon in a column, item name centered vertically */}
+      <div className="flex items-center gap-1.5">
+        <div className="text-center" style={{ minWidth: '2rem' }}>
+          <div className="font-bold text-xl leading-tight">{item.quantity}x</div>
+          <div className="mt-1 flex justify-center">
+            {/* Status icon removed from here as it's now shown in the button group */}
+          </div>
+        </div>
         <span className="font-semibold text-xl whitespace-normal break-words leading-tight">{item.menuItem.name}</span>
       </div>
       {item.selectedExtras && item.selectedExtras.length > 0 && (
-        <div className="pl-6 text-sm text-muted-foreground font-medium">
+        <div className="pl-8 text-sm text-muted-foreground font-medium">
           {item.selectedExtras.map(extra => (
             <div key={extra.id}>+ {extra.name}</div>
           ))}
         </div>
       )}
       {item.notes && (
-        <p className="pl-6 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
+        <p className="pl-8 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
       )}
     </div>
   );
@@ -74,23 +89,25 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
     return (
       <div
         className={cn(
-          "p-0.5 rounded-md transition-all group",
+          "p-0.5 rounded-md transition-all group h-full",
           statusColors[status] || 'bg-muted',
           onClick && "cursor-pointer"
         )}
         onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       >
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-2 h-full">
           <ItemInfo />
-          <div className="flex items-center gap-2">
-            <div className="font-bold text-xs uppercase w-16 text-center shrink-0">{label}</div>
+          <div className="flex items-center gap-1">
+            {/* Status icon on the left */}
+            <div className="p-1">
+              {getStatusIcon(status)}
+            </div>
+            
+            {/* Rollback button on the right */}
             {canRevert && (
               <button
                 onClick={(e) => { e.stopPropagation(); onRevert(); }}
-                className={cn("p-1 -m-1 rounded-full hover:bg-black/10 transition-opacity", {
-                  "opacity-0 group-hover:opacity-100": status !== KDS_STATES.READY,
-                  "opacity-100": status === KDS_STATES.READY
-                })}
+                className="p-1 -m-1 rounded-full hover:bg-black/10"
                 aria-label={`Revert status`}
               >
                 <RotateCcw className={cn("h-4 w-4", {

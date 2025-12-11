@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState, useEffect } from 'react'
 import {
@@ -96,15 +95,15 @@ export function InventoryItemDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md flex flex-col max-h-[90vh] overflow-hidden">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="font-headline text-2xl">{isEditMode ? t('restaurant.inventory.dialog.edit_title') : t('restaurant.inventory.dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.inventory.dialog.edit_desc') : t('restaurant.inventory.dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="flex-1 -mx-6">
-            <div className="space-y-3 py-4 px-4">
+        <div className="flex-1 overflow-y-auto -mx-6 px-6">
+            <div className="space-y-3 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="name" className="text-base">{t('restaurant.inventory.dialog.name')}</Label>
                     <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
@@ -154,8 +153,8 @@ export function InventoryItemDialog({
                     </p>
                 </div>
             </div>
-        </ScrollArea>
-        <DialogFooter className="pt-4 border-t">
+        </div>
+        <DialogFooter className="pt-4 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>

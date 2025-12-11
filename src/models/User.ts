@@ -6,7 +6,7 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
-  role: 'Owner' | 'Admin' | 'Staff';
+  role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to support custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
   membership: 'free' | 'pro';
   createdAt?: Date;
@@ -21,8 +21,8 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: true },
   role: {
     type: String,
-    required: true,
-    enum: ['Owner', 'Admin', 'Staff']
+    required: true
+    // Removed enum constraint to allow custom roles
   },
   status: {
     type: String,

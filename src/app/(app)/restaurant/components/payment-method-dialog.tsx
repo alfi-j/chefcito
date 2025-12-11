@@ -1,4 +1,3 @@
-
 "use client"
 import React, { useState, useEffect } from 'react'
 import {
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { type Payment } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { PlusCircle, Trash2 } from 'lucide-react'
@@ -81,61 +81,63 @@ export function PaymentMethodDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="font-headline">{isEditMode ? t('restaurant.payment_method_dialog.edit_title') : t('restaurant.payment_method_dialog.add_title')}</DialogTitle>
           <DialogDescription>
             {isEditMode ? t('restaurant.payment_method_dialog.edit_desc') : t('restaurant.payment_method_dialog.add_desc')}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">{t('restaurant.payment_method_dialog.name')}</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="type">{t('restaurant.payment_method_dialog.type')}</Label>
-            <Select value={type} onValueChange={(value) => setType(value as any)}>
-              <SelectTrigger id="type">
-                <SelectValue placeholder={t('restaurant.payment_method_dialog.select_type')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value='card'>{t('restaurant.payment_methods.types.card')}</SelectItem>
-                <SelectItem value='cash'>{t('restaurant.payment_methods.types.cash')}</SelectItem>
-                <SelectItem value='bank_transfer'>{t('restaurant.payment_methods.types.bank_transfer')}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {type === 'bank_transfer' && (
+        <div className="flex-1 overflow-y-auto py-4 -mx-6 px-6">
+          <div className="space-y-4">
             <div className="space-y-2">
-                <Label>{t('restaurant.payment_method_dialog.banks')}</Label>
-                <div className="space-y-2">
-                    {banks.map(bank => (
-                        <div key={bank} className="flex items-center gap-2">
-                            <Input value={bank} readOnly className="flex-1"/>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteBank(bank)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    ))}
-                    <div className="flex items-center gap-2">
-                        <Input 
-                            placeholder={t('restaurant.payment_method_dialog.add_bank')}
-                            value={newBank}
-                            onChange={(e) => setNewBank(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleAddBank()}
-                        />
-                         <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleAddBank}>
-                            <PlusCircle className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+              <Label htmlFor="name">{t('restaurant.payment_method_dialog.name')}</Label>
+              <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="type">{t('restaurant.payment_method_dialog.type')}</Label>
+              <Select value={type} onValueChange={(value) => setType(value as any)}>
+                <SelectTrigger id="type">
+                  <SelectValue placeholder={t('restaurant.payment_method_dialog.select_type')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='card'>{t('restaurant.payment_methods.types.card')}</SelectItem>
+                  <SelectItem value='cash'>{t('restaurant.payment_methods.types.cash')}</SelectItem>
+                  <SelectItem value='bank_transfer'>{t('restaurant.payment_methods.types.bank_transfer')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
+            {type === 'bank_transfer' && (
+              <div className="space-y-2">
+                  <Label>{t('restaurant.payment_method_dialog.banks')}</Label>
+                  <div className="space-y-2">
+                      {banks.map(bank => (
+                          <div key={bank} className="flex items-center gap-2">
+                              <Input value={bank} readOnly className="flex-1"/>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive/80 hover:text-destructive" onClick={() => handleDeleteBank(bank)}>
+                                  <Trash2 className="h-4 w-4" />
+                              </Button>
+                          </div>
+                      ))}
+                      <div className="flex items-center gap-2">
+                          <Input 
+                              placeholder={t('restaurant.payment_method_dialog.add_bank')}
+                              value={newBank}
+                              onChange={(e) => setNewBank(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleAddBank()}
+                          />
+                           <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleAddBank}>
+                              <PlusCircle className="h-4 w-4" />
+                          </Button>
+                      </div>
+                  </div>
+              </div>
+            )}
+
+          </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.cancel')}</Button>
           <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
