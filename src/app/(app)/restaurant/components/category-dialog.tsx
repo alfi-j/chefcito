@@ -54,12 +54,9 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
         name: newCategoryName, 
         isModifierGroup: isNewCategoryModifier
       });
-      onUpdate({ name: newCategoryName, isModifierGroup: isNewCategoryModifier });
       setNewCategoryName('');
       setIsNewCategoryModifier(false);
-      toast.success(t('toast.success'), { description: t('restaurant.toast.category_added'), duration: 3000 });
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.add_category_error'), duration: 3000 });
     }
   };
 
@@ -69,10 +66,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
         throw new Error(`Cannot delete category "${name}" because it is still in use.`);
       }
       await deleteCategory(id);
-      onUpdate({ name, isModifierGroup: false }); // We don't have the actual category data, so we're just passing a placeholder
-      toast.success(t('toast.success'), { description: t('restaurant.toast.category_deleted'), duration: 3000 });
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.delete_category_error'), duration: 3000 });
     }
   };
 
@@ -80,11 +74,8 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
     if (!editingCategory || !editingCategory.name.trim()) return;
     try {
       await updateCategory(editingCategory.id, editingCategory);
-      onUpdate({ name: editingCategory.name, isModifierGroup: editingCategory.isModifierGroup || false });
       setEditingCategory(null);
-      toast.success(t('toast.success'), { description: t('restaurant.toast.category_updated'), duration: 3000 });
     } catch(error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.toast.update_category_error'), duration: 3000 });
     }
   };
   

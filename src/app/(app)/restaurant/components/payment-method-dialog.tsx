@@ -139,7 +139,7 @@ export function PaymentMethodDialog({
         </div>
         <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => setIsOpen(false)}>{t('dialog.cancel')}</Button>
-          <Button type="submit" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
+          <Button type="submit">{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

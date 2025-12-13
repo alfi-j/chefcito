@@ -92,8 +92,16 @@ export async function PUT(request: Request) {
       case 'updateMenuItem':
         debugMenu('PUT: updating menu item %s with data %O', body.id, body.data);
         const updatedItem = await updateMenuItem(body.id, body.data);
-        debugMenu('PUT: successfully updated menu item %s', body.id);
-        return NextResponse.json(updatedItem);
+        if (updatedItem) {
+          debugMenu('PUT: successfully updated menu item %s', body.id);
+          return NextResponse.json(updatedItem);
+        } else {
+          debugMenu('PUT: failed to update menu item %s', body.id);
+          return NextResponse.json(
+            { error: 'Failed to update menu item' },
+            { status: 500 }
+          );
+        }
         
       default:
         debugMenu('PUT: invalid action %s', body.action);

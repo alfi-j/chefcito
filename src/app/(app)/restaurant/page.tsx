@@ -595,8 +595,12 @@ export default function RestaurantPage() {
   const isOwner = currentUser?.role === 'Owner';
   
   const menuStore = useNormalizedMenuStore();
-  const menuItems = menuStore.getMenuItems();
-  const categories = menuStore.getCategories();
+  const menuItemsObj = useNormalizedMenuStore(state => state.entities.menuItems);
+  const categoriesObj = useNormalizedMenuStore(state => state.entities.categories);
+  
+  // Convert objects to arrays
+  const menuItems = useMemo(() => Object.values(menuItemsObj), [menuItemsObj]);
+  const categories = useMemo(() => Object.values(categoriesObj), [categoriesObj]);
   
   const {
     loading,
@@ -628,7 +632,6 @@ export default function RestaurantPage() {
     setEditingItem(item);
     setIsItemDialogOpen(true);
   };
-
   const handleOpenInventoryDialog = (item?: InventoryItem) => {
     setEditingInventoryItem(item);
     setIsInventoryDialogOpen(true);
@@ -1093,86 +1096,89 @@ export default function RestaurantPage() {
 
         {/* Replace Tabs with Dropdown Menu */}
         <div className="space-y-4 w-full">
-          <div className="flex justify-between items-center">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  {activeTab === 'menu' && t('restaurant.menu.title')}
-                  {activeTab === 'inventory' && t('restaurant.inventory.title')}
-                  {activeTab === 'payments' && t('restaurant.payment_methods.title')}
-                  {activeTab === 'workstations' && t('restaurant.workstations.title')}
-                  {activeTab === 'roles' && 'Roles'}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
-                <DropdownMenuItem onSelect={() => setActiveTab('menu')}>
-                  {t('restaurant.menu.title')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setActiveTab('inventory')}>
-                  {t('restaurant.inventory.title')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setActiveTab('payments')}>
-                  {t('restaurant.payment_methods.title')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setActiveTab('workstations')}>
-                  {t('restaurant.workstations.title')}
-                </DropdownMenuItem>
-                {isOwner && (
-                  <DropdownMenuItem onSelect={() => setActiveTab('roles')}>
-                    Roles
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <div className="w-full sm:w-auto">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full sm:w-auto flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    {activeTab === 'menu' && t('restaurant.menu.title')}
+                    {activeTab === 'inventory' && t('restaurant.inventory.title')}
+                    {activeTab === 'payments' && t('restaurant.payment_methods.title')}
+                    {activeTab === 'workstations' && t('restaurant.workstations.title')}
+                    {activeTab === 'roles' && 'Roles'}
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-full sm:w-56">
+                  <DropdownMenuItem onSelect={() => setActiveTab('menu')}>
+                    {t('restaurant.menu.title')}
                   </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem onSelect={() => setActiveTab('inventory')}>
+                    {t('restaurant.inventory.title')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setActiveTab('payments')}>
+                    {t('restaurant.payment_methods.title')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setActiveTab('workstations')}>
+                    {t('restaurant.workstations.title')}
+                  </DropdownMenuItem>
+                  {isOwner && (
+                    <DropdownMenuItem onSelect={() => setActiveTab('roles')}>
+                      Roles
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             
-            {/* Action Buttons */}
-            {activeTab === 'menu' && (
-              <div className="flex gap-2">
-                <CategoryDialog 
-                  categories={categories}
-                  onUpdate={addCategory}
-                  trigger={
-                    <Button variant="outline">
-                      {t('restaurant.menu.manage_categories')}
-                    </Button>
-                  }
-                />
-                <Button onClick={() => handleOpenItemDialog()}>
+            {/* Action Buttons - Now responsive */}
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-center">
+              {activeTab === 'menu' && (
+                <>
+                  <CategoryDialog 
+                    categories={categories}
+                    onUpdate={addCategory}
+                    trigger={
+                      <Button variant="outline" className="flex-1 sm:flex-none">
+                        {t('restaurant.menu.manage_categories')}
+                      </Button>
+                    }
+                  />
+                  <Button onClick={() => handleOpenItemDialog()} className="flex-1 sm:flex-none">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t('restaurant.menu.add_item')}
+                  </Button>
+                </>
+              )}            
+              {activeTab === 'inventory' && (
+                <Button onClick={() => handleOpenInventoryDialog()} className="flex-1 sm:flex-none">
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  {t('restaurant.menu.add_item')}
+                  {t('restaurant.inventory.add_item')}
                 </Button>
-              </div>
-            )}
-            
-            {activeTab === 'inventory' && (
-              <Button onClick={() => handleOpenInventoryDialog()}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t('restaurant.inventory.add_item')}
-              </Button>
-            )}
-            
-            {activeTab === 'payments' && (
-              <PaymentMethodDialog 
-                method={undefined}
-                onSave={async (methodData) => {
-                  await addPaymentMethod(methodData);
-                }}
-              >
-                <Button variant="default">
+              )}
+              
+              {activeTab === 'payments' && (
+                <PaymentMethodDialog 
+                  method={undefined}
+                  onSave={async (methodData) => {
+                    await addPaymentMethod(methodData);
+                  }}
+                >
+                  <Button variant="default" className="flex-1 sm:flex-none">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t('restaurant.payment_methods.add_method')}
+                  </Button>
+                </PaymentMethodDialog>
+              )}
+              
+              {activeTab === 'workstations' && (
+                <Button onClick={() => handleOpenWorkstationDialog()} className="flex-1 sm:flex-none">
                   <PlusCircle className="mr-2 h-4 w-4" />
-                  {t('restaurant.payment_methods.add_method')}
+                  {t('restaurant.workstations.add_workstation')}
                 </Button>
-              </PaymentMethodDialog>
-            )}
-            
-            {activeTab === 'workstations' && (
-              <Button onClick={() => handleOpenWorkstationDialog()}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t('restaurant.workstations.add_workstation')}
-              </Button>
-            )}
+              )}
+            </div>
           </div>
           
           <div className="mt-4">
@@ -1182,7 +1188,7 @@ export default function RestaurantPage() {
                   menuItems={menuItems} 
                   categories={categories} 
                   onUpdateCategories={addCategory} 
-                  onSaveItem={(item: any) => item.id ? updateMenuItem(item.id, item) : addMenuItem(item)}
+                  onSaveItem={(item: any) => 'id' in item ? updateMenuItem(item.id, item) : addMenuItem(item)}
                   onDeleteItem={deleteMenuItem}
                   onDeleteMultipleItems={handleDeleteMenuItems}
                   onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
@@ -1190,13 +1196,11 @@ export default function RestaurantPage() {
                 <MenuItemDialog 
                   item={editingItem}
                   categories={categories} 
-                  onSave={async (itemData) => {
-                    if (editingItem && editingItem.id) {
-                      // Update existing item
-                      await updateMenuItem(editingItem.id, itemData);
+                  onSave={async (item: any) => {
+                    if ('id' in item) {
+                      await updateMenuItem(item.id, item);
                     } else {
-                      // Add new item
-                      await addMenuItem(itemData);
+                      await addMenuItem(item);
                     }
                     setIsItemDialogOpen(false);
                     setEditingItem(undefined);
@@ -1210,8 +1214,7 @@ export default function RestaurantPage() {
                   }}
                 />
               </>
-            )}
-            
+            )}            
             {activeTab === 'inventory' && (
               <>
                 <InventoryList 

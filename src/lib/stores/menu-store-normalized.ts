@@ -108,10 +108,7 @@ export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) =
           ...state.entities,
           menuItems: {
             ...state.entities.menuItems,
-            [id]: { 
-              ...(state.entities.menuItems[id] || {}),
-              ...updatedItem 
-            }
+            [id]: updatedItem
           }
         }
       }));

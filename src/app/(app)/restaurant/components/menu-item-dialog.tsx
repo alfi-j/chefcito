@@ -29,7 +29,7 @@ import { MultiSelect } from './multi-select'
 interface MenuItemDialogProps {
   item?: MenuItem;
   categories: Category[];
-  onSave: (item: Omit<MenuItem, "id">) => void;
+  onSave: (item: MenuItem | Omit<MenuItem, "id">) => void;
   trigger?: React.ReactNode;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -66,14 +66,13 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
 
   // Reset form when item changes
   useEffect(() => {
-    if (item) {
-      resetForm();
-    }
+    resetForm();
   }, [item]);
 
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
-    if (!open) {
+    // Only reset the form when opening the dialog, not when closing it
+    if (open && !item) {
       resetForm();
     }
   };
@@ -93,21 +92,38 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
         return;
       }
 
-      await onSave({
-        name: name.trim(),
-        price: priceNum,
-        description: description.trim() || undefined,
-        category,
-        imageUrl: imageUrl.trim() || '',
-        aiHint: aiHint.trim() || undefined,
-        linkedModifiers: linkedModifiers.length > 0 ? linkedModifiers : undefined,
-        sortIndex: 0
-      });
+      if (item?.id) {
+        // Update existing item
+        await onSave({
+          id: item.id,
+          name: name.trim(),
+          price: priceNum,
+          description: description.trim() || undefined,
+          category,
+          imageUrl: imageUrl.trim() || '',
+          aiHint: aiHint.trim() || undefined,
+          linkedModifiers: linkedModifiers.length > 0 ? linkedModifiers : undefined,
+          sortIndex: 0,
+          available: item.available
+        });
+      } else {
+        // Add new item
+        await onSave({
+          name: name.trim(),
+          price: priceNum,
+          description: description.trim() || undefined,
+          category,
+          imageUrl: imageUrl.trim() || '',
+          aiHint: aiHint.trim() || undefined,
+          linkedModifiers: linkedModifiers.length > 0 ? linkedModifiers : undefined,
+          sortIndex: 0
+        });
+      }
 
       handleOpenChange(false);
-      toast.success(t('toast.success'), { description: item ? t('restaurant.menu_item_dialog.updated') : t('restaurant.menu_item_dialog.added'), duration: 3000 });
+      // toast.success(t('toast.success'), { description: item ? t('restaurant.menu_item_dialog.updated') : t('restaurant.menu_item_dialog.added'), duration: 3000 });
     } catch (error: any) {
-      toast.error(t('toast.error'), { description: error.message || t('restaurant.menu_item_dialog.error'), duration: 3000 });
+      // toast.error(t('toast.error'), { description: error.message || t('restaurant.menu_item_dialog.error'), duration: 3000 });
     }
   };
 
@@ -219,17 +235,16 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
                 onChange={setLinkedModifiers}
               />
             </div>
-          </form>
+          <DialogFooter className="flex-shrink-0">
+            <Button variant="outline" type="button" onClick={() => handleOpenChange(false)}>
+              {t('dialog.cancel')}
+            </Button>
+            <Button type="submit">
+              {item ? t('dialog.save') : t('dialog.add')}
+            </Button>
+          </DialogFooter>
+        </form>
         </div>
-        
-        <DialogFooter className="flex-shrink-0">
-          <Button variant="outline" onClick={() => handleOpenChange(false)}>
-            {t('dialog.cancel')}
-          </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            {item ? t('dialog.save') : t('dialog.add')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

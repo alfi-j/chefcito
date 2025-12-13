@@ -236,7 +236,13 @@ export const updateMenuItem = async (id: string, itemData: Partial<MenuItem>) =>
     { $set: itemData }
   );
 
-  return result.modifiedCount > 0;
+  if (result.modifiedCount > 0) {
+    // Return the updated item
+    const updatedItem = await MenuItemModel.findOne({ id });
+    return updatedItem ? updatedItem.toObject() : null;
+  }
+  
+  return null;
 };
 
 export const deleteMenuItem = async (id: string) => {
