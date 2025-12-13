@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import {
   Table,
@@ -109,52 +110,101 @@ export function RoleAssignment() {
 
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Current Role</TableHead>
-                <TableHead>Assign Role</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                  <TableCell>
-                    <Select 
-                      value={user.role} 
-                      onValueChange={(value) => handleRoleChange(user.id, value)}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((role) => (
-                          <SelectItem key={role.id} value={role.name}>
-                            {role.name}
-                          </SelectItem>
-                        ))}
-                        {/* Also include default roles */}
-                        <SelectItem value="Owner">Owner</SelectItem>
-                        <SelectItem value="Admin">Admin</SelectItem>
-                        <SelectItem value="Staff">Staff</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {/* Mobile view */}
+          <div className="md:hidden">
+            {users.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No users found.
+              </div>
+            ) : (
+              <div className="space-y-4 p-4">
+                {users.map((user) => (
+                  <div key={user.id} className="border rounded-lg p-4 space-y-3">
+                    <div>
+                      <h4 className="font-medium">{user.name}</h4>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Current Role</span>
+                      <Badge variant="secondary">{user.role}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <span className="text-sm font-medium">Assign Role</span>
+                      <Select 
+                        value={user.role} 
+                        onValueChange={(value) => handleRoleChange(user.id, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                          {/* Also include default roles */}
+                          <SelectItem value="Owner">Owner</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                          <SelectItem value="Staff">Staff</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           
-          {users.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No users found.
-            </div>
-          )}
+          {/* Desktop view */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Current Role</TableHead>
+                  <TableHead>Assign Role</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>{user.role}</TableCell>
+                    <TableCell>
+                      <Select 
+                        value={user.role} 
+                        onValueChange={(value) => handleRoleChange(user.id, value)}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {roles.map((role) => (
+                            <SelectItem key={role.id} value={role.name}>
+                              {role.name}
+                            </SelectItem>
+                          ))}
+                          {/* Also include default roles */}
+                          <SelectItem value="Owner">Owner</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                          <SelectItem value="Staff">Staff</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            
+            {users.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                No users found.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -250,14 +250,14 @@ export function RolesList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h3 className="text-lg font-medium">{t('restaurant.roles.title')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('restaurant.roles.description')}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             variant={activeTab === 'roles' ? 'default' : 'outline'}
             onClick={() => setActiveTab('roles')}
@@ -282,57 +282,112 @@ export function RolesList() {
       {activeTab === 'roles' ? (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('restaurant.roles.table.name')}</TableHead>
-                  <TableHead>{t('restaurant.roles.table.description')}</TableHead>
-                  <TableHead>{t('restaurant.roles.table.permissions')}</TableHead>
-                  <TableHead className="text-right">{t('restaurant.roles.table.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {roles.map((role) => (
-                  <TableRow key={role.id}>
-                    <TableCell className="font-medium">{role.name}</TableCell>
-                    <TableCell>{role.description || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {role.permissions.map((permission) => (
-                          <Badge key={permission} variant="secondary">
-                            {t(`restaurant.roles.permissions.${permission}`)}
-                          </Badge>
-                        ))}
+            {/* Mobile view */}
+            <div className="md:hidden">
+              {roles.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {t('restaurant.roles.no_roles')}
+                </div>
+              ) : (
+                <div className="space-y-4 p-4">
+                  {roles.map((role) => (
+                    <div key={role.id} className="border rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <h4 className="font-medium">{role.name}</h4>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(role)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteRole(role.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenDialog(role)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteRole(role.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          {role.description || '-'}
+                        </p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      
+                      <div>
+                        <h5 className="text-sm font-medium mb-2">{t('restaurant.roles.table.permissions')}</h5>
+                        <div className="flex flex-wrap gap-1">
+                          {role.permissions.map((permission) => (
+                            <Badge key={permission} variant="secondary" className="text-xs">
+                              {t(`restaurant.roles.permissions.${permission}`)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             
-            {roles.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                {t('restaurant.roles.no_roles')}
-              </div>
-            )}
+            {/* Desktop view */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('restaurant.roles.table.name')}</TableHead>
+                    <TableHead>{t('restaurant.roles.table.description')}</TableHead>
+                    <TableHead>{t('restaurant.roles.table.permissions')}</TableHead>
+                    <TableHead className="text-right">{t('restaurant.roles.table.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {roles.map((role) => (
+                    <TableRow key={role.id}>
+                      <TableCell className="font-medium">{role.name}</TableCell>
+                      <TableCell>{role.description || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {role.permissions.map((permission) => (
+                            <Badge key={permission} variant="secondary">
+                              {t(`restaurant.roles.permissions.${permission}`)}
+                            </Badge>
+                          ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleOpenDialog(role)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteRole(role.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {roles.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  {t('restaurant.roles.no_roles')}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       ) : (

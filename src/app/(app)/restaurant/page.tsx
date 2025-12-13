@@ -617,9 +617,26 @@ export default function RestaurantPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
+  // State for other dialogs
+  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isInventoryDialogOpen, setIsInventoryDialogOpen] = useState(false);
+  const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | undefined>(undefined);
+  const [isWorkstationDialogOpen, setIsWorkstationDialogOpen] = useState(false);
+  const [editingWorkstation, setEditingWorkstation] = useState<IWorkstation | undefined>(undefined);
+
   const handleOpenItemDialog = (item?: MenuItem) => {
     setEditingItem(item);
     setIsItemDialogOpen(true);
+  };
+
+  const handleOpenInventoryDialog = (item?: InventoryItem) => {
+    setEditingInventoryItem(item);
+    setIsInventoryDialogOpen(true);
+  };
+
+  const handleOpenWorkstationDialog = (workstation?: IWorkstation) => {
+    setEditingWorkstation(workstation);
+    setIsWorkstationDialogOpen(true);
   };
   
   const onDeleteMultiple = async () => {
@@ -1109,6 +1126,53 @@ export default function RestaurantPage() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
+            
+            {/* Action Buttons */}
+            {activeTab === 'menu' && (
+              <div className="flex gap-2">
+                <CategoryDialog 
+                  categories={categories}
+                  onUpdate={addCategory}
+                  trigger={
+                    <Button variant="outline">
+                      {t('restaurant.menu.manage_categories')}
+                    </Button>
+                  }
+                />
+                <Button onClick={() => handleOpenItemDialog()}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t('restaurant.menu.add_item')}
+                </Button>
+              </div>
+            )}
+            
+            {activeTab === 'inventory' && (
+              <Button onClick={() => handleOpenInventoryDialog()}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t('restaurant.inventory.add_item')}
+              </Button>
+            )}
+            
+            {activeTab === 'payments' && (
+              <PaymentMethodDialog 
+                method={undefined}
+                onSave={async (methodData) => {
+                  await addPaymentMethod(methodData);
+                }}
+              >
+                <Button variant="default">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  {t('restaurant.payment_methods.add_method')}
+                </Button>
+              </PaymentMethodDialog>
+            )}
+            
+            {activeTab === 'workstations' && (
+              <Button onClick={() => handleOpenWorkstationDialog()}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t('restaurant.workstations.add_workstation')}
+              </Button>
+            )}
           </div>
           
           <div className="mt-4">
@@ -1149,42 +1213,74 @@ export default function RestaurantPage() {
             )}
             
             {activeTab === 'inventory' && (
-              <InventoryList 
-                items={inventoryItems} 
-                menuItems={menuItems} 
-                onSave={async (item) => {
-                  if ('id' in item) {
-                    await updateInventoryItem(item.id, item);
-                  } else {
-                    // Remove lastRestocked from the item before adding
-                    const { lastRestocked, ...itemData } = item as any;
-                    await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
-                  }
-                }}
-                onAdjustStock={adjustInventoryStock}
-                onDeleteItem={deleteInventoryItem}
-              />
+              <>
+                <InventoryList 
+                  items={inventoryItems} 
+                  menuItems={menuItems} 
+                  onSave={async (item) => {
+                    if ('id' in item) {
+                      await updateInventoryItem(item.id, item);
+                    } else {
+                      // Remove lastRestocked from the item before adding
+                      const { lastRestocked, ...itemData } = item as any;
+                      await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
+                    }
+                  }}
+                  onAdjustStock={adjustInventoryStock}
+                  onDeleteItem={deleteInventoryItem}
+                />
+                <InventoryItemDialog
+                  isOpen={isInventoryDialogOpen}
+                  onOpenChange={setIsInventoryDialogOpen}
+                  item={editingInventoryItem}
+                  onSave={async (itemData) => {
+                    if (editingInventoryItem && editingInventoryItem.id) {
+                      // Update existing item
+                      await updateInventoryItem(editingInventoryItem.id, itemData);
+                    } else {
+                      // Add new item
+                      await addInventoryItem(itemData);
+                    }
+                    setIsInventoryDialogOpen(false);
+                    setEditingInventoryItem(undefined);
+                  }}
+                  menuItems={menuItems}
+                />
+              </>
             )}
             
             {activeTab === 'payments' && (
-              <PaymentMethods 
-                paymentMethods={paymentMethods}
-                onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
-                onDelete={deletePaymentMethod}
-                onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
-              />
+              <>
+                <PaymentMethods 
+                  paymentMethods={paymentMethods}
+                  onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
+                  onDelete={deletePaymentMethod}
+                  onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
+                />
+                <PaymentMethodDialog 
+                  method={undefined}
+                  onSave={async (methodData) => {
+                    await addPaymentMethod(methodData);
+                  }}
+                >
+                  <Button className="hidden" />
+                </PaymentMethodDialog>
+              </>
             )}
             
             {activeTab === 'workstations' && (
-              <WorkstationList
-                workstations={workstations}
-                loading={workstationsLoading}
-                error={workstationsError}
-                onAdd={addWorkstation}
-                onUpdate={updateWorkstation}
-                onDelete={deleteWorkstation}
-                onReorder={(updatedWorkstations) => setWorkstations(updatedWorkstations)}
-              />
+              <>
+                <WorkstationList
+                  workstations={workstations}
+                  loading={workstationsLoading}
+                  error={workstationsError}
+                  onAdd={addWorkstation}
+                  onUpdate={updateWorkstation}
+                  onDelete={deleteWorkstation}
+                  onReorder={(updatedWorkstations) => setWorkstations(updatedWorkstations)}
+                />
+                {/* Add Workstation Dialog when needed */}
+              </>
             )}
             
             {activeTab === 'roles' && (
