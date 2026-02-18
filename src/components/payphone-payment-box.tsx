@@ -32,44 +32,67 @@ export function PayPhonePaymentBox({
       const script = document.createElement('script');
       script.type = 'module';
       script.src = 'https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.js';
-      script.onload = () => {
-        // Initialize PayPhone payment box after scripts load
-        const ppb = new (window as any).PPaymentButtonBox({
-          token: process.env.NEXT_PUBLIC_TOKEN || '',
-          clientTransactionId: `subscription_${Date.now()}`,
-          amount: amountInCents,
-          amountWithoutTax: amountInCents,
-          tax: 0,
-          currency: "USD",
-          storeId: process.env.NEXT_PUBLIC_STORE_ID || '',
-          reference: "ChefCito Pro Subscription",
-          backgroundColor: "#FF6B00"
-        });
+      script.onload = async () => {
+        try {
+          // Fetch secure payment configuration from server
+          const response = await fetch('/api/payments/initialize', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: amountInCents,
+              reference: "ChefCito Pro Subscription"
+            }),
+          });
 
-        // Render the payment box
-        ppb.render('pp-button');
-
-        // Add event listener for payment completion
-        const handlePaymentSuccess = (event: any) => {
-          if (event.detail) {
-            // Redirect to thank you page with transaction details
-            const params = new URLSearchParams({
-              transactionId: event.detail.transactionId || '',
-              status: event.detail.status || '',
-              clientTransactionId: event.detail.clientTransactionId || '',
-              amount: event.detail.amount ? (event.detail.amount * 100).toString() : '',
-              currency: event.detail.currency || 'USD'
-            });
-            
-            window.location.href = `/thank-you?${params.toString()}`;
+          if (!response.ok) {
+            throw new Error('Failed to initialize payment');
           }
-        };
 
-        document.addEventListener('ppb-payment-success', handlePaymentSuccess);
-        
-        return () => {
-          document.removeEventListener('ppb-payment-success', handlePaymentSuccess);
-        };
+          const paymentConfig = await response.json();
+
+          // Initialize PayPhone payment box with secure configuration
+          const ppb = new (window as any).PPaymentButtonBox({
+            token: paymentConfig.token,
+            clientTransactionId: paymentConfig.clientTransactionId,
+            amount: paymentConfig.amount,
+            amountWithoutTax: paymentConfig.amountWithoutTax,
+            tax: paymentConfig.tax,
+            currency: paymentConfig.currency,
+            storeId: paymentConfig.storeId,
+            reference: paymentConfig.reference,
+            backgroundColor: "#FF6B00"
+          });
+
+          // Render the payment box
+          ppb.render('pp-button');
+
+          // Add event listener for payment completion
+          const handlePaymentSuccess = (event: any) => {
+            if (event.detail) {
+              // Redirect to thank you page with transaction details
+              const params = new URLSearchParams({
+                transactionId: event.detail.transactionId || '',
+                status: event.detail.status || '',
+                clientTransactionId: event.detail.clientTransactionId || '',
+                amount: event.detail.amount ? (event.detail.amount * 100).toString() : '',
+                currency: event.detail.currency || 'USD'
+              });
+              
+              window.location.href = `/thank-you?${params.toString()}`;
+            }
+          };
+
+          document.addEventListener('ppb-payment-success', handlePaymentSuccess);
+          
+          // Cleanup function
+          return () => {
+            document.removeEventListener('ppb-payment-success', handlePaymentSuccess);
+          };
+        } catch (error) {
+          console.error('Error loading PayPhone payment:', error);
+        }
       };
       document.head.appendChild(script);
     }
