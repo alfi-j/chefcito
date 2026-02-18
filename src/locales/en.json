@@ -641,12 +641,7 @@
         "passwords_do_not_match": "Passwords do not match.",
         "profile": "Profile",
         "logout": "Logout",
-        "theme": {
-            "title": "Theme",
-            "light": "Light",
-            "dark": "Dark",
-            "system": "System"
-        },
+
         "font_size": {
             "title": "Font Size",
             "small": "Small",
@@ -669,12 +664,10 @@
     "settings": {
         "language": "Language",
         "font_size": "Font Size",
-        "theme": "Theme",
         "small": "Small",
         "medium": "Medium",
         "large": "Large",
         "light": "Light",
-        "dark": "Dark",
         "system": "System"
     },
     "dialog": {

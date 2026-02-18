@@ -20,10 +20,10 @@ interface OrderItemProps {
 }
 
 const statusColors: Record<string, string> = {
-  [KDS_STATES.NEW]: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800 dark:text-blue-300',
-  [KDS_STATES.IN_PROGRESS]: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800 dark:text-yellow-300',
-  [KDS_STATES.READY]: 'bg-green-500/10 text-green-800 dark:text-green-300 hover:bg-green-500/20',
-  'served': 'bg-gray-500/10 text-gray-800 dark:text-gray-300',
+  [KDS_STATES.NEW]: 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-800',
+  [KDS_STATES.IN_PROGRESS]: 'bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-800',
+  [KDS_STATES.READY]: 'bg-green-500/10 text-green-800 hover:bg-green-500/20',
+  'served': 'bg-gray-500/10 text-gray-800',
 };
 
 const getStatusIcon = (status: string) => {

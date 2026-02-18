@@ -31,7 +31,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useTheme } from "next-themes"
+
 import React, { useState, useEffect } from "react"
 import { cn } from "@/lib/helpers"
 import { useI18nStore } from "@/lib/stores/i18n-store"
@@ -162,7 +162,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 }
 
 function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void }) {
-  const { theme, setTheme } = useTheme()
   const { t, language, setLanguage } = useI18nStore()
   const router = useRouter();
 
@@ -190,22 +189,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span className="ml-2">{t('userMenu.theme.title')}</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light">{t('userMenu.theme.light')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark">{t('userMenu.theme.dark')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system">{t('userMenu.theme.system')}</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
+
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>

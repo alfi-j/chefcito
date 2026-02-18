@@ -244,9 +244,9 @@ export function MembershipManager() {
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">What you'll get:</h4>
-              <ul className="text-sm text-blue-600 dark:text-blue-400 list-disc list-inside space-y-1">
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <h4 className="font-medium text-blue-800 mb-1">What you'll get:</h4>
+              <ul className="text-sm text-blue-600 list-disc list-inside space-y-1">
                 <li>Unlimited orders and transactions</li>
                 <li>Advanced reporting and analytics</li>
                 <li>Priority customer support</li>

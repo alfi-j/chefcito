@@ -618,12 +618,7 @@
         "passwords_do_not_match": "Las contraseñas no coinciden.",
         "profile": "Perfil",
         "logout": "Cerrar Sesión",
-        "theme": {
-            "title": "Tema",
-            "light": "Claro",
-            "dark": "Oscuro",
-            "system": "Sistema"
-        },
+
         "font_size": {
             "title": "Tamaño de Fuente",
             "small": "Pequeño",
@@ -645,12 +640,10 @@
     "settings": {
         "language": "Idioma",
         "font_size": "Tamaño de Fuente",
-        "theme": "Tema",
         "small": "Pequeño",
         "medium": "Mediano",
         "large": "Grande",
         "light": "Claro",
-        "dark": "Oscuro",
         "system": "Sistema"
     },
     "dialog": {

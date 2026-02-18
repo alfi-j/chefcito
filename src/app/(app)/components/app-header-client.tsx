@@ -9,8 +9,7 @@ import {
   User,
   Languages,
   Type,
-  Moon,
-  Sun,
+
   LogOut
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -32,7 +31,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useTheme } from "next-themes"
+
 import React from "react"
 
 export function DesktopNavClient({ pathname }: { pathname: string }) {
@@ -115,15 +114,11 @@ export function CurrentPageTitleClient({ pathname }: { pathname: string }) {
 export function UserNavClient({ 
   fontSize, 
   onFontSizeChange, 
-  onLogout,
-  theme,
-  setTheme
+  onLogout
 }: { 
   fontSize: string;
   onFontSizeChange: (size: string) => void;
   onLogout: () => void;
-  theme: string | undefined;
-  setTheme: (theme: string) => void;
 }) {
   const { t, language, setLanguage } = useI18nStore()
   
@@ -179,21 +174,7 @@ export function UserNavClient({
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            {theme === 'dark' ? <Moon className="mr-2 h-4 w-4" /> : <Sun className="mr-2 h-4 w-4" />}
-            <span>{t('settings.theme')}</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light">{t('settings.light')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark">{t('settings.dark')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system">{t('settings.system')}</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
+
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>
           <LogOut className="mr-2 h-4 w-4" />
