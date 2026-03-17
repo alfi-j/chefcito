@@ -1,11 +1,13 @@
 "use client"
 
-import { LoginForm, SignupForm } from "./components/login-form"
+import { LoginForm, SignupForm } from "@/components/login/login-form"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import LoginLayout from "@/components/layout/login-layout"
 
 export default function LoginPage() {
   return (
-    <Tabs defaultValue="login" className="w-full">
+    <LoginLayout>
+      <Tabs defaultValue="login" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="login">Login</TabsTrigger>
         <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -17,5 +19,6 @@ export default function LoginPage() {
         <SignupForm />
       </TabsContent>
     </Tabs>
+    </LoginLayout>
   )
 }

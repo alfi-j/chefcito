@@ -1,3 +1,4 @@
+// Consolidated utility exports - single source of truth
 export * from './constants';
 export * from './types';
-export { cn } from './helpers';
+export { cn, formatTimeAgo, getItemTotal, getOrderTotal } from './helpers';

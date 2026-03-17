@@ -54,21 +54,25 @@ export function formatTimeAgo(date: Date, language: 'en' | 'es' = 'en'): string 
  * @param order - The order to calculate total for
  * @returns The total amount for the order
  */
-export const getOrderTotal = (order: Order) => 
-    order.items.reduce((total, item) => {
-        const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
-        return total + (item.menuItem.price + extrasTotal) * item.quantity;
-    }, 0);
-
 /**
- * Calculate the total amount for a single order item
+ * Calculate the total amount for a single order item including extras
  * 
  * @param item - The order item to calculate total for
  * @returns The total amount for the order item
  */
-export const getItemTotal = (item: OrderItem) => {
+export const getItemTotal = (item: OrderItem): number => {
     const extrasTotal = item.selectedExtras?.reduce((acc, extra) => acc + extra.price, 0) || 0;
     return (item.menuItem.price + extrasTotal) * item.quantity;
+};
+
+/**
+ * Calculate the total amount for an entire order
+ * 
+ * @param order - The order to calculate total for
+ * @returns The total amount for the order
+ */
+export const getOrderTotal = (order: Order): number => {
+    return order.items.reduce((total, item) => total + getItemTotal(item), 0);
 };
 
 // Debug utilities for error reporting and debugging
@@ -159,17 +163,22 @@ export function formatError(error: any): string {
 
 import debug from 'debug';
 
-// Create debug instances for different parts of the application
-export const debugInventory = debug('chefcito:inventory');
-export const debugOrders = debug('chefcito:orders');
-export const debugAPI = debug('chefcito:api');
-export const debugDB = debug('chefcito:db');
-export const debugAuth = debug('chefcito:auth');
-export const debugMenu = debug('chefcito:menu');
-export const debugPayments = debug('chefcito:payments');
-export const debugWorkstations = debug('chefcito:workstations');
-export const debugReports = debug('chefcito:reports');
-export const debugKDS = debug('chefcito:kds');
+// Consolidated debug logger factory - single source of truth
+const createDebugger = (namespace: string) => debug(`chefcito:${namespace}`);
 
-// Enable colors for better readability
-debug.enable('chefcito:*');
+// Application debug loggers
+export const debugInventory = createDebugger('inventory');
+export const debugOrders = createDebugger('orders');
+export const debugAPI = createDebugger('api');
+export const debugDB = createDebugger('db');
+export const debugAuth = createDebugger('auth');
+export const debugMenu = createDebugger('menu');
+export const debugPayments = createDebugger('payments');
+export const debugWorkstations = createDebugger('workstations');
+export const debugReports = createDebugger('reports');
+export const debugKDS = createDebugger('kds');
+
+// Enable all chefcito debug logs
+if (process.env.NODE_ENV === 'development') {
+  debug.enable('chefcito:*');
+}

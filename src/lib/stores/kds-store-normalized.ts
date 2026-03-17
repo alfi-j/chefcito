@@ -95,6 +95,7 @@ interface NormalizedKDSState extends NormalizedState {
   getWorkstations: () => IWorkstation[];
   getSortedWorkstations: () => IWorkstation[];
   getOrders: () => Order[];
+  getTodayOrders: () => Order[];
   
   // Stacking helpers
   getStackedItemsForWorkstation: (orderId: number, workstationId: string) => (OrderItem & { stackCount: number; isStacked: boolean })[];
@@ -264,7 +265,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         
         return true;
       } catch (error) {
-        console.error('Error updating item positions:', error);
+        // Item position update error handled silently
         return false;
       }
     },
@@ -281,20 +282,20 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         // Validate target workstation exists
         const targetWs = sortedWorkstations.find(ws => ws.id === targetWorkstation);
         if (!targetWs) {
-          console.error(`Target workstation ${targetWorkstation} not found`);
+          // Target workstation not found error handled silently
           return false;
         }
         
         // Find the order and item
         const order = entities.orders[orderId];
         if (!order) {
-          console.error(`Order ${orderId} not found`);
+          // Order not found error handled silently
           return false;
         }
         
         const itemIndex = order.items.findIndex(i => i.id === itemId);
         if (itemIndex === -1) {
-          console.error(`Item ${itemId} not found in order ${orderId}`);
+          // Item not found error handled silently
           return false;
         }
         
@@ -309,7 +310,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         
         // Items can only move forward in the workstation chain or stay in the same workstation
         if (targetWsIndex < currentItemWsIndex) {
-          console.error(`Invalid transition: cannot move item backwards from ${item.workstationId} to ${targetWorkstation}`);
+          // Invalid transition error handled silently
           return false;
         }
         
@@ -361,7 +362,7 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
         
         return true;
       } catch (error) {
-        console.error('Error transitioning item:', error);
+        // Item transition error handled silently
         return false;
       }
     },
@@ -876,6 +877,25 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
     
     getOrders: () => {
       return Object.values(get().entities.orders);
+    },
+    
+    // Filter orders to only show items from today (less than 24 hours old)
+    // Orders are reset daily at 00:00, so we only show orders from the current day
+    getTodayOrders: () => {
+      const now = new Date();
+      const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000)); // 24 hours ago
+      
+      return Object.values(get().entities.orders).filter(order => {
+        // Handle both Date objects and ISO strings
+        const orderDate = order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
+        
+        // Filter out invalid dates
+        if (isNaN(orderDate.getTime())) {
+          return false;
+        }
+        
+        return orderDate >= oneDayAgo;
+      });
     },
     
     // Stacking helper

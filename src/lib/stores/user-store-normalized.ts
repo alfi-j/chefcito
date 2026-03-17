@@ -31,6 +31,7 @@ interface NormalizedUserState extends NormalizedState {
   updateMembership: (userId: string, membership: 'free' | 'pro') => void;
   updateUserRole: (userId: string, role: 'Owner' | 'Admin' | 'Staff' | string) => void;
   refreshUser: (currentEmail: string) => Promise<void>;
+  updateUserOptimistically: (userId: string, updates: Partial<User>) => void;
   setUser: (user: User | null) => void;
   
   // Selector helpers
@@ -61,7 +62,9 @@ export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) =
         },
         currentUserId: user.id
       }));
+      // Persist user data with consistent key
       localStorage.setItem('chefcito-user', JSON.stringify(user));
+      console.log('User data set in store and localStorage:', user.email);
     } else {
       set({ currentUserId: null });
       localStorage.removeItem('chefcito-user');
@@ -99,7 +102,7 @@ export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) =
       localStorage.setItem('chefcito-user', JSON.stringify(plainUser));
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      // Login error handled silently
       return false;
     }
   },
@@ -135,7 +138,7 @@ export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) =
       },
       body: JSON.stringify({ membership }),
     }).catch(error => {
-      console.error('Failed to update membership on backend:', error);
+      // Membership update error handled silently
     });
   },
   
@@ -165,7 +168,7 @@ export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) =
       },
       body: JSON.stringify({ role }),
     }).catch(error => {
-      console.error('Failed to update role on backend:', error);
+      // Role update error handled silently
     });
   },
   
@@ -186,11 +189,39 @@ export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) =
           },
           currentUserId: userData.id
         }));
-        localStorage.setItem(`chefcito-user-${currentEmail}`, JSON.stringify(plainUser));
+        // Use consistent key with setUser and login functions
+        localStorage.setItem('chefcito-user', JSON.stringify(plainUser));
+        console.log('User data refreshed successfully for:', currentEmail);
+      } else {
+        console.warn('Failed to refresh user data, status:', response.status);
       }
     } catch (e) {
-      console.error('Failed to refresh user data', e);
+      console.error('Error refreshing user data:', e);
+      // User data refresh error handled silently
     }
+  },
+  
+  // Optimistic update for immediate UI feedback
+  updateUserOptimistically: (userId: string, updates: Partial<User>) => {
+    set((state) => {
+      const currentUser = state.entities.users[userId];
+      if (currentUser) {
+        const updatedUser = { ...currentUser, ...updates, updatedAt: new Date() };
+        // Also persist to localStorage for consistency
+        localStorage.setItem('chefcito-user', JSON.stringify(updatedUser));
+        console.log('User updated optimistically and persisted:', updatedUser.email, updates);
+        return {
+          entities: {
+            ...state.entities,
+            users: {
+              ...state.entities.users,
+              [userId]: updatedUser
+            }
+          }
+        };
+      }
+      return state;
+    });
   },
   
   // Selector helpers

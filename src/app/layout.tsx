@@ -1,6 +1,7 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
+import { AuthWrapper } from '@/components/layout/auth-provider';
 
 export const metadata: Metadata = {
   title: 'Chefcito',
@@ -18,6 +19,14 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+        {/* Payphone Cajita de Pagos */}
+        <link href="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.css" rel="stylesheet" />
+        {/* Cargar script con atributos para mejor control de carga */}
+        <script 
+          src="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.js" 
+          type="module"
+          async={true}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -35,13 +44,26 @@ export default function RootLayout({
                   }
                   originalWarn.apply(console, args);
                 };
+                
+                // Log para rastrear carga del script de Payphone
+                console.log('[Layout] Script de Payphone insertado en el DOM');
+                
+                // Detectar cuando el script carga
+                window.addEventListener('load', function() {
+                  console.log('[Layout] Window load event fired');
+                  setTimeout(function() {
+                    console.log('[Layout] PPaymentButtonBox disponible:', typeof window.PPaymentButtonBox !== 'undefined');
+                  }, 500);
+                });
               }
             `,
           }}
         />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <AuthWrapper>
+          {children}
+        </AuthWrapper>
         <Toaster richColors />
       </body>
     </html>

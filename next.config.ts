@@ -13,9 +13,7 @@ const nextConfig: NextConfig = {
     }
   ],
   /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript strictness enforced at build time
   images: {
     remotePatterns: [
       {

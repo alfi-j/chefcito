@@ -232,7 +232,9 @@
             "next": "Siguiente"
         },
         "toast": {
-            "fetch_error": "No se pudo cargar el historial de órdenes."
+            "fetch_error": "No se pudo cargar el historial de órdenes.",
+            "deleted": "Orden eliminada",
+            "deleted_desc": "La orden ha sido eliminada exitosamente."
         }
     },
     "restaurant": {
@@ -530,6 +532,48 @@
         "limited_access": "Acceso limitado a funciones básicas",
         "upgrade_to_pro": "Actualizar a Pro",
         "downgrade_to_free": "Degradar a Gratis",
+        "subscription": {
+            "title": "Suscripción",
+            "description": "Gestiona tu plan de suscripción",
+            "current_plan": "Plan Actual",
+            "plan_free": "Gratis",
+            "plan_pro": "Pro",
+            "status": "Estado",
+            "status_active": "Activa",
+            "status_cancelled": "Cancelada",
+            "status_expired": "Expirada",
+            "status_pending": "Pendiente",
+            "start_date": "Fecha de Inicio",
+            "end_date": "Fecha de Fin",
+            "amount": "Monto",
+            "no_subscription": "No tienes una suscripción activa",
+            "subscribe_title": "Suscríbete a Pro",
+            "subscribe_desc": "Obtén acceso completo a todas las funciones de Chefcito",
+            "pro_features": {
+                "title": "Características Pro",
+                "feature_1": "Acceso ilimitado a todas las funciones",
+                "feature_2": "Soporte prioritario",
+                "feature_3": "Actualizaciones automáticas",
+                "feature_4": "Múltiples ubicaciones",
+                "feature_5": "Informes avanzados",
+                "feature_6": "Personalización de marca"
+            },
+            "price": "$4.99/mes",
+            "subscribe_button": "Suscribirse Ahora",
+            "cancel_subscription": "Cancelar Suscripción",
+            "cancel_confirm_title": "¿Cancelar Suscripción?",
+            "cancel_confirm_desc": "¿Estás seguro de que deseas cancelar tu suscripción? Perderás el acceso a las funciones Pro al final del período de facturación.",
+            "cancel_button": "Sí, Cancelar",
+            "cancel_reason": "Motivo de cancelación (opcional)",
+            "cancelling": "Cancelando...",
+            "cancelled_success": "Suscripción cancelada exitosamente",
+            "cancel_error": "Error al cancelar suscripción",
+            "payment_success": "¡Pago exitoso! Tu suscripción Pro ha sido activada.",
+            "payment_failed": "El pago falló. Por favor, inténtalo de nuevo.",
+            "payment_error": "Ocurrió un error al procesar el pago.",
+            "processing": "Procesando...",
+            "loading": "Cargando suscripción..."
+        },
         "role_management_title": "Gestión de Roles",
         "role_management_desc": "Gestiona tu rol de usuario",
         "change_role": "Cambiar Rol",
@@ -585,6 +629,65 @@
                 "waiter": "Mesero",
                 "cashier": "Cajero",
                 "kitchen_staff": "Personal de Cocina"
+            }
+        },
+        "users": {
+            "title": "Usuarios",
+            "description": "Gestionar miembros del personal del restaurante",
+            "add_user": "Agregar Usuario",
+            "no_users": "No se encontraron usuarios. Agrega tu primer usuario para comenzar.",
+            "fetch_error": "Error al obtener usuarios",
+            "operation_failed": "Operación fallida",
+            "save_error": "Error al guardar usuario",
+            "delete_error": "Error al eliminar usuario",
+            "updated_success": "Usuario actualizado correctamente",
+            "created_success": "Usuario creado correctamente",
+            "deleted_success": "Usuario eliminado correctamente",
+            "delete_failed": "Error al eliminar usuario",
+            "deleting": "Eliminando...",
+            "actions": "Acciones",
+            "edit": "Editar",
+            "delete": "Eliminar",
+            "table": {
+                "name": "Nombre",
+                "email": "Correo",
+                "role": "Rol",
+                "status": "Estado",
+                "actions": "Acciones"
+            },
+            "dialog": {
+                "edit_title": "Editar Usuario",
+                "add_title": "Agregar Usuario",
+                "edit_description": "Haz cambios en el usuario aquí.",
+                "add_description": "Agrega un nuevo usuario a tu restaurante.",
+                "name": "Nombre",
+                "name_placeholder": "Ingresa el nombre del usuario",
+                "email": "Correo",
+                "email_placeholder": "Ingresa dirección de correo",
+                "password": "Contraseña",
+                "password_placeholder": "Ingresa contraseña (mín 6 caracteres)",
+                "confirm_password": "Confirmar Contraseña",
+                "confirm_password_placeholder": "Confirma la contraseña",
+                "role": "Rol",
+                "role_placeholder": "Selecciona un rol",
+                "status": "Estado",
+                "cancel": "Cancelar",
+                "saving": "Guardando...",
+                "update_user": "Actualizar Usuario",
+                "create_user": "Crear Usuario"
+            },
+            "status": {
+                "on_shift": "En Turno",
+                "off_shift": "Fuera de Turno",
+                "on_break": "En Descanso"
+            },
+            "errors": {
+                "name_required": "El nombre es requerido",
+                "email_required": "El correo es requerido",
+                "invalid_email": "Por favor ingresa una dirección de correo válida",
+                "password_length": "La contraseña debe tener al menos 6 caracteres",
+                "password_mismatch": "Las contraseñas no coinciden",
+                "role_required": "El rol es requerido"
             }
         },
         "toast": {

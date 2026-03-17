@@ -11,24 +11,26 @@ import { DateRange } from 'react-day-picker';
 import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { type OrderItem } from '@/lib/types';
 import debug from 'debug';
+import { getItemTotal, getOrderTotal } from '@/lib/helpers';
 
 // Direct model imports to avoid recompilation issues
-import { Category as CategoryModel } from '@/models/index';
-import { MenuItem as MenuItemModel } from '@/models/index';
-import { Order as OrderModel } from '@/models/index';
-import { Inventory as InventoryModel } from '@/models/index';
-import { Customer as CustomerModel } from '@/models/index';
-import { Payment as PaymentModel } from '@/models/index';
-import { User as UserModel } from '@/models/index';
-import { Workstation as WorkstationModel } from '@/models/index';
+import {
+  Category as CategoryModel,
+  MenuItem as MenuItemModel,
+  Order as OrderModel,
+  Inventory as InventoryModel,
+  Customer as CustomerModel,
+  Payment as PaymentModel,
+  User as UserModel,
+  Workstation as WorkstationModel
+} from '@/models/index';
 
 
-// Import Mongoose and database service
+// Import Mongoose
 import mongoose from 'mongoose';
-import databaseService from '@/services/database.service';
 import { KDS_STATES } from '@/lib/constants';
 
-// Debug loggers
+// Debug loggers - imported from centralized helpers
 import { debugInventory, debugOrders } from '@/lib/helpers';
 
 // Generate a random ID
@@ -40,7 +42,7 @@ const initializeDatabase = async () => {
 
   if (mongoose.connection.readyState !== 1) {
     try {
-      await databaseService.connect(MONGODB_URI);
+      await mongoose.connect(MONGODB_URI);
     } catch (error) {
       console.error('Failed to initialize database connection:', error);
       throw error;
@@ -251,11 +253,7 @@ export const deleteMenuItem = async (id: string) => {
 };
 
 // Orders
-const getOrderTotal = (order: Order): number => {
-  return order.items.reduce((total, item) => {
-    return total + (item.menuItem.price * item.quantity);
-  }, 0);
-};
+// getOrderTotal moved to helpers.ts for consistency
 
 export const getInitialOrders = async (): Promise<Order[]> => {
   await initializeDatabase();
@@ -323,7 +321,6 @@ export const updateOrderStatus = async (id: number, newStatus: string) => {
 
 export const deleteOrder = async (id: number) => {
   debugOrders('deleteOrder: called with id %d', id);
-  console.log('deleteOrder: called with id:', id);
 
   try {
     // Initialize database connection
@@ -332,22 +329,17 @@ export const deleteOrder = async (id: number) => {
     // First check if the order exists
     const orderExists = await OrderModel.findOne({ id });
     debugOrders('deleteOrder: order exists check %O', orderExists);
-    console.log('deleteOrder: order exists check:', orderExists);
 
     if (!orderExists) {
       debugOrders('deleteOrder: order with id %d not found', id);
-      console.log('deleteOrder: order with id not found:', id);
       return false;
     }
 
     const result = await OrderModel.deleteOne({ id });
     debugOrders('deleteOrder: deleteOne result %O', result);
-    console.log('deleteOrder: deleteOne result:', result);
-    console.log('deleteOrder: deletedCount:', result.deletedCount);
     return result.deletedCount > 0;
   } catch (error) {
     debugOrders('deleteOrder: error %O', error);
-    console.error('deleteOrder: error:', error);
     return false;
   }
 };
@@ -746,7 +738,7 @@ export const updateInventoryStock = async (id: string, quantity: number) => {
 // Reporting
 const getOrderTotalReport = (order: Order): number => {
   return order.items.reduce((total, item) => {
-    return total + (item.menuItem.price * item.quantity);
+    return total + getItemTotal(item);
   }, 0);
 };
 
@@ -816,7 +808,7 @@ export const getItemsReport = async (dateRange: DateRange) => {
       }
 
       itemSales[itemId].quantity += item.quantity;
-      itemSales[itemId].total += item.menuItem.price * item.quantity;
+      itemSales[itemId].total += getItemTotal(item);
     });
   });
 

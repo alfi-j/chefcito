@@ -232,7 +232,9 @@
             "next": "Next"
         },
         "toast": {
-            "fetch_error": "Could not fetch order history."
+            "fetch_error": "Could not fetch order history.",
+            "deleted": "Order deleted",
+            "deleted_desc": "The order has been successfully deleted."
         }
     },
     "restaurant": {
@@ -521,6 +523,66 @@
                 "role_updated_title": "Role Updated",
                 "role_updated_desc": "Your role has been updated to {{role}}"
             }
+        },
+        "users": {
+            "title": "Users",
+            "description": "Manage restaurant staff members",
+            "add_user": "Add User",
+            "no_users": "No users found. Add your first user to get started.",
+            "fetch_error": "Failed to fetch users",
+            "operation_failed": "Operation failed",
+            "save_error": "Error saving user",
+            "delete_error": "Error deleting user",
+            "updated_success": "User updated successfully",
+            "created_success": "User created successfully",
+            "deleted_success": "User deleted successfully",
+            "delete_failed": "Failed to delete user",
+            "deleting": "Deleting...",
+            "actions": "Actions",
+            "edit": "Edit",
+            "delete": "Delete",
+            "table": {
+                "name": "Name",
+                "email": "Email",
+                "role": "Role",
+                "status": "Status",
+                "actions": "Actions"
+            },
+            "dialog": {
+                "edit_title": "Edit User",
+                "add_title": "Add User",
+                "edit_description": "Make changes to the user here.",
+                "add_description": "Add a new user to your restaurant.",
+                "name": "Name",
+                "name_placeholder": "Enter user's name",
+                "email": "Email",
+                "email_placeholder": "Enter email address",
+                "password": "Password",
+                "password_placeholder": "Enter password (min 6 characters)",
+                "confirm_password": "Confirm Password",
+                "confirm_password_placeholder": "Confirm password",
+                "role": "Role",
+                "role_placeholder": "Select a role",
+                "status": "Status",
+                "cancel": "Cancel",
+                "saving": "Saving...",
+                "update_user": "Update User",
+                "create_user": "Create User"
+            },
+            "status": {
+                "on_shift": "On Shift",
+                "off_shift": "Off Shift",
+                "on_break": "On Break"
+            },
+
+            "errors": {
+                "name_required": "Name is required",
+                "email_required": "Email is required",
+                "invalid_email": "Please enter a valid email address",
+                "password_length": "Password must be at least 6 characters",
+                "password_mismatch": "Passwords do not match",
+                "role_required": "Role is required"
+            }
         }
     },
     "reports": {
@@ -596,6 +658,48 @@
         "limited_access": "Limited access to basic features",
         "upgrade_to_pro": "Upgrade to Pro",
         "downgrade_to_free": "Downgrade to Free",
+        "subscription": {
+            "title": "Subscription",
+            "description": "Manage your subscription plan",
+            "current_plan": "Current Plan",
+            "plan_free": "Free",
+            "plan_pro": "Pro",
+            "status": "Status",
+            "status_active": "Active",
+            "status_cancelled": "Cancelled",
+            "status_expired": "Expired",
+            "status_pending": "Pending",
+            "start_date": "Start Date",
+            "end_date": "End Date",
+            "amount": "Amount",
+            "no_subscription": "You don't have an active subscription",
+            "subscribe_title": "Subscribe to Pro",
+            "subscribe_desc": "Get full access to all Chefcito features",
+            "pro_features": {
+                "title": "Pro Features",
+                "feature_1": "Unlimited access to all features",
+                "feature_2": "Priority support",
+                "feature_3": "Automatic updates",
+                "feature_4": "Multiple locations",
+                "feature_5": "Advanced reporting",
+                "feature_6": "Brand customization"
+            },
+            "price": "$4.99/month",
+            "subscribe_button": "Subscribe Now",
+            "cancel_subscription": "Cancel Subscription",
+            "cancel_confirm_title": "Cancel Subscription?",
+            "cancel_confirm_desc": "Are you sure you want to cancel your subscription? You will lose access to Pro features at the end of the billing period.",
+            "cancel_button": "Yes, Cancel",
+            "cancel_reason": "Cancellation reason (optional)",
+            "cancelling": "Cancelling...",
+            "cancelled_success": "Subscription cancelled successfully",
+            "cancel_error": "Error cancelling subscription",
+            "payment_success": "Payment successful! Your Pro subscription has been activated.",
+            "payment_failed": "Payment failed. Please try again.",
+            "payment_error": "An error occurred while processing the payment.",
+            "processing": "Processing...",
+            "loading": "Loading subscription..."
+        },
         "role_management_title": "Role Management",
         "role_management_desc": "Manage your user role",
         "change_role": "Change Role",

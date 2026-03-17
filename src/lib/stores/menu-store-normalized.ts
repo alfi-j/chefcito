@@ -16,6 +16,16 @@ interface NormalizedMenuState extends NormalizedState {
   loading: boolean;
   error: string | null;
   
+  // Form state
+  form: {
+    name: string;
+    price: string;
+    description: string;
+    category: string;
+    imageUrl: string;
+    linkedModifiers: string[];
+  };
+  
   // Menu item actions
   addMenuItem: (itemData: Omit<MenuItem, 'id'>) => Promise<MenuItem | null>;
   updateMenuItem: (id: string, itemData: Partial<MenuItem>) => Promise<boolean>;
@@ -30,9 +40,29 @@ interface NormalizedMenuState extends NormalizedState {
   // Data fetching
   fetchMenuData: () => Promise<void>;
   
+  // Form actions
+  setFormName: (name: string) => void;
+  setFormPrice: (price: string) => void;
+  setFormDescription: (description: string) => void;
+  setFormCategory: (category: string) => void;
+  setFormImageUrl: (imageUrl: string) => void;
+  setFormLinkedModifiers: (linkedModifiers: string[]) => void;
+  resetForm: (item?: MenuItem | null) => void;
+  clearForm: () => void;
+  getIsFormValid: () => boolean;
+  getFormErrors: () => string[];
+  
   // Selector helpers
   getMenuItems: () => MenuItem[];
   getCategories: () => Category[];
+  
+  // Form selectors
+  getFormName: () => string;
+  getFormPrice: () => string;
+  getFormDescription: () => string;
+  getFormCategory: () => string;
+  getFormImageUrl: () => string;
+  getFormLinkedModifiers: () => string[];
 }
 
 // Initial state
@@ -47,6 +77,14 @@ export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) =
   ...initialState,
   loading: false,
   error: null,
+  form: {
+    name: '',
+    price: '',
+    description: '',
+    category: '',
+    imageUrl: '',
+    linkedModifiers: []
+  },
   
   addMenuItem: async (itemData) => {
     try {
@@ -341,6 +379,120 @@ export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) =
     }
   },
   
+  // Form actions
+  setFormName: (name) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        name
+      }
+    }));
+  },
+  
+  setFormPrice: (price) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        price
+      }
+    }));
+  },
+  
+  setFormDescription: (description) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        description
+      }
+    }));
+  },
+  
+  setFormCategory: (category) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        category
+      }
+    }));
+  },
+  
+  setFormImageUrl: (imageUrl) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        imageUrl
+      }
+    }));
+  },
+  
+  setFormLinkedModifiers: (linkedModifiers) => {
+    set((state) => ({
+      form: {
+        ...state.form,
+        linkedModifiers
+      }
+    }));
+  },
+  
+  resetForm: (item = null) => {
+    set({
+      form: {
+        name: item?.name || '',
+        price: item?.price?.toString() || '',
+        description: item?.description || '',
+        category: item?.category || '',
+        imageUrl: item?.imageUrl || '',
+        linkedModifiers: item?.linkedModifiers || []
+      }
+    });
+  },
+  
+  clearForm: () => {
+    set({
+      form: {
+        name: '',
+        price: '',
+        description: '',
+        category: '',
+        imageUrl: '',
+        linkedModifiers: []
+      }
+    });
+  },
+  
+  getIsFormValid: () => {
+    const { form } = get();
+    return form.name.trim() !== '' && 
+           form.price !== '' && 
+           form.category !== '' &&
+           !isNaN(parseFloat(form.price)) && 
+           parseFloat(form.price) >= 0;
+  },
+  
+  getFormErrors: () => {
+    const { form } = get();
+    const errors: string[] = [];
+    
+    if (!form.name.trim()) {
+      errors.push('Name is required');
+    }
+    
+    if (!form.price) {
+      errors.push('Price is required');
+    } else {
+      const priceNum = parseFloat(form.price);
+      if (isNaN(priceNum) || priceNum < 0) {
+        errors.push('Invalid price');
+      }
+    }
+    
+    if (!form.category) {
+      errors.push('Category is required');
+    }
+    
+    return errors;
+  },
+  
   // Selector helpers
   getMenuItems: () => {
     const { entities } = get();
@@ -350,5 +502,13 @@ export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) =
   getCategories: () => {
     const { entities } = get();
     return Object.values(entities.categories);
-  }
+  },
+  
+  // Form selectors
+  getFormName: () => get().form.name,
+  getFormPrice: () => get().form.price,
+  getFormDescription: () => get().form.description,
+  getFormCategory: () => get().form.category,
+  getFormImageUrl: () => get().form.imageUrl,
+  getFormLinkedModifiers: () => get().form.linkedModifiers
 }));

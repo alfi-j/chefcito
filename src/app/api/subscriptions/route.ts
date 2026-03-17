@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import Subscription from '@/models/Subscription';
-import mongoose from 'mongoose';
+import User from '@/models/User';
 
 // Helper function to ensure database connection
 async function ensureDbConnection() {
@@ -11,94 +12,117 @@ async function ensureDbConnection() {
   }
 }
 
-// GET /api/subscriptions - Get user subscriptions
+// GET /api/subscriptions - Obtener suscripción del usuario
 export async function GET(request: Request) {
   try {
     await ensureDbConnection();
-    
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    
+
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: 'userId is required' },
+        { error: 'User ID es requerido' },
         { status: 400 }
       );
     }
 
-    const subscriptions = await Subscription.find({ userId }).sort({ createdAt: -1 });
-    
+    // Buscar suscripciones activas o pendientes del usuario
+    const subscription = await Subscription.findOne({
+      userId,
+      status: { $in: ['active', 'pending'] }
+    }).sort({ createdAt: -1 });
+
+    if (!subscription) {
+      return NextResponse.json({
+        hasSubscription: false,
+        subscription: null
+      });
+    }
+
     return NextResponse.json({
-      success: true,
-      data: subscriptions
+      hasSubscription: true,
+      subscription: subscription.toObject()
     });
-  } catch (error: any) {
-    console.error('Error fetching subscriptions:', error);
+  } catch (error) {
+    console.error('Error fetching subscription:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to fetch subscriptions' 
-      },
+      { error: 'Error al obtener suscripción' },
       { status: 500 }
     );
   }
 }
 
-// POST /api/subscriptions - Create new subscription
+// POST /api/subscriptions - Crear nueva suscripción
 export async function POST(request: Request) {
   try {
-    await ensureDbConnection();
-    
-    const body = await request.json();
-    const { 
-      userId, 
-      userEmail, 
-      plan = 'pro',
-      amount = 9.99,
-      currency = 'USD',
-      payphoneTransactionId 
-    } = body;
+    console.log('[Subscription API] Iniciando creación de suscripción...')
+    await ensureDbConnection()
+    console.log('[Subscription API] Conexión a MongoDB establecida')
 
-    if (!userId || !userEmail) {
+    const body = await request.json()
+    const { userId, plan, amount, clientTransactionId, payphoneTransactionId } = body
+
+    console.log('[Subscription API] Datos recibidos:', { userId, plan, amount, clientTransactionId })
+
+    if (!userId || !plan || !amount) {
+      console.error('[Subscription API] Faltan datos requeridos')
       return NextResponse.json(
-        { success: false, error: 'userId and userEmail are required' },
+        { error: 'userId, plan y amount son requeridos' },
         { status: 400 }
-      );
+      )
     }
 
-    // Calculate billing dates
-    const startDate = new Date();
-    const nextBillingDate = new Date();
-    nextBillingDate.setMonth(nextBillingDate.getMonth() + 1); // Monthly billing
+    // Validar plan
+    if (!['free', 'pro'].includes(plan)) {
+      return NextResponse.json(
+        { error: 'Plan inválido' },
+        { status: 400 }
+      )
+    }
 
-    const subscriptionData = {
-      id: `sub_${uuidv4()}`,
+    // Verificar si el usuario existe
+    const user = await User.findOne({ id: userId })
+    console.log('[Subscription API] Usuario encontrado:', user ? 'Sí' : 'No')
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Usuario no encontrado' },
+        { status: 404 }
+      )
+    }
+
+    // Cancelar suscripciones activas previas
+    await Subscription.updateMany(
+      { userId, status: { $in: ['active', 'pending'] } },
+      { status: 'cancelled', cancelledAt: new Date() }
+    )
+
+    // Crear nueva suscripción
+    console.log('[Subscription API] Creando suscripción...')
+    const subscription = await Subscription.create({
       userId,
-      userEmail,
       plan,
-      status: payphoneTransactionId ? 'active' : 'pending',
-      payphoneTransactionId,
-      startDate,
-      nextBillingDate,
+      status: 'pending',
       amount,
-      currency
-    };
-
-    const subscription = new Subscription(subscriptionData);
-    await subscription.save();
+      currency: 'USD',
+      clientTransactionId,
+      payphoneTransactionId: payphoneTransactionId || null,
+      startDate: new Date()
+    })
+    console.log('[Subscription API] Suscripción creada:', subscription._id)
 
     return NextResponse.json({
       success: true,
-      data: subscription
-    });
-  } catch (error: any) {
-    console.error('Error creating subscription:', error);
+      subscription: subscription.toObject()
+    }, { status: 201 })
+  } catch (error) {
+    console.error('[Subscription API] Error detallado:', error)
+    console.error('[Subscription API] Error message:', error instanceof Error ? error.message : 'Unknown error')
+    console.error('[Subscription API] Error stack:', error instanceof Error ? error.stack : 'No stack')
     return NextResponse.json(
-      { 
-        success: false, 
-        error: error.message || 'Failed to create subscription' 
-      },
+      { error: 'Error al crear suscripción', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
-    );
+    )
   }
 }

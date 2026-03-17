@@ -9,7 +9,7 @@ ChefCito is a modern restaurant management system built with Next.js 14, featuri
 - 📊 **Reports & Analytics** - Business insights and performance metrics
 - 🏪 **Restaurant Management** - Menu, inventory, and staff management
 - 👥 **User Management** - Role-based access control system
-- 💳 **Payment Processing** - Integrated with PayPhone for Ecuador
+- 💳 **Payment Processing** - Cash and card payment handling
 - 📱 **Mobile Responsive** - Works on all devices
 
 ## Tech Stack
@@ -21,7 +21,7 @@ ChefCito is a modern restaurant management system built with Next.js 14, featuri
 - **Database**: MongoDB with Mongoose
 - **Authentication**: JWT-based auth
 - **Internationalization**: Custom i18n implementation
-- **Payment Gateway**: PayPhone API integration
+
 
 ## Getting Started
 
@@ -29,7 +29,7 @@ ChefCito is a modern restaurant management system built with Next.js 14, featuri
 
 - Node.js 18+
 - MongoDB (local or Atlas)
-- PayPhone API credentials (for payment processing)
+
 
 ### Installation
 
@@ -55,9 +55,7 @@ cp .env.local.example .env.local
 MONGODB_URI=your_mongodb_connection_string
 MONGODB_DB=chefcito
 
-# PayPhone API Configuration (optional)
-TOKEN=your_payphone_token
-STORE_ID=your_store_id
+
 ```
 
 5. Run the development server:
@@ -67,38 +65,11 @@ npm run dev
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## PayPhone Integration
+## Payment Processing
 
-ChefCito integrates with PayPhone, Ecuador's leading mobile payment platform. This enables restaurants to accept payments via:
+ChefCito supports cash and card payment processing for restaurant transactions.
 
-- Mobile phone payments
-- WhatsApp payments
-- SMS payments
-- QR code payments
 
-### Setting up PayPhone
-
-1. Register for a PayPhone merchant account at [payphone.ec](https://www.payphone.ec)
-2. Obtain your API credentials (Client ID and Client Secret)
-3. Add the credentials to your `.env.local` file
-4. Configure PayPhone as a payment method in the Restaurant settings
-
-### Features
-
-- **Secure Payments**: End-to-end encryption and PCI compliance
-- **Multiple Channels**: Customers can pay via WhatsApp, SMS, or mobile app
-- **Real-time Status**: Instant payment confirmation and status updates
-- **Refunds**: Built-in refund processing capability
-- **Webhooks**: Automatic notification of payment status changes
-
-## Membership Management
-
-ChefCito includes a membership system with two tiers:
-
-- **Free Tier**: Basic features and limited access
-- **Pro Tier**: Full feature set ($9.99/month)
-
-Members can upgrade/downgrade directly from their profile page using PayPhone payments.
 
 ## Project Structure
 
