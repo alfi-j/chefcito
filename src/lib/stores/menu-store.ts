@@ -73,7 +73,7 @@ const initialState: NormalizedState = {
   }
 };
 
-export const useNormalizedMenuStore = create<NormalizedMenuState>()((set, get) => ({
+export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
   ...initialState,
   loading: false,
   error: null,

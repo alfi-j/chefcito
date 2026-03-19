@@ -2,7 +2,7 @@
 
 import { type Order, type OrderItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import useNormalizedKDSStore from '@/lib/stores/kds-store-normalized';
+import useKDSStore from '@/lib/stores/kds-store';
 import { RotateCcw, CircleAlert, ChefHat, CircleCheckBig } from "lucide-react";
 import { KDS_STATES } from "@/lib/constants";
 import { debugKDS } from "@/lib/helpers";
@@ -176,7 +176,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       }
       
       // Check if we can rollback (i.e., if there's a previous workstation)
-      const { getPreviousWorkstation } = useNormalizedKDSStore.getState();
+      const { getPreviousWorkstation } = useKDSStore.getState();
       const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
       
       return (
@@ -254,9 +254,9 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
           </div>
         );
       } else {
-        // If somehow an item has Ready status in a non-last workstation, 
+        // If somehow an item has Ready status in a non-last workstation,
         // show it as New with rollback functionality to previous workstation
-        const { getPreviousWorkstation } = useNormalizedKDSStore.getState();
+        const { getPreviousWorkstation } = useKDSStore.getState();
         const canRollback = item.workstationId && getPreviousWorkstation(item.workstationId);
         
         return (

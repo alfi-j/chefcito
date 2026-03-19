@@ -1,20 +1,12 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import Subscription from '@/models/Subscription';
 import User from '@/models/User';
-
-// Helper function to ensure database connection
-async function ensureDbConnection() {
-  if (mongoose.connection.readyState !== 1) {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    await mongoose.connect(MONGODB_URI);
-  }
-}
+import { initializeDatabase } from '@/lib/database-service';
 
 // GET /api/payphone/success - Redirigir a página Thank You con parámetros de Payphone
 export async function GET(request: Request) {
   try {
-    await ensureDbConnection();
+    await initializeDatabase();
 
     const { searchParams } = new URL(request.url);
     

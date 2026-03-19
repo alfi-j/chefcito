@@ -112,7 +112,7 @@ const initialState: NormalizedState = {
   dragOverOrderId: null
 };
 
-const useNormalizedKDSStore = create<NormalizedKDSState>()(
+const useKDSStore = create<NormalizedKDSState>()(
   devtools((set, get) => ({
     ...initialState,
     
@@ -917,4 +917,4 @@ const useNormalizedKDSStore = create<NormalizedKDSState>()(
   }))
 );
 
-export default useNormalizedKDSStore;
+export default useKDSStore;

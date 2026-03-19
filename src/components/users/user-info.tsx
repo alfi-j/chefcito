@@ -1,12 +1,12 @@
 "use client"
 
-import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { useUserStore } from "@/lib/stores/user-store";
 import { useI18nStore } from '@/lib/stores/i18n-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function UserInfo() {
-  const user = useNormalizedUserStore().getCurrentUser();
+  const user = useUserStore().getCurrentUser();
   const { t } = useI18nStore();
 
   if (!user) {

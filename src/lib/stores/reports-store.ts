@@ -52,7 +52,7 @@ const initialState: NormalizedState = {
   error: null
 };
 
-export const useNormalizedReportsStore = create<NormalizedReportsState>()((set, get) => ({
+export const useReportsStore = create<NormalizedReportsState>()((set, get) => ({
   ...initialState,
   
   fetchReports: async (dateRange?: DateRange) => {

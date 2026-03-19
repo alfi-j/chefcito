@@ -3,11 +3,11 @@ import React, { useState, useCallback, useMemo, type DragEvent, useEffect } from
 import Image from 'next/image'
 
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized';
-import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized';
-import { useInventoryStore } from '@/lib/stores/inventory-store';
-import { usePaymentsStore } from '@/lib/stores/payments-store';
-import { useWorkstationsStore } from '@/lib/stores/workstations-store';
+import { useMenuStore } from '@/lib/stores/menu-store'
+import { useUserStore } from '@/lib/stores/user-store'
+import { useInventoryStore } from '@/lib/stores/inventory-store'
+import { usePaymentsStore } from '@/lib/stores/payments-store'
+import { useWorkstationsStore } from '@/lib/stores/workstations-store'
 import { debugMenu, debugInventory } from '@/lib/helpers';
 import { 
   Table,
@@ -592,14 +592,14 @@ function PaymentMethods({
 
 export default function RestaurantPage() {
   const { t } = useI18nStore();
-  const currentUser = useNormalizedUserStore().getCurrentUser();
-  
+  const currentUser = useUserStore().getCurrentUser();
+
   // Check if current user is an Owner
   const isOwner = currentUser?.role === 'Owner';
-  
-  const menuStore = useNormalizedMenuStore();
-  const menuItemsObj = useNormalizedMenuStore(state => state.entities.menuItems);
-  const categoriesObj = useNormalizedMenuStore(state => state.entities.categories);
+
+  const menuStore = useMenuStore();
+  const menuItemsObj = useMenuStore(state => state.entities.menuItems);
+  const categoriesObj = useMenuStore(state => state.entities.categories);
   
   // Convert objects to arrays
   const menuItems = useMemo(() => Object.values(menuItemsObj), [menuItemsObj]);

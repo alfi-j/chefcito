@@ -22,7 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pencil, Trash2, Save } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
+import { useMenuStore } from '@/lib/stores/menu-store'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
@@ -38,7 +38,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [originalCategory, setOriginalCategory] = useState<Category | null>(null);
   const { t } = useI18nStore();
-  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useNormalizedMenuStore();
+  const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenuStore();
   
   const modifierGroups = useMemo(() => 
     categories

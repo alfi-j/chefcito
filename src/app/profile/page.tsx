@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { SubscriptionCard, PayphonePaymentBox, CancelSubscriptionDialog } from '@/components/subscription'
-import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized'
+import { SubscriptionCard } from '@/components/subscription/subscription-card'
+import { PayphonePaymentBox } from '@/components/subscription/payphone-payment-box'
+import { CancelSubscriptionDialog } from '@/components/subscription/cancel-subscription-dialog'
+import { useUserStore } from '@/lib/stores/user-store'
 import { toast } from 'sonner'
 
 interface Subscription {
@@ -25,8 +27,8 @@ interface Subscription {
 
 export default function ProfilePage() {
   const { t } = useI18nStore()
-  const user = useNormalizedUserStore((state) => state.getCurrentUser())
-  const updateMembership = useNormalizedUserStore((state) => state.updateMembership)
+  const user = useUserStore((state) => state.getCurrentUser())
+  const updateMembership = useUserStore((state) => state.updateMembership)
   
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [isLoading, setIsLoading] = useState(false)

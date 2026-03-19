@@ -1,17 +1,18 @@
-// Export all normalized stores
+// Consolidated export barrel for all stores
+// Normalized stores (single source of truth)
 export * from './current-order-store';
-export * from './menu-store-normalized';
-export * from './user-store-normalized';
-export * from './restaurant-store-normalized';
-export * from './reports-store-normalized';
-export * from './i18n-store';
-export { default as useNormalizedKDSStore } from './kds-store-normalized';
+export * from './menu-store';
+export * from './user-store';
+export * from './reports-store';
+export { default as useKDSStore } from './kds-store';
 
-// Export new stores
+// Feature stores
 export * from './inventory-store';
 export * from './payments-store';
 export * from './workstations-store';
 export * from './users-store';
 export * from './roles-store';
-export * from './auth-store';
+export * from './i18n-store';
+
+// Utils
 export * from './utils';

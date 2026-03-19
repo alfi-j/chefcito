@@ -23,7 +23,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from "sonner";
 import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useNormalizedMenuStore } from '@/lib/stores/menu-store-normalized'
+import { useMenuStore } from '@/lib/stores/menu-store'
 import { type MenuItem, type Category } from "@/lib/types"
 import { MultiSelect } from './multi-select'
 
@@ -38,7 +38,7 @@ interface MenuItemDialogProps {
 
 export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOpenChange }: MenuItemDialogProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
-  const menuStore = useNormalizedMenuStore();
+  const menuStore = useMenuStore();
   const { t } = useI18nStore();
   
   // Form state from store

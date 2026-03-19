@@ -1,7 +1,7 @@
 "use client"
 
 import React from 'react';
-import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized';
+import { useUserStore } from '@/lib/stores/user-store';
 
 interface FeatureAccessProps {
   feature: string;
@@ -10,7 +10,7 @@ interface FeatureAccessProps {
 }
 
 export function FeatureAccess({ feature, children, fallback = null }: FeatureAccessProps) {
-  const currentUser = useNormalizedUserStore().getCurrentUser();
+  const currentUser = useUserStore().getCurrentUser();
   
   if (!currentUser) {
     return fallback;

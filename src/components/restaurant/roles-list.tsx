@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Pencil, Trash2, Plus } from "lucide-react"
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { toast } from "sonner"
-import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized"
+import { useUserStore } from "@/lib/stores/user-store"
 import { useRolesStore } from '@/lib/stores/roles-store'
 import { RoleBasedContent } from "@/components/layout/role-content"
 import {
@@ -60,7 +60,7 @@ const PERMISSION_OPTIONS = [
 
 export function RolesList() {
   const { t } = useI18nStore()
-  const currentUser = useNormalizedUserStore().getCurrentUser()
+  const currentUser = useUserStore().getCurrentUser()
   const rolesStore = useRolesStore()
   
   const roles = rolesStore.getRoles()

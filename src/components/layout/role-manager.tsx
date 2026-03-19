@@ -1,6 +1,6 @@
 "use client"
 
-import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { useUserStore } from "@/lib/stores/user-store";
 import { useI18nStore } from '@/lib/stores/i18n-store';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 export function RoleManager() {
-  const user = useNormalizedUserStore().getCurrentUser();
-  const { updateUserRole } = useNormalizedUserStore();
+  const user = useUserStore().getCurrentUser();
+  const { updateUserRole } = useUserStore();
   const { t } = useI18nStore();
   
   // Only owners and admins can manage roles

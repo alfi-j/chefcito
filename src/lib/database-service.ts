@@ -37,7 +37,7 @@ import { debugInventory, debugOrders } from '@/lib/helpers';
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 // Initialize database connection
-const initializeDatabase = async () => {
+export const initializeDatabase = async () => {
   const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
 
   if (mongoose.connection.readyState !== 1) {

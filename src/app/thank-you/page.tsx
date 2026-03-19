@@ -1,6 +1,8 @@
 import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { PaymentSuccess, PaymentFailed, PaymentPending } from '@/components/payment'
+import { PaymentSuccess } from '@/components/payment/payment-success'
+import { PaymentFailed } from '@/components/payment/payment-failed'
+import { PaymentPending } from '@/components/payment/payment-pending'
 
 export const metadata: Metadata = {
   title: 'Resultado del Pago | Chefcito',

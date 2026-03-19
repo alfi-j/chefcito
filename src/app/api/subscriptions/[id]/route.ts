@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import Subscription from '@/models/Subscription';
 import User from '@/models/User';
-
-// Helper function to ensure database connection
-async function ensureDbConnection() {
-  if (mongoose.connection.readyState !== 1) {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    await mongoose.connect(MONGODB_URI);
-  }
-}
+import { initializeDatabase } from '@/lib/database-service';
 
 // PUT /api/subscriptions/[id] - Actualizar suscripción (activar después de pago)
 export async function PUT(
@@ -17,7 +9,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await ensureDbConnection();
+    await initializeDatabase();
 
     const resolvedParams = await params;
     const { id } = resolvedParams;
@@ -101,7 +93,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await ensureDbConnection();
+    await initializeDatabase();
 
     const resolvedParams = await params;
     const { id } = resolvedParams;

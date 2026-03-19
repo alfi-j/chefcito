@@ -8,7 +8,7 @@ import { PaymentDialogRefactored } from '@/components/pos/dialogs/payment-modal'
 import { SheetCart } from '@/components/pos/cart-sheet';
 import { toast } from "sonner";
 import { useI18nStore } from '@/lib/stores/i18n-store';
-import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized';
+import { useUserStore } from '@/lib/stores/user-store';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 
@@ -57,7 +57,7 @@ function PosPageContent() {
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
 
   const { t } = useI18nStore();
-  const user = useNormalizedUserStore((state) => state.getCurrentUser());
+  const user = useUserStore((state) => state.getCurrentUser());
   
   // Verificar autenticación al montar
   useEffect(() => {

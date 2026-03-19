@@ -8,7 +8,7 @@ import { SalesReport } from "@/components/reports/sales-report";
 import { ItemReport } from "@/components/reports/item-report";
 import { KitchenReport } from "@/components/reports/kitchen-report";
 import { useI18nStore } from '@/lib/stores/i18n-store';
-import { useNormalizedReportsStore } from '@/lib/stores/reports-store-normalized';
+import { useReportsStore } from '@/lib/stores/reports-store';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
 import { File } from 'lucide-react';
@@ -22,7 +22,7 @@ export default function ReportsPage() {
     to: new Date(),
   });
 
-  const reportsStore = useNormalizedReportsStore();
+  const reportsStore = useReportsStore();
   const sales = reportsStore.getSalesReport();
   const items = reportsStore.getItemsReport();
   const kitchen = reportsStore.getKitchenReport();

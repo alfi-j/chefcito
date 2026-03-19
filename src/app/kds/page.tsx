@@ -10,11 +10,11 @@ import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
 import { debugKDS } from '@/lib/helpers';
 import { KDS_STATES } from '@/lib/constants';
-import useNormalizedKDSStore from '@/lib/stores/kds-store-normalized';
+import useKDSStore from '@/lib/stores/kds-store';
 
 export default function KdsPage() {
   const { t } = useI18nStore();
-  const kdsStore = useNormalizedKDSStore();
+  const kdsStore = useKDSStore();
   const workstations = kdsStore.getSortedWorkstations();
   const orders = kdsStore.getTodayOrders(); // Filter orders to only show items from the current day (< 24 hours old)
   

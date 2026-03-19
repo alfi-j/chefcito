@@ -47,7 +47,7 @@ const initialState: NormalizedState = {
   currentUserId: null
 };
 
-export const useNormalizedUserStore = create<NormalizedUserState>()((set, get) => ({
+export const useUserStore = create<NormalizedUserState>()((set, get) => ({
   ...initialState,
   
   setUser: (user) => {

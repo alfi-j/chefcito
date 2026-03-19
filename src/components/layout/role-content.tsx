@@ -1,6 +1,6 @@
 "use client"
 
-import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
+import { useUserStore } from "@/lib/stores/user-store";
 
 interface RoleBasedContentProps {
   children: React.ReactNode;
@@ -15,7 +15,7 @@ export function RoleBasedContent({
   allowedMembership,
   fallback = null,
 }: RoleBasedContentProps) {
-  const user = useNormalizedUserStore().getCurrentUser();
+  const user = useUserStore().getCurrentUser();
   
   // If no roles specified, allow access
   if (!allowedRoles) return <>{children}</>;

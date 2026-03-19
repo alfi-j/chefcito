@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import Subscription from '@/models/Subscription';
 import User from '@/models/User';
-
-// Helper function to ensure database connection
-async function ensureDbConnection() {
-  if (mongoose.connection.readyState !== 1) {
-    const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
-    await mongoose.connect(MONGODB_URI);
-  }
-}
+import { initializeDatabase } from '@/lib/database-service';
 
 // GET /api/subscriptions - Obtener suscripción del usuario
 export async function GET(request: Request) {
   try {
-    await ensureDbConnection();
+    await initializeDatabase();
 
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
@@ -57,7 +49,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     console.log('[Subscription API] Iniciando creación de suscripción...')
-    await ensureDbConnection()
+    await initializeDatabase()
     console.log('[Subscription API] Conexión a MongoDB establecida')
 
     const body = await request.json()
