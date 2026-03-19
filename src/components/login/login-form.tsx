@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useI18nStore } from "@/lib/stores/i18n-store"
 import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { clearSWRCache } from "@/lib/swr-fetcher"
 
 // Simple cookie utility
 const setCookie = (name: string, value: string, days: number) => {
@@ -27,21 +28,28 @@ export function LoginForm() {
     const { login } = useNormalizedUserStore();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         // Using the new login function from user store
         const success = await login(email, password);
-        
+
         if (success) {
+            // IMPORTANT: Clear SWR cache to ensure fresh data for this user
+            clearSWRCache();
+            
             // Set the auth cookie to maintain session
             setCookie("chefcito-auth", "true", 1);
-            
+
             toast.success(t('userMenu.login_success_title'), {
                 description: t('userMenu.login_success_desc'),
                 duration: 3000,
             });
-            router.push("/pos")
+            
+            // Pequeño delay para asegurar que el store esté sincronizado
+            setTimeout(() => {
+                router.push("/pos")
+            }, 100)
         } else {
             toast.error(t('userMenu.login_error_title'), {
                 description: t('userMenu.login_error_desc'),

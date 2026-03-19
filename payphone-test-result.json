@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-03-19T14:50:18.324Z",
+  "request": {
+    "token": "F3tFpsS3I21lSXXmRnClf0-G25ve43bIIJkfUYKg7qBzXuAezF-YrOQCEHM6x7TbyoF6GAv9VtZGBPzVQ30YFe-YU-qpW13bxqjRYV6UNvpFnhSb9plcvk9EGp-2TVgxiqgYWQ2mWx8cZnBYJlC10UYKylcL9USD1u0ItwizSvVaJ4du5yuQfRtuCFEIicSR57IiKKu5IWpoXUmrNyxLfiDyKYiJGu7JGadCeiMsbfSKnR2qLJ5kprH9ygygQ8MoHWUD8BCiOxfQ3uYKIvAJ5fYQUG3E3KC8k8BRON-l58fQVnpz_kcaxp3KCFA522RxxuctpauTSLWFhGS01o4bdFhgRPA",
+    "storeId": "6bcdef01-6be2-4d15-9f87-507ac2f80e7e",
+    "clientTransactionId": "SUB-TEST-1773931817692",
+    "amount": 499,
+    "amountWithoutTax": 446,
+    "amountWithTax": 0,
+    "tax": 53,
+    "service": 0,
+    "tip": 0,
+    "currency": "USD",
+    "reference": "Test de API - Chefcito",
+    "lang": "es",
+    "defaultMethod": "card",
+    "timeZone": -5,
+    "lat": "-0.180653",
+    "lng": "-78.467838",
+    "optionalParameter": "SUB-TEST-1773931817692",
+    "email": "test@chefcito.com",
+    "returnUrl": "http://localhost:3000/api/payphone/success"
+  },
+  "response": {
+    "status": 401,
+    "statusText": "Unauthorized",
+    "body": {
+      "message": "Su aplicación no esta autorizada para acceder a este recurso. Verifique que el token este bien copiado o a que recursos puede acceder su tipo de aplicación."
+    }
+  },
+  "success": false
+}

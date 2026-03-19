@@ -8,6 +8,7 @@ import { PaymentDialogRefactored } from '@/components/pos/dialogs/payment-modal'
 import { SheetCart } from '@/components/pos/cart-sheet';
 import { toast } from "sonner";
 import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useNormalizedUserStore } from '@/lib/stores/user-store-normalized';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 
@@ -54,9 +55,31 @@ function PosPageContent() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
-  
+
   const { t } = useI18nStore();
+  const user = useNormalizedUserStore((state) => state.getCurrentUser());
   
+  // Verificar autenticación al montar
+  useEffect(() => {
+    const storedUser = localStorage.getItem('chefcito-user');
+    if (!storedUser) {
+      console.log('[POS] No hay usuario autenticado, redirigiendo a /login');
+      router.push('/login');
+    }
+  }, [router]);
+  
+  // Si no hay usuario, mostrar loading
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
+
   // SWR data fetching
   const { data: menuItems = [], error: menuItemsError, isLoading: isLoadingMenu, mutate: mutateMenuItems } = useSWR<MenuItem[]>('/api/menu', fetcher, {
     fallbackData: [],

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from 'sonner';
 import { AuthWrapper } from '@/components/layout/auth-provider';
+import { Providers } from '@/components/providers';
 
 export const metadata: Metadata = {
   title: 'Chefcito',
@@ -22,8 +23,8 @@ export default function RootLayout({
         {/* Payphone Cajita de Pagos */}
         <link href="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.css" rel="stylesheet" />
         {/* Cargar script con atributos para mejor control de carga */}
-        <script 
-          src="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.js" 
+        <script
+          src="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.js"
           type="module"
           async={true}
         />
@@ -44,10 +45,10 @@ export default function RootLayout({
                   }
                   originalWarn.apply(console, args);
                 };
-                
+
                 // Log para rastrear carga del script de Payphone
                 console.log('[Layout] Script de Payphone insertado en el DOM');
-                
+
                 // Detectar cuando el script carga
                 window.addEventListener('load', function() {
                   console.log('[Layout] Window load event fired');
@@ -61,9 +62,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <AuthWrapper>
-          {children}
-        </AuthWrapper>
+        <Providers>
+          <AuthWrapper>
+            {children}
+          </AuthWrapper>
+        </Providers>
         <Toaster richColors />
       </body>
     </html>

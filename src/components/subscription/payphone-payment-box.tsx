@@ -123,16 +123,31 @@ export function PayphonePaymentBox({
 
       try {
         console.log('[PayphonePaymentBox] === INICIALIZANDO PAYPHONE ===')
-        
+
+        // ============================================
+        // DIAGNÓSTICO DE CREDENCIALES
+        // ============================================
+        console.log('[PayphonePaymentBox] 🔍 DIAGNÓSTICO DE CREDENCIALES:')
+        console.log('NEXT_PUBLIC_PAYPHONE_TOKEN existe:', !!process.env.NEXT_PUBLIC_PAYPHONE_TOKEN)
+        console.log('NEXT_PUBLIC_PAYPHONE_STORE_ID existe:', !!process.env.NEXT_PUBLIC_PAYPHONE_STORE_ID)
+        console.log('Token (primeros 10 chars):', process.env.NEXT_PUBLIC_PAYPHONE_TOKEN?.substring(0, 10) + '...')
+        console.log('StoreID:', process.env.NEXT_PUBLIC_PAYPHONE_STORE_ID)
+        console.log('Todas las env vars PAYPHONE disponibles:', Object.keys(process.env).filter(k => k.includes('PAYPHONE')))
+        // ============================================
+
         // Verificar credenciales
         const token = process.env.NEXT_PUBLIC_PAYPHONE_TOKEN
         const storeId = process.env.NEXT_PUBLIC_PAYPHONE_STORE_ID
 
         if (!token || !storeId) {
           console.error('[PayphonePaymentBox] Credenciales no configuradas')
+          console.error('[PayphonePaymentBox] Token:', token ? '✓ presente' : '✗ AUSENTE')
+          console.error('[PayphonePaymentBox] StoreID:', storeId ? '✓ presente' : '✗ AUSENTE')
           setError('Credenciales de Payphone no configuradas')
           return
         }
+
+        console.log('[PayphonePaymentBox] ✓ Credenciales validadas correctamente')
 
         // Esperar a que el script de Payphone esté disponible
         console.log('[PayphonePaymentBox] Esperando script de Payphone...')
@@ -153,13 +168,24 @@ export function PayphonePaymentBox({
         const tax = amount - amountWithoutTax                // 53 (12% IVA)
         const amountWithTax = 0  // No hay monto adicional sujeto a impuesto
 
-        // URL de redirección - Usar variable de entorno si existe
+        // URL de redirección - Usar variable de entorno o fallback a window.location.origin
         const returnUrl = process.env.NEXT_PUBLIC_PAYPHONE_RETURN_URL || `${window.location.origin}/api/payphone/success`
 
         // Verificar dominio para desarrollo
         const currentDomain = window.location.origin
         const isLocalhost = currentDomain.includes('localhost') || currentDomain.includes('127.0.0.1')
-        
+
+        // LOGS EXPLÍCITOS PARA DEBUGGING DEL ERROR 400
+        console.log('[PayphonePaymentBox] 🔍 DEBUGGING ERROR 400:')
+        console.log('  returnUrl configurado:', returnUrl)
+        console.log('  NEXT_PUBLIC_PAYPHONE_RETURN_URL:', process.env.NEXT_PUBLIC_PAYPHONE_RETURN_URL || 'no definida')
+        console.log('  window.location.origin:', window.location.origin)
+        console.log('  currentDomain:', currentDomain)
+        console.log('  ¿Es localhost?:', isLocalhost)
+        console.log('\n  ⚠️ VERIFICA EN PAYPHONE DEVELOPER:')
+        console.log(`    Web Domain debe ser: ${isLocalhost ? 'localhost' : currentDomain.replace('http://', '').replace('https://', '')}`)
+        console.log(`    Response URL debe ser: ${returnUrl}`)
+
         if (isLocalhost) {
           console.warn('[PayphonePaymentBox] ⚠️ ADVERTENCIA: Estás usando localhost')
           console.warn('[PayphonePaymentBox] Payphone requiere que el dominio esté registrado en Payphone Developer')
@@ -184,14 +210,18 @@ export function PayphonePaymentBox({
           ? reference.substring(0, 100)
           : reference
 
-        // Generar lat/lng dinámicos basados en timestamp para evitar patrón repetitivo
-        // Payphone puede rechazar coordenadas idénticas en múltiples transacciones como "sospechoso"
+        // Generar lat/lng como ENTEROS según documentación oficial de Payphone
+        // Error 800: "Lat: No es entero entre -90 y 90", "Lng: No es entero entre -180 y 180"
+        // Payphone requiere ENTEROS, NO strings con decimales
         const baseLat = -0.180653
         const baseLng = -78.467838
-        const latVariation = (Date.now() % 1000) / 1000000  // Variación mínima de 0.000001
-        const lngVariation = (clientTransactionId.length % 1000) / 1000000
-        const dynamicLat = (baseLat + latVariation).toFixed(6)
-        const dynamicLng = (baseLng + lngVariation).toFixed(6)
+        // Redondear a ENTERO como requiere Payphone
+        const latInt = Math.round(baseLat)  // Resultado: 0 (entero)
+        const lngInt = Math.round(baseLng)  // Resultado: -78 (entero)
+        
+        // Validar que estén dentro del rango permitido
+        const safeLat = Math.max(-90, Math.min(90, latInt))
+        const safeLng = Math.max(-180, Math.min(180, lngInt))
 
         // Configuración de Payphone
         // NOTA: documentId, identificationType y phoneNumber son OPCIONALES
@@ -211,9 +241,9 @@ export function PayphonePaymentBox({
           reference: safeReference,
           lang: "es",
           defaultMethod: "card",
-          timeZone: -5,
-          lat: dynamicLat,  // Coordenadas con variación mínima para evitar patrón repetitivo
-          lng: dynamicLng,  // Coordenadas con variación mínima para evitar patrón repetitivo
+          timeZone: -5,  // ENTERO válido (-12 a 14)
+          lat: safeLat,  // ✅ ENTERO (NO string) - Requerido por Payphone Error 800
+          lng: safeLng,  // ✅ ENTERO (NO string) - Requerido por Payphone Error 800
           optionalParameter: safeClientTransactionId,
           email: userEmail,  // Email real del usuario - ESTE SÍ SE ENVÍA
           returnUrl: returnUrl
@@ -236,10 +266,18 @@ export function PayphonePaymentBox({
         console.log('  - email:', config.email, '(real del usuario)')
         console.log('  - clientTransactionId length:', config.clientTransactionId.length, '(máx 50)')
         console.log('  - reference length:', config.reference.length, '(máx 100)')
-        console.log('  - lat:', config.lat, '(dinámico para evitar patrón repetitivo)')
-        console.log('  - lng:', config.lng, '(dinámico para evitar patrón repetitivo)')
+        console.log('  - lat:', config.lat, '(ENTERO - Payphone requiere entero NO string)')
+        console.log('  - lng:', config.lng, '(ENTERO - Payphone requiere entero NO string)')
+        console.log('  - timeZone:', config.timeZone, '(ENTERO válido entre -12 y 14)')
         console.log('  - returnUrl:', config.returnUrl)
         console.log('  - window.location.origin:', window.location.origin)
+        console.log('[PayphonePaymentBox] 🔍 VALIDACIONES CRÍTICAS:')
+        console.log('  - lat es número:', typeof config.lat === 'number', '(debe ser true)')
+        console.log('  - lng es número:', typeof config.lng === 'number', '(debe ser true)')
+        console.log('  - lat en rango [-90, 90]:', config.lat >= -90 && config.lat <= 90)
+        console.log('  - lng en rango [-180, 180]:', config.lng >= -180 && config.lng <= 180)
+        console.log('  - clientTransactionId length <= 50:', config.clientTransactionId.length <= 50)
+        console.log('  - reference length <= 100:', config.reference.length <= 100)
 
         console.log('[PayphonePaymentBox] ⚠️ VERIFICACIÓN DE DOMINIO:')
         console.log('  Dominio actual:', currentDomain)
@@ -253,6 +291,101 @@ export function PayphonePaymentBox({
           calculatedTotal,
           match: calculatedTotal === config.amount
         })
+
+        // ============================================
+        // VALIDACIÓN COMPLETA DE PARÁMETROS SEGÚN DOCUMENTACIÓN PAYPHONE
+        // ============================================
+        const validationErrors: string[] = []
+
+        // 1. Validar amount (debe ser entero entre 1 y 99999999)
+        if (!Number.isInteger(config.amount) || config.amount < 1 || config.amount > 99999999) {
+          validationErrors.push(`amount: ${config.amount} no es entero válido entre 1-99999999`)
+        }
+
+        // 2. Validar fórmula de montos
+        if (calculatedTotal !== config.amount) {
+          validationErrors.push(`amount (${config.amount}) != suma de componentes (${calculatedTotal})`)
+        }
+
+        // 3. Validar currency (debe ser exactamente "USD")
+        if (config.currency !== "USD") {
+          validationErrors.push(`currency: ${config.currency} debe ser "USD"`)
+        }
+
+        // 4. Validar clientTransactionId (máximo 50 caracteres)
+        if (config.clientTransactionId.length > 50) {
+          validationErrors.push(`clientTransactionId: ${config.clientTransactionId.length} chars excede máximo de 50`)
+        }
+        if (!/^[a-zA-Z0-9-_]+$/.test(config.clientTransactionId)) {
+          validationErrors.push(`clientTransactionId: contiene caracteres especiales inválidos`)
+        }
+
+        // 5. Validar reference (máximo 100 caracteres)
+        if (config.reference.length > 100) {
+          validationErrors.push(`reference: ${config.reference.length} chars excede máximo de 100`)
+        }
+
+        // 6. Validar lat (debe ser número entero entre -90 y 90)
+        if (typeof config.lat !== 'number' || !Number.isInteger(config.lat)) {
+          validationErrors.push(`lat: ${config.lat} (${typeof config.lat}) debe ser ENTERO, NO string`)
+        }
+        if (config.lat < -90 || config.lat > 90) {
+          validationErrors.push(`lat: ${config.lat} fuera de rango [-90, 90]`)
+        }
+
+        // 7. Validar lng (debe ser número entero entre -180 y 180)
+        if (typeof config.lng !== 'number' || !Number.isInteger(config.lng)) {
+          validationErrors.push(`lng: ${config.lng} (${typeof config.lng}) debe ser ENTERO, NO string`)
+        }
+        if (config.lng < -180 || config.lng > 180) {
+          validationErrors.push(`lng: ${config.lng} fuera de rango [-180, 180]`)
+        }
+
+        // 8. Validar timeZone (debe ser entero entre -12 y 14)
+        if (typeof config.timeZone !== 'number' || !Number.isInteger(config.timeZone)) {
+          validationErrors.push(`timeZone: ${config.timeZone} debe ser entero`)
+        }
+        if (config.timeZone < -12 || config.timeZone > 14) {
+          validationErrors.push(`timeZone: ${config.timeZone} fuera de rango [-12, 14]`)
+        }
+
+        // 9. Validar returnUrl (debe ser URL absoluta con protocolo)
+        try {
+          const urlObj = new URL(config.returnUrl)
+          if (!['http:', 'https:'].includes(urlObj.protocol)) {
+            validationErrors.push(`returnUrl: protocolo ${urlObj.protocol} inválido, debe ser http:// o https://`)
+          }
+        } catch (e) {
+          validationErrors.push(`returnUrl: ${config.returnUrl} no es URL válida`)
+        }
+
+        // 10. Validar email (formato válido)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(config.email)) {
+          validationErrors.push(`email: ${config.email} formato inválido`)
+        }
+
+        // 11. Validar storeId (UUID válido - formato estándar)
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+        if (!uuidRegex.test(config.storeId)) {
+          validationErrors.push(`storeId: ${config.storeId} no es UUID válido`)
+        }
+
+        // 12. Validar token (no vacío)
+        if (!config.token || config.token.trim().length === 0) {
+          validationErrors.push(`token: vacío o inválido`)
+        }
+
+        // Si hay errores de validación, mostrar y detener
+        if (validationErrors.length > 0) {
+          console.error('[PayphonePaymentBox] ❌ VALIDACIONES FALLIDAS:', validationErrors)
+          const errorMessage = `Validaciones fallidas:\n${validationErrors.map(e => `  • ${e}`).join('\n')}`
+          setError(errorMessage)
+          return
+        }
+
+        console.log('[PayphonePaymentBox] ✅ TODAS LAS VALIDACIONES PASARON CORRECTAMENTE')
+        console.log('[PayphonePaymentBox] Parámetros listos para enviar a Payphone')
 
         // Crear instancia de Payphone
         console.log('[PayphonePaymentBox] Creando instancia PPaymentButtonBox...')

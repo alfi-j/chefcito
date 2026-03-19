@@ -3,13 +3,21 @@ import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useNormalizedUserStore } from "@/lib/stores/user-store-normalized";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { clearSWRCache } from "@/lib/swr-fetcher";
 import { AppLayoutContent } from "@/components/layout/app-layout";
+
+// Wrapper function that clears SWR cache on logout
+const logoutWithCacheClear = () => {
+  clearSWRCache();
+  useAuthStore.getState().logout();
+  console.log('[Auth] Logout completed with cache cleared');
+};
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { setUser } = useNormalizedUserStore();
-  const { isAuthenticated, isCheckingAuth, initializeAuth } = useAuthStore();
+  const { isAuthenticated, isCheckingAuth, initializeAuth, logout: authLogout } = useAuthStore();
 
   // Initialize authentication on mount
   useEffect(() => {
@@ -68,10 +76,10 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const { isAuthenticated, isCheckingAuth, logout } = useAuthStore();
-  
+
   return {
     isAuthenticated,
     isCheckingAuth,
-    logout
+    logout: logoutWithCacheClear || logout
   };
 }
