@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ interface InvitationInfo {
   expiresAt: string
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
@@ -179,5 +179,33 @@ export default function RegisterPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+function RegisterLoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader className="text-center items-center">
+            <ChefHat className="h-12 w-12 text-primary mb-2" />
+            <CardTitle className="text-3xl font-headline">Chefcito</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterLoadingFallback />}>
+      <RegisterForm />
+    </Suspense>
   )
 }
