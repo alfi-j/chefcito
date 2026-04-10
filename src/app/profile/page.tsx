@@ -29,6 +29,7 @@ export default function ProfilePage() {
   const { t } = useI18nStore()
   const user = useUserStore((state) => state.getCurrentUser())
   const updateMembership = useUserStore((state) => state.updateMembership)
+  const refreshUser = useUserStore((state) => state.refreshUser)
   
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -60,12 +61,55 @@ export default function ProfilePage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const paymentStatus = urlParams.get('payment')
+    const txId = urlParams.get('txId')
 
     if (paymentStatus) {
       if (paymentStatus === 'success') {
         toast.success(t('profile.subscription.payment_success'))
-        // Recargar suscripción
-        loadSubscription()
+
+        // Force a complete refresh of user data and subscription after payment
+        // Use a delay to ensure MongoDB has had time to update (especially from webhook)
+        const refreshAfterPayment = async () => {
+          await new Promise(resolve => setTimeout(resolve, 500))
+
+          // Read current user directly from store (avoids stale closure)
+          const currentUser = useUserStore.getState().getCurrentUser()
+          if (!currentUser?.id) return
+
+          // 1. Reload subscription directly
+          try {
+            const subResponse = await fetch(`/api/subscriptions?userId=${currentUser.id}`)
+            if (subResponse.ok) {
+              const subData = await subResponse.json()
+              if (subData.hasSubscription && subData.subscription) {
+                setSubscription(subData.subscription)
+              }
+            }
+          } catch (error) {
+            console.error('Error reloading subscription after payment:', error)
+          }
+
+          // 2. Refresh membership from DB via user API
+          try {
+            const userResponse = await fetch(`/api/users/${currentUser.id}`)
+            if (userResponse.ok) {
+              const userData = await userResponse.json()
+              if (userData && !userData.error) {
+                const plainUser = JSON.parse(JSON.stringify(userData))
+                useUserStore.getState().setUser(plainUser)
+              }
+            }
+          } catch (error) {
+            console.error('Error refreshing user after payment:', error)
+          }
+
+          // 3. Also trigger the store's refreshUser if email is available
+          if (currentUser.email) {
+            useUserStore.getState().refreshUser(currentUser.email)
+          }
+        }
+
+        refreshAfterPayment()
       } else if (paymentStatus === 'failed') {
         toast.error(t('profile.subscription.payment_failed'))
       } else if (paymentStatus === 'error') {
@@ -93,22 +137,7 @@ export default function ProfilePage() {
   }
 
   const handleSubscribe = () => {
-    // Solo mostrar la cajita de pagos
     setPaymentMode(true)
-  }
-
-  const handlePaymentSuccess = async () => {
-    // La confirmación se maneja en el webhook de Payphone
-    // Esperamos un momento y recargamos la suscripción
-    setTimeout(() => {
-      loadSubscription()
-      setPaymentMode(false)
-    }, 2000)
-  }
-
-  const handlePaymentError = () => {
-    toast.error(t('profile.subscription.payment_error'))
-    setPaymentMode(false)
   }
 
   const handleCancelSubscription = async (reason?: string) => {

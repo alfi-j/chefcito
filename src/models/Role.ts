@@ -5,6 +5,8 @@ export interface IRole extends Document {
   name: string;
   description?: string;
   permissions: string[];
+  /** workstation IDs this role can see in KDS; empty array means all workstations */
+  allowedWorkstations: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -13,7 +15,7 @@ const RoleSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true, unique: true },
   description: { type: String },
-  permissions: [{ 
+  permissions: [{
     type: String,
     enum: [
       'menu_access',
@@ -23,9 +25,11 @@ const RoleSchema: Schema = new Schema({
       'restaurant_settings',
       'user_management',
       'payment_processing',
-      'inventory_management'
+      'inventory_management',
+      'role_management'
     ]
-  }]
+  }],
+  allowedWorkstations: [{ type: String, default: [] }]
 }, {
   timestamps: true
 });

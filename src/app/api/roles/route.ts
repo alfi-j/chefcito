@@ -65,7 +65,8 @@ export async function POST(request: Request) {
       id: roleId,
       name: body.name,
       description: body.description,
-      permissions: body.permissions || []
+      permissions: body.permissions || [],
+      allowedWorkstations: body.allowedWorkstations || []
     };
     
     // Save to Role collection

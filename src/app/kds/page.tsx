@@ -11,11 +11,19 @@ import { type IWorkstation } from '@/models/Workstation';
 import { debugKDS } from '@/lib/helpers';
 import { KDS_STATES } from '@/lib/constants';
 import useKDSStore from '@/lib/stores/kds-store';
+import { usePermissions } from '@/lib/hooks/use-permissions';
 
 export default function KdsPage() {
   const { t } = useI18nStore();
+  const { can, getAllowedWorkstations } = usePermissions();
   const kdsStore = useKDSStore();
-  const workstations = kdsStore.getSortedWorkstations();
+  const allWorkstations = kdsStore.getSortedWorkstations();
+
+  // Filter workstations based on role permissions
+  const allowedWsIds = getAllowedWorkstations(); // empty = all
+  const workstations = allowedWsIds.length > 0
+    ? allWorkstations.filter(ws => allowedWsIds.includes(ws.id))
+    : allWorkstations;
   const orders = kdsStore.getTodayOrders(); // Filter orders to only show items from the current day (< 24 hours old)
   
   const {
@@ -376,6 +384,15 @@ export default function KdsPage() {
       </div>
     );
   };
+
+  // Access guard — shown if user lacks kds_access permission
+  if (!can('kds_access')) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
+        <p>{t('kds.access_denied') || 'You do not have permission to access the Kitchen Display.'}</p>
+      </div>
+    );
+  }
 
   return renderWorkstations();
 }

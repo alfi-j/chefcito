@@ -132,12 +132,12 @@ export const useWorkstationsStore = create<WorkstationStore>()((set, get) => ({
 
   updateWorkstation: async (id, workstationData) => {
     try {
-      const response = await fetch(`/api/workstations/${id}`, {
+      const response = await fetch('/api/workstations', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(workstationData),
+        body: JSON.stringify({ id, ...workstationData }),
       });
       
       const result = await response.json();
@@ -166,8 +166,12 @@ export const useWorkstationsStore = create<WorkstationStore>()((set, get) => ({
 
   deleteWorkstation: async (id) => {
     try {
-      const response = await fetch(`/api/workstations/${id}`, {
+      const response = await fetch('/api/workstations', {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id }),
       });
       
       const result = await response.json();

@@ -234,6 +234,10 @@ export const useNormalizedCurrentOrderStore = create<NormalizedCurrentOrderState
   
   clearOrder: () => set((state) => ({
     ...state,
+    entities: {
+      ...state.entities,
+      orderItems: {}
+    },
     currentOrder: {
       ...state.currentOrder,
       itemIds: [],
@@ -242,7 +246,6 @@ export const useNormalizedCurrentOrderStore = create<NormalizedCurrentOrderState
       orderType: 'dine-in',
       deliveryInfo: { name: '', address: '', phone: '' }
     }
-    // Note: We're keeping the entities for menu items, categories, etc. as they're shared
   }))
 }));
 

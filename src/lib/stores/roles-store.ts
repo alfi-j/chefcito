@@ -19,6 +19,7 @@ interface RoleData {
   name: string;
   description?: string;
   permissions: string[];
+  allowedWorkstations?: string[];
 }
 
 interface RolesActions {

@@ -78,7 +78,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier: email, password }),
       });
       
       if (!response.ok) {
@@ -117,6 +117,8 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
       const user = state.entities.users[userId];
       if (user) {
         const updatedUser = { ...user, membership };
+        // Persist to localStorage so the membership survives a page reload
+        localStorage.setItem('chefcito-user', JSON.stringify(updatedUser));
         return {
           entities: {
             ...state.entities,
@@ -129,7 +131,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
       }
       return state;
     });
-    
+
     // Also update on the backend
     fetch(`/api/users/${userId}`, {
       method: 'PUT',

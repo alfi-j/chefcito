@@ -23,7 +23,7 @@ interface SubscriptionCardProps {
   subscription: Subscription | null
   currentMembership: 'free' | 'pro'
   onSubscribe: () => void
-  onCancel: (clientTransactionId: string) => void
+  onCancel: () => void
   isLoading?: boolean
 }
 
@@ -178,7 +178,7 @@ export function SubscriptionCard({
             <Button 
               variant="outline" 
               className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900 dark:hover:bg-red-950"
-              onClick={() => onCancel(subscription.clientTransactionId!)}
+              onClick={onCancel}
               disabled={isLoading}
             >
               {isLoading ? t('profile.subscription.cancelling') : t('profile.subscription.cancel_subscription')}

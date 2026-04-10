@@ -42,7 +42,10 @@ export const initializeDatabase = async () => {
 
   if (mongoose.connection.readyState !== 1) {
     try {
-      await mongoose.connect(MONGODB_URI);
+      // MONGODB_DB overrides the database name in the URI (useful when the URI
+      // doesn't embed a database name, e.g. mongodb://localhost:27017)
+      const options = process.env.MONGODB_DB ? { dbName: process.env.MONGODB_DB } : {};
+      await mongoose.connect(MONGODB_URI, options);
     } catch (error) {
       console.error('Failed to initialize database connection:', error);
       throw error;

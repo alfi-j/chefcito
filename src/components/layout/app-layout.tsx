@@ -29,30 +29,58 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/helpers";
 import { useI18nStore } from "@/lib/stores/i18n-store";
 import { useAuth } from "@/components/layout/auth-provider";
+import { usePermissions } from "@/lib/hooks/use-permissions";
+import { useRolesStore } from "@/lib/stores/roles-store";
 
 // Simple cookie utility
 const eraseCookie = (name: string) => {
   document.cookie = name + '=; Max-Age=-99999999; path=/;';
 };
 
+// Permission required to see each nav route (Owner/Admin always see everything)
+const NAV_PERMISSIONS: Record<string, string> = {
+  '/pos': 'order_management',
+  '/kds': 'kds_access',
+  '/restaurant': 'restaurant_settings',
+  '/reports': 'reports_access',
+};
+
 export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [fontSize, setFontSize] = useState("medium");
   const { t } = useI18nStore();
   const { logout } = useAuth();
+  const [fontSize, setFontSize] = useState("medium");
+  const { can } = usePermissions();
+  const fetchRoles = useRolesStore((s) => s.fetchRoles);
+  const rolesLoaded = useRolesStore((s) => Object.keys(s.entities.roles).length > 0);
 
-  const menuItems = [
+  // Ensure custom roles are loaded so permission checks work for custom roles
+  useEffect(() => {
+    if (!rolesLoaded) {
+      fetchRoles();
+    }
+  }, [rolesLoaded, fetchRoles]);
+
+  const allMenuItems = [
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
     { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ];
+
+  // Filter nav items the current user is allowed to see
+  const menuItems = allMenuItems.filter((item) => {
+    if (item.isHidden) return true; // always keep hidden items (profile)
+    const requiredPermission = NAV_PERMISSIONS[item.href];
+    if (!requiredPermission) return true;
+    return can(requiredPermission);
+  });
 
   const getPageTitle = () => {
     const currentItem = menuItems.find((item) => pathname.startsWith(item.href));

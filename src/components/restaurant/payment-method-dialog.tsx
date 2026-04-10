@@ -45,14 +45,14 @@ export function PaymentMethodDialog({
   const formBanks = paymentsStore.getFormBanks();
   const formNewBank = paymentsStore.getFormNewBank();
   
-  // Reset form when dialog opens/closes or method changes
+  // Reset form when dialog opens/closes or method changes - exclude store from dependencies to prevent infinite loops
   useEffect(() => {
     if (isOpen) {
       paymentsStore.resetForm(method);
     } else {
       paymentsStore.clearForm();
     }
-  }, [isOpen, method, paymentsStore]);
+  }, [isOpen, method]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

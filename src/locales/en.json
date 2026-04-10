@@ -486,6 +486,11 @@
                 "update_role": "Update Role",
                 "create_role": "Create Role"
             },
+            "permission_groups": {
+                "pos_orders": "POS & Orders",
+                "kitchen": "Kitchen",
+                "management": "Management"
+            },
             "permissions": {
                 "manage_menu": "Manage Menu",
                 "manage_orders": "Manage Orders",
@@ -527,8 +532,18 @@
         "users": {
             "title": "Users",
             "description": "Manage restaurant staff members",
-            "add_user": "Add User",
+            "add_user": "Invite Staff",
             "no_users": "No users found. Add your first user to get started.",
+            "invite": {
+                "title": "Create Invite Link",
+                "description": "Generate a one-time link to share with a new staff member. The link expires in 7 days.",
+                "select_role_error": "Please select a role before generating the link.",
+                "generate_error": "Failed to generate invitation link.",
+                "generate_button": "Generate Link",
+                "link_label": "Link",
+                "expires_note": "This link expires in 24 hours and can only be used once.",
+                "close": "Close"
+            },
             "fetch_error": "Failed to fetch users",
             "operation_failed": "Operation failed",
             "save_error": "Error saving user",
@@ -550,15 +565,15 @@
             },
             "dialog": {
                 "edit_title": "Edit User",
-                "add_title": "Add User",
+                "add_title": "Invite Staff Member",
                 "edit_description": "Make changes to the user here.",
-                "add_description": "Add a new user to your restaurant.",
+                "add_description": "Create an account for a new staff member. Share the credentials with them so they can log in.",
                 "name": "Name",
                 "name_placeholder": "Enter user's name",
                 "email": "Email",
                 "email_placeholder": "Enter email address",
-                "password": "Password",
-                "password_placeholder": "Enter password (min 6 characters)",
+                "password": "Temporary Password",
+                "password_placeholder": "Enter temporary password (min 6 characters)",
                 "confirm_password": "Confirm Password",
                 "confirm_password_placeholder": "Confirm password",
                 "role": "Role",
@@ -567,7 +582,7 @@
                 "cancel": "Cancel",
                 "saving": "Saving...",
                 "update_user": "Update User",
-                "create_user": "Create User"
+                "create_user": "Send Invite"
             },
             "status": {
                 "on_shift": "On Shift",
@@ -730,6 +745,8 @@
         "confirm_password": "Confirm Password",
         "login": "Login",
         "sign_up": "Sign Up",
+        "or": "or",
+        "email_or_username": "Email or Username",
         "register_as_owner": "Register as Owner",
         "register_as_staff": "Register as Staff",
         "enter_your_name": "Enter your name",

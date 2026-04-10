@@ -606,6 +606,11 @@
                 "update_role": "Actualizar Rol",
                 "create_role": "Crear Rol"
             },
+            "permission_groups": {
+                "pos_orders": "POS y Pedidos",
+                "kitchen": "Cocina",
+                "management": "Administración"
+            },
             "permissions": {
                 "manage_menu": "Gestionar Menú",
                 "manage_orders": "Gestionar Pedidos",
@@ -634,8 +639,18 @@
         "users": {
             "title": "Usuarios",
             "description": "Gestionar miembros del personal del restaurante",
-            "add_user": "Agregar Usuario",
+            "add_user": "Invitar Personal",
             "no_users": "No se encontraron usuarios. Agrega tu primer usuario para comenzar.",
+            "invite": {
+                "title": "Crear Enlace de Invitación",
+                "description": "Genera un enlace de un solo uso para compartir con un nuevo miembro del personal. El enlace expira en 7 días.",
+                "select_role_error": "Por favor selecciona un rol antes de generar el enlace.",
+                "generate_error": "Error al generar el enlace de invitación.",
+                "generate_button": "Generar Enlace",
+                "link_label": "Enlace",
+                "expires_note": "Este enlace expira en 24 horas y solo puede usarse una vez.",
+                "close": "Cerrar"
+            },
             "fetch_error": "Error al obtener usuarios",
             "operation_failed": "Operación fallida",
             "save_error": "Error al guardar usuario",
@@ -657,15 +672,15 @@
             },
             "dialog": {
                 "edit_title": "Editar Usuario",
-                "add_title": "Agregar Usuario",
+                "add_title": "Invitar Miembro del Personal",
                 "edit_description": "Haz cambios en el usuario aquí.",
-                "add_description": "Agrega un nuevo usuario a tu restaurante.",
+                "add_description": "Crea una cuenta para un nuevo miembro del personal. Comparte las credenciales con ellos para que puedan iniciar sesión.",
                 "name": "Nombre",
                 "name_placeholder": "Ingresa el nombre del usuario",
                 "email": "Correo",
                 "email_placeholder": "Ingresa dirección de correo",
-                "password": "Contraseña",
-                "password_placeholder": "Ingresa contraseña (mín 6 caracteres)",
+                "password": "Contraseña Temporal",
+                "password_placeholder": "Ingresa contraseña temporal (mín 6 caracteres)",
                 "confirm_password": "Confirmar Contraseña",
                 "confirm_password_placeholder": "Confirma la contraseña",
                 "role": "Rol",
@@ -674,7 +689,7 @@
                 "cancel": "Cancelar",
                 "saving": "Guardando...",
                 "update_user": "Actualizar Usuario",
-                "create_user": "Crear Usuario"
+                "create_user": "Enviar Invitación"
             },
             "status": {
                 "on_shift": "En Turno",
@@ -706,6 +721,8 @@
         "confirm_password": "Confirmar Contraseña",
         "login": "Iniciar Sesión",
         "sign_up": "Registrarse",
+        "or": "o",
+        "email_or_username": "Correo o Usuario",
         "register_as_owner": "Registrar como Propietario",
         "register_as_staff": "Registrar como Empleado",
         "enter_your_name": "Ingrese su nombre",

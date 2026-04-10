@@ -162,7 +162,7 @@ export function InventoryItemDialog({
         </div>
         <DialogFooter className="pt-4 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>{t('dialog.cancel')}</Button>
-          <Button type="submit">{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
+          <Button type="button" onClick={handleSubmit}>{isEditMode ? t('dialog.save') : t('dialog.create')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

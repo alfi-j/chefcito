@@ -509,6 +509,7 @@ function MenuList({
         onSave={onSaveItem}
         isOpen={isItemDialogOpen}
         onOpenChange={(open: boolean) => {
+          setIsItemDialogOpen(open);
           if (!open) {
             setEditingItem(undefined);
           }
@@ -866,11 +867,11 @@ export default function RestaurantPage() {
       await deleteMenuItem(id);
     }
   };
-  
+
   // Workstation state is now managed by the store
   const workstationsLoading = workstationsStore.loading;
   const workstationsError = workstationsStore.error;
-  
+
   // Workstation CRUD operations
   const addWorkstation = async (workstationData: Partial<IWorkstation> & { name: string }) => {
     try {
@@ -896,7 +897,7 @@ export default function RestaurantPage() {
     }
   };
 
-
+  // Render loading state - hooks must be called before any conditional return
   if (loading) {
     return (
         <div className="flex justify-center items-center h-full">
@@ -1003,12 +1004,8 @@ export default function RestaurantPage() {
               )}
               
               {activeTab === 'users' && (
-                <Button 
-                  onClick={() => {
-                    // We'll handle opening the user dialog through the UsersList component
-                    const addUserEvent = new CustomEvent('openAddUserDialog');
-                    window.dispatchEvent(addUserEvent);
-                  }} 
+                <Button
+                  onClick={() => window.dispatchEvent(new CustomEvent('openInviteDialog'))}
                   className="flex-1 sm:flex-none"
                 >
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -1091,20 +1088,12 @@ export default function RestaurantPage() {
             
             {activeTab === 'payments' && (
               <>
-                <PaymentMethods 
+                <PaymentMethods
                   paymentMethods={paymentMethods}
                   onSave={(method) => 'id' in method ? updatePaymentMethod(method.id, method) : addPaymentMethod(method)}
                   onDelete={deletePaymentMethod}
                   onToggle={(id, enabled) => updatePaymentMethod(id, {enabled})}
                 />
-                <PaymentMethodDialog 
-                  method={undefined}
-                  onSave={async (methodData: any) => {
-                    await addPaymentMethod(methodData);
-                  }}
-                >
-                  <Button className="hidden" />
-                </PaymentMethodDialog>
               </>
             )}
             

@@ -36,11 +36,11 @@ interface MenuItemDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOpenChange }: MenuItemDialogProps) {
+export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: externalIsOpen, onOpenChange: externalOnOpenChange }: MenuItemDialogProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const menuStore = useMenuStore();
   const { t } = useI18nStore();
-  
+
   // Form state from store
   const formName = menuStore.getFormName();
   const formPrice = menuStore.getFormPrice();
@@ -48,10 +48,10 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen, onOp
   const formCategory = menuStore.getFormCategory();
   const formImageUrl = menuStore.getFormImageUrl();
   const formLinkedModifiers = menuStore.getFormLinkedModifiers();
-  
+
   // Use external open state if provided, otherwise use internal state
-  const open = isOpen !== undefined ? isOpen : internalOpen;
-  const setOpen = onOpenChange || setInternalOpen;
+  const open = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   
   const modifierGroups = categories
     .filter(c => c.isModifierGroup)

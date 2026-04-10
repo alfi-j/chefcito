@@ -53,52 +53,30 @@ function PosPageContent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSendingToKitchen, setIsSendingToKitchen] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
 
   const { t } = useI18nStore();
   const user = useUserStore((state) => state.getCurrentUser());
-  
-  // Verificar autenticación al montar
-  useEffect(() => {
-    const storedUser = localStorage.getItem('chefcito-user');
-    if (!storedUser) {
-      console.log('[POS] No hay usuario autenticado, redirigiendo a /login');
-      router.push('/login');
-    }
-  }, [router]);
-  
-  // Si no hay usuario, mostrar loading
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
 
-  // SWR data fetching
+  // SWR data fetching - MUST be called before any conditional return
   const { data: menuItems = [], error: menuItemsError, isLoading: isLoadingMenu, mutate: mutateMenuItems } = useSWR<MenuItem[]>('/api/menu', fetcher, {
     fallbackData: [],
   });
-  
+
   const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories, mutate: mutateCategories } = useSWR<Category[]>('/api/categories', fetcher, {
     fallbackData: [],
   });
-  
+
   const { data: workstations = [], error: workstationsError, isLoading: isLoadingWorkstations, mutate: mutateWorkstations } = useSWR<any[]>('/api/workstations', fetcher, {
     fallbackData: [],
   });
-  
+
   const { data: orders = [], error: ordersError, isLoading: isLoadingOrders, mutate: mutateOrders } = useSWR<Order[]>('/api/orders', fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
     shouldRetryOnError: true
   });
-  
+
   const { data: paymentMethods = [], error: paymentMethodsError, isLoading: isLoadingPayments, mutate: mutatePayments } = useSWR<Payment[]>(
     '/api/payments',
     fetcher,
@@ -108,7 +86,7 @@ function PosPageContent() {
       shouldRetryOnError: true
     }
   );
-  
+
   // Zustand store
   const {
     items: currentOrderItems,
@@ -126,10 +104,31 @@ function PosPageContent() {
     clearOrder: currentOrderClearOrder,
     updateItemQuantity: currentOrderUpdateItemQuantity
   } = useCurrentOrderStore();
-  
+
   // Computed values from Zustand
   const { subtotal, tax, total } = useCurrentOrderTotals();
   const itemCountByCategory = useCurrentOrderItemCountByCategory();
+
+  // Verificar autenticación al montar
+  useEffect(() => {
+    const storedUser = localStorage.getItem('chefcito-user');
+    if (!storedUser) {
+      console.log('[POS] No hay usuario autenticado, redirigiendo a /login');
+      router.push('/login');
+    }
+  }, [router]);
+
+  // Si no hay usuario, mostrar loading
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Check for editOrder parameter and load the order
   useEffect(() => {

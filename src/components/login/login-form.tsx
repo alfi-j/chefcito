@@ -8,7 +8,6 @@ import { useState } from "react"
 import { toast } from "sonner";
 import { useI18nStore } from "@/lib/stores/i18n-store"
 import { useUserStore } from "@/lib/stores/user-store";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { clearSWRCache } from "@/lib/swr-fetcher"
 
 // Simple cookie utility
@@ -26,13 +25,13 @@ export function LoginForm() {
     const router = useRouter()
     const { t } = useI18nStore();
     const { login } = useUserStore();
-    const [email, setEmail] = useState("");
+    const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         // Using the new login function from user store
-        const success = await login(email, password);
+        const success = await login(identifier, password);
 
         if (success) {
             // IMPORTANT: Clear SWR cache to ensure fresh data for this user
@@ -61,8 +60,8 @@ export function LoginForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-                <Label htmlFor="email">{t('userMenu.email')}</Label>
-                <Input id="email" type="email" placeholder="staff@chefcito.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Label htmlFor="identifier">{t('userMenu.email_or_username')}</Label>
+                <Input id="identifier" type="text" placeholder="email or username" value={identifier} onChange={(e) => setIdentifier(e.target.value)} required autoComplete="username" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="password">{t('userMenu.password')}</Label>
@@ -78,15 +77,14 @@ export function LoginForm() {
 export function SignupForm() {
     const router = useRouter()
     const { t } = useI18nStore();
-    const [activeTab, setActiveTab] = useState<"owner" | "staff">("owner");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (password !== confirmPassword) {
             toast.error(t('userMenu.signup_error_title'), {
                 description: t('userMenu.passwords_do_not_match'),
@@ -94,7 +92,7 @@ export function SignupForm() {
             });
             return;
         }
-        
+
         try {
             const response = await fetch('/api/users', {
                 method: 'POST',
@@ -105,14 +103,14 @@ export function SignupForm() {
                     name,
                     email,
                     password,
-                    role: activeTab === "owner" ? "Owner" : "Staff",
+                    role: "Owner",
                     status: "Off Shift",
                     membership: "free"
                 }),
             });
-            
+
             const data = await response.json();
-            
+
             if (response.ok) {
                 toast.success(t('userMenu.signup_success_title'), {
                     description: t('userMenu.signup_success_desc'),
@@ -135,59 +133,52 @@ export function SignupForm() {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "owner" | "staff")}>
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="owner">{t('userMenu.register_as_owner')}</TabsTrigger>
-                    <TabsTrigger value="staff">{t('userMenu.register_as_staff')}</TabsTrigger>
-                </TabsList>
-            </Tabs>
-            
             <div className="space-y-2">
                 <Label htmlFor="signup-name">{t('userMenu.name')}</Label>
-                <Input 
-                    id="signup-name" 
-                    type="text" 
-                    placeholder={t('userMenu.enter_your_name')} 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    required 
+                <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder={t('userMenu.enter_your_name')}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
                 />
             </div>
-            
+
             <div className="space-y-2">
                 <Label htmlFor="signup-email">{t('userMenu.email')}</Label>
-                <Input 
-                    id="signup-email" 
-                    type="email" 
-                    placeholder="staff@chefcito.com" 
-                    value={email} 
-                    onChange={(e) => setEmail(e.target.value)} 
-                    required 
+                <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="owner@restaurant.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                 />
             </div>
-            
+
             <div className="space-y-2">
                 <Label htmlFor="signup-password">{t('userMenu.password')}</Label>
-                <Input 
-                    id="signup-password" 
-                    type="password" 
-                    value={password} 
-                    onChange={(e) => setPassword(e.target.value)} 
-                    required 
+                <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                 />
             </div>
-            
+
             <div className="space-y-2">
                 <Label htmlFor="signup-confirm-password">{t('userMenu.confirm_password')}</Label>
-                <Input 
-                    id="signup-confirm-password" 
-                    type="password" 
-                    value={confirmPassword} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
-                    required 
+                <Input
+                    id="signup-confirm-password"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
                 />
             </div>
-            
+
             <Button type="submit" className="w-full !mt-6 bg-primary hover:bg-accent text-primary-foreground font-bold">
                 {t('userMenu.sign_up')}
             </Button>

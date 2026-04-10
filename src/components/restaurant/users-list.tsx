@@ -4,16 +4,17 @@ import React, { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  MoreHorizontal, 
-  PlusCircle, 
-  Pencil, 
-  Trash2, 
+import {
+  MoreHorizontal,
+  PlusCircle,
+  Pencil,
+  Trash2,
   Eye,
   User,
   Mail,
   Shield,
-  Clock
+  Clock,
+  Link2
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -26,6 +27,7 @@ import {
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { useUsersStore } from '@/lib/stores/users-store'
 import { toast } from "sonner"
+import { InviteDialog } from './invite-dialog'
 import {
   Table,
   TableBody,
@@ -43,6 +45,16 @@ import { IUser } from '@/models/User';
 // Type alias for cleaner interface
 type User = IUser;
 
+// Type for the UserDialog which requires email to be defined
+interface UserDialogUserData {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+  membership: 'free' | 'pro';
+}
+
 import { IRole } from '@/models/Role';
 
 // Type alias for cleaner interface
@@ -58,19 +70,21 @@ export function UsersList() {
   const error = usersStore.error
   
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
 
-  // Listen for add user event
+  // Listen for events from the restaurant page header buttons
   useEffect(() => {
-    const handleOpenAddUser = () => {
-      handleOpenDialog();
-    };
-    
+    const handleOpenAddUser = () => handleOpenDialog();
+    const handleOpenInvite = () => setIsInviteDialogOpen(true);
+
     window.addEventListener('openAddUserDialog', handleOpenAddUser);
-    
+    window.addEventListener('openInviteDialog', handleOpenInvite);
+
     return () => {
       window.removeEventListener('openAddUserDialog', handleOpenAddUser);
+      window.removeEventListener('openInviteDialog', handleOpenInvite);
     };
   }, []);
 
@@ -78,7 +92,7 @@ export function UsersList() {
   useEffect(() => {
     usersStore.fetchUsers();
     usersStore.fetchRoles();
-  }, [usersStore])
+  }, [])
 
   const handleOpenDialog = (user?: User) => {
     setEditingUser(user || null)
@@ -315,9 +329,22 @@ export function UsersList() {
       <UserDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        user={editingUser}
+        user={editingUser ? {
+          id: editingUser.id,
+          name: editingUser.name,
+          email: editingUser.email || '',
+          role: editingUser.role,
+          status: editingUser.status,
+          membership: editingUser.membership,
+        } as UserDialogUserData : null}
         onSave={handleSaveUser}
         onClose={handleCloseDialog}
+      />
+
+      <InviteDialog
+        isOpen={isInviteDialogOpen}
+        onOpenChange={setIsInviteDialogOpen}
+        roles={roles}
       />
     </div>
   )

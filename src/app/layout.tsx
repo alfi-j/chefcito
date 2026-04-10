@@ -25,7 +25,6 @@ export default function RootLayout({
         {/* Cargar script con atributos para mejor control de carga */}
         <script
           src="https://cdn.payphonetodoesposible.com/box/v1.1/payphone-payment-box.js"
-          type="module"
           async={true}
         />
         <script

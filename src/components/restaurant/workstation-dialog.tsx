@@ -36,7 +36,7 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
     } else {
       workstationsStore.clearForm()
     }
-  }, [isOpen, workstation, workstationsStore])
+  }, [isOpen, workstation])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

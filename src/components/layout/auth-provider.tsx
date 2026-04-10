@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserStore } from "@/lib/stores/user-store";
 import { clearSWRCache } from "@/lib/swr-fetcher";
@@ -15,7 +15,8 @@ const logoutWithCacheClear = () => {
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { setUser, getCurrentUser, logout: userLogout } = useUserStore();
+  const { setUser, getCurrentUser } = useUserStore();
+  const [isLoaded, setIsLoaded] = React.useState(false);
 
   // Load user from localStorage on mount
   useEffect(() => {
@@ -29,24 +30,34 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('chefcito-user');
       }
     }
+    setIsLoaded(true);
   }, [setUser]);
 
   const user = getCurrentUser();
   const isAuthenticated = !!user;
+  // Pages that don't require auth and render without the app layout
+  const isPublicPage = pathname.startsWith('/login')
+    || pathname.startsWith('/register')
+    || pathname.startsWith('/thank-you');
 
-  // Handle authentication redirects
+  // Redirect unauthenticated users after load — must be in an effect, not render
   useEffect(() => {
-    if (!isAuthenticated && !pathname.startsWith('/login')) {
+    if (isLoaded && !isAuthenticated && !isPublicPage) {
       router.push('/login');
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isLoaded, isAuthenticated, isPublicPage, router]);
 
-  // If on login page, just render children without app layout
-  if (pathname.startsWith('/login')) {
+  // Public pages: render without app layout, no auth required
+  if (isPublicPage) {
     return <>{children}</>;
   }
 
-  // If not authenticated, show nothing (redirecting)
+  // Wait for user data to load before making auth decision
+  if (!isLoaded) {
+    return null;
+  }
+
+  // Still unauthenticated — render nothing while the effect redirects
   if (!isAuthenticated) {
     return null;
   }
@@ -59,9 +70,9 @@ export function useAuth() {
   const { getCurrentUser, logout } = useUserStore();
   const user = getCurrentUser();
 
-  return {
+  return useMemo(() => ({
     isAuthenticated: !!user,
     user,
     logout: logoutWithCacheClear
-  };
+  }), [user]);
 }

@@ -8,3 +8,4 @@ export { default as User, type IUser } from './User';
 export { default as Workstation, type IWorkstation } from './Workstation';
 export { default as Restaurant, type IRestaurant } from './Restaurant';
 export { default as Subscription, type ISubscription } from './Subscription';
+export { default as Invitation, type IInvitation } from './Invitation';

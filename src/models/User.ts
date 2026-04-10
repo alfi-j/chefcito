@@ -4,8 +4,11 @@ import * as bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   id: string;
   name: string;
-  email: string;
+  username?: string;
+  email?: string;
   password: string;
+  googleId?: string;
+  restaurantId?: string; // ownerId of the restaurant this user belongs to (staff only)
   role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to support custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
   membership: 'free' | 'pro';
@@ -17,8 +20,11 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  username: { type: String, required: false, default: null, sparse: true, unique: true },
+  email: { type: String, required: false, default: null, sparse: true, unique: true },
+  password: { type: String, required: false, default: null },
+  googleId: { type: String, required: false, default: null },
+  restaurantId: { type: String, required: false, default: null },
   role: {
     type: String,
     required: true
@@ -39,7 +45,7 @@ const UserSchema: Schema = new Schema({
 });
 
 UserSchema.pre<IUser>('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();

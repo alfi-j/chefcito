@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useLayoutEffect, useState, useRef } from 'react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
@@ -16,6 +16,28 @@ declare global {
   }
 }
 
+function waitForPayphoneScript(timeoutMs: number = 10000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.PPaymentButtonBox) {
+      resolve()
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId)
+      reject(new Error('Script de Payphone no cargó. Recarga la página.'))
+    }, timeoutMs)
+
+    const intervalId = setInterval(() => {
+      if (window.PPaymentButtonBox) {
+        clearTimeout(timeoutId)
+        clearInterval(intervalId)
+        resolve()
+      }
+    }, 100)
+  })
+}
+
 export function PayphonePaymentBox({
   userEmail,
   userName,
@@ -23,90 +45,55 @@ export function PayphonePaymentBox({
 }: PayphonePaymentBoxProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isInitializing, setIsInitializing] = useState(false) // Prevents duplicate init calls
+  const containerRef = useRef<HTMLDivElement>(null)
+  const ppbInstanceRef = useRef<any>(null)
+  const isInitializedRef = useRef(false)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     let isMounted = true
 
     const initPayment = async () => {
+      if (isInitializedRef.current) return
+      if (isInitializing) return // Prevent duplicate calls from React StrictMode or double-clicks
+
+      setIsInitializing(true)
       try {
-        // 1. Esperar a que el script de Payphone cargue (ya está en layout.tsx)
-        if (!window.PPaymentButtonBox) {
-          // Esperar máximo 10 segundos
-          for (let i = 0; i < 100; i++) {
-            await new Promise(resolve => setTimeout(resolve, 100))
-            if (window.PPaymentButtonBox) break
-          }
+        // 1. Wait for PayPhone script
+        await waitForPayphoneScript()
+
+        const containerElement = containerRef.current
+        if (!containerElement) {
+          throw new Error('Contenedor de pago no disponible')
         }
 
-        // 2. Validar que el script cargó
-        if (!window.PPaymentButtonBox) {
-          throw new Error('Script de Payphone no cargó. Recarga la página.')
-        }
-
-        // 3. Generar transaction ID
-        const txId = `SUB-${Date.now()}`.substring(0, 50)
-
-        // 4. Crear suscripción en backend
-        const subResponse = await fetch('/api/subscriptions', {
+        // 2. Fetch PayPhone config from server (credentials never exposed to client bundle)
+        const initResponse = await fetch('/api/payphone/init', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userId: userDocumentId,
-            plan: 'pro',
-            amount: 499,
-            clientTransactionId: txId,
+            userName,
+            userEmail,
           }),
         })
 
-        if (!subResponse.ok) {
-          throw new Error('Error al crear suscripción')
+        if (!initResponse.ok) {
+          const data = await initResponse.json().catch(() => ({}))
+          throw new Error(data.error || 'Error al inicializar el pago')
         }
 
-        // 5. Obtener credenciales
-        const storeId = process.env.NEXT_PUBLIC_PAYPHONE_STORE_ID
+        const config = await initResponse.json()
 
-        if (!storeId) {
-          throw new Error('STORE_ID no configurado')
-        }
+        // 3. Render PayPhone button
+        containerElement.innerHTML = ''
 
-        // 6. Configurar Payphone (según documentación oficial)
-        const config = {
-          storeId: storeId,
-          currency: "USD",
-          reference: `Suscripción Pro - ${userName}`.substring(0, 100),
+        const ppbInstance = new window.PPaymentButtonBox(config)
+        ppbInstanceRef.current = ppbInstance
+        ppbInstance.render('pp-button')
 
-          amount: 499,
-          amountWithoutTax: 419,
-          amountWithTax: 80,
-          tax: 0,
-          service: 0,
-          tip: 0,
+        isInitializedRef.current = true
 
-          phoneNumber: "+593999999999",
-          email: userEmail,
-          documentId: "0000000000",
-          identificationType: 1,
-
-          clientTransactionId: txId,
-          lang: "es",
-          defaultMethod: "card",
-          timeZone: -5,
-          lat: "-0.180653",
-          lng: "-78.467838",
-          optionalParameter: txId,
-
-          returnUrl: `${window.location.origin}/thank-you`
-        }
-
-        // 7. Renderizar botón (SIN await - render() NO es async)
-        console.log('[Payphone] Inicializando con config:', config)
-
-        const ppb = new window.PPaymentButtonBox(config)
-        ppb.render('pp-button')
-
-        console.log('[Payphone] Botón renderizado correctamente')
-
-        // Solo actualizar estado si el componente sigue montado
         if (isMounted) {
           setIsLoading(false)
         }
@@ -116,30 +103,47 @@ export function PayphonePaymentBox({
           setError(err instanceof Error ? err.message : 'Error al inicializar Payphone')
           setIsLoading(false)
         }
+      } finally {
+        // Always reset initializing state, even on error
+        if (isMounted) {
+          setIsInitializing(false)
+        }
       }
     }
 
     initPayment()
 
-    return () => { isMounted = false }
-  }, [userEmail, userName, userDocumentId])
+    return () => {
+      isMounted = false
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-muted-foreground">Cargando Payphone...</span>
-      </div>
-    )
-  }
+      if (ppbInstanceRef.current) {
+        if (typeof ppbInstanceRef.current.destroy === 'function') {
+          ppbInstanceRef.current.destroy()
+        }
+        ppbInstanceRef.current = null
+      }
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    )
-  }
+      const container = containerRef.current || document.getElementById('pp-button')
+      if (container) container.innerHTML = ''
 
-  return <div id="pp-button" className="min-h-[100px]" />
+      isInitializedRef.current = false
+    }
+  }, [userEmail, userName, userDocumentId, isInitializing])
+
+  return (
+    <div>
+      {isLoading && (
+        <div className="flex items-center justify-center p-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Cargando Payphone...</span>
+        </div>
+      )}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      <div ref={containerRef} id="pp-button" className="min-h-[100px]" />
+    </div>
+  )
 }

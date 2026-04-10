@@ -8,6 +8,7 @@ export interface ISubscription extends Document {
   clientTransactionId?: string;
   startDate: Date;
   endDate?: Date;
+  nextBillingDate?: Date;
   cancelledAt?: Date;
   cancellationReason?: string;
   amount: number;
@@ -34,6 +35,7 @@ const SubscriptionSchema: Schema = new Schema({
   clientTransactionId: { type: String },
   startDate: { type: Date, required: true, default: Date.now },
   endDate: { type: Date },
+  nextBillingDate: { type: Date },
   cancelledAt: { type: Date },
   cancellationReason: { type: String },
   amount: { type: Number, required: true },

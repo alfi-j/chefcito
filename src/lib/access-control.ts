@@ -16,8 +16,8 @@ interface User {
   [key: string]: any;
 }
 
-// Define predefined roles and their permissions
-const PREDEFINED_ROLES: Record<string, Permission[]> = {
+// Define predefined roles and their permissions (exported for use in hooks)
+export const PREDEFINED_ROLES: Record<string, Permission[]> = {
   'Owner': [
     'menu_access',
     'order_management',
@@ -126,4 +126,46 @@ export function hasFeatureAccess(user: User, feature: string): boolean {
     default:
       return user.role === 'Admin';
   }
+}
+
+/**
+ * Synchronously resolve a user's permissions given pre-fetched custom roles.
+ * Returns the full permissions array for the user.
+ */
+export function resolvePermissions(user: User, customRoles: { name: string; permissions: string[] }[] = []): string[] {
+  if (!user) return [];
+  if (user.role === 'Owner' || user.role === 'Admin') {
+    return [
+      'menu_access', 'order_management', 'kds_access', 'reports_access',
+      'restaurant_settings', 'user_management', 'payment_processing',
+      'inventory_management', 'role_management'
+    ];
+  }
+  if (PREDEFINED_ROLES[user.role]) {
+    return PREDEFINED_ROLES[user.role] as string[];
+  }
+  const role = customRoles.find(r => r.name === user.role);
+  return role?.permissions ?? [];
+}
+
+/**
+ * Synchronously check if user has a specific permission given pre-fetched custom roles.
+ */
+export function canSync(user: User, permission: string, customRoles: { name: string; permissions: string[] }[] = []): boolean {
+  return resolvePermissions(user, customRoles).includes(permission);
+}
+
+/**
+ * Returns allowed KDS workstation IDs for the user.
+ * Empty array means the user can see all workstations.
+ */
+export function resolveAllowedWorkstations(
+  user: User,
+  customRoles: { name: string; permissions: string[]; allowedWorkstations?: string[] }[] = []
+): string[] {
+  if (!user) return [];
+  // Predefined roles (including Owner/Admin) have full workstation access
+  if (user.role === 'Owner' || user.role === 'Admin' || PREDEFINED_ROLES[user.role]) return [];
+  const role = customRoles.find(r => r.name === user.role);
+  return role?.allowedWorkstations ?? [];
 }

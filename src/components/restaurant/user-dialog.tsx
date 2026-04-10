@@ -72,7 +72,7 @@ export function UserDialog({
     } else {
       usersStore.clearForm()
     }
-  }, [isOpen, user, usersStore])
+  }, [isOpen, user])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
