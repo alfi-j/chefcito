@@ -51,46 +51,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // Idempotency check: prevent duplicate subscription creation
-    // This handles cases where React StrictMode double-invokes effects or user double-clicks
-    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-    const recentPending = await Subscription.findOne({
-      userId,
-      status: 'pending',
-      createdAt: { $gte: twoMinutesAgo },
-    });
-
-    if (recentPending) {
-      log('[Init] Recent pending subscription found, returning existing:', recentPending.clientTransactionId);
-      const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
-
-      log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId: recentPending.clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: userEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
-
-      return NextResponse.json({
-        token,
-        storeId,
-        clientTransactionId: recentPending.clientTransactionId,
-        amount: 499,
-        amountWithoutTax: 499,
-        currency: 'USD',
-        reference,
-        email: userEmail,
-        lang: 'es',
-        defaultMethod: 'card',
-        timeZone: -5,
-      });
-    }
-
-    // Generate unique transaction ID only if no recent pending subscription
-    const clientTransactionId = `SUB-${Date.now()}`.substring(0, 50);
-
-    log('[Init] Creating pending subscription for user:', userId, 'clientTransactionId:', clientTransactionId);
-
-    // Cancel any previous pending/active subscriptions
+    // Cancel any previous pending/active subscriptions for this user
     await Subscription.updateMany(
       { userId, status: { $in: ['active', 'pending'] } },
       { status: 'cancelled', cancelledAt: new Date() }
     );
+
+    // Always generate a NEW unique transaction ID — PayPhone rejects duplicates
+    const clientTransactionId = `SUB-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`.substring(0, 50);
 
     // Create pending subscription record
     await Subscription.create({
