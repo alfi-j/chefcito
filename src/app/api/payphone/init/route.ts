@@ -69,8 +69,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Servicio de pagos no configurado' }, { status: 500 });
       }
 
-      const successRedirectUrl = `${baseUrl}/thank-you?clientTransactionId=${encodeURIComponent(recentPending.clientTransactionId)}`;
-      const errorRedirectUrl = `${baseUrl}/thank-you?clientTransactionId=${encodeURIComponent(recentPending.clientTransactionId)}&paymentError=true`;
+      const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
+
+      log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId: recentPending.clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: userEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
 
       return NextResponse.json({
         token,
@@ -78,20 +79,12 @@ export async function POST(request: Request) {
         clientTransactionId: recentPending.clientTransactionId,
         amount: 499,
         amountWithoutTax: 499,
-        amountWithTax: 0,
-        tax: 0,
-        service: 0,
-        tip: 0,
         currency: 'USD',
-        reference: `Suscripción Pro - ${userName}`.substring(0, 100),
+        reference,
         email: userEmail,
         lang: 'es',
         defaultMethod: 'card',
         timeZone: -5,
-        redirectUrl: successRedirectUrl,
-        successUrl: successRedirectUrl,
-        cancelUrl: errorRedirectUrl,
-        failedUrl: errorRedirectUrl,
       });
     }
 
@@ -120,20 +113,16 @@ export async function POST(request: Request) {
 
     log('[Init] Pending subscription created successfully');
 
-    // Build redirect URLs
+    // Build redirect URLs (used internally for tracking, not sent to PayPhone widget)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (!baseUrl) {
       console.error('[Payphone Init] NEXT_PUBLIC_BASE_URL no está configurado en .env.local');
       return NextResponse.json({ error: 'Servicio de pagos no configurado' }, { status: 500 });
     }
 
-    // Use separate URLs for success and error cases
-    // PayPhone "Cajita de Pagos" uses redirectUrl for the final redirect after payment
-    // We append the clientTransactionId so the thank-you page can track the subscription
-    const successRedirectUrl = `${baseUrl}/thank-you?clientTransactionId=${encodeURIComponent(clientTransactionId)}`;
-    const errorRedirectUrl = `${baseUrl}/thank-you?clientTransactionId=${encodeURIComponent(clientTransactionId)}&paymentError=true`;
+    const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
 
-    log('[Init] Redirect URLs configured:', { successRedirectUrl, errorRedirectUrl });
+    log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: userEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
 
     return NextResponse.json({
       token,
@@ -141,24 +130,12 @@ export async function POST(request: Request) {
       clientTransactionId,
       amount: 499,
       amountWithoutTax: 499,
-      amountWithTax: 0,
-      tax: 0,
-      service: 0,
-      tip: 0,
       currency: 'USD',
-      reference: `Suscripción Pro - ${userName}`.substring(0, 100),
+      reference,
       email: userEmail,
       lang: 'es',
       defaultMethod: 'card',
       timeZone: -5,
-      // PayPhone uses redirectUrl as the final destination after payment completion
-      // The widget will redirect here regardless of success/error, but we include
-      // the transaction ID so the thank-you page can check the actual status
-      redirectUrl: successRedirectUrl,
-      // Additional URLs for explicit success/error handling (if PayPhone supports them)
-      successUrl: successRedirectUrl,
-      cancelUrl: errorRedirectUrl,
-      failedUrl: errorRedirectUrl,
     });
   } catch (error) {
     log('[Init] Error:', error);

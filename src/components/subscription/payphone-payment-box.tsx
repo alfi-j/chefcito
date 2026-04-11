@@ -45,22 +45,25 @@ export function PayphonePaymentBox({
 }: PayphonePaymentBoxProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isInitializing, setIsInitializing] = useState(false) // Prevents duplicate init calls
   const containerRef = useRef<HTMLDivElement>(null)
   const ppbInstanceRef = useRef<any>(null)
   const isInitializedRef = useRef(false)
+  const initPromiseRef = useRef<Promise<void> | null>(null)
 
   useLayoutEffect(() => {
     let isMounted = true
 
-    const initPayment = async () => {
-      if (isInitializedRef.current) return
-      if (isInitializing) return // Prevent duplicate calls from React StrictMode or double-clicks
+    // Prevent duplicate initialization (handles React StrictMode)
+    if (isInitializedRef.current) return
+    if (initPromiseRef.current) return // Already initializing
 
-      setIsInitializing(true)
+    const initPayment = async () => {
       try {
         // 1. Wait for PayPhone script
         await waitForPayphoneScript()
+
+        // Check again after await (another effect might have initialized)
+        if (isInitializedRef.current || !isMounted) return
 
         const containerElement = containerRef.current
         if (!containerElement) {
@@ -85,10 +88,10 @@ export function PayphonePaymentBox({
 
         const config = await initResponse.json()
 
-        // 3. Render PayPhone button
+        // 3. Clear container and render PayPhone button
         containerElement.innerHTML = ''
 
-        const ppbInstance = new window.PPaymentButtonBox(config)
+        const ppbInstance = new window.PPaymentButtonBox!(config)
         ppbInstanceRef.current = ppbInstance
         ppbInstance.render('pp-button')
 
@@ -104,13 +107,11 @@ export function PayphonePaymentBox({
           setIsLoading(false)
         }
       } finally {
-        // Always reset initializing state, even on error
-        if (isMounted) {
-          setIsInitializing(false)
-        }
+        initPromiseRef.current = null
       }
     }
 
+    initPromiseRef.current = initPayment()
     initPayment()
 
     return () => {
@@ -123,12 +124,13 @@ export function PayphonePaymentBox({
         ppbInstanceRef.current = null
       }
 
-      const container = containerRef.current || document.getElementById('pp-button')
+      const container = containerRef.current
       if (container) container.innerHTML = ''
 
       isInitializedRef.current = false
+      initPromiseRef.current = null
     }
-  }, [userEmail, userName, userDocumentId, isInitializing])
+  }, [userEmail, userName, userDocumentId])
 
   return (
     <div>
