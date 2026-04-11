@@ -6,28 +6,15 @@ import debug from 'debug';
 
 const log = debug('chefcito:payphone:init');
 
-// Track server start time to warn about missing webhook configuration
-const serverStartTime = Date.now();
-let webhookWarningLogged = false;
-
 /**
- * Check if webhook has been configured by monitoring if any webhook calls have been received.
- * This is a simple heuristic - if 30s have passed since server start and no webhook logs exist,
- * it likely means the webhook URL is not configured in PayPhone's dashboard.
+ * IMPORTANT: PayPhone does NOT support webhooks.
+ *
+ * Payment activation relies entirely on:
+ * 1. The thank-you page (server-side resolution in /thank-you/page.tsx)
+ * 2. The confirm endpoint (POST /api/payphone/confirm) called from client-side poller
+ *
+ * There is no webhook URL to configure in PayPhone's dashboard.
  */
-function checkWebhookConfiguration() {
-  if (webhookWarningLogged) return;
-
-  const timeSinceStart = Date.now() - serverStartTime;
-  if (timeSinceStart > 30_000) {
-    // Note: In a production system, you'd track actual webhook call counts.
-    // For now, we log a reminder that can be checked manually.
-    webhookWarningLogged = true;
-    log('[Init] WEBHOOK REMINDER: Ensure the webhook URL is configured in PayPhone\'s dashboard.');
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '<NEXT_PUBLIC_BASE_URL not set>';
-    log(`[Init] Webhook URL to configure: ${baseUrl}/api/payphone/webhook`);
-  }
-}
 
 // POST /api/payphone/init - Create subscription and return PayPhone config securely
 export async function POST(request: Request) {
@@ -133,19 +120,12 @@ export async function POST(request: Request) {
 
     log('[Init] Pending subscription created successfully');
 
-    // Log webhook URL reminder for configuration
+    // Build redirect URLs
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
     if (!baseUrl) {
       console.error('[Payphone Init] NEXT_PUBLIC_BASE_URL no está configurado en .env.local');
       return NextResponse.json({ error: 'Servicio de pagos no configurado' }, { status: 500 });
     }
-
-    // Reminder: This webhook URL must be configured in PayPhone's dashboard
-    // to receive payment notifications when webhooks are enabled
-    log('[Init] Webhook URL to configure in PayPhone dashboard:', `${baseUrl}/api/payphone/webhook`);
-
-    // Check webhook configuration status (warns if not receiving calls)
-    checkWebhookConfiguration();
 
     // Use separate URLs for success and error cases
     // PayPhone "Cajita de Pagos" uses redirectUrl for the final redirect after payment

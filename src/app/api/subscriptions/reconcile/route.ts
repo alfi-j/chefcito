@@ -65,6 +65,18 @@ export async function GET(request: Request) {
 
         if (payphoneToken) {
           try {
+            // Build request body - prefer the actual PayPhone transaction ID if saved
+            const confirmBody: Record<string, unknown> = {
+              clientTxId: subscription.clientTransactionId,
+            };
+
+            if (subscription.payphoneTransactionId) {
+              confirmBody.id = parseInt(subscription.payphoneTransactionId, 10);
+              log('[Reconcile] Using saved payphoneTransactionId:', subscription.payphoneTransactionId, 'for', subscription.clientTransactionId);
+            } else {
+              log('[Reconcile] No payphoneTransactionId saved, calling Confirm API with clientTxId only for', subscription.clientTransactionId);
+            }
+
             const confirmResponse = await fetch(
               'https://pay.payphonetodoesposible.com/api/button/V2/Confirm',
               {
@@ -73,16 +85,13 @@ export async function GET(request: Request) {
                   'Content-Type': 'application/json',
                   Authorization: `Bearer ${payphoneToken}`,
                 },
-                body: JSON.stringify({
-                  id: 0, // We don't have the transaction ID from PayPhone, use 0
-                  clientTxId: subscription.clientTransactionId,
-                }),
+                body: JSON.stringify(confirmBody),
               }
             );
 
             if (confirmResponse.ok) {
               payphoneStatus = await confirmResponse.json();
-              log('[Reconcile] PayPhone status for', subscription.clientTransactionId, ':', payphoneStatus?.statusCode);
+              log('[Reconcile] PayPhone status for', subscription.clientTransactionId, ':', payphoneStatus?.statusCode, '(hadTransactionId:', !!subscription.payphoneTransactionId, ')');
             } else {
               log('[Reconcile] PayPhone Confirm API failed with status:', confirmResponse.status, 'for', subscription.clientTransactionId);
             }

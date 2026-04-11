@@ -377,6 +377,19 @@ MIT License - see LICENSE file for details.
 
 ## PayPhone Payment Integration - Analysis & Fixes Applied
 
+### ⚠️ CRITICAL DISCOVERY: PayPhone Does NOT Support Webhooks
+
+After thorough investigation of PayPhone's official documentation:
+
+> **PayPhone does NOT use a traditional webhook system** (server-to-server push notifications). 
+> The flow relies on **browser redirect** from PayPhone to your app, then **YOUR server calls PayPhone's Confirm API**.
+
+**This means:**
+- ❌ `/api/payphone/webhook` was DELETED — PayPhone never calls it
+- ✅ `/api/payphone/confirm` is the NEW endpoint WE call to activate subscriptions
+- ✅ The thank-you page is the PRIMARY activation path
+- ⏰ PayPhone **auto-reverses transactions** if Confirm API is not called within 5 minutes
+
 ### Terminal Log Analysis (Session: April 10, 2026)
 
 #### Problems Identified from Production Logs
@@ -387,18 +400,19 @@ chefcito:payphone:init [Init] Creating pending subscription clientTransactionId:
 chefcito:payphone:init [Init] Creating pending subscription clientTransactionId: SUB-1775861284195 (+5ms)
 → Two pending subscriptions created 5ms apart (React StrictMode + double-click)
 
-PROBLEM 2: PAYPHONE CONFIRM API RETURNS 500
+PROBLEM 2: PAYPHONE CONFIRM API RETURNS 500 (ROOT CAUSE)
 chefcito:payphone:thankyou [ResolvePayment] Confirm API failed with status: 500 +947ms
 chefcito:payphone:thankyou [ResolvePayment] Resolved code: '' (empty)
-→ PayPhone Confirm API rejected request (likely due to "id": 0 parameter)
+→ Bug: code sent "id": 0 instead of actual id=83288286 from URL params
+→ PayPhone rejects id:0 as invalid transaction
 
 PROBLEM 3: WEBHOOK NEVER CALLED
-→ NO logs of `chefcito:payphone:webhook` in entire session
-→ Webhook URL not configured in PayPhone dashboard
+→ PayPhone DOES NOT SEND WEBHOOKS — confirmed by official docs
+→ Webhook endpoint was dead code
 
 PROBLEM 4: EXCESSIVE POLLING (20 calls, all returning "pending")
 GET /api/subscriptions/status?clientTransactionId=SUB-xxx (x20 in 60s)
-→ Polling worked but subscription never activated (no webhook + Confirm API failed)
+→ Polling worked but subscription never activated (Confirm API failed with id:0)
 ```
 
 #### Fixes Applied
@@ -407,11 +421,14 @@ GET /api/subscriptions/status?clientTransactionId=SUB-xxx (x20 in 60s)
 |-----|------|-------------|
 | **Idempotency Check** | `src/app/api/payphone/init/route.ts` | Before creating new subscription, checks if a pending one exists within 2 minutes. Returns existing if found. |
 | **Double-Click Protection** | `src/components/subscription/payphone-payment-box.tsx` | Added `isInitializing` state that disables button during API call. Prevents rapid double-clicks. |
+| **Confirm API Fix (ROOT CAUSE)** | `src/app/thank-you/page.tsx` | Changed `id: parseInt(x) || 0` → `...(transactionId ? { id: parseInt(transactionId) } : {})`. Now sends actual PayPhone transaction ID. |
 | **Confirm API Timeout** | `src/app/thank-you/page.tsx` | Added AbortController with 5s timeout. Prevents hanging fetches. |
 | **Confirm API Retry** | `src/app/thank-you/page.tsx` | Retry logic: 2 attempts with 1s delay. Handles transient network errors. |
 | **Error Body Logging** | `src/app/thank-you/page.tsx` | Now logs full response body on Confirm API failure (not just status code). |
-| **Polling Improvements** | `src/components/payment/payment-status-poll.tsx` | Added attempt logging, status display in UI, early exit for `cancelled` state. |
-| **Webhook Reminder** | `src/app/api/payphone/init/route.ts` | Logs webhook URL reminder after 30s of server start. |
+| **Polling Improvements** | `src/components/payment/payment-status-poll.tsx` | 5-min countdown timer, calls confirm endpoint every 3rd poll, urgency UI at <60s, early exit for cancelled. |
+| **Webhook Removed** | `src/app/api/payphone/webhook/route.ts` | DELETED — PayPhone doesn't send webhooks. |
+| **Confirm Endpoint Created** | `src/app/api/payphone/confirm/route.ts` | NEW endpoint that WE call to activate subscriptions via PayPhone Confirm API. |
+| **Reconcile Fix** | `src/app/api/subscriptions/reconcile/route.ts` | Uses actual `payphoneTransactionId` saved in DB instead of `id: 0`. |
 
 #### Current Payment Flow (After Fixes)
 
@@ -425,21 +442,27 @@ GET /api/subscriptions/status?clientTransactionId=SUB-xxx (x20 in 60s)
    ↓
 3. PayPhone widget processes payment
    ↓
-4a. [PRIMARY] PayPhone → POST /api/payphone/webhook
-    → Activates subscription if statusCode = "3"
-    → Idempotent: safe to receive multiple times
-    ↓
-4b. [FALLBACK] Browser → /thank-you?clientTransactionId=SUB-xxx
-    → Server: Calls PayPhone Confirm API (with 5s timeout + 2 retries)
-    → If Confirm API succeeds: activates subscription
-    → If Confirm API fails: uses URL params as fallback
-    → Client: PaymentStatusPoll polls every 3s for 60s
-    ↓
-5. Redirect to /profile?payment=success&txId=SUB-xxx
+4. PayPhone redirects browser to:
+   /thank-you?id=83288286&clientTransactionId=SUB-xxx
+   ↓
+5. Thank-you page (SERVER-SIDE - Primary Activation):
+   → Calls PayPhone Confirm API with ACTUAL id=83288286 ✅
+   → If statusCode="3": activates subscription + User.membership="pro"
+   → Saves payphoneTransactionId in DB for future reconciliation
+   ↓
+6. If server-side failed, PaymentStatusPoll (CLIENT-SIDE - Fallback):
+   → Every 3s: GET /api/subscriptions/status
+   → Every 3rd poll: POST /api/payphone/confirm (activates if approved)
+   → 5-minute countdown timer (PayPhone reverses after 5 min)
+   → Urgency UI when < 60 seconds remain
+   ↓
+7. Redirect to /profile?payment=success&txId=SUB-xxx
    → Profile: Triple-refresh (subscription + user + store) with 500ms delay
    ↓
-6. [SAFETY NET] GET /api/subscriptions/reconcile
-   → Finds pending > 10 min → queries PayPhone → activates if approved
+8. [SAFETY NET] GET /api/subscriptions/reconcile
+   → Finds pending > 10 min
+   → Calls Confirm API with saved payphoneTransactionId
+   → Activates if approved
 ```
 
 #### CRITICAL: Action Required for Production

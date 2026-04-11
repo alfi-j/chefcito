@@ -66,8 +66,8 @@ async function resolvePayment(
               Authorization: `Bearer ${payphoneToken}`,
             },
             body: JSON.stringify({
-              id: parseInt(transactionId ?? '') || 0,
               clientTxId: clientTransactionId,
+              ...(transactionId ? { id: parseInt(transactionId, 10) } : {}),
             }),
             signal: abortController.signal,
           }
