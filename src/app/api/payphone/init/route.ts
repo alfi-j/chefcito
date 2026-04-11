@@ -62,13 +62,6 @@ export async function POST(request: Request) {
 
     if (recentPending) {
       log('[Init] Recent pending subscription found, returning existing:', recentPending.clientTransactionId);
-      // Return config with existing clientTransactionId to prevent duplicates
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-      if (!baseUrl) {
-        console.error('[Payphone Init] NEXT_PUBLIC_BASE_URL no está configurado en .env.local');
-        return NextResponse.json({ error: 'Servicio de pagos no configurado' }, { status: 500 });
-      }
-
       const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
 
       log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId: recentPending.clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: userEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
@@ -112,13 +105,6 @@ export async function POST(request: Request) {
     });
 
     log('[Init] Pending subscription created successfully');
-
-    // Build redirect URLs (used internally for tracking, not sent to PayPhone widget)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.error('[Payphone Init] NEXT_PUBLIC_BASE_URL no está configurado en .env.local');
-      return NextResponse.json({ error: 'Servicio de pagos no configurado' }, { status: 500 });
-    }
 
     const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
 
