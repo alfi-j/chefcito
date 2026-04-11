@@ -36,7 +36,6 @@ export function GoogleButton({ role }: GoogleButtonProps) {
       if (!window.google || !containerRef.current) return;
 
       if (!clientId) {
-        // Don't initialize Google GIS if no client ID is configured
         return;
       }
 
@@ -76,7 +75,6 @@ export function GoogleButton({ role }: GoogleButtonProps) {
     };
 
     if (!clientId) {
-      // If no client ID, still load the script but we'll show a placeholder
       return;
     }
 
@@ -85,7 +83,6 @@ export function GoogleButton({ role }: GoogleButtonProps) {
       return;
     }
 
-    // Load the GIS script if not already present
     const existing = document.getElementById("google-gis-script");
     if (existing) {
       existing.addEventListener("load", initButton);
@@ -98,6 +95,9 @@ export function GoogleButton({ role }: GoogleButtonProps) {
     script.async = true;
     script.defer = true;
     script.onload = initButton;
+    script.onerror = () => {
+      console.error('[GoogleButton] Failed to load Google Identity Services script');
+    };
     document.head.appendChild(script);
   }, [role, router, setUser]);
 
