@@ -47,6 +47,18 @@ export default function ProfilePage() {
           const data = await response.json()
           if (data.hasSubscription && data.subscription) {
             setSubscription(data.subscription)
+
+            // Si la suscripción está activa pero el usuario sigue siendo "free",
+            // sincronizar el membership desde la base de datos
+            if (data.subscription.status === 'active' && user?.membership !== 'pro') {
+              const userResponse = await fetch(`/api/users/${user.id}`)
+              if (userResponse.ok) {
+                const userData = await userResponse.json()
+                if (userData && !userData.error && userData.membership === 'pro') {
+                  useUserStore.getState().setUser(userData)
+                }
+              }
+            }
           }
         }
       } catch (error) {
@@ -55,7 +67,7 @@ export default function ProfilePage() {
     }
 
     loadSubscription()
-  }, [user?.id])
+  }, [user?.id, user?.membership])
 
   // Manejar mensajes de resultado de pago desde la URL
   useEffect(() => {
