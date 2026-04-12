@@ -48,10 +48,9 @@ export async function POST(request: Request) {
       // === EXISTING USER — Login flow ===
       log('[Google] Existing user found:', user.id);
 
-      // Link googleId if not already set
+      // Link googleId if not already set — use updateOne to avoid full doc validation
       if (!user.googleId) {
-        user.googleId = googleId;
-        await user.save();
+        await User.updateOne({ _id: user._id }, { $set: { googleId } });
         log('[Google] Linked googleId to existing user');
       }
     } else {
@@ -79,7 +78,7 @@ export async function POST(request: Request) {
       if (userRole === 'Owner') {
         const restaurantId = uuidv4();
         const restaurantName = `${name || 'Mi'} Restaurante`;
-        
+
         const restaurant = new Restaurant({
           id: restaurantId,
           name: restaurantName,
@@ -87,9 +86,8 @@ export async function POST(request: Request) {
         });
         await restaurant.save();
 
-        // Link the user to the restaurant
-        user.restaurantId = restaurantId;
-        await user.save();
+        // Link the user to the restaurant — use updateOne to avoid validation
+        await User.updateOne({ id: userId }, { $set: { restaurantId } });
         log('[Google] Restaurant created:', restaurantId, 'for user:', userId);
       }
     }
