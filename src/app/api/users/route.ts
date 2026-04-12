@@ -46,7 +46,6 @@ export async function POST(request: Request, context: any = {}) {
       password: hashedPassword,
       role: body.role,
       status: body.status || 'Off Shift',
-      membership: body.membership || 'free',
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -175,14 +174,13 @@ export async function PUT(request: Request) {
       }
       
       // Update user general info
-      const { role, membership, status } = body;
-      
+      const { role, status } = body;
+
       // Update user
       const updatedUser = await User.findOneAndUpdate(
         { id },
-        { 
+        {
           ...(role && { role }),
-          ...(membership && { membership }),
           ...(status && { status })
         },
         { new: true }

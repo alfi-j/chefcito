@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
-import User from '@/models/User';
+import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
 import debug from 'debug';
 
@@ -118,12 +118,12 @@ export async function GET(request: Request) {
           }
           await subscription.save();
 
-          // Update user membership
-          const user = await User.findOne({ id: subscription.userId });
-          if (user && user.membership !== 'pro') {
-            user.membership = 'pro';
-            await user.save();
-            log('[Reconcile] User membership updated to pro:', user.id);
+          // Update restaurant membership
+          const restaurant = await Restaurant.findOne({ id: subscription.restaurantId });
+          if (restaurant && restaurant.membership !== 'pro') {
+            restaurant.membership = 'pro';
+            await restaurant.save();
+            log('[Reconcile] Restaurant membership updated to pro:', restaurant.id);
           }
 
           results.activated++;

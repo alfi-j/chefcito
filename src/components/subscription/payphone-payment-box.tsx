@@ -5,9 +5,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
 interface PayphonePaymentBoxProps {
-  userEmail: string
-  userName: string
-  userDocumentId: string
+  ownerEmail: string
+  restaurantName: string
+  restaurantId: string
 }
 
 declare global {
@@ -39,9 +39,9 @@ function waitForPayphoneScript(timeoutMs: number = 10000): Promise<void> {
 }
 
 export function PayphonePaymentBox({
-  userEmail,
-  userName,
-  userDocumentId
+  ownerEmail,
+  restaurantName,
+  restaurantId
 }: PayphonePaymentBoxProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -75,9 +75,9 @@ export function PayphonePaymentBox({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: userDocumentId,
-            userName,
-            userEmail,
+            restaurantId,
+            restaurantName,
+            ownerEmail,
           }),
         })
 
@@ -130,7 +130,7 @@ export function PayphonePaymentBox({
       isInitializedRef.current = false
       initPromiseRef.current = null
     }
-  }, [userEmail, userName, userDocumentId])
+  }, [ownerEmail, restaurantName, restaurantId])
 
   return (
     <div>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
-import User from '@/models/User';
+import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
 import debug from 'debug';
 
@@ -192,18 +192,18 @@ export async function POST(request: Request) {
 
       await subscription.save();
 
-      // Update user membership to pro
-      const user = await User.findOne({ id: subscription.userId });
-      if (user) {
-        if (user.membership !== 'pro') {
-          user.membership = 'pro';
-          await user.save();
-          log('[Confirm] User membership updated to pro:', user.id);
+      // Update restaurant membership to pro
+      const restaurant = await Restaurant.findOne({ id: subscription.restaurantId });
+      if (restaurant) {
+        if (restaurant.membership !== 'pro') {
+          restaurant.membership = 'pro';
+          await restaurant.save();
+          log('[Confirm] Restaurant membership updated to pro:', restaurant.id);
         } else {
-          log('[Confirm] User membership already pro, skipping update');
+          log('[Confirm] Restaurant membership already pro, skipping update');
         }
       } else {
-        log('[Confirm] WARNING: User not found for subscription:', subscription.userId);
+        log('[Confirm] WARNING: Restaurant not found for subscription:', subscription.restaurantId);
       }
 
       log('[Confirm] Subscription activated:', subscription._id);

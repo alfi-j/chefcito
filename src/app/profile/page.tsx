@@ -15,7 +15,7 @@ import { toast } from 'sonner'
 
 interface Subscription {
   _id: string
-  userId: string
+  restaurantId: string
   plan: 'free' | 'pro'
   status: 'active' | 'cancelled' | 'expired' | 'pending'
   startDate: string
@@ -28,21 +28,22 @@ interface Subscription {
 export default function ProfilePage() {
   const { t } = useI18nStore()
   const user = useUserStore((state) => state.getCurrentUser())
-  const updateMembership = useUserStore((state) => state.updateMembership)
   const refreshUser = useUserStore((state) => state.refreshUser)
-  
+
   const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [restaurantMembership, setRestaurantMembership] = useState<'free' | 'pro'>('free')
   const [isLoading, setIsLoading] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [paymentMode, setPaymentMode] = useState(false)
+  const [isOwner, setIsOwner] = useState(false)
 
-  // Cargar suscripción al montar el componente y sincronizar membership
+  // Cargar suscripción y membresía del restaurante al montar
   useEffect(() => {
-    if (!user?.id) return
+    if (!user?.id || !user?.restaurantId) return
 
     const loadSubscription = async () => {
       try {
-        const response = await fetch(`/api/subscriptions?userId=${user.id}`)
+        const response = await fetch(`/api/subscriptions?restaurantId=${user.restaurantId}`)
         if (response.ok) {
           const data = await response.json()
           if (data.hasSubscription && data.subscription) {
@@ -50,21 +51,24 @@ export default function ProfilePage() {
           }
         }
 
-        // Always sync membership from DB on mount — fixes stale localStorage issue
-        const userResponse = await fetch(`/api/users/${user.id}`)
-        if (userResponse.ok) {
-          const userData = await userResponse.json()
-          if (userData && !userData.error && userData.membership !== user.membership) {
-            useUserStore.getState().setUser(userData)
+        // Load restaurant membership
+        const restaurantResponse = await fetch(`/api/restaurants/${user.restaurantId}`)
+        if (restaurantResponse.ok) {
+          const restaurantData = await restaurantResponse.json()
+          if (restaurantData && !restaurantData.error) {
+            setRestaurantMembership(restaurantData.membership || 'free')
           }
         }
+
+        // Check if current user is the owner
+        setIsOwner(user.role === 'Owner')
       } catch (error) {
         console.error('Error loading subscription:', error)
       }
     }
 
     loadSubscription()
-  }, [user?.id])
+  }, [user?.id, user?.restaurantId, user?.role])
 
   // Manejar mensajes de resultado de pago desde la URL
   useEffect(() => {
@@ -76,18 +80,16 @@ export default function ProfilePage() {
       if (paymentStatus === 'success') {
         toast.success(t('profile.subscription.payment_success'))
 
-        // Force a complete refresh of user data and subscription after payment
-        // Use a delay to ensure MongoDB has had time to update (especially from webhook)
+        // Force a complete refresh of restaurant subscription after payment
         const refreshAfterPayment = async () => {
           await new Promise(resolve => setTimeout(resolve, 500))
 
-          // Read current user directly from store (avoids stale closure)
           const currentUser = useUserStore.getState().getCurrentUser()
-          if (!currentUser?.id) return
+          if (!currentUser?.id || !currentUser?.restaurantId) return
 
           // 1. Reload subscription directly
           try {
-            const subResponse = await fetch(`/api/subscriptions?userId=${currentUser.id}`)
+            const subResponse = await fetch(`/api/subscriptions?restaurantId=${currentUser.restaurantId}`)
             if (subResponse.ok) {
               const subData = await subResponse.json()
               if (subData.hasSubscription && subData.subscription) {
@@ -98,18 +100,17 @@ export default function ProfilePage() {
             console.error('Error reloading subscription after payment:', error)
           }
 
-          // 2. Refresh membership from DB via user API
+          // 2. Reload restaurant membership
           try {
-            const userResponse = await fetch(`/api/users/${currentUser.id}`)
-            if (userResponse.ok) {
-              const userData = await userResponse.json()
-              if (userData && !userData.error) {
-                const plainUser = JSON.parse(JSON.stringify(userData))
-                useUserStore.getState().setUser(plainUser)
+            const restaurantResponse = await fetch(`/api/restaurants/${currentUser.restaurantId}`)
+            if (restaurantResponse.ok) {
+              const restaurantData = await restaurantResponse.json()
+              if (restaurantData && !restaurantData.error) {
+                setRestaurantMembership(restaurantData.membership || 'free')
               }
             }
           } catch (error) {
-            console.error('Error refreshing user after payment:', error)
+            console.error('Error reloading restaurant membership after payment:', error)
           }
 
           // 3. Also trigger the store's refreshUser if email is available
@@ -130,10 +131,10 @@ export default function ProfilePage() {
   }, [])
 
   const loadSubscription = async () => {
-    if (!user?.id) return
-    
+    if (!user?.restaurantId) return
+
     try {
-      const response = await fetch(`/api/subscriptions?userId=${user.id}`)
+      const response = await fetch(`/api/subscriptions?restaurantId=${user.restaurantId}`)
       if (response.ok) {
         const data = await response.json()
         if (data.hasSubscription && data.subscription) {
@@ -164,7 +165,7 @@ export default function ProfilePage() {
 
       if (response.ok) {
         toast.success(t('profile.subscription.cancelled_success'))
-        updateMembership(user!.id, 'free')
+        setRestaurantMembership('free')
         setSubscription(null)
         setShowCancelDialog(false)
       } else {
@@ -208,17 +209,18 @@ export default function ProfilePage() {
         {/* Sección de Suscripción */}
         <SubscriptionCard
           subscription={subscription}
-          currentMembership={user?.membership as 'free' | 'pro' || 'free'}
+          currentMembership={restaurantMembership}
           onSubscribe={handleSubscribe}
           onCancel={() => setShowCancelDialog(true)}
           isLoading={isLoading}
+          isOwner={isOwner}
         />
       </div>
 
       <Separator />
 
       {/* Diálogo de Pago con Payphone */}
-      {paymentMode && user && (
+      {paymentMode && user && isOwner && (
         <Card>
           <CardHeader>
             <CardTitle>Completar Suscripción Pro</CardTitle>
@@ -228,9 +230,9 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <PayphonePaymentBox
-              userEmail={user.email}
-              userName={user.name}
-              userDocumentId={user.id}
+              ownerEmail={user.email}
+              restaurantName={user.name}
+              restaurantId={user.restaurantId || ''}
             />
             <div className="flex justify-between items-center mt-4 pt-4 border-t">
               <p className="text-xs text-muted-foreground">

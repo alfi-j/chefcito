@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
-import User from '@/models/User';
+import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
 import debug from 'debug';
 
@@ -22,20 +22,20 @@ export async function POST(request: Request) {
     await initializeDatabase();
 
     const body = await request.json();
-    const { userId, userName, userEmail } = body;
+    const { restaurantId, restaurantName, ownerEmail } = body;
 
-    if (!userId || !userName || !userEmail) {
+    if (!restaurantId || !restaurantName || !ownerEmail) {
       return NextResponse.json(
-        { error: 'userId, userName y userEmail son requeridos' },
+        { error: 'restaurantId, restaurantName y ownerEmail son requeridos' },
         { status: 400 }
       );
     }
 
-    // Verify user exists
-    const user = await User.findOne({ id: userId });
-    if (!user) {
+    // Verify restaurant exists
+    const restaurant = await Restaurant.findOne({ id: restaurantId });
+    if (!restaurant) {
       return NextResponse.json(
-        { error: 'Usuario no encontrado' },
+        { error: 'Restaurante no encontrado' },
         { status: 404 }
       );
     }
@@ -51,9 +51,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // Cancel any previous pending/active subscriptions for this user
+    // Cancel any previous pending/active subscriptions for this restaurant
     await Subscription.updateMany(
-      { userId, status: { $in: ['active', 'pending'] } },
+      { restaurantId, status: { $in: ['active', 'pending'] } },
       { status: 'cancelled', cancelledAt: new Date() }
     );
 
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
 
     // Create pending subscription record
     await Subscription.create({
-      userId,
+      restaurantId,
       plan: 'pro',
       status: 'pending',
       amount: 499,
@@ -74,9 +74,9 @@ export async function POST(request: Request) {
 
     log('[Init] Pending subscription created successfully');
 
-    const reference = `Suscripción Pro - ${userName}`.substring(0, 100);
+    const reference = `Suscripción Pro - ${restaurantName}`.substring(0, 100);
 
-    log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: userEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
+    log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: ownerEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
 
     return NextResponse.json({
       token,
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
       amountWithoutTax: 499,
       currency: 'USD',
       reference,
-      email: userEmail,
+      email: ownerEmail,
       lang: 'es',
       defaultMethod: 'card',
       timeZone: -5,

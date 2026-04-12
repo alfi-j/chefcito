@@ -1,27 +1,27 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 import Subscription from '@/models/Subscription';
-import User from '@/models/User';
+import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
 
-// GET /api/subscriptions - Obtener suscripción del usuario
+// GET /api/subscriptions - Obtener suscripción del restaurante
 export async function GET(request: Request) {
   try {
     await initializeDatabase();
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const restaurantId = searchParams.get('restaurantId');
 
-    if (!userId) {
+    if (!restaurantId) {
       return NextResponse.json(
-        { error: 'User ID es requerido' },
+        { error: 'Restaurant ID es requerido' },
         { status: 400 }
       );
     }
 
-    // Buscar suscripciones activas o pendientes del usuario
+    // Buscar suscripciones activas o pendientes del restaurante
     const subscription = await Subscription.findOne({
-      userId,
+      restaurantId,
       status: { $in: ['active', 'pending'] }
     }).sort({ createdAt: -1 });
 
@@ -53,14 +53,14 @@ export async function POST(request: Request) {
     console.log('[Subscription API] Conexión a MongoDB establecida')
 
     const body = await request.json()
-    const { userId, plan, amount, clientTransactionId, payphoneTransactionId } = body
+    const { restaurantId, plan, amount, clientTransactionId, payphoneTransactionId } = body
 
-    console.log('[Subscription API] Datos recibidos:', { userId, plan, amount, clientTransactionId })
+    console.log('[Subscription API] Datos recibidos:', { restaurantId, plan, amount, clientTransactionId })
 
-    if (!userId || !plan || !amount) {
+    if (!restaurantId || !plan || !amount) {
       console.error('[Subscription API] Faltan datos requeridos')
       return NextResponse.json(
-        { error: 'userId, plan y amount son requeridos' },
+        { error: 'restaurantId, plan y amount son requeridos' },
         { status: 400 }
       )
     }
@@ -73,27 +73,27 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verificar si el usuario existe
-    const user = await User.findOne({ id: userId })
-    console.log('[Subscription API] Usuario encontrado:', user ? 'Sí' : 'No')
-    
-    if (!user) {
+    // Verificar si el restaurante existe
+    const restaurant = await Restaurant.findOne({ id: restaurantId })
+    console.log('[Subscription API] Restaurante encontrado:', restaurant ? 'Sí' : 'No')
+
+    if (!restaurant) {
       return NextResponse.json(
-        { error: 'Usuario no encontrado' },
+        { error: 'Restaurante no encontrado' },
         { status: 404 }
       )
     }
 
     // Cancelar suscripciones activas previas
     await Subscription.updateMany(
-      { userId, status: { $in: ['active', 'pending'] } },
+      { restaurantId, status: { $in: ['active', 'pending'] } },
       { status: 'cancelled', cancelledAt: new Date() }
     )
 
     // Crear nueva suscripción
     console.log('[Subscription API] Creando suscripción...')
     const subscription = await Subscription.create({
-      userId,
+      restaurantId,
       plan,
       status: 'pending',
       amount,

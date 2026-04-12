@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
-import User from '@/models/User';
+import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
 
 // PUT /api/subscriptions/[id] - Actualizar suscripción (activar después de pago)
@@ -53,10 +53,10 @@ export async function PUT(
     if (status === 'cancelled') {
       subscription.cancelledAt = new Date();
       subscription.cancellationReason = cancellationReason || 'Cancelado por el usuario';
-      
-      // Actualizar membresía del usuario a 'free'
-      await User.findOneAndUpdate(
-        { id: subscription.userId },
+
+      // Actualizar membresía del restaurante a 'free'
+      await Restaurant.findOneAndUpdate(
+        { id: subscription.restaurantId },
         { membership: 'free' }
       );
     }
@@ -64,10 +64,10 @@ export async function PUT(
     // Manejar activación
     if (status === 'active') {
       subscription.startDate = new Date();
-      
-      // Actualizar membresía del usuario a 'pro'
-      await User.findOneAndUpdate(
-        { id: subscription.userId },
+
+      // Actualizar membresía del restaurante a 'pro'
+      await Restaurant.findOneAndUpdate(
+        { id: subscription.restaurantId },
         { membership: 'pro' }
       );
     }
@@ -119,9 +119,9 @@ export async function DELETE(
     subscription.cancellationReason = reason || 'Cancelado por el usuario';
     await subscription.save();
 
-    // Actualizar membresía del usuario a 'free'
-    await User.findOneAndUpdate(
-      { id: subscription.userId },
+    // Actualizar membresía del restaurante a 'free'
+    await Restaurant.findOneAndUpdate(
+      { id: subscription.restaurantId },
       { membership: 'free' }
     );
 

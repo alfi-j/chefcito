@@ -29,7 +29,6 @@ interface User {
   email: string;
   role: string;
   status: 'On Shift' | 'Off Shift' | 'On Break';
-  membership: 'free' | 'pro';
 }
 
 interface Role {
@@ -103,7 +102,6 @@ export function UserDialog({
         email: formEmail.trim().toLowerCase(),
         role: formRole,
         status: formStatus,
-        ...(user ? {} : { membership: 'free' }), // New users get free membership by default
         ...(formPassword && { password: formPassword })
       }
       

@@ -6,7 +6,7 @@ import { PaymentPending } from '@/components/payment/payment-pending'
 import { PaymentStatusPoll } from '@/components/payment/payment-status-poll'
 import { PayphoneEscapeFrame } from '@/components/payment/payphone-escape-frame'
 import Subscription from '@/models/Subscription'
-import User from '@/models/User'
+import Restaurant from '@/models/Restaurant'
 import { initializeDatabase } from '@/lib/database-service'
 import debug from 'debug'
 
@@ -127,7 +127,7 @@ async function resolvePayment(
       subscription.startDate = now
       subscription.endDate = nextBilling
       subscription.nextBillingDate = nextBilling
-      await User.findOneAndUpdate({ id: subscription.userId }, { membership: 'pro' })
+      await Restaurant.findOneAndUpdate({ id: subscription.restaurantId }, { membership: 'pro' })
       await subscription.save()
       log('[ResolvePayment] Suscripción activada para clientTransactionId:', clientTransactionId)
     } else if (subscription?.status === 'active') {

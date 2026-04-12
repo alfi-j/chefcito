@@ -9,9 +9,8 @@ export interface IUser extends Document {
   password: string;
   googleId?: string;
   restaurantId?: string; // ownerId of the restaurant this user belongs to (staff only)
-  role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to support custom roles
+  role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to allow custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
-  membership: 'free' | 'pro';
   createdAt?: Date;
   updatedAt?: Date;
   comparePassword: (password: string) => Promise<boolean>;
@@ -34,11 +33,6 @@ const UserSchema: Schema = new Schema({
     type: String,
     required: true,
     enum: ['On Shift', 'Off Shift', 'On Break']
-  },
-  membership: {
-    type: String,
-    required: true,
-    enum: ['free', 'pro']
   }
 }, {
   timestamps: true // This will automatically manage createdAt and updatedAt

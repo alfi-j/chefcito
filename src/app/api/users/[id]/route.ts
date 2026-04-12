@@ -98,14 +98,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     
     // Update user general info
-    const { role, membership, status } = body;
-    
+    const { role, status } = body;
+
     // Update user
     const updatedUser = await User.findOneAndUpdate(
       { id },
-      { 
+      {
         ...(role && { role }),
-        ...(membership && { membership }),
         ...(status && { status })
       },
       { new: true }

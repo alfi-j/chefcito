@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ISubscription extends Document {
-  userId: string;
+  restaurantId: string;
   plan: 'free' | 'pro';
   status: 'active' | 'cancelled' | 'expired' | 'pending';
   payphoneTransactionId?: string;
@@ -19,7 +19,7 @@ export interface ISubscription extends Document {
 }
 
 const SubscriptionSchema: Schema = new Schema({
-  userId: { type: String, required: true, index: true },
+  restaurantId: { type: String, required: true, index: true },
   plan: {
     type: String,
     required: true,
@@ -49,7 +49,7 @@ const SubscriptionSchema: Schema = new Schema({
 });
 
 // Index para búsquedas rápidas
-SubscriptionSchema.index({ userId: 1, status: 1 });
+SubscriptionSchema.index({ restaurantId: 1, status: 1 });
 SubscriptionSchema.index({ clientTransactionId: 1 }, { unique: true });
 
 // Método para cancelar suscripción

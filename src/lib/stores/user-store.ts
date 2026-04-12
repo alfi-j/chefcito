@@ -9,7 +9,8 @@ interface User {
   password: string;
   role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to support custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
-  membership: 'free' | 'pro';
+  restaurantId?: string;
+  restaurantMembership?: 'free' | 'pro'; // Membership belongs to the restaurant, not the user
   createdAt?: Date;
   updatedAt?: Date;
   [key: string]: any; // Allow additional properties
@@ -28,12 +29,12 @@ interface NormalizedState {
 interface NormalizedUserState extends NormalizedState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  updateMembership: (userId: string, membership: 'free' | 'pro') => void;
   updateUserRole: (userId: string, role: 'Owner' | 'Admin' | 'Staff' | string) => void;
   refreshUser: (currentEmail: string) => Promise<void>;
   updateUserOptimistically: (userId: string, updates: Partial<User>) => void;
   setUser: (user: User | null) => void;
-  
+  updateRestaurantMembership: (restaurantId: string, membership: 'free' | 'pro') => void;
+
   // Selector helpers
   getCurrentUser: () => User | null;
   getUserById: (id: string) => User | undefined;
@@ -112,35 +113,28 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
     localStorage.removeItem('chefcito-user');
   },
   
-  updateMembership: (userId, membership) => {
+  updateRestaurantMembership: (restaurantId, membership) => {
     set((state) => {
-      const user = state.entities.users[userId];
-      if (user) {
-        const updatedUser = { ...user, membership };
-        // Persist to localStorage so the membership survives a page reload
-        localStorage.setItem('chefcito-user', JSON.stringify(updatedUser));
+      const updatedUsers = { ...state.entities.users };
+      let userUpdated = false;
+
+      // Update all users belonging to this restaurant
+      for (const [id, user] of Object.entries(updatedUsers)) {
+        if (user.restaurantId === restaurantId && user.restaurantMembership !== membership) {
+          updatedUsers[id] = { ...user, restaurantMembership: membership };
+          userUpdated = true;
+        }
+      }
+
+      if (userUpdated) {
         return {
           entities: {
             ...state.entities,
-            users: {
-              ...state.entities.users,
-              [userId]: updatedUser
-            }
+            users: updatedUsers
           }
         };
       }
       return state;
-    });
-
-    // Also update on the backend
-    fetch(`/api/users/${userId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ membership }),
-    }).catch(error => {
-      // Membership update error handled silently
     });
   },
   

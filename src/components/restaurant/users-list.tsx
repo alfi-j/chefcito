@@ -52,7 +52,6 @@ interface UserDialogUserData {
   email: string;
   role: string;
   status: 'On Shift' | 'Off Shift' | 'On Break';
-  membership: 'free' | 'pro';
 }
 
 import { IRole } from '@/models/Role';
@@ -335,7 +334,6 @@ export function UsersList() {
           email: editingUser.email || '',
           role: editingUser.role,
           status: editingUser.status,
-          membership: editingUser.membership,
         } as UserDialogUserData : null}
         onSave={handleSaveUser}
         onClose={handleCloseDialog}

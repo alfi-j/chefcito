@@ -57,7 +57,6 @@ export async function POST(request: Request) {
       role: invitation.role,
       restaurantId: invitation.restaurantId,
       status: 'Off Shift',
-      membership: 'free',
     });
     await user.save();
 

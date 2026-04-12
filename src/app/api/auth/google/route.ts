@@ -55,7 +55,6 @@ export async function POST(request: Request) {
         password: null,
         role,
         status: 'Off Shift',
-        membership: 'free',
       });
       await user.save();
     }

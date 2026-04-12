@@ -4,6 +4,7 @@ export interface IRestaurant extends Document {
   id: string;
   name: string;
   ownerId: string;
+  membership: 'free' | 'pro';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -12,6 +13,12 @@ const RestaurantSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   ownerId: { type: String, required: true },
+  membership: {
+    type: String,
+    required: true,
+    enum: ['free', 'pro'],
+    default: 'free'
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }, {

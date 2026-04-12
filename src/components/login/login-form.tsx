@@ -104,8 +104,7 @@ export function SignupForm() {
                     email,
                     password,
                     role: "Owner",
-                    status: "Off Shift",
-                    membership: "free"
+                    status: "Off Shift"
                 }),
             });
 

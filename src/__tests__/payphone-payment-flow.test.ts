@@ -19,7 +19,7 @@ const mockSubscription = {
   updateMany: jest.fn(),
 };
 
-const mockUser = {
+const mockRestaurant = {
   findOne: jest.fn(),
   create: jest.fn(),
   findOneAndUpdate: jest.fn(),
@@ -33,7 +33,7 @@ const mockMongoose = {
 
 // Mock models before imports
 jest.mock('@/models/Subscription', () => mockSubscription);
-jest.mock('@/models/User', () => mockUser);
+jest.mock('@/models/Restaurant', () => mockRestaurant);
 jest.mock('mongoose', () => mockMongoose);
 
 // Mock database-service
@@ -52,7 +52,7 @@ import { GET as checkSubscriptionStatus } from '@/app/api/subscriptions/status/r
 describe('PayPhone Payment Flow', () => {
   const TEST_CLIENT_TX_ID = 'SUB-TEST-1234567890-abcdef';
   const TEST_PAYPHONE_ID = '83288286';
-  const TEST_USER_ID = 'test-user-001';
+  const TEST_RESTAURANT_ID = 'test-restaurant-001';
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -66,20 +66,20 @@ describe('PayPhone Payment Flow', () => {
     mockSubscription.create.mockResolvedValue({
       _id: 'mock-sub-id',
       clientTransactionId: TEST_CLIENT_TX_ID,
-      userId: TEST_USER_ID,
+      restaurantId: TEST_RESTAURANT_ID,
       amount: 499,
       status: 'pending',
       toObject: () => ({
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         amount: 499,
         status: 'pending',
       }),
     });
-    
-    mockUser.findOne.mockResolvedValue(null);
-    mockUser.findOneAndUpdate.mockResolvedValue({});
+
+    mockRestaurant.findOne.mockResolvedValue(null);
+    mockRestaurant.findOneAndUpdate.mockResolvedValue({});
   });
 
   describe('1. Payment Confirmation Endpoint', () => {
@@ -101,20 +101,20 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         amount: 499,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
       };
       mockSubscription.findOne.mockResolvedValue(mockSub);
 
-      // Mock user
-      const mockUserObj = {
-        id: TEST_USER_ID,
+      // Mock restaurant
+      const mockRestaurantObj = {
+        id: TEST_RESTAURANT_ID,
         membership: 'free',
         save: jest.fn().mockResolvedValue(true),
       };
-      mockUser.findOne.mockResolvedValue(mockUserObj);
+      mockRestaurant.findOne.mockResolvedValue(mockRestaurantObj);
 
       const mockRequest = {
         json: async () => ({
@@ -136,9 +136,9 @@ describe('PayPhone Payment Flow', () => {
       // payphoneTransactionId should come from PayPhone response, not request
       expect(mockSub.payphoneTransactionId).toContain('PP-');
 
-      // Verify user membership update
-      expect(mockUserObj.membership).toBe('pro');
-      expect(mockUserObj.save).toHaveBeenCalled();
+      // Verify restaurant membership update
+      expect(mockRestaurantObj.membership).toBe('pro');
+      expect(mockRestaurantObj.save).toHaveBeenCalled();
 
       console.log('✅ Test 1 passed: Subscription activated successfully');
     });
@@ -157,7 +157,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         amount: 499,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
@@ -190,7 +190,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'active',
         save: jest.fn(),
       };
@@ -242,7 +242,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn(),
       };
@@ -272,7 +272,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn(),
       };
@@ -340,18 +340,18 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
       };
       mockSubscription.findOne.mockResolvedValue(mockSub);
 
-      const mockUserObj = {
-        id: TEST_USER_ID,
+      const mockRestaurantObj = {
+        id: TEST_RESTAURANT_ID,
         membership: 'free',
         save: jest.fn().mockResolvedValue(true),
       };
-      mockUser.findOne.mockResolvedValue(mockUserObj);
+      mockRestaurant.findOne.mockResolvedValue(mockRestaurantObj);
 
       const mockRequest = {
         json: async () => ({
@@ -382,18 +382,18 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
       };
       mockSubscription.findOne.mockResolvedValue(mockSub);
 
-      const mockUserObj = {
-        id: TEST_USER_ID,
+      const mockRestaurantObj = {
+        id: TEST_RESTAURANT_ID,
         membership: 'free',
         save: jest.fn().mockResolvedValue(true),
       };
-      mockUser.findOne.mockResolvedValue(mockUserObj);
+      mockRestaurant.findOne.mockResolvedValue(mockRestaurantObj);
 
       const mockRequest = {
         json: async () => ({
@@ -417,13 +417,13 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         amount: 499,
         toObject: () => ({
           _id: 'mock-sub-id',
           clientTransactionId: TEST_CLIENT_TX_ID,
-          userId: TEST_USER_ID,
+          restaurantId: TEST_RESTAURANT_ID,
           status: 'pending',
           amount: 499,
         }),
@@ -479,19 +479,19 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         amount: 499,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
       };
       mockSubscription.findOne.mockResolvedValue(mockSub);
 
-      const mockUserObj = {
-        id: TEST_USER_ID,
+      const mockRestaurantObj = {
+        id: TEST_RESTAURANT_ID,
         membership: 'free',
         save: jest.fn().mockResolvedValue(true),
       };
-      mockUser.findOne.mockResolvedValue(mockUserObj);
+      mockRestaurant.findOne.mockResolvedValue(mockRestaurantObj);
 
       // Step 2: Mock PayPhone approval
       mockFetch.mockResolvedValueOnce({
@@ -524,8 +524,8 @@ describe('PayPhone Payment Flow', () => {
       expect(mockSub.endDate).toBeTruthy();
       expect(mockSub.nextBillingDate).toBeTruthy();
 
-      // Verify user updated
-      expect(mockUserObj.membership).toBe('pro');
+      // Verify restaurant updated
+      expect(mockRestaurantObj.membership).toBe('pro');
 
       console.log('✅ Test 14 passed: Complete payment flow works');
     });
@@ -534,7 +534,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         amount: 499,
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
@@ -574,7 +574,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'cancelled',
         save: jest.fn(),
       };
@@ -598,7 +598,7 @@ describe('PayPhone Payment Flow', () => {
       console.log('✅ Test 16 passed: Handles cancelled subscription idempotently');
     });
 
-    it('should handle user not found when activating subscription', async () => {
+    it('should handle restaurant not found when activating subscription', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -611,13 +611,13 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: 'nonexistent-user',
+        restaurantId: 'nonexistent-restaurant',
         status: 'pending',
         save: jest.fn().mockResolvedValue(true),
       };
       mockSubscription.findOne.mockResolvedValue(mockSub);
 
-      mockUser.findOne.mockResolvedValue(null);
+      mockRestaurant.findOne.mockResolvedValue(null);
 
       const mockRequest = {
         json: async () => ({
@@ -629,12 +629,12 @@ describe('PayPhone Payment Flow', () => {
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
 
-      // Should still activate subscription even if user not found
+      // Should still activate subscription even if restaurant not found
       expect(response.status).toBe(200);
       expect(data.status).toBe('active');
       expect(mockSub.save).toHaveBeenCalled();
 
-      console.log('✅ Test 17 passed: Handles missing user gracefully');
+      console.log('✅ Test 17 passed: Handles missing restaurant gracefully');
     });
 
     it('should handle non-terminal statusCode from PayPhone', async () => {
@@ -650,7 +650,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn(),
       };
@@ -681,7 +681,7 @@ describe('PayPhone Payment Flow', () => {
       const mockSub: any = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
-        userId: TEST_USER_ID,
+        restaurantId: TEST_RESTAURANT_ID,
         status: 'pending',
         save: jest.fn(),
       };

@@ -1,5 +1,5 @@
 // Define permissions
-export type Permission = 
+export type Permission =
   | 'menu_access'
   | 'order_management'
   | 'kds_access'
@@ -12,7 +12,8 @@ export type Permission =
 // Define a simplified user interface that matches both frontend and backend user types
 interface User {
   role: string;
-  membership?: 'free' | 'pro';
+  restaurantId?: string;
+  restaurantMembership?: 'free' | 'pro';
   [key: string]: any;
 }
 

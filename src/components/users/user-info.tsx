@@ -34,12 +34,6 @@ export function UserInfo() {
             {user.role}
           </Badge>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-medium">{t('profile.membership')}:</span>
-          <Badge variant={user.membership === "pro" ? "default" : "secondary"}>
-            {user.membership.charAt(0).toUpperCase() + user.membership.slice(1)}
-          </Badge>
-        </div>
       </CardContent>
     </Card>
   );

@@ -36,7 +36,6 @@ export const getOrCreateTestUser = async () => {
       id: 'test-user-' + Date.now(),
       email: 'test@chefcito.com',
       name: 'Test User',
-      membership: 'free',
     });
   }
 

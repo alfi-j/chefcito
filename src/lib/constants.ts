@@ -3,7 +3,8 @@ export type Feature = 'orders' | 'kds' | 'reports' | 'restaurant' | 'pos';
 
 export interface User {
   role: 'Owner' | 'Admin' | 'Staff';
-  membership: 'free' | 'pro';
+  restaurantId?: string;
+  restaurantMembership?: 'free' | 'pro';
 }
 
 // KDS constants
@@ -47,7 +48,7 @@ export function hasAccess(user: User | null, feature: Feature): boolean {
       return true;
     case 'reports':
       // Reports might be a premium feature
-      return user.membership === 'pro';
+      return user.restaurantMembership === 'pro';
     default:
       return false;
   }

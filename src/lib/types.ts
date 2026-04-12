@@ -115,7 +115,6 @@ export type StaffPerformance = {
     email: string;
     role: 'Owner' | 'Admin' | 'Staff';
     status: 'On Shift' | 'Off Shift' | 'On Break';
-    membership: 'free' | 'pro';
     tablesServed: number;
     totalSales: number;
     avgSaleValue: number;

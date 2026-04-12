@@ -9,7 +9,7 @@ import { Crown, CheckCircle2, XCircle, Clock, AlertCircle, Sparkles, Zap, Star, 
 
 interface Subscription {
   _id: string
-  userId: string
+  restaurantId: string
   plan: 'free' | 'pro'
   status: 'active' | 'cancelled' | 'expired' | 'pending'
   startDate: string
@@ -25,6 +25,7 @@ interface SubscriptionCardProps {
   onSubscribe: () => void
   onCancel: () => void
   isLoading?: boolean
+  isOwner?: boolean
 }
 
 export function SubscriptionCard({
@@ -32,7 +33,8 @@ export function SubscriptionCard({
   currentMembership,
   onSubscribe,
   onCancel,
-  isLoading = false
+  isLoading = false,
+  isOwner = false
 }: SubscriptionCardProps) {
   const { t } = useI18nStore()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
