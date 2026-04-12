@@ -78,6 +78,7 @@ export function SignupForm() {
     const router = useRouter()
     const { t } = useI18nStore();
     const [name, setName] = useState("");
+    const [restaurantName, setRestaurantName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -103,6 +104,7 @@ export function SignupForm() {
                     name,
                     email,
                     password,
+                    restaurantName: restaurantName || 'Mi Restaurante',
                     role: "Owner",
                     status: "Off Shift"
                 }),
@@ -142,6 +144,18 @@ export function SignupForm() {
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="signup-restaurant-name">Nombre del Restaurante</Label>
+                <Input
+                    id="signup-restaurant-name"
+                    type="text"
+                    placeholder="Ej: Mi Restaurante Sabroso"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Opcional. Se usará "Mi Restaurante" si lo dejas vacío.</p>
             </div>
 
             <div className="space-y-2">

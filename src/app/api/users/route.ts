@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
 import User from '../../../models/User';
+import Restaurant from '../../../models/Restaurant';
 import Role from '../../../models/Role';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcryptjs';
@@ -53,10 +54,24 @@ export async function POST(request: Request, context: any = {}) {
     // Save to User collection
     const newUser = new User(userData);
     const savedUser = await newUser.save();
-    
-    return NextResponse.json({ 
-      success: true, 
-      userId: savedUser._id 
+
+    // If the new user is an Owner, create a restaurant for them
+    if (body.role === 'Owner') {
+      const restaurantId = uuidv4();
+      const restaurant = new Restaurant({
+        id: restaurantId,
+        name: body.restaurantName || 'Mi Restaurante',
+        ownerId: userId,
+      });
+      await restaurant.save();
+
+      // Link the user to the restaurant
+      await User.updateOne({ id: userId }, { $set: { restaurantId } });
+    }
+
+    return NextResponse.json({
+      success: true,
+      userId: savedUser._id
     });
   } catch (error) {
     console.error('Error creating user:', error);
