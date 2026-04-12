@@ -9,6 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "validate-subscription": "node scripts/validate-subscription-config.js"
   },
   "dependencies": {
