@@ -64,6 +64,7 @@ export function GoogleButton({ role }: GoogleButtonProps) {
             const data = await res.json();
 
             if (!res.ok) {
+              console.error('[GoogleButton] Auth failed:', data);
               toast.error(data.error || "Google sign-in failed");
               return;
             }

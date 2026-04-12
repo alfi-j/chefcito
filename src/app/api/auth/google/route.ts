@@ -107,9 +107,42 @@ export async function POST(request: Request) {
     log('[Google] Auth successful, returning user:', user.id);
 
     return NextResponse.json({ user: userObject, token });
-  } catch (error) {
+  } catch (error: any) {
     log('[Google] Unhandled error:', error);
-    console.error('Google auth error:', error);
-    return NextResponse.json({ error: 'Google authentication failed' }, { status: 500 });
+    console.error('[Google Auth] Full error:', error);
+
+    // Provide specific error messages based on error type
+    if (error.message?.includes('invalid_token') || error.message?.includes('Token used too late')) {
+      return NextResponse.json(
+        { error: 'Google token expired or invalid. Please try again.' },
+        { status: 401 }
+      );
+    }
+
+    if (error.message?.includes('Wrong recipient') || error.message?.includes('aud')) {
+      return NextResponse.json(
+        { error: 'Google Client ID mismatch. Check GOOGLE_CLIENT_ID in env.' },
+        { status: 400 }
+      );
+    }
+
+    if (error.message?.includes('ENOTFOUND') || error.message?.includes('ECONNREFUSED')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Check MONGODB_URI.' },
+        { status: 503 }
+      );
+    }
+
+    if (error.code === 11000) {
+      return NextResponse.json(
+        { error: 'User already exists with this email. Try logging in instead.' },
+        { status: 409 }
+      );
+    }
+
+    return NextResponse.json(
+      { error: `Google authentication failed: ${error.message || 'Unknown error'}` },
+      { status: 500 }
+    );
   }
 }
