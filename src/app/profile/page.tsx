@@ -36,7 +36,7 @@ export default function ProfilePage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [paymentMode, setPaymentMode] = useState(false)
 
-  // Cargar suscripción al montar el componente
+  // Cargar suscripción al montar el componente y sincronizar membership
   useEffect(() => {
     if (!user?.id) return
 
@@ -47,18 +47,15 @@ export default function ProfilePage() {
           const data = await response.json()
           if (data.hasSubscription && data.subscription) {
             setSubscription(data.subscription)
+          }
+        }
 
-            // Si la suscripción está activa pero el usuario sigue siendo "free",
-            // sincronizar el membership desde la base de datos
-            if (data.subscription.status === 'active' && user?.membership !== 'pro') {
-              const userResponse = await fetch(`/api/users/${user.id}`)
-              if (userResponse.ok) {
-                const userData = await userResponse.json()
-                if (userData && !userData.error && userData.membership === 'pro') {
-                  useUserStore.getState().setUser(userData)
-                }
-              }
-            }
+        // Always sync membership from DB on mount — fixes stale localStorage issue
+        const userResponse = await fetch(`/api/users/${user.id}`)
+        if (userResponse.ok) {
+          const userData = await userResponse.json()
+          if (userData && !userData.error && userData.membership !== user.membership) {
+            useUserStore.getState().setUser(userData)
           }
         }
       } catch (error) {
@@ -67,7 +64,7 @@ export default function ProfilePage() {
     }
 
     loadSubscription()
-  }, [user?.id, user?.membership])
+  }, [user?.id])
 
   // Manejar mensajes de resultado de pago desde la URL
   useEffect(() => {
