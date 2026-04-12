@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server';
 import { OAuth2Client } from 'google-auth-library';
 import { User } from '@/models';
+import Restaurant from '@/models/Restaurant';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import debug from 'debug';
 
+const log = debug('chefcito:auth:google');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export async function POST(request: Request) {
   try {
     if (mongoose.connection.readyState !== 1) {
-      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017');
+      await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017', {
+        dbName: process.env.MONGODB_DB
+      });
     }
 
     const body = await request.json();
     const { credential, role } = body;
 
     if (!credential) {
+      log('[Google] Missing credential');
       return NextResponse.json({ error: 'Missing Google credential' }, { status: 400 });
     }
 
@@ -28,38 +34,67 @@ export async function POST(request: Request) {
 
     const payload = ticket.getPayload();
     if (!payload || !payload.email) {
+      log('[Google] Invalid token payload');
       return NextResponse.json({ error: 'Invalid Google token' }, { status: 401 });
     }
 
     const { email, name, sub: googleId } = payload;
+    log('[Google] Processing auth for:', email, 'role:', role || 'none (login flow)');
 
     // Find existing user by googleId or email
     let user = await User.findOne({ $or: [{ googleId }, { email }] });
 
     if (user) {
-      // Link googleId if not already set (user registered with email before)
+      // === EXISTING USER — Login flow ===
+      log('[Google] Existing user found:', user.id);
+
+      // Link googleId if not already set
       if (!user.googleId) {
         user.googleId = googleId;
         await user.save();
+        log('[Google] Linked googleId to existing user');
       }
     } else {
-      // Create new user — role required for registration flow
-      if (!role) {
-        return NextResponse.json({ error: 'Role is required for new accounts' }, { status: 400 });
-      }
+      // === NEW USER — Registration flow ===
+      log('[Google] New user, creating account');
+
+      // Default to Owner role if not specified (Google Sign-Up without explicit role)
+      const userRole = role || 'Owner';
+
+      // Create the user
+      const userId = uuidv4();
       user = new User({
-        id: uuidv4(),
-        name: name || email,
+        id: userId,
+        name: name || email?.split('@')[0] || 'User',
         email,
         googleId,
         password: null,
-        role,
+        role: userRole,
         status: 'Off Shift',
       });
       await user.save();
+      log('[Google] User created:', user.id, 'role:', userRole);
+
+      // If this is an Owner, create a restaurant for them
+      if (userRole === 'Owner') {
+        const restaurantId = uuidv4();
+        const restaurantName = `${name || 'Mi'} Restaurante`;
+        
+        const restaurant = new Restaurant({
+          id: restaurantId,
+          name: restaurantName,
+          ownerId: userId,
+        });
+        await restaurant.save();
+
+        // Link the user to the restaurant
+        user.restaurantId = restaurantId;
+        await user.save();
+        log('[Google] Restaurant created:', restaurantId, 'for user:', userId);
+      }
     }
 
-    // Generate JWT (same shape as existing login)
+    // Generate JWT token
     const token = jwt.sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET || 'chefcito_secret_key',
@@ -69,8 +104,11 @@ export async function POST(request: Request) {
     const userObject = user.toObject();
     delete userObject.password;
 
+    log('[Google] Auth successful, returning user:', user.id);
+
     return NextResponse.json({ user: userObject, token });
   } catch (error) {
+    log('[Google] Unhandled error:', error);
     console.error('Google auth error:', error);
     return NextResponse.json({ error: 'Google authentication failed' }, { status: 500 });
   }
