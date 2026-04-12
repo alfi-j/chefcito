@@ -32,10 +32,14 @@ export default function ProfilePage() {
 
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [restaurantMembership, setRestaurantMembership] = useState<'free' | 'pro'>('free')
+  const [restaurantName, setRestaurantName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [paymentMode, setPaymentMode] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+  const [city, setCity] = useState('')
 
   // Cargar suscripción y membresía del restaurante al montar
   useEffect(() => {
@@ -51,12 +55,16 @@ export default function ProfilePage() {
           }
         }
 
-        // Load restaurant membership
+        // Load restaurant membership and details
         const restaurantResponse = await fetch(`/api/restaurants/${user.restaurantId}`)
         if (restaurantResponse.ok) {
           const restaurantData = await restaurantResponse.json()
           if (restaurantData && !restaurantData.error) {
             setRestaurantMembership(restaurantData.membership || 'free')
+            setRestaurantName(restaurantData.name || '')
+            setPhone(restaurantData.phone || '')
+            setAddress(restaurantData.address || '')
+            setCity(restaurantData.city || '')
           }
         }
 
@@ -146,6 +154,55 @@ export default function ProfilePage() {
     }
   }
 
+  const handleSavePersonalInfo = async () => {
+    if (!user?.id) return
+    
+    try {
+      const nameValue = (document.getElementById('name') as HTMLInputElement)?.value
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameValue }),
+      })
+
+      if (response.ok) {
+        toast.success('Información personal actualizada')
+        if (user.email) refreshUser(user.email)
+      } else {
+        toast.error('Error al actualizar la información')
+      }
+    } catch (error) {
+      console.error('Error saving personal info:', error)
+      toast.error('Error al actualizar la información')
+    }
+  }
+
+  const handleSaveRestaurantInfo = async () => {
+    if (!user?.restaurantId) return
+
+    try {
+      const response = await fetch(`/api/restaurants/${user.restaurantId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: restaurantName,
+          phone,
+          address,
+          city,
+        }),
+      })
+
+      if (response.ok) {
+        toast.success('Información del restaurante actualizada')
+      } else {
+        toast.error('Error al actualizar la información del restaurante')
+      }
+    } catch (error) {
+      console.error('Error saving restaurant info:', error)
+      toast.error('Error al actualizar la información del restaurante')
+    }
+  }
+
   const handleSubscribe = () => {
     setPaymentMode(true)
   }
@@ -200,9 +257,63 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">{t('profile.email')}</Label>
-              <Input id="email" type="email" defaultValue={user?.email || ''} />
+              <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
+              <p className="text-xs text-muted-foreground">El email no se puede cambiar</p>
             </div>
-            <Button>{t('profile.save_button')}</Button>
+            
+            {/* Restaurant Info - Solo para el dueño */}
+            {isOwner && user?.restaurantId && (
+              <>
+                <Separator />
+                <div>
+                  <Label className="text-sm font-semibold">Información del Restaurante</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Datos públicos de tu restaurante</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="restaurant-name">Nombre del Restaurante</Label>
+                  <Input 
+                    id="restaurant-name" 
+                    value={restaurantName} 
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    placeholder="Ej: Mi Restaurante Sabroso"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Teléfono</Label>
+                  <Input 
+                    id="phone" 
+                    type="tel"
+                    value={phone} 
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+593 99 123 4567"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Dirección</Label>
+                  <Input 
+                    id="address" 
+                    value={address} 
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Calle Principal 123, Ciudad"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ciudad</Label>
+                  <Input 
+                    id="city" 
+                    value={city} 
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="Guayaquil"
+                  />
+                </div>
+                <Button onClick={handleSaveRestaurantInfo} className="w-full">
+                  Guardar Información del Restaurante
+                </Button>
+              </>
+            )}
+            
+            <Separator />
+            <Button onClick={handleSavePersonalInfo} className="w-full">{t('profile.save_button')}</Button>
           </CardContent>
         </Card>
 

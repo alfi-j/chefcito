@@ -5,6 +5,9 @@ export interface IRestaurant extends Document {
   name: string;
   ownerId: string;
   membership: 'free' | 'pro';
+  phone?: string;
+  address?: string;
+  city?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,10 +22,13 @@ const RestaurantSchema: Schema = new Schema({
     enum: ['free', 'pro'],
     default: 'free'
   },
+  phone: { type: String },
+  address: { type: String },
+  city: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }, {
-  timestamps: true // This will automatically manage createdAt and updatedAt
+  timestamps: true
 });
 
 // Update the updatedAt field before saving
