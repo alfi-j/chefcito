@@ -10,10 +10,13 @@ import {
 } from '@/lib/database-service';
 import { debugMenu } from '@/lib/helpers';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    debugMenu('GET: fetching all menu items');
-    const menuItems = await getMenuItems();
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId') || undefined;
+    
+    debugMenu('GET: fetching menu items for restaurant %s', restaurantId || 'all');
+    const menuItems = await getMenuItems(restaurantId);
     debugMenu('GET: successfully fetched %d menu items', menuItems.length);
     return NextResponse.json({
       success: true,
@@ -44,6 +47,9 @@ export async function POST(request: Request) {
     switch (body.action) {
       case 'addMenuItem':
         debugMenu('POST: adding new menu item with data %O', body.data);
+        if (!body.data.restaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 });
+        }
         const newMenuItem = await addMenuItem(body.data);
         debugMenu('POST: successfully added menu item with id %s', newMenuItem.id);
         return NextResponse.json(newMenuItem);

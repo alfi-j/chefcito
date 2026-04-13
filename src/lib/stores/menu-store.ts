@@ -331,12 +331,13 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
     }
   },
   
-  fetchMenuData: async () => {
+  fetchMenuData: async (restaurantId?: string) => {
     set({ loading: true, error: null });
-    
+
     try {
-      // Fetch menu items
-      const menuItemsResponse = await fetch('/api/menu');
+      // Fetch menu items filtered by restaurant
+      const url = restaurantId ? `/api/menu?restaurantId=${encodeURIComponent(restaurantId)}` : '/api/menu';
+      const menuItemsResponse = await fetch(url);
       const menuItemsResult = await menuItemsResponse.json();
       
       // Fetch categories

@@ -763,13 +763,13 @@ export default function RestaurantPage() {
   const numVisible = filteredItems.length;
   const isAllSelected = numVisible > 0 && numSelected === numVisible;
 
-  const handleSaveItem = async (itemData: Omit<MenuItem, "id">) => {
+  const handleSaveItem = async (itemData: Omit<MenuItem, "id"> & { restaurantId?: string }) => {
     if (editingItem) {
       // Update existing item
       await updateMenuItem(editingItem.id, itemData);
     } else {
-      // Add new item
-      await addMenuItem(itemData);
+      // Add new item with restaurantId
+      await addMenuItem({ ...(itemData as any), restaurantId: currentUser?.restaurantId || '' });
     }
     setIsItemDialogOpen(false);
     setEditingItem(undefined);
@@ -1018,23 +1018,23 @@ export default function RestaurantPage() {
           <div className="mt-4">
             {activeTab === 'menu' && (
               <>
-                <MenuList 
-                  menuItems={menuItems} 
-                  categories={categories} 
-                  onUpdateCategories={addCategory} 
-                  onSaveItem={(item: any) => 'id' in item ? updateMenuItem(item.id, item) : addMenuItem(item)}
+                <MenuList
+                  menuItems={menuItems}
+                  categories={categories}
+                  onUpdateCategories={addCategory}
+                  onSaveItem={(item: any) => 'id' in item ? updateMenuItem(item.id, item) : addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' })}
                   onDeleteItem={deleteMenuItem}
                   onDeleteMultipleItems={handleDeleteMenuItems}
                   onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
                 />
-                <MenuItemDialog 
+                <MenuItemDialog
                   item={editingItem}
-                  categories={categories} 
+                  categories={categories}
                   onSave={async (item: any) => {
                     if ('id' in item) {
                       await updateMenuItem(item.id, item);
                     } else {
-                      await addMenuItem(item);
+                      await addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' });
                     }
                     setIsItemDialogOpen(false);
                     setEditingItem(undefined);

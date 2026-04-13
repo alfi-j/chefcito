@@ -54,9 +54,10 @@ export const initializeDatabase = async () => {
 };
 
 // Helper function to get all menu items for order inflation
-const getAllMenuItems = async () => {
+const getAllMenuItems = async (restaurantId?: string) => {
   await initializeDatabase();
-  const menuItems = await MenuItemModel.find({});
+  const query = restaurantId ? { restaurantId } : {};
+  const menuItems = await MenuItemModel.find(query);
   return menuItems.map(item => item.toObject());
 };
 
@@ -220,13 +221,17 @@ export const deleteCategory = async (id: string) => {
 };
 
 // Menu Items
-export const getMenuItems = async (): Promise<MenuItem[]> => {
+export const getMenuItems = async (restaurantId?: string): Promise<MenuItem[]> => {
   await initializeDatabase();
-  const menuItems = await MenuItemModel.find({}).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const menuItems = await MenuItemModel.find(query).maxTimeMS(10000);
   return menuItems.map(item => item.toObject());
 };
 
-export const addMenuItem = async (itemData: Omit<MenuItem, 'id'>) => {
+export const addMenuItem = async (itemData: Omit<MenuItem, 'id'> & { restaurantId: string }) => {
+  if (!itemData.restaurantId) {
+    throw new Error('restaurantId is required when creating a menu item');
+  }
   const newItem = new MenuItemModel({
     id: generateId(),
     ...itemData
@@ -242,11 +247,10 @@ export const updateMenuItem = async (id: string, itemData: Partial<MenuItem>) =>
   );
 
   if (result.modifiedCount > 0) {
-    // Return the updated item
     const updatedItem = await MenuItemModel.findOne({ id });
     return updatedItem ? updatedItem.toObject() : null;
   }
-  
+
   return null;
 };
 

@@ -58,8 +58,9 @@ function PosPageContent() {
   const { t } = useI18nStore();
   const user = useUserStore((state) => state.getCurrentUser());
 
-  // SWR data fetching - MUST be called before any conditional return
-  const { data: menuItems = [], error: menuItemsError, isLoading: isLoadingMenu, mutate: mutateMenuItems } = useSWR<MenuItem[]>('/api/menu', fetcher, {
+  // SWR data fetching - filter menu items by restaurant
+  const menuApiUrl = user?.restaurantId ? `/api/menu?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/menu';
+  const { data: menuItems = [], error: menuItemsError, isLoading: isLoadingMenu, mutate: mutateMenuItems } = useSWR<MenuItem[]>(menuApiUrl, fetcher, {
     fallbackData: [],
   });
 
