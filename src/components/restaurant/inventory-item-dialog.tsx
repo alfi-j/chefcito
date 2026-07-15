@@ -25,7 +25,7 @@ export function InventoryItemDialog({
   menuItems,
 }: { 
   item?: InventoryItem,
-  onSave: (item: InventoryItem | Omit<InventoryItem, 'id' | 'lastRestocked'>) => void,
+  onSave: (item: Omit<InventoryItem, 'restaurantId'> | Omit<Omit<InventoryItem, 'restaurantId'>, 'id' | 'lastRestocked'>) => void,
   isOpen: boolean,
   onOpenChange: (open: boolean) => void,
   menuItems: MenuItem[],

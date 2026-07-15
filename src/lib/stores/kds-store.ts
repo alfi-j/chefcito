@@ -4,7 +4,7 @@ import { Order, OrderItem } from '@/lib/types';
 import { type IWorkstation } from '@/models/Workstation';
 import { DragEvent } from 'react';
 import { KDS_STATES } from '@/lib/constants';
-import { debugKDS } from '@/lib/helpers';
+import { debugKDS, buildApiUrl } from '@/lib/helpers';
 
 // Helper function to group similar items for stacking display
 const groupSimilarItems = (items: OrderItem[]): { [key: string]: OrderItem[] } => {
@@ -818,12 +818,15 @@ const useKDSStore = create<NormalizedKDSState>()(
         console.error('Error reordering orders:', error);
         // Refresh data anyway to maintain consistency
         try {
-          const updatedOrdersResponse = await fetch('/api/orders');
+          const existingRestaurantId = Object.values(get().entities.orders)[0]?.restaurantId;
+          if (!existingRestaurantId) return;
+          const updatedOrdersResponse = await fetch(buildApiUrl('/api/orders', existingRestaurantId));
           if (updatedOrdersResponse.ok) {
-            const updatedOrders = await updatedOrdersResponse.json();
+            const updatedOrdersResult = await updatedOrdersResponse.json();
+            const updatedOrders = updatedOrdersResult.data ?? updatedOrdersResult;
             // Normalize orders
             const normalizedOrders: Record<number, Order> = {};
-            updatedOrders.forEach((order: Order) => {
+            (Array.isArray(updatedOrders) ? updatedOrders : []).forEach((order: Order) => {
               normalizedOrders[order.id] = order;
             });
             

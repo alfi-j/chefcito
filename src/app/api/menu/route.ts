@@ -56,13 +56,19 @@ export async function POST(request: Request) {
         
       case 'addCategory':
         debugMenu('POST: adding new category with data %O', body.data);
-        const newCategory = await addCategory(body.data);
-        debugMenu('POST: successfully added category with id %d', newCategory.id);
+        if (!body.data.restaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required for category operations' }, { status: 400 });
+        }
+        const newCategory = await addCategory({ ...body.data, restaurantId: body.data.restaurantId });
+        debugMenu('POST: successfully added category with id %s', newCategory.id);
         return NextResponse.json(newCategory);
         
       case 'updateCategory':
         debugMenu('POST: updating category %s with data %O', body.id, body.data);
-        const updatedCategory = await updateCategory(body.id, body.data);
+        if (!body.data.restaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required for category operations' }, { status: 400 });
+        }
+        const updatedCategory = await updateCategory(body.id, body.data.restaurantId, body.data);
         debugMenu('POST: successfully updated category %s', body.id);
         return NextResponse.json(updatedCategory);
         
@@ -91,7 +97,10 @@ export async function PUT(request: Request) {
     switch (body.action) {
       case 'updateCategory':
         debugMenu('PUT: updating category %s with data %O', body.id, body.data);
-        const updatedCategory = await updateCategory(body.id, body.data);
+        if (!body.data.restaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required for category operations' }, { status: 400 });
+        }
+        const updatedCategory = await updateCategory(body.id, body.data.restaurantId, body.data);
         debugMenu('PUT: successfully updated category %s', body.id);
         return NextResponse.json(updatedCategory);
         
@@ -163,7 +172,10 @@ export async function DELETE(request: Request) {
         
       case 'deleteCategory':
         debugMenu('DELETE: deleting category %s', body.id);
-        await deleteCategory(body.id);
+        if (!body.data?.restaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required for category operations' }, { status: 400 });
+        }
+        await deleteCategory(body.id, body.data.restaurantId);
         debugMenu('DELETE: successfully deleted category %s', body.id);
         return NextResponse.json({ success: true });
         

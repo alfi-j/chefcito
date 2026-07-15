@@ -64,22 +64,30 @@ function PosPageContent() {
     fallbackData: [],
   });
 
-  const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories, mutate: mutateCategories } = useSWR<Category[]>('/api/categories', fetcher, {
+  const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories, mutate: mutateCategories } = useSWR<Category[]>(
+    user?.restaurantId ? `/api/categories?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher,
+    {
+      fallbackData: [],
+    }
+  );
+
+  const { data: workstations = [], error: workstationsError, isLoading: isLoadingWorkstations, mutate: mutateWorkstations } = useSWR<any[]>(
+    user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
   });
 
-  const { data: workstations = [], error: workstationsError, isLoading: isLoadingWorkstations, mutate: mutateWorkstations } = useSWR<any[]>('/api/workstations', fetcher, {
-    fallbackData: [],
-  });
-
-  const { data: orders = [], error: ordersError, isLoading: isLoadingOrders, mutate: mutateOrders } = useSWR<Order[]>('/api/orders', fetcher, {
+  const { data: orders = [], error: ordersError, isLoading: isLoadingOrders, mutate: mutateOrders } = useSWR<Order[]>(
+    user?.restaurantId ? `/api/orders?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
     shouldRetryOnError: true
   });
 
   const { data: paymentMethods = [], error: paymentMethodsError, isLoading: isLoadingPayments, mutate: mutatePayments } = useSWR<Payment[]>(
-    '/api/payments',
+    user?.restaurantId ? `/api/payments?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
     fetcher,
     {
       fallbackData: [],
@@ -166,7 +174,7 @@ function PosPageContent() {
   // If you need to add an order with SWR
   const addOrder = async (order: Order) => {
     try {
-      const response = await fetch('/api/orders/add', {
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -221,7 +229,7 @@ function PosPageContent() {
         notes: currentOrderNotes,
         orderType: currentOrderType,
         deliveryInfo: currentOrderType === 'delivery' ? currentOrderDeliveryInfo : undefined,
-        restaurantId: 'restaurant-1', // Add restaurantId to ensure validation passes
+        restaurantId: user?.restaurantId || '', // Use authenticated user's restaurantId
       };
       
       const response = await fetch(`/api/orders/${isEditingOrder.id}`, {
@@ -315,7 +323,8 @@ function PosPageContent() {
       setIsSendingToKitchen(true);
       
       // Get the first workstation (if available)
-      const workstations = await fetch('/api/workstations').then(res => res.json());
+      const workstationsUrl = user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/workstations';
+      const workstations = await fetch(workstationsUrl).then(res => res.json());
       const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
       
       // Split quantity-based items into individual units for KDS tracking
@@ -357,6 +366,7 @@ function PosPageContent() {
 
       // Prepare order data based on order type
       const orderData: any = {
+        restaurantId: user?.restaurantId || '',
         table: currentOrderTable,
         items: expandedItems,
         notes: currentOrderNotes,

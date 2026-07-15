@@ -4,6 +4,12 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { type Order, type OrderItem } from "@/lib/types";
 
+export function buildApiUrl(path: string, restaurantId?: string): string {
+  if (!restaurantId) return path;
+  const sep = path.includes('?') ? '&' : '?';
+  return `${path}${sep}restaurantId=${encodeURIComponent(restaurantId)}`;
+}
+
 /**
  * Utility function to merge class names with Tailwind CSS
  * Combines clsx and twMerge for optimal class name handling

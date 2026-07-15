@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { type MenuItem, type Category } from '@/lib/types';
 import { toast } from 'sonner';
+import { buildApiUrl } from '@/lib/helpers';
 
 // Define normalized entities
 interface NormalizedEntities {
@@ -32,13 +33,13 @@ interface NormalizedMenuState extends NormalizedState {
   deleteMenuItem: (id: string) => Promise<boolean>;
   
   // Category actions
-  addCategory: (categoryData: Omit<Category, 'id'>) => Promise<Category | null>;
-  updateCategory: (id: number, categoryData: Partial<Category>) => Promise<boolean>;
-  deleteCategory: (id: number) => Promise<boolean>;
+  addCategory: (categoryData: Omit<Category, 'id'>, restaurantId?: string) => Promise<Category | null>;
+  updateCategory: (id: number, categoryData: Partial<Category>, restaurantId?: string) => Promise<boolean>;
+  deleteCategory: (id: number, restaurantId?: string) => Promise<boolean>;
   isCategoryInUse: (id: number) => Promise<boolean>;
   
   // Data fetching
-  fetchMenuData: () => Promise<void>;
+  fetchMenuData: (restaurantId?: string) => Promise<void>;
   
   // Form actions
   setFormName: (name: string) => void;
@@ -204,14 +205,14 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
     }
   },
   
-  addCategory: async (categoryData) => {
+  addCategory: async (categoryData, restaurantId?) => {
     try {
       const response = await fetch('/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ action: 'addCategory', data: categoryData }),
+        body: JSON.stringify({ action: 'addCategory', data: { ...categoryData, restaurantId } }),
       });
       
       if (!response.ok) {
@@ -243,14 +244,14 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
     }
   },
   
-  updateCategory: async (id, categoryData) => {
+  updateCategory: async (id, categoryData, restaurantId?) => {
     try {
       const response = await fetch(`/api/categories/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: categoryData }),
+        body: JSON.stringify({ data: { ...categoryData, restaurantId } }),
       });
       
       if (!response.ok) {
@@ -284,9 +285,10 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
     }
   },
   
-  deleteCategory: async (id) => {
+  deleteCategory: async (id, restaurantId?) => {
     try {
-      const response = await fetch(`/api/categories/${id}`, {
+      const url = buildApiUrl(`/api/categories/${id}`, restaurantId);
+      const response = await fetch(url, {
         method: 'DELETE',
       });
       
@@ -335,14 +337,14 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
     set({ loading: true, error: null });
 
     try {
-      // Fetch menu items filtered by restaurant
-      const url = restaurantId ? `/api/menu?restaurantId=${encodeURIComponent(restaurantId)}` : '/api/menu';
-      const menuItemsResponse = await fetch(url);
-      const menuItemsResult = await menuItemsResponse.json();
-      
-      // Fetch categories
-      const categoriesResponse = await fetch('/api/categories');
-      const categoriesResult = await categoriesResponse.json();
+      const [menuItemsResponse, categoriesResponse] = await Promise.all([
+        fetch(buildApiUrl('/api/menu', restaurantId)),
+        fetch(buildApiUrl('/api/categories', restaurantId)),
+      ]);
+      const [menuItemsResult, categoriesResult] = await Promise.all([
+        menuItemsResponse.json(),
+        categoriesResponse.json(),
+      ]);
       
       if (menuItemsResult.success && categoriesResult.success) {
         // Normalize menu items

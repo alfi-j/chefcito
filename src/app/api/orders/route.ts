@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions } from '@/lib/database-service';
-import { getMenuItems } from '@/lib/database-service';
 import { debugOrders } from '@/lib/helpers';
 
 // Import the SSE update function
@@ -59,8 +58,18 @@ export async function GET(request: Request) {
         );
       }
       
-      const menuItems = await getMenuItems();
-      const orders = await getInitialOrders();
+      // Get restaurantId from query params
+      const { searchParams } = new URL(request.url);
+      const restaurantId = searchParams.get('restaurantId');
+      
+      if (!restaurantId) {
+        return NextResponse.json(
+          createApiResponse(undefined, "restaurantId is required"),
+          { status: 400 }
+        );
+      }
+      
+      const orders = await getInitialOrders(restaurantId);
       const order = orders.find(o => o.id === orderId);
       
       if (!order) {
@@ -86,11 +95,20 @@ export async function GET(request: Request) {
     }
   }
   
-  // Handle GET /api/orders - get all orders
+  // Handle GET /api/orders - get all orders for a restaurant
   try {
-    debugOrders('GET: fetching all orders');
-    const menuItems = await getMenuItems();
-    const orders = await getInitialOrders();
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        createApiResponse(undefined, "restaurantId is required"),
+        { status: 400 }
+      );
+    }
+    
+    debugOrders('GET: fetching orders for restaurant %s', restaurantId);
+    const orders = await getInitialOrders(restaurantId);
     debugOrders('GET: successfully fetched %d orders', orders.length);
     return NextResponse.json(
       createApiResponse(orders),
@@ -113,6 +131,15 @@ export async function POST(request: Request, context: any = {}) {
     debugOrders('POST: creating new order');
     const orderData = await request.json();
     debugOrders('POST: order data %O', orderData);
+    
+    // Validate restaurantId
+    if (!orderData.restaurantId) {
+      return NextResponse.json(
+        createApiResponse(undefined, "restaurantId is required"),
+        { status: 400 }
+      );
+    }
+    
     const newOrder = await addOrder(orderData);
     debugOrders('POST: successfully created order with id %d', newOrder.id);
     
@@ -163,7 +190,15 @@ export async function PUT(request: Request) {
       }
       
       // Remove fields that should not be updated directly
-      const { id: _, _id, __v, createdAt, ...updateData } = body;
+      const { id: _, _id, __v, createdAt, restaurantId, ...updateData } = body;
+      
+      if (!restaurantId) {
+        debugOrders('PUT: restaurantId is required');
+        return NextResponse.json(
+          createApiResponse(undefined, "restaurantId is required"),
+          { status: 400 }
+        );
+      }
       
       // Transform items data to match database structure
       if (updateData.items) {
@@ -177,7 +212,7 @@ export async function PUT(request: Request) {
         }));
       }
       
-      const result = await updateOrder(orderId, updateData);
+      const result = await updateOrder(orderId, restaurantId, updateData);
       
       if (!result) {
         debugOrders('PUT: order not found or could not be updated, id %d', orderId);
@@ -237,11 +272,18 @@ export async function PUT(request: Request) {
     
     // Handle update item positions
     if (body.type === 'updateItemPositions') {
-      const { orderId, positions } = body;
+      const { orderId, positions, restaurantId } = body;
       debugOrders('PUT: updating item positions in order %d with data %O', orderId, positions);
       
+      if (!restaurantId) {
+        return NextResponse.json(
+          createApiResponse(undefined, "restaurantId is required"),
+          { status: 400 }
+        );
+      }
+      
       // Get the order
-      const orders = await getInitialOrders();
+      const orders = await getInitialOrders(restaurantId);
       const order = orders.find(o => o.id === orderId);
       
       if (!order) {
@@ -261,7 +303,7 @@ export async function PUT(request: Request) {
       });
       
       // Update the order in the database
-      await updateOrder(orderId, { items: updatedItems });
+      await updateOrder(orderId, restaurantId, { items: updatedItems });
       
       debugOrders('PUT: successfully updated item positions');
       
@@ -275,9 +317,17 @@ export async function PUT(request: Request) {
     }
     
     // Handle update order status
-    const { orderId, newStatus } = body;
+    const { orderId, newStatus, restaurantId } = body;
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        createApiResponse(undefined, "restaurantId is required"),
+        { status: 400 }
+      );
+    }
+    
     debugOrders('PUT: updating order %d status to %s', orderId, newStatus);
-    await updateOrderStatus(orderId, newStatus);
+    await updateOrderStatus(orderId, restaurantId, newStatus);
     debugOrders('PUT: successfully updated order status');
     
     // Notify clients of the update
@@ -445,7 +495,18 @@ export async function DELETE(request: Request, context: { params: Promise<{}> })
       );
     }
     
-    const result = await deleteOrder(orderId);
+    // Get restaurantId from query params
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        createApiResponse(undefined, "restaurantId is required"),
+        { status: 400 }
+      );
+    }
+    
+    const result = await deleteOrder(orderId, restaurantId);
     
     if (!result) {
       debugOrders('DELETE: order not found or could not be deleted, id %d', orderId);

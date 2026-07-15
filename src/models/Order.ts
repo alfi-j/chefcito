@@ -3,6 +3,7 @@ import { OrderItem } from '../lib/types';
 
 export interface IOrder extends Document {
   id: number;
+  restaurantId: string;
   table: string;
   customerName?: string;
   staffName?: string;
@@ -33,6 +34,7 @@ const OrderItemSchema: Schema = new Schema({
 
 const OrderSchema: Schema = new Schema({
   id: { type: Number, required: true, unique: true },
+  restaurantId: { type: String, required: true, index: true },
   table: { type: String, required: true },
   customerName: { type: String },
   staffName: { type: String },
@@ -49,6 +51,7 @@ const OrderSchema: Schema = new Schema({
 });
 
 // Add indexes for better query performance
+OrderSchema.index({ restaurantId: 1, createdAt: -1 });
 OrderSchema.index({ createdAt: -1 });
 OrderSchema.index({ status: 1 });
 OrderSchema.index({ table: 1 });

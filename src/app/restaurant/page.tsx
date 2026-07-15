@@ -83,7 +83,7 @@ function InventoryList({
 }: { 
   items: InventoryItem[], 
   menuItems: MenuItem[], 
-  onSave: (item: InventoryItem | Omit<InventoryItem, "id" | "lastRestocked">) => Promise<void>, 
+  onSave: (item: Omit<InventoryItem, 'restaurantId'> | Omit<Omit<InventoryItem, 'restaurantId'>, 'id' | 'lastRestocked'>) => Promise<void>, 
   onAdjustStock: (itemId: string, adjustment: number) => Promise<void>,
   onDeleteItem: (itemId: string) => Promise<void>
 }) {
@@ -786,16 +786,21 @@ export default function RestaurantPage() {
   
   // Fetch initial data - avoid store objects in dependencies to prevent infinite loops
   useEffect(() => {
-    fetchMenuData();
-    inventoryStore.fetchInventoryItems();
-    paymentsStore.fetchPaymentMethods();
-    workstationsStore.fetchWorkstations();
-  }, [fetchMenuData]);
+    const restaurantId = currentUser?.restaurantId;
+    fetchMenuData(restaurantId);
+    inventoryStore.fetchInventoryItems(restaurantId);
+    paymentsStore.fetchPaymentMethods(restaurantId);
+    workstationsStore.fetchWorkstations(restaurantId);
+  }, [fetchMenuData, currentUser?.restaurantId]);
   
   // Inventory functions
   const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
     try {
-      await inventoryStore.addInventoryItem(itemData);
+      const restaurantId = currentUser?.restaurantId;
+      if (!restaurantId) {
+        throw new Error('No restaurant selected');
+      }
+      await inventoryStore.addInventoryItem({ ...itemData, restaurantId });
     } catch (error) {
       console.error('Error adding inventory item:', error);
     }
@@ -831,7 +836,9 @@ export default function RestaurantPage() {
   // Payment method functions
   const addPaymentMethod = async (methodData: Omit<Payment, 'id'>) => {
     try {
-      await paymentsStore.addPaymentMethod(methodData);
+      const restaurantId = currentUser?.restaurantId;
+      if (!restaurantId) throw new Error('No restaurant selected');
+      await paymentsStore.addPaymentMethod({ ...methodData, restaurantId });
     } catch (error) {
       console.error('Error adding payment method:', error);
     }
@@ -875,7 +882,9 @@ export default function RestaurantPage() {
   // Workstation CRUD operations
   const addWorkstation = async (workstationData: Partial<IWorkstation> & { name: string }) => {
     try {
-      await workstationsStore.addWorkstation(workstationData);
+      const restaurantId = currentUser?.restaurantId;
+      if (!restaurantId) throw new Error('No restaurant selected');
+      await workstationsStore.addWorkstation({ ...workstationData, restaurantId });
     } catch (error) {
       throw error;
     }

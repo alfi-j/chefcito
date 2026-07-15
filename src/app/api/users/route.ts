@@ -55,24 +55,26 @@ export async function POST(request: Request, context: any = {}) {
     const newUser = new User(userData);
     const savedUser = await newUser.save();
 
-    // If the new user is an Owner, create a restaurant for them
-    if (body.role === 'Owner') {
-      const restaurantId = uuidv4();
-      const restaurant = new Restaurant({
-        id: restaurantId,
-        name: body.restaurantName || 'Mi Restaurante',
-        ownerId: userId,
-      });
-      await restaurant.save();
-
-      // Link the user to the restaurant
-      await User.updateOne({ id: userId }, { $set: { restaurantId } });
-    }
-
-    return NextResponse.json({
-      success: true,
-      userId: savedUser._id
+  if (body.role === 'Owner') {
+    const restaurantId = uuidv4();
+    const restaurant = new Restaurant({
+      id: restaurantId,
+      name: body.restaurantName || 'Mi Restaurante',
+      ownerId: userId,
     });
+    await restaurant.save();
+
+    await User.updateOne({ id: userId }, { $set: { restaurantId } });
+  }
+
+  const freshUser = await User.findOne({ id: userId });
+  const userResponse = freshUser ? freshUser.toObject() : savedUser.toObject();
+  delete userResponse.password;
+
+  return NextResponse.json({
+    success: true,
+    user: userResponse
+  });
   } catch (error) {
     console.error('Error creating user:', error);
     return NextResponse.json(
@@ -117,13 +119,16 @@ export async function GET(request: Request) {
     }
   }
   
-  // Handle GET /api/users - get all users
+  // Handle GET /api/users - get all users for a restaurant
   try {
     await ensureDbConnection();
-    
-    // Get users from User collection
-    const users = await User.find({});
-    
+
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+
+    const query = restaurantId ? { restaurantId } : {};
+    const users = await User.find(query).select('-password');
+
     return NextResponse.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

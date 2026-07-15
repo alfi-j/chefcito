@@ -86,11 +86,14 @@ export async function POST(request: Request) {
         });
         await restaurant.save();
 
-        // Link the user to the restaurant — use updateOne to avoid validation
         await User.updateOne({ id: userId }, { $set: { restaurantId } });
         log('[Google] Restaurant created:', restaurantId, 'for user:', userId);
       }
     }
+
+    // Re-fetch user to include restaurantId that may have been set via updateOne
+    const freshUser = await User.findOne({ id: user.id });
+    if (freshUser) user = freshUser;
 
     // Generate JWT token
     const token = jwt.sign(

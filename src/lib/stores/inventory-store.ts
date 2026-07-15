@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { InventoryItem } from '@/lib/types';
+import { buildApiUrl } from '@/lib/helpers';
 
 interface InventoryEntities {
   inventoryItems: Record<string, InventoryItem>;
@@ -21,7 +22,7 @@ interface InventoryState {
 }
 
 interface InventoryActions {
-  fetchInventoryItems: () => Promise<void>;
+  fetchInventoryItems: (restaurantId?: string) => Promise<void>;
   addInventoryItem: (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => Promise<InventoryItem>;
   updateInventoryItem: (id: string, itemData: Partial<InventoryItem>) => Promise<InventoryItem>;
   deleteInventoryItem: (id: string) => Promise<void>;
@@ -78,10 +79,11 @@ export const useInventoryStore = create<InventoryStore>()((set, get) => ({
   ...initialState,
 
   // Actions
-  fetchInventoryItems: async () => {
+  fetchInventoryItems: async (restaurantId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/inventory');
+      const url = buildApiUrl('/api/inventory', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (result.success) {

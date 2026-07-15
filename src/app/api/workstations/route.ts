@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server';
 import { getWorkstations, addWorkstation, updateWorkstation, deleteWorkstation, updateWorkstationPositions } from '@/lib/database-service';
 import { IWorkstation } from '@/models/Workstation';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const workstations = await getWorkstations();
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          error: 'restaurantId is required',
+          message: 'restaurantId query parameter is required'
+        },
+        { status: 400 }
+      );
+    }
+    
+    const workstations = await getWorkstations(restaurantId);
     return NextResponse.json({
       success: true,
       data: workstations,
@@ -29,6 +44,19 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const workstationData = await request.json();
+    
+    // Validate restaurantId
+    if (!workstationData.restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'restaurantId is required',
+          message: 'restaurantId is required in request body'
+        },
+        { status: 400 }
+      );
+    }
     
     // Validate workstation data
     if (!workstationData.name || workstationData.name.trim().length === 0) {
@@ -134,7 +162,8 @@ export async function PUT(request: Request) {
     const result = await updateWorkstation(id, updateData);
     if (result) {
       // Get the updated workstation to return in the response
-      const updatedWorkstation = await getWorkstations();
+      const restaurantId = updateData.restaurantId as string | undefined;
+      const updatedWorkstation = await getWorkstations(restaurantId);
       const workstation = updatedWorkstation.find((w: any) => w.id === id);
       return NextResponse.json({ 
         success: true,

@@ -23,6 +23,7 @@ import { Pencil, Trash2, Save } from "lucide-react"
 import { type Category } from "@/lib/types"
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { useMenuStore } from '@/lib/stores/menu-store'
+import { useUserStore } from '@/lib/stores/user-store'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from './multi-select'
@@ -39,6 +40,8 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
   const [originalCategory, setOriginalCategory] = useState<Category | null>(null);
   const { t } = useI18nStore();
   const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenuStore();
+  const currentUser = useUserStore((state) => state.getCurrentUser());
+  const restaurantId = currentUser?.restaurantId;
   
   const modifierGroups = useMemo(() => 
     categories
@@ -51,9 +54,9 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
     if (!newCategoryName.trim()) return;
     try {
       await addCategory({
-        name: newCategoryName, 
+        name: newCategoryName,
         isModifierGroup: isNewCategoryModifier
-      });
+      }, restaurantId);
       setNewCategoryName('');
       setIsNewCategoryModifier(false);
     } catch(error: any) {
@@ -66,7 +69,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
       if (await isCategoryInUse(id)) {
         throw new Error(`Cannot delete category "${name}" because it is still in use.`);
       }
-      await deleteCategory(id);
+      await deleteCategory(id, restaurantId);
     } catch(error: any) {
       console.error('Category delete failed:', error);
     }
@@ -74,18 +77,17 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !editingCategory.name.trim()) return;
-  
+
     // Check if there are actual changes
     const hasChanges = JSON.stringify(editingCategory) !== JSON.stringify(originalCategory);
-  
+
     if (!hasChanges) {
-    // No changes, just exit without any toast
       setEditingCategory(null);
       return;
     }
-  
+
     try {
-      await updateCategory(editingCategory.id, editingCategory);
+      await updateCategory(editingCategory.id, editingCategory, restaurantId);
       setEditingCategory(null);
     } catch(error: any) {
       console.error('Category update failed:', error);

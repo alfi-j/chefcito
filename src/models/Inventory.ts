@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IInventoryItem extends Document {
   id: string;
+  restaurantId: string;
   name: string;
   quantity: number;
   unit: string;
@@ -11,6 +12,7 @@ export interface IInventoryItem extends Document {
 
 const InventoryItemSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
+  restaurantId: { type: String, required: true, index: true },
   name: { type: String, required: true },
   quantity: { type: Number, required: true },
   unit: { type: String, required: true },

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { IWorkstation } from '@/models/Workstation';
+import { buildApiUrl } from '@/lib/helpers';
 
 interface WorkstationEntities {
   workstations: Record<string, IWorkstation>;
@@ -17,7 +18,7 @@ interface WorkstationState {
 }
 
 interface WorkstationActions {
-  fetchWorkstations: () => Promise<void>;
+  fetchWorkstations: (restaurantId?: string) => Promise<void>;
   addWorkstation: (workstationData: Partial<IWorkstation> & { name: string }) => Promise<IWorkstation>;
   updateWorkstation: (id: string, workstationData: Partial<IWorkstation>) => Promise<IWorkstation>;
   deleteWorkstation: (id: string) => Promise<void>;
@@ -60,10 +61,11 @@ export const useWorkstationsStore = create<WorkstationStore>()((set, get) => ({
   ...initialState,
 
   // Actions
-  fetchWorkstations: async () => {
+  fetchWorkstations: async (restaurantId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/workstations');
+      const url = buildApiUrl('/api/workstations', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (result.success) {

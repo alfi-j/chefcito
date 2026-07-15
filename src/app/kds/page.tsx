@@ -6,6 +6,7 @@ import { type Order, type OrderItem } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card } from "@/components/ui/card";
 import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useUserStore } from '@/lib/stores/user-store';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
 import { debugKDS } from '@/lib/helpers';
@@ -15,6 +16,7 @@ import { usePermissions } from '@/lib/hooks/use-permissions';
 
 export default function KdsPage() {
   const { t } = useI18nStore();
+  const user = useUserStore((state) => state.getCurrentUser());
   const { can, getAllowedWorkstations } = usePermissions();
   const kdsStore = useKDSStore();
   const allWorkstations = kdsStore.getSortedWorkstations();
@@ -55,7 +57,9 @@ export default function KdsPage() {
   } = kdsStore;
 
   // Using SWR with optimized configuration for faster loading
-  const { data: ordersData = [], error, isLoading: loading, mutate } = useSWR<Order[]>('/api/orders', fetcher, {
+  const { data: ordersData = [], error, isLoading: loading, mutate } = useSWR<Order[]>(
+    user?.restaurantId ? `/api/orders?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
     shouldRetryOnError: true,
@@ -68,7 +72,9 @@ export default function KdsPage() {
   });
 
   // Fetch workstations with optimized configuration
-  const { data: workstationsData = [], isLoading: workstationsLoading } = useSWR<IWorkstation[]>('/api/workstations', fetcher, {
+  const { data: workstationsData = [], isLoading: workstationsLoading } = useSWR<IWorkstation[]>(
+    user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
     shouldRetryOnError: true,

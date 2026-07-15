@@ -61,9 +61,8 @@ const getAllMenuItems = async (restaurantId?: string) => {
   return menuItems.map(item => item.toObject());
 };
 
-const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order> => {
-  // Get workstations for checking Ready workstation
-  const workstations = await WorkstationModel.find({}).sort({ position: 1 });
+const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstations: any[]): Promise<Order> => {
+  const workstations = allWorkstations;
   
   const inflatedItems = await Promise.all(order.items.map(async (item: any) => {
     const menuItem = allMenuItems.find(mi => mi.id === item.menuItemId);
@@ -113,15 +112,16 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[]): Promise<Order
 };
 
 // Users
-export const getUsers = async () => {
+export const getUsers = async (restaurantId?: string) => {
   await initializeDatabase();
-  const users = await UserModel.find({}).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const users = await UserModel.find(query).maxTimeMS(10000);
   return users.map(user => user.toObject());
 };
 
-export const getUserPerformance = async (dateRange?: DateRange) => {
-  const users = await getUsers();
-  const orders = await getInitialOrders();
+export const getUserPerformance = async (dateRange?: DateRange, restaurantId?: string) => {
+  const users = await getUsers(restaurantId);
+  const orders = await getInitialOrders(restaurantId);
 
   const completedOrders = orders.filter(o => {
     if (o.status !== 'completed' || !o.completedAt) return false;
@@ -149,13 +149,17 @@ export const getUserPerformance = async (dateRange?: DateRange) => {
 };
 
 // Customers
-export const getCustomers = async (): Promise<Customer[]> => {
+export const getCustomers = async (restaurantId?: string): Promise<Customer[]> => {
   await initializeDatabase();
-  const customers = await CustomerModel.find({}).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const customers = await CustomerModel.find(query).maxTimeMS(10000);
   return customers.map(customer => customer.toObject());
 };
 
 export const addCustomer = async (customerData: Omit<Customer, 'id'>) => {
+  if (!customerData.restaurantId) {
+    throw new Error('restaurantId is required when creating a customer');
+  }
   const newCustomer = new CustomerModel({
     id: generateId(),
     ...customerData
@@ -179,10 +183,10 @@ export const deleteCustomer = async (id: string) => {
 };
 
 // Categories
-export const getCategories = async (): Promise<Category[]> => {
+export const getCategories = async (restaurantId: string): Promise<Category[]> => {
   try {
     await initializeDatabase();
-    const categories = await CategoryModel.find({}).maxTimeMS(10000);
+    const categories = await CategoryModel.find({ restaurantId }).maxTimeMS(10000);
     return categories.map(category => category.toObject());
   } catch (error: any) {
     console.error('Error fetching categories from database:', error);
@@ -197,26 +201,27 @@ export const getCategories = async (): Promise<Category[]> => {
   }
 };
 
-export const addCategory = async (categoryData: Omit<Category, 'id'>) => {
+export const addCategory = async (categoryData: Omit<Category, 'id'> & { restaurantId: string }) => {
   const newCategory = new CategoryModel({
     id: generateId(),
-    ...categoryData
+    ...categoryData,
+    restaurantId: categoryData.restaurantId
   });
   await newCategory.save();
   return newCategory.toObject();
 };
 
-export const updateCategory = async (id: string, categoryData: Partial<Category>) => {
+export const updateCategory = async (id: string, restaurantId: string, categoryData: Partial<Category>) => {
   const result = await CategoryModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: categoryData }
   );
 
   return result.modifiedCount > 0;
 };
 
-export const deleteCategory = async (id: string) => {
-  const result = await CategoryModel.deleteOne({ id });
+export const deleteCategory = async (id: string, restaurantId: string) => {
+  const result = await CategoryModel.deleteOne({ id, restaurantId });
   return result.deletedCount > 0;
 };
 
@@ -262,20 +267,29 @@ export const deleteMenuItem = async (id: string) => {
 // Orders
 // getOrderTotal moved to helpers.ts for consistency
 
-export const getInitialOrders = async (): Promise<Order[]> => {
+export const getInitialOrders = async (restaurantId?: string): Promise<Order[]> => {
   await initializeDatabase();
-  const orders = await OrderModel.find({}).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000); // Reduce timeout
-  const menuItems = await getAllMenuItems();
-  return Promise.all(orders.map(order => inflateOrder(order.toObject(), menuItems)));
+  const query = restaurantId ? { restaurantId } : {};
+  const wsQuery = restaurantId ? { restaurantId } : {};
+  const [orders, menuItems, workstations] = await Promise.all([
+    OrderModel.find(query).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000),
+    getAllMenuItems(restaurantId),
+    WorkstationModel.find(wsQuery).sort({ position: 1 }),
+  ]);
+  return Promise.all(orders.map(order => inflateOrder(order.toObject(), menuItems, workstations)));
 };
 
 export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
-  // Get the highest existing order ID and increment by 1
-  const latestOrder = await OrderModel.findOne({}).sort({ id: -1 }).limit(1);
+  if (!orderData.restaurantId) {
+    throw new Error('restaurantId is required when creating an order');
+  }
+  
+  // Get the highest existing order ID for this restaurant and increment by 1
+  const latestOrder = await OrderModel.findOne({ restaurantId: orderData.restaurantId }).sort({ id: -1 }).limit(1);
   const newId = latestOrder ? latestOrder.id + 1 : 1;
 
   // Ensure items have proper initial workstation assignment
-  const workstations = await WorkstationModel.find({}).sort({ position: 1 });
+  const workstations = await WorkstationModel.find({ restaurantId: orderData.restaurantId }).sort({ position: 1 });
   const firstWorkstation = workstations.length > 0 ? workstations[0] : null;
   
   // Process items to ensure they have workstationId and status
@@ -303,8 +317,8 @@ export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
   return newOrder.toObject();
 };
 
-export const updateOrderStatus = async (id: number, newStatus: string) => {
-  const order = await OrderModel.findOne({ id });
+export const updateOrderStatus = async (id: number, restaurantId: string, newStatus: string) => {
+  const order = await OrderModel.findOne({ id, restaurantId });
   if (order) {
     const now = new Date();
     if (newStatus === 'completed') {
@@ -326,15 +340,16 @@ export const updateOrderStatus = async (id: number, newStatus: string) => {
   return false;
 };
 
-export const deleteOrder = async (id: number) => {
-  debugOrders('deleteOrder: called with id %d', id);
+export const deleteOrder = async (id: number, restaurantId?: string) => {
+  debugOrders('deleteOrder: called with id %d and restaurantId %s', id, restaurantId || 'all');
 
   try {
     // Initialize database connection
     await initializeDatabase();
 
     // First check if the order exists
-    const orderExists = await OrderModel.findOne({ id });
+    const query = restaurantId ? { id, restaurantId } : { id };
+    const orderExists = await OrderModel.findOne(query);
     debugOrders('deleteOrder: order exists check %O', orderExists);
 
     if (!orderExists) {
@@ -342,7 +357,7 @@ export const deleteOrder = async (id: number) => {
       return false;
     }
 
-    const result = await OrderModel.deleteOne({ id });
+    const result = await OrderModel.deleteOne(query);
     debugOrders('deleteOrder: deleteOne result %O', result);
     return result.deletedCount > 0;
   } catch (error) {
@@ -351,9 +366,9 @@ export const deleteOrder = async (id: number) => {
   }
 };
 
-export const updateOrder = async (id: number, orderData: Partial<Order>) => {
+export const updateOrder = async (id: number, restaurantId: string, orderData: Partial<Order>) => {
   const result = await OrderModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: orderData }
   );
 
@@ -423,7 +438,8 @@ export const updateOrderItemStatus = async ({
     });
 
     // Get all workstations to check if current workstation is Ready workstation
-    const workstations = await WorkstationModel.find({}).sort({ position: 1 });
+    const wsQuery = order.restaurantId ? { restaurantId: order.restaurantId } : {};
+    const workstations = await WorkstationModel.find(wsQuery).sort({ position: 1 });
     // Find current workstation by id or _id
     const currentWsIndex = workstations.findIndex(ws => 
       ws.id === currentItem.workstationId || (ws._id && ws._id.toString() === currentItem.workstationId)
@@ -601,14 +617,19 @@ export const updateOrderItemStatus = async ({
 };
 
 // Payment Methods
-export const getPaymentMethods = async (): Promise<Payment[]> => {
+export const getPaymentMethods = async (restaurantId?: string): Promise<Payment[]> => {
   await initializeDatabase();
-  const paymentMethods = await PaymentModel.find({}).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const paymentMethods = await PaymentModel.find(query).maxTimeMS(10000);
   return paymentMethods.map(method => method.toObject());
 };
 
 export const addPaymentMethod = async (methodData: Omit<Payment, 'id'>) => {
   try {
+    if (!methodData.restaurantId) {
+      throw new Error('restaurantId is required when creating a payment method');
+    }
+    
     // Ensure banks array is handled properly for new payment methods
     const newMethodData = { ...methodData };
     if (newMethodData.type && newMethodData.type !== 'bank_transfer') {
@@ -668,10 +689,11 @@ export const deletePaymentMethod = async (id: string) => {
 
 
 // Inventory
-export const getInventory = async (): Promise<Inventory[]> => {
-  debugInventory('getInventory: called');
+export const getInventory = async (restaurantId?: string): Promise<Inventory[]> => {
+  debugInventory('getInventory: called with restaurantId %s', restaurantId || 'all');
   await initializeDatabase();
-  const inventory = await InventoryModel.find({}).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const inventory = await InventoryModel.find(query).maxTimeMS(10000);
   const result = inventory.map(item => {
     const itemObj = item.toObject();
     // Convert Date to string for lastRestocked
@@ -686,6 +708,9 @@ export const getInventory = async (): Promise<Inventory[]> => {
 
 export const addInventoryItem = async (itemData: Omit<Inventory, 'id'>) => {
   debugInventory('addInventoryItem: called with data %O', itemData);
+  if (!itemData.restaurantId) {
+    throw new Error('restaurantId is required when creating an inventory item');
+  }
   const newItem = new InventoryModel({
     id: generateId(),
     ...itemData,
@@ -749,8 +774,8 @@ const getOrderTotalReport = (order: Order): number => {
   }, 0);
 };
 
-export const getSalesReport = async (dateRange: DateRange) => {
-  const orders = await getInitialOrders();
+export const getSalesReport = async (dateRange: DateRange, restaurantId?: string) => {
+  const orders = await getInitialOrders(restaurantId);
 
   // Filter orders by date range
   const filteredOrders = orders.filter(order => {
@@ -790,8 +815,8 @@ export const getSalesReport = async (dateRange: DateRange) => {
   };
 };
 
-export const getItemsReport = async (dateRange: DateRange) => {
-  const orders = await getInitialOrders();
+export const getItemsReport = async (dateRange: DateRange, restaurantId?: string) => {
+  const orders = await getInitialOrders(restaurantId);
 
   // Filter orders by date range
   const filteredOrders = orders.filter(order => {
@@ -828,8 +853,8 @@ export const getItemsReport = async (dateRange: DateRange) => {
   };
 };
 
-export const getKitchenReport = async (dateRange: DateRange) => {
-  const orders = await getInitialOrders();
+export const getKitchenReport = async (dateRange: DateRange, restaurantId?: string) => {
+  const orders = await getInitialOrders(restaurantId);
 
   // Filter orders by date range
   const filteredOrders = orders.filter(order => {
@@ -887,15 +912,20 @@ export const getKitchenReport = async (dateRange: DateRange) => {
 };
 
 // Workstations
-export const getWorkstations = async (): Promise<Workstation[]> => {
+export const getWorkstations = async (restaurantId?: string): Promise<Workstation[]> => {
   await initializeDatabase();
-  const workstations = await WorkstationModel.find({}).sort({ position: 1 }).maxTimeMS(10000);
+  const query = restaurantId ? { restaurantId } : {};
+  const workstations = await WorkstationModel.find(query).sort({ position: 1 }).maxTimeMS(10000);
   return workstations.map(workstation => workstation.toObject());
 };
 
 export const addWorkstation = async (workstationData: Omit<Workstation, 'id'>) => {
+  if (!workstationData.restaurantId) {
+    throw new Error('restaurantId is required when creating a workstation');
+  }
+  
   // Get the highest position value and add 1
-  const workstations = await getWorkstations();
+  const workstations = await getWorkstations(workstationData.restaurantId);
   const maxPosition = workstations.length > 0 ? Math.max(...workstations.map(w => w.position || 0)) : 0;
 
   const newWorkstation = new WorkstationModel({

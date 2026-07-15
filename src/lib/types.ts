@@ -38,6 +38,7 @@ export type DeliveryInfo = {
 
 export type Order = {
   id: number;
+  restaurantId: string;
   items: OrderItem[];
   status: 'pending' | 'completed';
   createdAt: Date;
@@ -69,6 +70,7 @@ export type Category = {
 
 export interface Payment {
   id: string;
+  restaurantId: string;
   name: string;
   type: 'cash' | 'card' | 'bank_transfer';
   enabled: boolean;
@@ -94,12 +96,17 @@ export interface CustomerPaymentAssignment {
 
 export type Customer = {
   id: string;
+  restaurantId: string;
   name: string;
-  email: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  loyaltyPoints?: number;
 };
 
 export type InventoryItem = {
   id: string;
+  restaurantId: string;
   name: string;
   quantity: number;
   unit: "kg" | "g" | "L" | "ml" | "pcs" | string;

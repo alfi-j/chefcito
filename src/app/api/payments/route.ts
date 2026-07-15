@@ -1,10 +1,24 @@
 import { NextResponse } from 'next/server';
 import { getPaymentMethods, addPaymentMethod } from '@/lib/database-service';
 
-// GET /api/payments - get all payment methods
-export async function GET() {
+// GET /api/payments - get all payment methods for a restaurant
+export async function GET(request: Request) {
   try {
-    const payments = await getPaymentMethods();
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          error: 'restaurantId is required',
+        },
+        { status: 400 }
+      );
+    }
+    
+    const payments = await getPaymentMethods(restaurantId);
     return NextResponse.json({
       success: true,
       data: payments,
@@ -27,6 +41,18 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
+    
+    // Validate restaurantId
+    if (!data.restaurantId) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'restaurantId is required' 
+        },
+        { status: 400 }
+      );
+    }
+    
     const newMethod = await addPaymentMethod(data);
     return NextResponse.json({ 
       success: true,

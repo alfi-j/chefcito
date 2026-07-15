@@ -99,13 +99,17 @@ export function RolesList() {
   const isOwner = currentUser?.role === 'Owner'
 
   // Fetch workstations so the Owner can assign KDS tab access per role
-  const { data: workstations = [] } = useSWR<IWorkstation[]>('/api/workstations', fetcher, {
+  const { data: workstations = [] } = useSWR<IWorkstation[]>(
+    currentUser?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(currentUser.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
   })
 
   useEffect(() => {
-    rolesStore.fetchRoles();
-  }, [])
+    if (currentUser?.restaurantId) {
+      rolesStore.fetchRoles(currentUser.restaurantId);
+    }
+  }, [currentUser?.restaurantId])
 
   const createPredefinedRoles = async () => {
     const predefinedRoles = [
@@ -129,9 +133,14 @@ export function RolesList() {
       },
     ];
 
+    if (!currentUser?.restaurantId) {
+      toast.error(t('restaurant.toast.create_predefined_roles_error'));
+      return;
+    }
+
     try {
       for (const roleData of predefinedRoles) {
-        await rolesStore.addRole(roleData);
+        await rolesStore.addRole({ ...roleData, restaurantId: currentUser.restaurantId });
       }
       toast.success(t('restaurant.toast.predefined_roles_created'));
     } catch {
@@ -191,7 +200,11 @@ export function RolesList() {
         await rolesStore.updateRole(editingRole.id, formData);
         toast.success(t('restaurant.toast.role_updated'))
       } else {
-        await rolesStore.addRole(formData);
+        if (!currentUser?.restaurantId) {
+          toast.error(t('restaurant.toast.save_role_error'));
+          return;
+        }
+        await rolesStore.addRole({ ...formData, restaurantId: currentUser.restaurantId });
         toast.success(t('restaurant.toast.role_created'))
       }
       handleCloseDialog()

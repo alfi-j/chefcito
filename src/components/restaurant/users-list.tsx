@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useI18nStore } from '@/lib/stores/i18n-store'
 import { useUsersStore } from '@/lib/stores/users-store'
+import { useUserStore } from '@/lib/stores/user-store'
 import { toast } from "sonner"
 import { InviteDialog } from './invite-dialog'
 import {
@@ -62,6 +63,7 @@ type Role = IRole;
 export function UsersList() {
   const { t } = useI18nStore()
   const usersStore = useUsersStore()
+  const currentUser = useUserStore((state) => state.getCurrentUser())
   
   const users = usersStore.getUsers()
   const roles = usersStore.getRoles()
@@ -89,9 +91,9 @@ export function UsersList() {
 
   // Fetch users and roles
   useEffect(() => {
-    usersStore.fetchUsers();
-    usersStore.fetchRoles();
-  }, [])
+    usersStore.fetchUsers(currentUser?.restaurantId);
+    usersStore.fetchRoles(currentUser?.restaurantId);
+  }, [currentUser?.restaurantId])
 
   const handleOpenDialog = (user?: User) => {
     setEditingUser(user || null)

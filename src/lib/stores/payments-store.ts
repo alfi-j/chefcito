@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Payment } from '@/lib/types';
+import { buildApiUrl } from '@/lib/helpers';
 
 interface PaymentEntities {
   paymentMethods: Record<string, Payment>;
@@ -19,7 +20,7 @@ interface PaymentState {
 }
 
 interface PaymentActions {
-  fetchPaymentMethods: () => Promise<void>;
+  fetchPaymentMethods: (restaurantId?: string) => Promise<void>;
   addPaymentMethod: (methodData: Omit<Payment, 'id'>) => Promise<Payment>;
   updatePaymentMethod: (id: string, methodData: Partial<Payment>) => Promise<Payment>;
   deletePaymentMethod: (id: string) => Promise<void>;
@@ -71,10 +72,11 @@ export const usePaymentsStore = create<PaymentStore>()((set, get) => ({
   ...initialState,
 
   // Actions
-  fetchPaymentMethods: async () => {
+  fetchPaymentMethods: async (restaurantId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/payments');
+      const url = buildApiUrl('/api/payments', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (result.success) {

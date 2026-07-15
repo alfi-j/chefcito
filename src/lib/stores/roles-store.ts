@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { IRole } from '@/models/Role';
+import { buildApiUrl } from '@/lib/helpers';
 
 // Type alias for cleaner interface
 type Role = IRole;
@@ -20,11 +21,12 @@ interface RoleData {
   description?: string;
   permissions: string[];
   allowedWorkstations?: string[];
+  restaurantId?: string;
 }
 
 interface RolesActions {
-  fetchRoles: () => Promise<void>;
-  addRole: (roleData: RoleData) => Promise<Role>;
+  fetchRoles: (restaurantId?: string) => Promise<void>;
+  addRole: (roleData: RoleData & { restaurantId: string }) => Promise<Role>;
   updateRole: (id: string, roleData: Partial<RoleData>) => Promise<Role>;
   deleteRole: (id: string) => Promise<void>;
   clearError: () => void;
@@ -52,10 +54,11 @@ export const useRolesStore = create<RolesStore>()((set, get) => ({
   ...initialState,
 
   // Actions
-  fetchRoles: async () => {
+  fetchRoles: async (restaurantId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/roles');
+      const url = buildApiUrl('/api/roles', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (result.success) {

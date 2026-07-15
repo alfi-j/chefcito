@@ -66,7 +66,8 @@ export function PaymentMethodDialog({
       name: formName,
       type: formType,
       enabled: true,
-      banks: formType === 'bank_transfer' ? formBanks : []
+      banks: formType === 'bank_transfer' ? formBanks : [],
+      restaurantId: method?.restaurantId || ''
     };
 
     onSave(methodData);

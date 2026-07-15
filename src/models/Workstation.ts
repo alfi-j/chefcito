@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IWorkstation extends Document {
   id: string;
+  restaurantId: string;
   name: string;
   states: {
     new: string;
@@ -15,7 +16,8 @@ export interface IWorkstation extends Document {
 
 const WorkstationSchema: Schema = new Schema({
   id: { type: String, required: true, unique: true },
-  name: { type: String, required: true, unique: true },
+  restaurantId: { type: String, required: true, index: true },
+  name: { type: String, required: true },
   states: {
     new: { type: String, required: true, default: 'new' },
     inProgress: { type: String, required: true, default: 'in progress' },
@@ -26,8 +28,8 @@ const WorkstationSchema: Schema = new Schema({
   timestamps: true
 });
 
-// Add an index for position sorting
-WorkstationSchema.index({ position: 1, createdAt: 1 });
+WorkstationSchema.index({ restaurantId: 1, name: 1 }, { unique: true });
+WorkstationSchema.index({ restaurantId: 1, position: 1, createdAt: 1 });
 
 // Prevent model recompilation in development mode
 const Workstation = mongoose.models.Workstation || mongoose.model<IWorkstation>('Workstation', WorkstationSchema, 'workstations');

@@ -2,9 +2,24 @@ import { NextResponse } from 'next/server';
 import { getCategories, addCategory } from '@/lib/database-service';
 import { type Category } from '@/lib/types';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const categories = await getCategories();
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          error: 'restaurantId is required',
+          message: 'restaurantId query parameter is required'
+        },
+        { status: 400 }
+      );
+    }
+    
+    const categories = await getCategories(restaurantId);
     return NextResponse.json({
       success: true,
       data: categories,
@@ -33,7 +48,13 @@ export async function POST(request: Request) {
     const { action, data } = body;
     
     if (action === 'addCategory' && data) {
-      const newCategory = await addCategory(data as Omit<Category, 'id'>);
+      if (!data.restaurantId) {
+        return NextResponse.json(
+          { error: 'restaurantId is required for category operations' },
+          { status: 400 }
+        );
+      }
+      const newCategory = await addCategory(data as Omit<Category, 'id'> & { restaurantId: string });
       return NextResponse.json(newCategory);
     } else {
       return NextResponse.json(

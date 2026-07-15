@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { IUser } from '@/models/User';
 import { IRole } from '@/models/Role';
+import { buildApiUrl } from '@/lib/helpers';
 
 // Type aliases for cleaner interface
 type User = IUser;
@@ -27,8 +28,8 @@ interface UsersState {
 }
 
 interface UsersActions {
-  fetchUsers: () => Promise<void>;
-  fetchRoles: () => Promise<void>;
+  fetchUsers: (restaurantId?: string) => Promise<void>;
+  fetchRoles: (restaurantId?: string) => Promise<void>;
   addUser: (userData: Omit<User, 'id'>) => Promise<User>;
   updateUser: (id: string, userData: Partial<User>) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
@@ -88,10 +89,11 @@ export const useUsersStore = create<UsersStore>()((set, get) => ({
   ...initialState,
 
   // Actions
-  fetchUsers: async () => {
+  fetchUsers: async (restaurantId?: string) => {
     set({ loading: true, error: null });
     try {
-      const response = await fetch('/api/users');
+      const url = buildApiUrl('/api/users', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (Array.isArray(result)) {
@@ -121,9 +123,10 @@ export const useUsersStore = create<UsersStore>()((set, get) => ({
     }
   },
 
-  fetchRoles: async () => {
+  fetchRoles: async (restaurantId?: string) => {
     try {
-      const response = await fetch('/api/roles');
+      const url = buildApiUrl('/api/roles', restaurantId);
+      const response = await fetch(url);
       const result = await response.json();
       
       if (result.success) {

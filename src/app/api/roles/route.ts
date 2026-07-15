@@ -13,14 +13,23 @@ async function ensureDbConnection() {
   }
 }
 
-// GET /api/roles - Get all roles
+// GET /api/roles - Get all roles for a restaurant
 export async function GET(request: Request) {
   try {
     await ensureDbConnection();
-    
-    // Get roles from Role collection
-    const roles = await Role.find({});
-    
+
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+
+    if (!restaurantId) {
+      return NextResponse.json(
+        { success: false, error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+
+    const roles = await Role.find({ restaurantId });
+
     return NextResponse.json({
       success: true,
       data: roles
@@ -28,9 +37,9 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Error fetching roles:', error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: 'Failed to fetch roles' 
+        error: 'Failed to fetch roles'
       },
       { status: 500 }
     );
@@ -43,26 +52,34 @@ export async function POST(request: Request) {
     await ensureDbConnection();
     
     const body = await request.json();
-    
-    // Check if role with this name already exists
-    const existingRole = await Role.findOne({ name: body.name });
-    
+
+    if (!body.restaurantId) {
+      return NextResponse.json(
+        { success: false, error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if role with this name already exists for this restaurant
+    const existingRole = await Role.findOne({ name: body.name, restaurantId: body.restaurantId });
+
     if (existingRole) {
       return NextResponse.json(
-        { 
+        {
           success: false,
-          error: 'Role with this name already exists' 
+          error: 'Role with this name already exists'
         },
         { status: 400 }
       );
     }
-    
+
     // Generate a unique ID
     const roleId = uuidv4();
-    
+
     // Create new role object
     const roleData = {
       id: roleId,
+      restaurantId: body.restaurantId,
       name: body.name,
       description: body.description,
       permissions: body.permissions || [],

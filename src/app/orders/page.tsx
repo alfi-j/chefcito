@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useUserStore } from '@/lib/stores/user-store';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type Order } from '@/lib/types';
@@ -47,6 +48,7 @@ const getStatusVariant = (status: Order['status']) => {
 
 export default function OrdersPage() {
   const router = useRouter();
+  const user = useUserStore((state) => state.getCurrentUser());
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
@@ -60,7 +62,9 @@ export default function OrdersPage() {
 
 
   // Using SWR to fetch orders
-  const { data: orders, error: ordersError, isLoading: ordersLoading, mutate: mutateOrders } = useSWR<Order[]>('/api/orders', fetcher, {
+  const { data: orders, error: ordersError, isLoading: ordersLoading, mutate: mutateOrders } = useSWR<Order[]>(
+    user?.restaurantId ? `/api/orders?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
+    fetcher, {
     fallbackData: [],
     revalidateOnMount: true,
     shouldRetryOnError: true

@@ -102,7 +102,7 @@ export function SubscriptionCard({
     // Free plan - Card estilo Discord Nitro (antes de suscribirse)
     return (
       <div
-        className="relative group"
+        className="relative group self-start"
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
@@ -216,7 +216,7 @@ export function SubscriptionCard({
   // Pro plan - Active subscription (elegant premium style)
   return (
     <div
-      className="relative group"
+      className="relative group self-start"
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

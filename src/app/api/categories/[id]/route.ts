@@ -7,7 +7,14 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const params = await context.params;
     const { id } = params;
     
-    const updated = await updateCategory(id, body.data);
+    if (!body.data.restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required for category operations' },
+        { status: 400 }
+      );
+    }
+    
+    const updated = await updateCategory(id, body.data.restaurantId, body.data);
     if (updated) {
       return NextResponse.json({ success: true });
     } else {
@@ -30,7 +37,19 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
   try {
     const params = await context.params;
     const { id } = params;
-    await deleteCategory(id);
+    
+    // Get restaurantId from query params
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+    
+    await deleteCategory(id, restaurantId);
     return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error('Error deleting category:', error);
