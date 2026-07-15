@@ -9,6 +9,7 @@ import { useInventoryStore } from '@/lib/stores/inventory-store'
 import { usePaymentsStore } from '@/lib/stores/payments-store'
 import { useWorkstationsStore } from '@/lib/stores/workstations-store'
 import { debugMenu, debugInventory } from '@/lib/helpers';
+import { WorkstationDialog } from '@/components/restaurant/workstation-dialog'
 import { 
   Table,
   TableBody,
@@ -1122,7 +1123,27 @@ export default function RestaurantPage() {
                     });
                   }}
                 />
-                {/* Add Workstation Dialog when needed */}
+                <WorkstationDialog
+                  workstation={editingWorkstation}
+                  isOpen={isWorkstationDialogOpen}
+                  onOpenChange={(open: boolean) => {
+                    setIsWorkstationDialogOpen(open);
+                    if (!open) {
+                      setEditingWorkstation(undefined);
+                    }
+                  }}
+                  onSave={async (workstationData) => {
+                    try {
+                      if (editingWorkstation?.id) {
+                        await updateWorkstation(editingWorkstation.id, workstationData);
+                      } else {
+                        await addWorkstation(workstationData);
+                      }
+                    } catch (error) {
+                      console.error('Error saving workstation:', error);
+                    }
+                  }}
+                />
               </>
             )}
             
