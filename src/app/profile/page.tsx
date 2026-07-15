@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -35,7 +36,7 @@ export default function ProfilePage() {
   const [restaurantName, setRestaurantName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
-  const [paymentMode, setPaymentMode] = useState(false)
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
@@ -204,7 +205,11 @@ export default function ProfilePage() {
   }
 
   const handleSubscribe = () => {
-    setPaymentMode(true)
+    setIsPaymentDialogOpen(true)
+  }
+
+  const handleClosePaymentDialog = () => {
+    setIsPaymentDialogOpen(false)
   }
 
   const handleCancelSubscription = async (reason?: string) => {
@@ -328,41 +333,40 @@ export default function ProfilePage() {
         />
       </div>
 
-      <Separator />
+      <Dialog open={Boolean(isPaymentDialogOpen && user && isOwner)} onOpenChange={(open) => {
+        setIsPaymentDialogOpen(open)
+      }}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-auto w-[95vw] sm:w-auto">
+          <DialogHeader className="p-3 sm:p-4 pb-0">
+            <DialogTitle className="font-headline text-2xl">
+              {t('profile.subscription.payment_dialog_title') || 'Completar Suscripción Pro'}
+            </DialogTitle>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t('profile.subscription.payment_dialog_description') || 'Usa el botón de Payphone a continuación para completar tu suscripción de $4.99 USD'}
+            </p>
+          </DialogHeader>
 
-      {/* Diálogo de Pago con Payphone */}
-      {paymentMode && user && isOwner && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Completar Suscripción Pro</CardTitle>
-            <CardDescription>
-              Usa el botón de Payphone a continuación para completar tu suscripción de $4.99 USD
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <div className="p-4 sm:p-6 space-y-4">
             <PayphonePaymentBox
-              ownerEmail={user.email}
-              restaurantName={user.name}
-              restaurantId={user.restaurantId || ''}
+              ownerEmail={user?.email ?? ''}
+              restaurantName={user?.name ?? ''}
+              restaurantId={user?.restaurantId ?? ''}
             />
-            <div className="flex justify-between items-center mt-4 pt-4 border-t">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-2 pt-2 border-t border-border/50">
               <p className="text-xs text-muted-foreground">
-                Serás redirigido para confirmar el pago
+                {t('profile.subscription.payment_dialog_note') || 'Serás redirigido para confirmar el pago'}
               </p>
               <Button
                 variant="outline"
-                onClick={() => {
-                  setPaymentMode(false)
-                  loadSubscription()
-                }}
+                onClick={handleClosePaymentDialog}
                 disabled={isLoading}
               >
-                Cancelar
+                {t('profile.subscription.cancel_button') || 'Cancelar'}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Separator />
 

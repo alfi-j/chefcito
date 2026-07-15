@@ -571,6 +571,9 @@
             "payment_success": "¡Pago exitoso! Tu suscripción Pro ha sido activada.",
             "payment_failed": "El pago falló. Por favor, inténtalo de nuevo.",
             "payment_error": "Ocurrió un error al procesar el pago.",
+            "payment_dialog_title": "Completar Suscripción Pro",
+            "payment_dialog_description": "Usa el botón de Payphone a continuación para completar tu suscripción de $4.99 USD.",
+            "payment_dialog_note": "Serás redirigido para confirmar el pago.",
             "processing": "Procesando...",
             "loading": "Cargando suscripción..."
         },
