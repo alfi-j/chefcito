@@ -202,7 +202,15 @@ const useKDSStore = create<NormalizedKDSState>()(
       const order = get().entities.orders[orderId];
       if (!order) return [];
       
-      return order.items.filter(item => item.workstationId === workstationId);
+      const workstations = Object.values(get().entities.workstations);
+      const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const firstWorkstationId = sortedWorkstations[0]?.id;
+      
+      return order.items.filter(item => {
+        const effectiveWsId = item.workstationId || firstWorkstationId;
+        if (!firstWorkstationId) return true;
+        return effectiveWsId === workstationId;
+      });
     },
     
     // Item reordering
@@ -906,8 +914,18 @@ const useKDSStore = create<NormalizedKDSState>()(
       const order = get().entities.orders[orderId];
       if (!order) return [];
       
-      // Filter items for this workstation
-      const workstationItems = order.items.filter(item => item.workstationId === workstationId);
+      // Fall back null workstationId to first workstation (matches workstationOrdersMemo logic)
+      const workstations = Object.values(get().entities.workstations);
+      const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+      const firstWorkstationId = sortedWorkstations[0]?.id;
+      
+      // Filter items for this workstation, falling back to first workstation for null workstationId
+      const workstationItems = order.items.filter(item => {
+        const effectiveWsId = item.workstationId || firstWorkstationId;
+        // If no workstations exist, show all items
+        if (!firstWorkstationId) return true;
+        return effectiveWsId === workstationId;
+      });
       
       // Group similar items
       const groupedItems = groupSimilarItems(workstationItems);

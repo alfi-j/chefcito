@@ -6,6 +6,7 @@ import Restaurant from '../../../models/Restaurant';
 import Role from '../../../models/Role';
 import mongoose from 'mongoose';
 import * as bcrypt from 'bcryptjs';
+import { seedRestaurantData } from '@/lib/seed-data';
 
 // Helper function to ensure database connection
 async function ensureDbConnection() {
@@ -63,6 +64,9 @@ export async function POST(request: Request, context: any = {}) {
       ownerId: userId,
     });
     await restaurant.save();
+
+    // Seed default data so new users can test the app immediately
+    await seedRestaurantData(restaurantId);
 
     await User.updateOne({ id: userId }, { $set: { restaurantId } });
   }

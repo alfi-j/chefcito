@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
+import { seedRestaurantData } from '@/lib/seed-data';
 
 const log = debug('chefcito:auth:google');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -85,6 +86,9 @@ export async function POST(request: Request) {
           ownerId: userId,
         });
         await restaurant.save();
+
+        // Seed default data so new users can test the app immediately
+        await seedRestaurantData(restaurantId);
 
         await User.updateOne({ id: userId }, { $set: { restaurantId } });
         log('[Google] Restaurant created:', restaurantId, 'for user:', userId);

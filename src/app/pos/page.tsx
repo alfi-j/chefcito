@@ -435,11 +435,13 @@ function PosPageContent() {
       setIsProcessingPayment(true);
       
       // Get the first workstation (if available)
-      const workstations = await fetch('/api/workstations').then(res => res.json());
+      const workstationsUrl = user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/workstations';
+      const workstations = await fetch(workstationsUrl).then(res => res.json());
       const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
       
       // Prepare order data based on order type
       const orderData: any = {
+        restaurantId: user?.restaurantId || '',
         table: currentOrderTable,
         items: currentOrderItems.map((item: OrderItem) => ({
           id: item.id,

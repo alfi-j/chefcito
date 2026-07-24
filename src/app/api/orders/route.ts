@@ -139,6 +139,14 @@ export async function POST(request: Request, context: any = {}) {
         { status: 400 }
       );
     }
+
+    // Validate items
+    if (!orderData.items || orderData.items.length === 0) {
+      return NextResponse.json(
+        createApiResponse(undefined, "Order must contain at least one item"),
+        { status: 400 }
+      );
+    }
     
     const newOrder = await addOrder(orderData);
     debugOrders('POST: successfully created order with id %d', newOrder.id);

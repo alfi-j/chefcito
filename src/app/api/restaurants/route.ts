@@ -3,6 +3,7 @@ import { Restaurant } from '@/models';
 import { errorReporter } from '@/lib/helpers';
 import { connectToDatabase, isDatabaseConnected } from '@/lib/mongo-init';
 import { v4 as uuidv4 } from 'uuid';
+import { seedRestaurantData } from '@/lib/seed-data';
 
 // Define response structure
 interface ApiResponse<T> {
@@ -76,6 +77,9 @@ export async function POST(request: Request) {
     // Create new restaurant
     const newRestaurant = new Restaurant(restaurantData);
     const savedRestaurant = await newRestaurant.save();
+    
+    // Seed default data so new users can test the app immediately
+    await seedRestaurantData(savedRestaurant.id);
     
     return NextResponse.json(
       createApiResponse(savedRestaurant.toObject()),

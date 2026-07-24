@@ -67,18 +67,37 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstation
   const inflatedItems = await Promise.all(order.items.map(async (item: any) => {
     const menuItem = allMenuItems.find(mi => mi.id === item.menuItemId);
     if (!menuItem) {
-      console.warn(`Menu item with ID ${item.menuItemId} not found for order ${order.id}`);
-      return null;
+      console.warn(
+        `Menu item with ID ${item.menuItemId} not found for order ${order.id}: ` +
+        `keeping item "${item.name || 'unknown'}" as placeholder`
+      );
+      // Return a placeholder item instead of dropping silently
+      return {
+        ...item,
+        menuItem: {
+          id: item.menuItemId,
+          name: item.name || '(deleted item)',
+          price: item.price || 0,
+          category: '',
+          linkedModifiers: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        selectedExtras: [] as MenuItem[],
+        quantity: item.quantity || 0,
+        status: item.status || 'New',
+        workstationId: item.workstationId || (workstations[0]?.id || null),
+      };
     }
 
-    const selectedExtras = await Promise.all((item.selectedExtraIds || []).map(async (extraId: string) => {
+    const selectedExtras: (MenuItem | null)[] = (item.selectedExtraIds || []).map((extraId: string) => {
       const extraItem = allMenuItems.find(mi => mi.id === extraId);
       if (!extraItem) {
-        console.warn(`Extra item with ID ${extraId} not found for order item ${item.id}`);
+        console.warn(`Extra item with ID ${extraId} not found for order item ${item.id}, skipping`);
         return null;
       }
       return extraItem;
-    }));
+    });
 
     // Ensure item has a status field with default value if missing
     let status: 'New' | 'In Progress' | 'Ready' | 'served' | string = item.status || 'New';
@@ -99,7 +118,7 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstation
       selectedExtras: selectedExtras.filter(e => e !== null) as MenuItem[],
       quantity: quantity,
       status: status,
-      workstationId: item.workstationId || null // Preserve workstationId
+      workstationId: item.workstationId || (workstations[0]?.id || null)
     };
   }));
 
@@ -107,7 +126,7 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstation
     ...order,
     createdAt: new Date(order.createdAt),
     completedAt: order.completedAt ? new Date(order.completedAt) : undefined,
-    items: inflatedItems.filter(i => i !== null) as OrderItem[],
+    items: inflatedItems as OrderItem[],
   };
 };
 
@@ -283,9 +302,13 @@ export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
   if (!orderData.restaurantId) {
     throw new Error('restaurantId is required when creating an order');
   }
+
+  if (!orderData.items || orderData.items.length === 0) {
+    throw new Error('Order must contain at least one item');
+  }
   
-  // Get the highest existing order ID for this restaurant and increment by 1
-  const latestOrder = await OrderModel.findOne({ restaurantId: orderData.restaurantId }).sort({ id: -1 }).limit(1);
+  // Get the highest existing order ID globally and increment by 1
+  const latestOrder = await OrderModel.findOne().sort({ id: -1 }).limit(1);
   const newId = latestOrder ? latestOrder.id + 1 : 1;
 
   // Ensure items have proper initial workstation assignment
