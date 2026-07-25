@@ -433,11 +433,15 @@
         "workstations": {
             "title": "Estaciones de Trabajo",
             "name": "Nombre de Estación",
+            "order": "Orden",
             "add_workstation": "Añadir Estación",
             "edit_workstation": "Editar Estación",
             "default": "Por defecto",
-            "default_locked": "Las estaciones predeterminadas no se pueden mover",
-            "drag_to_reorder": "Arrastrar para reordenar estaciones",
+            "default_locked": "La estación predeterminada no se puede mover",
+            "move_up": "Subir",
+            "move_down": "Bajar",
+            "cannot_move_up": "No se puede subir más",
+            "cannot_move_down": "No se puede bajar más",
             "states": {
                 "title": "Estados",
                 "new": "Nombre Estado Nuevo",

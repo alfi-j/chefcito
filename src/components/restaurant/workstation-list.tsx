@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { 
   Table,
   TableBody,
@@ -10,13 +10,12 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
   MoreHorizontal, 
-  PlusCircle, 
   Pencil, 
   Trash2,
-  GripVertical,
+  ArrowUp,
+  ArrowDown,
   Lock,
 } from "lucide-react"
 import {
@@ -53,8 +52,6 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
   const { t } = useI18nStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingWorkstation, setEditingWorkstation] = useState<IWorkstation | undefined>(undefined)
-  const [draggedWorkstationId, setDraggedWorkstationId] = useState<string | null>(null)
-  const [dragOverWorkstationId, setDragOverWorkstationId] = useState<string | null>(null)
 
   const handleOpenDialog = (workstation?: IWorkstation) => {
     setEditingWorkstation(workstation)
@@ -84,106 +81,45 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
     }
   }
 
-  const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, id: string, workstationName: string) => {
-    // Prevent dragging of default workstations (Kitchen and Ready)
-    if (['Kitchen', 'Ready'].includes(workstationName)) {
-      e.preventDefault();
-      return;
-    }
-    
-    setDraggedWorkstationId(id)
-    e.dataTransfer.effectAllowed = 'move'
-  }
+  const isLocked = (name: string) => ['Kitchen', 'Ready'].includes(name)
 
-  const handleDragEnd = () => {
-    setDraggedWorkstationId(null)
-    setDragOverWorkstationId(null)
-  }
+  const moveWorkstation = async (index: number, direction: 'up' | 'down') => {
+    const safe = Array.isArray(workstations) ? workstations : []
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= safe.length) return
 
-  const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>) => {
-    e.preventDefault()
-  }
+    const newWorkstations = [...safe]
+    const [removed] = newWorkstations.splice(index, 1)
+    newWorkstations.splice(targetIndex, 0, removed)
 
-  const handleDragEnter = (e: React.DragEvent<HTMLTableRowElement>, id: string) => {
-    e.preventDefault()
-    if (draggedWorkstationId !== id) {
-      setDragOverWorkstationId(id)
-    }
-  }
-
-  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, dropWorkstationId: string, dropWorkstationName: string) => {
-    e.preventDefault()
-    
-    // Prevent dropping onto default workstations (Kitchen and Ready)
-    if (['Kitchen', 'Ready'].includes(dropWorkstationName)) {
-      handleDragEnd()
-      return
-    }
-    
-    if (draggedWorkstationId === null || draggedWorkstationId === dropWorkstationId) {
-      handleDragEnd()
-      return
-    }
-
-    const safeWorkstations = Array.isArray(workstations) ? workstations : [];
-    const fromIndex = safeWorkstations.findIndex(w => w.id === draggedWorkstationId)
-    const toIndex = safeWorkstations.findIndex(w => w.id === dropWorkstationId)
-
-    if (fromIndex === -1 || toIndex === -1) {
-      handleDragEnd()
-      return
-    }
-
-    // Create new positions array
-    const newWorkstations = [...safeWorkstations]
-    const [removed] = newWorkstations.splice(fromIndex, 1)
-    newWorkstations.splice(toIndex, 0, removed)
-
-    // Create positions update array
-    const positions = newWorkstations.map((workstation, index) => ({
-      id: workstation.id,
-      position: index
+    const positions = newWorkstations.map((ws, i) => ({
+      id: ws.id,
+      position: i
     }))
 
     try {
-      // Send the position updates to the API using the dedicated PATCH endpoint
       const response = await fetch('/api/workstations', {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ positions }),
       })
-
       const result = await response.json()
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update workstation positions')
-      }
+      if (!result.success) throw new Error(result.error || 'Failed to update workstation positions')
 
-      // Call the onReorder callback with the updated workstations
       if (onReorder) {
         onReorder(Array.isArray(result.data) ? result.data : [])
       }
-
       toast.success(t('restaurant.workstations.positions_updated'))
     } catch (error: any) {
       toast.error(error.message || t('restaurant.workstations.error'))
-      console.error('Error updating workstation positions:', error)
-      
-      // In case of error, refresh workstations from API to ensure consistency
       try {
         const refreshResponse = await fetch('/api/workstations')
         const refreshResult = await refreshResponse.json()
         if (refreshResult.success && onReorder) {
           onReorder(Array.isArray(refreshResult.data) ? refreshResult.data : [])
         }
-      } catch (refreshError) {
-        console.error('Error refreshing workstations:', refreshError)
-      }
+      } catch (_) {}
     }
-
-    handleDragEnd()
   }
 
   if (loading) {
@@ -202,6 +138,9 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
     )
   }
 
+  const safeWorkstations = Array.isArray(workstations) ? workstations : []
+  const lastIndex = safeWorkstations.length - 1
+
   return (
     <TooltipProvider>
     <>
@@ -217,7 +156,7 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-8"></TableHead>
+                <TableHead className="w-24">{t('restaurant.workstations.order')}</TableHead>
                 <TableHead>{t('restaurant.workstations.name')}</TableHead>
                 <TableHead>
                   <span className="sr-only">{t('restaurant.workstations.actions')}</span>
@@ -225,88 +164,108 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
               </TableRow>
             </TableHeader>
             <TableBody>
-              {(Array.isArray(workstations) ? workstations : []).length === 0 ? (
+              {safeWorkstations.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
                     <p>{t('restaurant.workstations.no_workstations')}</p>
                   </TableCell>
                 </TableRow>
               ) : (
-                (Array.isArray(workstations) ? workstations : []).map((workstation) => (
-                  <TableRow 
-                    key={workstation.id || `workstation-${workstation.name}-${workstation.position}`}
-                    draggable={!['Kitchen', 'Ready'].includes(workstation.name)}
-                    onDragStart={(e) => handleDragStart(e, workstation.id, workstation.name)}
-                    onDragEnd={handleDragEnd}
-                    onDragOver={handleDragOver}
-                    onDragEnter={(e) => handleDragEnter(e, workstation.id)}
-                    onDrop={(e) => handleDrop(e, workstation.id, workstation.name)}
-                    className={cn(
-                      ['Kitchen', 'Ready'].includes(workstation.name) ? "cursor-default" : "cursor-grab",
-                      draggedWorkstationId === workstation.id && "opacity-50",
-                      dragOverWorkstationId === workstation.id && "bg-primary/10"
-                    )}
-                  >
-                    <TableCell className="w-8">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div>
-                            {['Kitchen', 'Ready'].includes(workstation.name) ? (
-                              <Lock className="h-5 w-5 text-muted-foreground/50" />
-                            ) : (
-                              <GripVertical className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {['Kitchen', 'Ready'].includes(workstation.name) 
-                            ? t('restaurant.workstations.default_locked')
-                            : t('restaurant.workstations.drag_to_reorder')}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {workstation.name}
-                        {['Kitchen', 'Ready'].includes(workstation.name) && (
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
-                            {t('restaurant.workstations.default')}
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
-                              <MoreHorizontal className="h-4 w-4" />
-                              <span className="sr-only">{t('restaurant.workstations.toggle_menu')}</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>{t('restaurant.workstations.actions')}</DropdownMenuLabel>
-                            <DropdownMenuItem onSelect={() => handleOpenDialog(workstation)}>
-                              {t('restaurant.workstations.edit')}
-                            </DropdownMenuItem>
-                            {/* Prevent deletion of default workstations */}
-                            {!['Kitchen', 'Ready'].includes(workstation.name) && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="text-destructive" 
-                                  onSelect={() => handleDelete(workstation.id, workstation.name)}
-                                >
-                                  {t('restaurant.workstations.delete')}
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                safeWorkstations.map((workstation, index) => {
+                  const locked = isLocked(workstation.name)
+                  const canMoveUp = !locked && index > 0 && !isLocked(safeWorkstations[index - 1]?.name)
+                  const canMoveDown = !locked && index < lastIndex && !isLocked(safeWorkstations[index + 1]?.name)
+
+                  return (
+                    <TableRow key={workstation.id || `ws-${workstation.name}-${workstation.position}`}>
+                      <TableCell className="w-24">
+                        <div className="flex items-center gap-1">
+                          {locked ? (
+                            <Lock className="h-5 w-5 text-muted-foreground/50" />
+                          ) : (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      disabled={!canMoveUp}
+                                      onClick={() => moveWorkstation(index, 'up')}
+                                    >
+                                      <ArrowUp className="h-4 w-4" />
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {canMoveUp ? t('restaurant.workstations.move_up') : t('restaurant.workstations.cannot_move_up')}
+                                </TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      disabled={!canMoveDown}
+                                      onClick={() => moveWorkstation(index, 'down')}
+                                    >
+                                      <ArrowDown className="h-4 w-4" />
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {canMoveDown ? t('restaurant.workstations.move_down') : t('restaurant.workstations.cannot_move_down')}
+                                </TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {workstation.name}
+                          {locked && (
+                            <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full">
+                              {t('restaurant.workstations.default')}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">{t('restaurant.workstations.toggle_menu')}</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>{t('restaurant.workstations.actions')}</DropdownMenuLabel>
+                              <DropdownMenuItem onSelect={() => handleOpenDialog(workstation)}>
+                                {t('restaurant.workstations.edit')}
+                              </DropdownMenuItem>
+                              {!locked && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    className="text-destructive" 
+                                    onSelect={() => handleDelete(workstation.id, workstation.name)}
+                                  >
+                                    {t('restaurant.workstations.delete')}
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>

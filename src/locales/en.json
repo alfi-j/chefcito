@@ -433,11 +433,15 @@
         "workstations": {
             "title": "Workstations",
             "name": "Workstation Name",
+            "order": "Order",
             "add_workstation": "Add Workstation",
             "edit_workstation": "Edit Workstation",
             "default": "Default",
-            "default_locked": "Default workstations cannot be moved",
-            "drag_to_reorder": "Drag to reorder workstations",
+            "default_locked": "Default workstation cannot be moved",
+            "move_up": "Move up",
+            "move_down": "Move down",
+            "cannot_move_up": "Cannot move up",
+            "cannot_move_down": "Cannot move down",
             "states": {
                 "title": "States",
                 "new": "New State Name",
