@@ -783,7 +783,7 @@ export default function RestaurantPage() {
   
   const inventoryItems = inventoryStore.getInventoryItems();
   const paymentMethods = paymentsStore.getPaymentMethods();
-  const workstationItems = workstationsStore.getWorkstations();
+  const workstationItems = useWorkstationsStore(state => Object.values(state.entities.workstations));
   
   // Fetch initial data - avoid store objects in dependencies to prevent infinite loops
   useEffect(() => {
@@ -1117,9 +1117,13 @@ export default function RestaurantPage() {
                   onUpdate={updateWorkstation}
                   onDelete={deleteWorkstation}
                   onReorder={(updatedWorkstations) => {
-                    // Update positions in the store
-                    updatedWorkstations.forEach((ws, index) => {
-                      workstationsStore.updateWorkstation(ws.id, { position: index });
+                    useWorkstationsStore.setState({
+                      entities: {
+                        ...workstationsStore.entities,
+                        workstations: Object.fromEntries(
+                          updatedWorkstations.map(ws => [ws.id, ws])
+                        )
+                      }
                     });
                   }}
                 />
