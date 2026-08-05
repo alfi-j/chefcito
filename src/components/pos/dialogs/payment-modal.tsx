@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { CreditCard, Landmark, DollarSign, Check, Users, Loader2 } from "lucide-react";
 import { Separator } from '@/components/ui/separator';
 import { type OrderItem, type Payment } from '@/lib/types';
 import { useCurrentOrderTotalsCompat as useCurrentOrderTotals } from '@/lib/stores/current-order-store';
-import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { SimplifiedSplitBillSelector } from '@/components/billing/bill-splitter';
-import { ConsolidatedSplitBillCalculator, type SplitConfig as SimpleSplitConfig, type SplitCalculationResult as SimpleSplitResult, type CustomerItemAssignmentConfig } from '@/lib/consolidated-split-bill-calculator';
+import { type SplitConfig as SimpleSplitConfig, type CustomerItemAssignmentConfig } from '@/lib/consolidated-split-bill-calculator';
 import { CustomerItemAssignment } from '@/components/billing/customer-assignment';
 import { toast } from "sonner";
 
@@ -27,7 +26,7 @@ interface PaymentDialogRefactoredProps {
   onConfirmPayment: (paymentData: { 
     method: Payment; 
     amount: number; 
-    splitDetails?: any;
+    splitDetails?: SimpleSplitConfig | CustomerItemAssignmentConfig | null;
   }) => void;
   paymentMethods: Payment[];
   onClose?: () => void;
@@ -47,10 +46,9 @@ export function PaymentDialogRefactored({
   orderItems, 
   totalAmount, 
   onConfirmPayment, 
-  paymentMethods,
-  onClose
+  paymentMethods
 }: PaymentDialogRefactoredProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const { subtotal, tax } = useCurrentOrderTotals();
   
   const [selectedMethodId, setSelectedMethodId] = useState<string>('');
@@ -62,28 +60,11 @@ export function PaymentDialogRefactored({
   const [enhancedSplitMethod, setEnhancedSplitMethod] = useState<'simple' | 'item_assignment'>('simple');
   const [enhancedSplitConfig, setEnhancedSplitConfig] = useState<CustomerItemAssignmentConfig | null>(null);
   const [enhancedSplitValid, setEnhancedSplitValid] = useState<boolean>(true);
-  const [amount, setAmount] = useState<string>('');
   const [selectedBank, setSelectedBank] = useState<string>('');
 
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   
   const selectedMethod = paymentMethods.find(m => m.id === selectedMethodId);
-  
-  // Calculate split results when config changes
-  const splitResult = useMemo(() => {
-    if (!splitConfig || !useSplitBill || enhancedSplitMethod !== 'simple') return null;
-    
-    const calculator = new ConsolidatedSplitBillCalculator(orderItems, subtotal, tax, 0);
-    return calculator.calculate(splitConfig);
-  }, [splitConfig, useSplitBill, enhancedSplitMethod, orderItems, subtotal, tax]);
-
-  // Enhanced split results
-  const enhancedSplitResult = useMemo(() => {
-    if (!enhancedSplitConfig || !useSplitBill || enhancedSplitMethod === 'simple') return null;
-    
-    const calculator = new ConsolidatedSplitBillCalculator(orderItems, subtotal, tax, 0);
-    return calculator.calculate(enhancedSplitConfig);
-  }, [enhancedSplitConfig, useSplitBill, enhancedSplitMethod, orderItems, subtotal, tax, paymentMethods]);
 
   const handleMethodChange = (value: string) => {
     setSelectedMethodId(value);
@@ -119,10 +100,6 @@ export function PaymentDialogRefactored({
     setSplitValid(true);
   }, []);
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
-  }
-
   const handleBankChange = (value: string) => {
     setSelectedBank(value);
   }
@@ -143,9 +120,9 @@ export function PaymentDialogRefactored({
       });
     
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error('Payment Error', {
-        description: error.message || 'Failed to process payment',
+        description: error instanceof Error && error.message ? error.message : 'Failed to process payment',
         duration: 5000,
       });
     } finally {

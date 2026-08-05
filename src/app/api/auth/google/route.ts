@@ -90,7 +90,7 @@ export async function POST(request: Request) {
         // Seed default data so new users can test the app immediately
         await seedRestaurantData(restaurantId);
 
-        await User.updateOne({ id: userId }, { $set: { restaurantId } });
+        await User.updateOne({ id: userId }, { $set: { restaurantId, restaurantIds: [restaurantId] } });
         log('[Google] Restaurant created:', restaurantId, 'for user:', userId);
       }
     }
@@ -112,33 +112,35 @@ export async function POST(request: Request) {
     log('[Google] Auth successful, returning user:', user.id);
 
     return NextResponse.json({ user: userObject, token });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorCode = error instanceof Error ? (error as { code?: unknown }).code : undefined;
     log('[Google] Unhandled error:', error);
     console.error('[Google Auth] Full error:', error);
 
     // Provide specific error messages based on error type
-    if (error.message?.includes('invalid_token') || error.message?.includes('Token used too late')) {
+    if (errorMessage.includes('invalid_token') || errorMessage.includes('Token used too late')) {
       return NextResponse.json(
         { error: 'Google token expired or invalid. Please try again.' },
         { status: 401 }
       );
     }
 
-    if (error.message?.includes('Wrong recipient') || error.message?.includes('aud')) {
+    if (errorMessage.includes('Wrong recipient') || errorMessage.includes('aud')) {
       return NextResponse.json(
         { error: 'Google Client ID mismatch. Check GOOGLE_CLIENT_ID in env.' },
         { status: 400 }
       );
     }
 
-    if (error.message?.includes('ENOTFOUND') || error.message?.includes('ECONNREFUSED')) {
+    if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('ECONNREFUSED')) {
       return NextResponse.json(
         { error: 'Database connection failed. Check MONGODB_URI.' },
         { status: 503 }
       );
     }
 
-    if (error.code === 11000) {
+    if (errorCode === 11000) {
       return NextResponse.json(
         { error: 'User already exists with this email. Try logging in instead.' },
         { status: 409 }
@@ -146,7 +148,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: `Google authentication failed: ${error.message || 'Unknown error'}` },
+      { error: `Google authentication failed: ${errorMessage}` },
       { status: 500 }
     );
   }

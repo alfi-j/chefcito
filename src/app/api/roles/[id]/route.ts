@@ -18,8 +18,12 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const body = await request.json();
 
+    if (!body.restaurantId) {
+      return NextResponse.json({ success: false, error: 'restaurantId is required' }, { status: 400 });
+    }
+
     const updatedRole = await Role.findOneAndUpdate(
-      { id },
+      { id, restaurantId: body.restaurantId },
       {
         ...(body.name !== undefined && { name: body.name }),
         ...(body.description !== undefined && { description: body.description }),
@@ -41,14 +45,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 }
 
 // DELETE /api/roles/[id] - Delete a role
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await ensureDbConnection();
 
     const { id } = await params;
 
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+    if (!restaurantId) {
+      return NextResponse.json({ success: false, error: 'restaurantId is required' }, { status: 400 });
+    }
+
     // Prevent deletion if users are assigned this role
-    const roleDoc = await Role.findOne({ id });
+    const roleDoc = await Role.findOne({ id, restaurantId });
     if (roleDoc) {
       const usersWithRole = await User.findOne({ role: roleDoc.name });
       if (usersWithRole) {
@@ -59,7 +69,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       }
     }
 
-    const deletedRole = await Role.findOneAndDelete({ id });
+    const deletedRole = await Role.findOneAndDelete({ id, restaurantId });
 
     if (!deletedRole) {
       return NextResponse.json({ success: false, error: 'Role not found' }, { status: 404 });

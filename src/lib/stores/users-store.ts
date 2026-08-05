@@ -189,12 +189,13 @@ export const useUsersStore = create<UsersStore>()((set, get) => ({
 
   updateUser: async (id, userData) => {
     try {
+      const restaurantId = userData.restaurantId || get().entities.users[id]?.restaurantId;
       const response = await fetch(`/api/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({ ...userData, restaurantId }),
       });
       
       const result = await response.json();
@@ -223,9 +224,13 @@ export const useUsersStore = create<UsersStore>()((set, get) => ({
 
   deleteUser: async (id) => {
     try {
-      const response = await fetch(`/api/users/${id}`, {
-        method: 'DELETE',
-      });
+      const restaurantId = get().entities.users[id]?.restaurantId;
+      const response = await fetch(
+        restaurantId ? `/api/users/${id}?restaurantId=${encodeURIComponent(restaurantId)}` : `/api/users/${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
       
       const result = await response.json();
       

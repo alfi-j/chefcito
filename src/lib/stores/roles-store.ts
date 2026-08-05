@@ -124,12 +124,13 @@ export const useRolesStore = create<RolesStore>()((set, get) => ({
 
   updateRole: async (id, roleData) => {
     try {
+      const restaurantId = roleData.restaurantId || get().entities.roles[id]?.restaurantId;
       const response = await fetch(`/api/roles/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(roleData),
+        body: JSON.stringify({ ...roleData, restaurantId }),
       });
       
       const result = await response.json();
@@ -158,9 +159,13 @@ export const useRolesStore = create<RolesStore>()((set, get) => ({
 
   deleteRole: async (id) => {
     try {
-      const response = await fetch(`/api/roles/${id}`, {
-        method: 'DELETE',
-      });
+      const restaurantId = get().entities.roles[id]?.restaurantId;
+      const response = await fetch(
+        restaurantId ? `/api/roles/${id}?restaurantId=${encodeURIComponent(restaurantId)}` : `/api/roles/${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
       
       const result = await response.json();
       

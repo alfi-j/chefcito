@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Copy, Check, Loader2 } from "lucide-react"
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 import { useUserStore } from "@/lib/stores/user-store"
 import { toast } from "sonner"
 
@@ -31,7 +31,7 @@ interface InviteDialogProps {
 }
 
 export function InviteDialog({ isOpen, onOpenChange, roles }: InviteDialogProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const getCurrentUser = useUserStore((s) => s.getCurrentUser)
 
   const [selectedRole, setSelectedRole] = useState("")

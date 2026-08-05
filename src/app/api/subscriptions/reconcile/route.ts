@@ -29,7 +29,7 @@ interface PayphoneTransactionStatus {
  *
  * TODO: Add admin authentication middleware before deploying to production.
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     await initializeDatabase();
 
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
       cancelled: 0,
       stillPending: 0,
       errors: 0,
-      details: [] as any[],
+      details: [] as Array<Record<string, unknown>>,
     };
 
     const payphoneToken = process.env.PAYPHONE_TOKEN;

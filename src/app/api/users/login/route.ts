@@ -60,7 +60,6 @@ export async function POST(request: Request) {
 
     // Return user without password and token
     const userObject = user.toObject();
-    // @ts-ignore - password is required in the schema but we want to remove it from the response
     delete userObject.password;
 
     debugAuth('POST: login successful for user %s', login);
@@ -109,7 +108,6 @@ export async function GET(request: Request) {
 
     // Return user without password
     const userObject = user.toObject();
-    // @ts-ignore - password is required in the schema but we want to remove it from the response
     delete userObject.password;
 
     debugAuth('GET: successfully fetched user with email %s', email);

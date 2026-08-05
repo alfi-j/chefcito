@@ -1,8 +1,9 @@
 "use client"
-import React, { useState, useCallback, useMemo, type DragEvent, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense } from 'react';
 import Image from 'next/image'
+import { useSearchParams } from 'next/navigation'
 
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/lib/stores/menu-store'
 import { useUserStore } from '@/lib/stores/user-store'
 import { useInventoryStore } from '@/lib/stores/inventory-store'
@@ -26,15 +27,8 @@ import {
   Pencil, 
   Trash2, 
   Utensils, 
-  Search, 
-  GripVertical, 
   Plus, 
   Minus, 
-  FolderKanban,
-  Edit,
-  Package,
-  CreditCard,
-  Monitor,
   ChevronDown,
   Settings,
 } from "lucide-react"
@@ -51,29 +45,16 @@ import { type IWorkstation } from '@/models/Workstation'
 import { WorkstationList } from "@/components/restaurant/workstation-list";
 import { RolesList } from "@/components/restaurant/roles-list";
 import { UsersList } from "@/components/restaurant/users-list";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { GeneralSettings } from "@/components/restaurant/general-settings";
+import { Card, CardContent } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { MenuItemDialog } from "@/components/restaurant/menu-item-dialog";
 import { CategoryDialog } from "@/components/restaurant/category-dialog";
 import { PaymentMethodDialog } from "@/components/restaurant/payment-method-dialog";
 import { InventoryItemDialog } from "@/components/restaurant/inventory-item-dialog";
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { cn } from '@/lib/helpers'
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from "@/components/restaurant/batch-actions-toolbar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from 'sonner'
-
-interface RenderedCategory extends Category {
-  depth: number;
-}
 
 function InventoryList({ 
   items, 
@@ -88,11 +69,9 @@ function InventoryList({
   onAdjustStock: (itemId: string, adjustment: number) => Promise<void>,
   onDeleteItem: (itemId: string) => Promise<void>
 }) {
-    const { t } = useI18nStore();
+    const { t } = useTranslation();
     const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<InventoryItem | undefined>(undefined);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('all');
 
     const handleOpenItemDialog = (item?: InventoryItem) => {
         setEditingItem(item);
@@ -111,21 +90,8 @@ function InventoryList({
         return t('restaurant.inventory.status.in_stock');
     }
 
-    const inventoryCategories = useMemo(() => {
-        const cats = new Set(items.map(item => item.category).filter(Boolean));
-        return Array.from(cats).sort();
-    }, [items]);
-
-    const filteredItems = useMemo(() => {
-        return items.filter(item => {
-            const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
-            const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-            return matchesCategory && matchesSearch;
-        });
-    }, [items, searchQuery, categoryFilter]);
-    
     const renderContent = () => {
-         if (filteredItems.length === 0) {
+         if (items.length === 0) {
             return (
                 <div className="text-center text-muted-foreground py-10">
                     <p>{t('restaurant.inventory.no_items_found')}</p>
@@ -137,7 +103,7 @@ function InventoryList({
             <>
                 {/* Mobile View */}
                 <div className="md:hidden space-y-4">
-                    {filteredItems.map(item => (
+                    {items.map(item => (
                         <Card key={item.id}>
                             <CardContent className="p-4 flex flex-col gap-4">
                                 <div className="flex justify-between items-start">
@@ -192,7 +158,7 @@ function InventoryList({
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredItems.map((item) => (
+                            {items.map((item) => (
                                 <TableRow key={item.id}>
                                     <TableCell className="font-medium">{item.name}</TableCell>
                                     <TableCell>{item.unit}</TableCell>
@@ -257,28 +223,20 @@ function InventoryList({
 function MenuList({ 
   menuItems, 
   categories, 
-  onUpdateCategories,
   onSaveItem,
   onDeleteItem,
-  onDeleteMultipleItems,
-  onReorderItems
 }: { 
   menuItems: MenuItem[], 
   categories: Category[], 
-  onUpdateCategories: (category: Omit<Category, "id">) => Promise<any>,
-  onSaveItem: (item: any) => Promise<any>,
-  onDeleteItem: (id: string) => Promise<any>,
-  onDeleteMultipleItems: (ids: string[]) => Promise<any>,
-  onReorderItems: (items: MenuItem[]) => Promise<any>,
+  onSaveItem: (item: MenuItem | Omit<MenuItem, 'id'>) => Promise<unknown>,
+  onDeleteItem: (id: string) => Promise<unknown>,
 }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   const handleOpenItemDialog = (item?: MenuItem) => {
     debugMenu('handleOpenItemDialog called with item: %O', item);
@@ -313,94 +271,7 @@ function MenuList({
     }
   }
   
-  const categoryMap = useMemo(() => {
-    const map = new Map<number, Category>();
-    categories.forEach((c: Category) => map.set(c.id, c));
-    return map;
-  }, [categories]);
-
-  const categoryChildrenMap = useMemo(() => {
-    const map = new Map<number, number[]>();
-    categories.forEach((c: Category) => {
-        if (c.parentId) {
-            if (!map.has(c.parentId)) {
-                map.set(c.parentId, []);
-            }
-            map.get(c.parentId)!.push(c.id);
-        }
-    });
-    return map;
-  }, [categories]);
-
-  const getDescendantCategoryNames = useCallback((categoryId: number): string[] => {
-    const names: string[] = [];
-    const queue: number[] = [categoryId];
-    const visited = new Set<number>();
-
-    while(queue.length > 0) {
-        const currentId = queue.shift()!;
-        if (visited.has(currentId)) continue;
-        visited.add(currentId);
-        
-        const category = categoryMap.get(currentId);
-        if (category) {
-            names.push(category.name);
-        }
-
-        const children = categoryChildrenMap.get(currentId);
-        if (children) {
-            queue.push(...children);
-        }
-    }
-    return names;
-  }, [categoryMap, categoryChildrenMap]);
-  
-  const renderedCategories = useMemo(() => {
-    const categoryIdMap = new Map(categories.map((c: Category) => [c.id, {...c, children: [] as Category[]}]));
-    const roots: Category[] = [];
-
-    categories.forEach((category: Category) => {
-        if (category.parentId && categoryIdMap.has(category.parentId)) {
-            categoryIdMap.get(category.parentId)!.children.push(category as any);
-        } else {
-            roots.push(category);
-        }
-    });
-    
-    const flattened: RenderedCategory[] = [];
-    const traverse = (category: Category, depth: number) => {
-        flattened.push({ ...category, depth });
-        const children = categoryIdMap.get(category.id)?.children || [];
-        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
-    };
-
-    roots.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((root: Category) => traverse(root, 0));
-    return flattened;
-  }, [categories]);
-
-
-  const filteredItems = useMemo(() => {
-    let items = [...menuItems];
-    
-    if (categoryFilter !== 'all') {
-      const selectedCategory = categories.find(c => c.name === categoryFilter);
-      if (selectedCategory) {
-        const relevantCategoryNames = getDescendantCategoryNames(selectedCategory.id);
-        items = items.filter(item => relevantCategoryNames.includes(item.category));
-      } else {
-        items = [];
-      }
-    }
-
-    if (searchQuery) {
-      items = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-
-    // Always sort items alphabetically since we're removing drag and drop
-    items.sort((a, b) => a.name.localeCompare(b.name));
-
-    return items;
-  }, [menuItems, categoryFilter, searchQuery, categories, getDescendantCategoryNames]);
+  const filteredItems = [...menuItems].sort((a, b) => a.name.localeCompare(b.name));
 
 
   const numSelected = selectedItemIds.length;
@@ -491,7 +362,7 @@ function MenuList({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                             <DropdownMenuLabel>{t('restaurant.menu.table.actions')}</DropdownMenuLabel>
-                            <DropdownMenuItem onSelect={(e: any) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={(e: Event) => { e.preventDefault(); handleOpenItemDialog(item); }}>{t('restaurant.menu.table.edit')}</DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-destructive" onClick={() => onDeleteItem(item.id)}>{t('restaurant.menu.table.delete')}</DropdownMenuItem>
                         </DropdownMenuContent>
@@ -532,7 +403,7 @@ function PaymentMethods({
   onDelete: (id: string) => Promise<void>,
   onToggle: (id: string, enabled: boolean) => Promise<void>,
 }) {
-    const { t } = useI18nStore();
+    const { t } = useTranslation();
     
     return (
         <div className="p-6">
@@ -593,7 +464,15 @@ function PaymentMethods({
 }
 
 export default function RestaurantPage() {
-  const { t } = useI18nStore();
+  return (
+    <Suspense fallback={null}>
+      <RestaurantSettings />
+    </Suspense>
+  );
+}
+
+function RestaurantSettings() {
+  const { t } = useTranslation();
   const currentUser = useUserStore().getCurrentUser();
 
   // Check if current user is an Owner
@@ -609,8 +488,6 @@ export default function RestaurantPage() {
   
   const {
     loading,
-    error,
-    
     addCategory,
     addMenuItem,
     updateMenuItem,
@@ -619,15 +496,12 @@ export default function RestaurantPage() {
     fetchMenuData
   } = menuStore;
   
-  const [activeTab, setActiveTab] = useState('menu');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'general');
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
   
   // State for other dialogs
-  const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isInventoryDialogOpen, setIsInventoryDialogOpen] = useState(false);
   const [editingInventoryItem, setEditingInventoryItem] = useState<InventoryItem | undefined>(undefined);
   const [isWorkstationDialogOpen, setIsWorkstationDialogOpen] = useState(false);
@@ -646,153 +520,48 @@ export default function RestaurantPage() {
     setEditingWorkstation(workstation);
     setIsWorkstationDialogOpen(true);
   };
-  
-  const onDeleteMultiple = async () => {
-    for (const id of selectedItemIds) {
-      await deleteMenuItem(id);
+
+  const handleSaveMenuItem = (item: MenuItem | Omit<MenuItem, 'id'>) => {
+    if ('id' in item) {
+      return updateMenuItem(item.id, item);
     }
-    setSelectedItemIds([]);
+    return addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' });
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedItemIds(filteredItems.map(item => item.id));
+  const handleSaveMenuItemDialog = async (item: MenuItem | Omit<MenuItem, 'id'>) => {
+    if ('id' in item) {
+      await updateMenuItem(item.id, item);
     } else {
-      setSelectedItemIds([]);
-    }
-  }
-
-  const handleRowSelect = (itemId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedItemIds(prev => [...prev, itemId]);
-    } else {
-      setSelectedItemIds(prev => prev.filter(id => id !== itemId));
-    }
-  }
-  
-  const categoryMap = useMemo(() => {
-    const map = new Map<number, Category>();
-    categories.forEach((c: Category) => map.set(c.id, c));
-    return map;
-  }, [categories]);
-
-  const categoryChildrenMap = useMemo(() => {
-    const map = new Map<number, number[]>();
-    categories.forEach((c: Category) => {
-        if (c.parentId) {
-            if (!map.has(c.parentId)) {
-                map.set(c.parentId, []);
-            }
-            map.get(c.parentId)!.push(c.id);
-        }
-    });
-    return map;
-  }, [categories]);
-
-  const getDescendantCategoryNames = useCallback((categoryId: number): string[] => {
-    const names: string[] = [];
-    const queue: number[] = [categoryId];
-    const visited = new Set<number>();
-
-    while(queue.length > 0) {
-        const currentId = queue.shift()!;
-        if (visited.has(currentId)) continue;
-        visited.add(currentId);
-        
-        const category = categoryMap.get(currentId);
-        if (category) {
-            names.push(category.name);
-        }
-
-        const children = categoryChildrenMap.get(currentId);
-        if (children) {
-            queue.push(...children);
-        }
-    }
-    return names;
-  }, [categoryMap, categoryChildrenMap]);
-  
-  const renderedCategories = useMemo(() => {
-    const categoryIdMap = new Map(categories.map((c: Category) => [c.id, {...c, children: [] as Category[]}]));
-    const roots: Category[] = [];
-
-    categories.forEach((category: Category) => {
-        if (category.parentId && categoryIdMap.has(category.parentId)) {
-            categoryIdMap.get(category.parentId)!.children.push(category as any);
-        } else {
-            roots.push(category);
-        }
-    });
-    
-    const flattened: RenderedCategory[] = [];
-    const traverse = (category: Category, depth: number) => {
-        flattened.push({ ...category, depth });
-        const children = categoryIdMap.get(category.id)?.children || [];
-        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
-    };
-
-    roots.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((root: Category) => traverse(root, 0));
-    return flattened;
-  }, [categories]);
-
-
-  const filteredItems = useMemo(() => {
-    let items = [...menuItems];
-    
-    if (categoryFilter !== 'all') {
-      const selectedCategory = categories.find(c => c.name === categoryFilter);
-      if (selectedCategory) {
-        const relevantCategoryNames = getDescendantCategoryNames(selectedCategory.id);
-        items = items.filter(item => relevantCategoryNames.includes(item.category));
-      } else {
-        items = [];
-      }
-    }
-
-    if (searchQuery) {
-      items = items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
-
-    // Always sort items alphabetically since we're removing drag and drop
-    items.sort((a, b) => a.name.localeCompare(b.name));
-
-    return items;
-  }, [menuItems, categoryFilter, searchQuery, categories, getDescendantCategoryNames]);
-
-
-  const numSelected = selectedItemIds.length;
-  const numVisible = filteredItems.length;
-  const isAllSelected = numVisible > 0 && numSelected === numVisible;
-
-  const handleSaveItem = async (itemData: Omit<MenuItem, "id"> & { restaurantId?: string }) => {
-    if (editingItem) {
-      // Update existing item
-      await updateMenuItem(editingItem.id, itemData);
-    } else {
-      // Add new item with restaurantId
-      await addMenuItem({ ...(itemData as any), restaurantId: currentUser?.restaurantId || '' });
+      await addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' });
     }
     setIsItemDialogOpen(false);
     setEditingItem(undefined);
   };
-
+  
   // Use stores for inventory and payment methods
   const inventoryStore = useInventoryStore();
   const paymentsStore = usePaymentsStore();
   const workstationsStore = useWorkstationsStore();
   
-  const inventoryItems = inventoryStore.getInventoryItems();
-  const paymentMethods = paymentsStore.getPaymentMethods();
-  const workstationItems = useWorkstationsStore(state => Object.values(state.entities.workstations));
+  const inventoryItemsById = useInventoryStore(state => state.entities.inventoryItems);
+  const paymentMethodsById = usePaymentsStore(state => state.entities.paymentMethods);
+  const workstationsById = useWorkstationsStore(state => state.entities.workstations);
+  const inventoryItems = useMemo(() => Object.values(inventoryItemsById), [inventoryItemsById]);
+  const paymentMethods = useMemo(() => Object.values(paymentMethodsById), [paymentMethodsById]);
+  const workstationItems = useMemo(
+    () => Object.values(workstationsById).sort((a, b) => (a.position ?? 0) - (b.position ?? 0)),
+    [workstationsById]
+  );
   
   // Fetch initial data - avoid store objects in dependencies to prevent infinite loops
   useEffect(() => {
     const restaurantId = currentUser?.restaurantId;
+    if (!restaurantId) return;
     fetchMenuData(restaurantId);
     inventoryStore.fetchInventoryItems(restaurantId);
     paymentsStore.fetchPaymentMethods(restaurantId);
     workstationsStore.fetchWorkstations(restaurantId);
-  }, [fetchMenuData, currentUser?.restaurantId]);
+  }, [fetchMenuData, currentUser?.restaurantId, inventoryStore, paymentsStore, workstationsStore]);
   
   // Inventory functions
   const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
@@ -863,19 +632,6 @@ export default function RestaurantPage() {
     }
   };
   
-  // Menu item functions
-  const updateMenuItemOrder = async (categoryId: number, itemIds: string[]) => {
-    // This is a placeholder - actual implementation would depend on how ordering works
-    console.log('Update menu item order:', categoryId, itemIds);
-  };
-  
-  const handleDeleteMenuItems = async (ids: string[]) => {
-    // Delete multiple menu items
-    for (const id of ids) {
-      await deleteMenuItem(id);
-    }
-  };
-
   // Workstation state is now managed by the store
   const workstationsLoading = workstationsStore.loading;
   const workstationsError = workstationsStore.error;
@@ -907,7 +663,19 @@ export default function RestaurantPage() {
     }
   };
 
+  // Restaurant settings are only available to Owner and Admin roles
+  const isRestaurantManager = currentUser?.role === 'Owner' || currentUser?.role === 'Admin';
+
   // Render loading state - hooks must be called before any conditional return
+  if (!isRestaurantManager) {
+    return (
+        <div className="flex flex-col items-center justify-center h-full text-center gap-2">
+            <Utensils className="h-10 w-10 text-muted-foreground" />
+            <p className="text-muted-foreground">{t('dashboard.access_denied')}</p>
+        </div>
+    )
+  }
+
   if (loading) {
     return (
         <div className="flex justify-center items-center h-full">
@@ -930,6 +698,7 @@ export default function RestaurantPage() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full sm:w-auto flex items-center gap-2">
                     <Settings className="h-4 w-4" />
+                    {activeTab === 'general' && t('restaurant.general.title')}
                     {activeTab === 'menu' && t('restaurant.menu.title')}
                     {activeTab === 'inventory' && t('restaurant.inventory.title')}
                     {activeTab === 'payments' && t('restaurant.payment_methods.title')}
@@ -940,6 +709,9 @@ export default function RestaurantPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-full sm:w-56">
+                  <DropdownMenuItem onSelect={() => setActiveTab('general')}>
+                    {t('restaurant.general.title')}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => setActiveTab('menu')}>
                     {t('restaurant.menu.title')}
                   </DropdownMenuItem>
@@ -995,7 +767,7 @@ export default function RestaurantPage() {
               {activeTab === 'payments' && (
                 <PaymentMethodDialog 
                   method={undefined}
-                  onSave={async (methodData: any) => {
+                  onSave={async (methodData: Payment | Omit<Payment, 'id'>) => {
                     await addPaymentMethod(methodData);
                   }}
                 >
@@ -1026,29 +798,21 @@ export default function RestaurantPage() {
           </div>
           
           <div className="mt-4">
+            {activeTab === 'general' && (
+              <GeneralSettings restaurantId={currentUser?.restaurantId || ''} />
+            )}
             {activeTab === 'menu' && (
               <>
                 <MenuList
                   menuItems={menuItems}
                   categories={categories}
-                  onUpdateCategories={addCategory}
-                  onSaveItem={(item: any) => 'id' in item ? updateMenuItem(item.id, item) : addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' })}
+                  onSaveItem={handleSaveMenuItem}
                   onDeleteItem={deleteMenuItem}
-                  onDeleteMultipleItems={handleDeleteMenuItems}
-                  onReorderItems={(items) => updateMenuItemOrder(0, items.map(i => i.id))}
                 />
                 <MenuItemDialog
                   item={editingItem}
                   categories={categories}
-                  onSave={async (item: any) => {
-                    if ('id' in item) {
-                      await updateMenuItem(item.id, item);
-                    } else {
-                      await addMenuItem({ ...item, restaurantId: currentUser?.restaurantId || '' });
-                    }
-                    setIsItemDialogOpen(false);
-                    setEditingItem(undefined);
-                  }}
+                  onSave={handleSaveMenuItemDialog}
                   isOpen={isItemDialogOpen}
                   onOpenChange={(open: boolean) => {
                     setIsItemDialogOpen(open);
@@ -1069,8 +833,9 @@ export default function RestaurantPage() {
                       await updateInventoryItem(item.id, item);
                     } else {
                       // Remove lastRestocked from the item before adding
-                      const { lastRestocked, ...itemData } = item as any;
-                      await addInventoryItem({ ...itemData, lastRestocked: new Date().toISOString() });
+                      const { lastRestocked, ...itemData } = item as Omit<InventoryItem, 'restaurantId'>;
+                      void lastRestocked;
+                      await addInventoryItem({ ...itemData, restaurantId: currentUser!.restaurantId ?? '', lastRestocked: new Date().toISOString() } as Omit<InventoryItem, 'id'>);
                     }
                   }}
                   onAdjustStock={adjustInventoryStock}
@@ -1080,13 +845,13 @@ export default function RestaurantPage() {
                   isOpen={isInventoryDialogOpen}
                   onOpenChange={setIsInventoryDialogOpen}
                   item={editingInventoryItem}
-                  onSave={async (itemData: any) => {
+                  onSave={async (itemData: Omit<InventoryItem, 'restaurantId'> | Omit<Omit<InventoryItem, 'restaurantId'>, 'id' | 'lastRestocked'>) => {
                     if (editingInventoryItem && editingInventoryItem.id) {
                       // Update existing item
                       await updateInventoryItem(editingInventoryItem.id, itemData);
                     } else {
                       // Add new item
-                      await addInventoryItem(itemData);
+                      await addInventoryItem(itemData as Omit<InventoryItem, 'id' | 'lastRestocked'>);
                     }
                     setIsInventoryDialogOpen(false);
                     setEditingInventoryItem(undefined);
@@ -1117,9 +882,10 @@ export default function RestaurantPage() {
                   onUpdate={updateWorkstation}
                   onDelete={deleteWorkstation}
                   onReorder={(updatedWorkstations) => {
+                    const currentEntities = useWorkstationsStore.getState().entities;
                     useWorkstationsStore.setState({
                       entities: {
-                        ...workstationsStore.entities,
+                        ...currentEntities,
                         workstations: Object.fromEntries(
                           updatedWorkstations.map(ws => [ws.id, ws])
                         )

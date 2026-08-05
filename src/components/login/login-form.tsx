@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner";
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 import { useUserStore } from "@/lib/stores/user-store";
 import { clearSWRCache } from "@/lib/swr-fetcher"
 
@@ -23,7 +23,7 @@ const setCookie = (name: string, value: string, days: number) => {
 
 export function LoginForm() {
     const router = useRouter()
-    const { t } = useI18nStore();
+    const { t } = useTranslation();
     const { login } = useUserStore();
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
@@ -76,7 +76,7 @@ export function LoginForm() {
 
 export function SignupForm() {
     const router = useRouter()
-    const { t } = useI18nStore();
+    const { t } = useTranslation();
     const [name, setName] = useState("");
     const [restaurantName, setRestaurantName] = useState("");
     const [email, setEmail] = useState("");
@@ -124,7 +124,7 @@ export function SignupForm() {
                     duration: 3000,
                 });
             }
-        } catch (error) {
+        } catch {
             toast.error(t('userMenu.signup_error_title'), {
                 description: t('userMenu.signup_error_desc'),
                 duration: 3000,
@@ -155,7 +155,7 @@ export function SignupForm() {
                     value={restaurantName}
                     onChange={(e) => setRestaurantName(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">Opcional. Se usará "Mi Restaurante" si lo dejas vacío.</p>
+                <p className="text-xs text-muted-foreground">Opcional. Se usará &quot;Mi Restaurante&quot; si lo dejas vacío.</p>
             </div>
 
             <div className="space-y-2">

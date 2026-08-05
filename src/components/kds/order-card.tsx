@@ -6,7 +6,7 @@ import { cn, formatTimeAgo } from "@/lib/utils"
 import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyNote } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 import { OrderItem as OrderItemComponent } from "./order-item"
 import { KDS_STATES } from "@/lib/constants"
 import { debugKDS } from "@/lib/helpers"
@@ -29,7 +29,7 @@ interface OrderCardProps {
   isLastWorkstation?: boolean;
 }
 
-export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, onDragEnd, isDraggingOver, onTogglePin, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderCardProps) {
+export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus, onDragStart, onDrop, onDragEnter, onDragLeave, onDragEnd, onTogglePin, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderCardProps) {
   debugKDS('OrderCard rendered:', { 
     orderId: order.id, 
     workstationIndex, 
@@ -51,23 +51,21 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     return order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
   }, [order.createdAt]);
 
-  const { language } = useI18nStore();
-  const [timeAgo, setTimeAgo] = useState<string>(formatTimeAgo(createdAtDate, language));
-  
-  const [now, setNow] = useState(new Date().getTime());
+  const { i18n } = useTranslation();
+  const language = i18n.language as 'en' | 'es';
+
+  // Update the display clock every minute; timeAgo is derived during render
+  const [now, setNow] = useState(() => new Date().getTime());
 
   useEffect(() => {
-    // Update timeAgo immediately
-    setTimeAgo(formatTimeAgo(createdAtDate, language));
-    
-    // Update timeAgo every minute
     const interval = setInterval(() => {
-      setTimeAgo(formatTimeAgo(createdAtDate, language));
       setNow(new Date().getTime());
     }, 60000);
-    
+
     return () => clearInterval(interval);
-  }, [createdAtDate, language]);
+  }, []);
+
+  const timeAgo = formatTimeAgo(createdAtDate, language);
 
   const elapsedMinutes = (now - createdAtDate.getTime()) / (1000 * 60);
   const isUrgent = elapsedMinutes > 10;
@@ -131,7 +129,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     });
 
     sortedItems.forEach(item => {
-      const category = item.menuItem.category;
+      const category = item.menuItem?.category || 'Other';
       if (!groups[category]) {
         groups[category] = [];
         categoryOrder[category] = orderCounter++;

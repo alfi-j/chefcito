@@ -1,4 +1,5 @@
 import type {Config} from 'tailwindcss';
+import animate from 'tailwindcss-animate';
 
 export default {
   content: [
@@ -12,8 +13,8 @@ export default {
         '3xl': '1920px',
       },
       fontFamily: {
-        body: ['PT Sans', 'sans-serif'],
-        headline: ['Space Grotesk', 'sans-serif'],
+        body: ['var(--font-body)', 'PT Sans', 'sans-serif'],
+        headline: ['var(--font-headline)', 'Space Grotesk', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -107,5 +108,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [animate],
 } satisfies Config;

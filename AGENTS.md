@@ -26,7 +26,9 @@ Less common: `npm run dev:debug` (cross-env DEBUG=chefcito:\*), `npm run validat
 - **Docker**: `docker-compose.yml` runs MongoDB 7.0 + mongo-express. Auth: `admin` / `password`, port 27017.
 - **Auth**: JWT + Google OAuth. RBAC in `src/lib/access-control.ts` (Owner, Admin, Staff, Waiter, Cashier, Kitchen Staff).
 - **PayPhone**: "Cajita de Pagos" — client SDK loaded in root layout, backend under `src/app/api/payphone/`. Env vars: `PAYPHONE_TOKEN`, `PAYPHONE_STORE_ID`.
-- **i18n**: Custom Zustand store (`i18n-store.ts`). Locale files `src/locales/{en,es}.json`, imported directly with `@/locales/...`.
+- **i18n**: `react-i18next` (i18next + `initReactI18next`). Client init in `src/lib/i18n.ts`, provider in `src/components/providers.tsx`. Locale files `src/locales/{en,es}.json`, imported directly with `@/locales/...`. Language switcher uses `changeLanguage` (persists to localStorage `language`).
+- **Report exports**: client-side engine in `src/lib/export/exporter.ts` (CSV/XLSX/PDF via `xlsx`, `jspdf`, `jspdf-autotable`). `ExportButton` dropdown takes any dataset. Report classes in `src/components/reports/` backed by `/api/reports` (transactions, sellers, items, payments, z-report, kitchen + summary).
+- **Tax / SAF-T**: dynamic engine in `src/lib/tax/` — `engine.ts` dispatches by country to generators in `src/lib/tax/saft/` via `registry.ts` (Ecuador implemented). UI: `TaxDeclarationPanel` under `/reports`. Config persists to localStorage `chefcito-tax-declaration-config`.
 - **Fonts**: PT Sans (body), Space Grotesk (headlines) via Google Fonts in root layout. Font-size scaling classes: `.font-size-{small,medium,large}`.
 - **Routes**: POS (`/pos`), KDS (`/kds`), orders, reports, restaurant, profile, login, register, thank-you (PayPhone success).
 - **Components**: billing/, subscription/, kds/, layout/, login/, orders/, payment/, pos/, reports/, restaurant/, ui/, users/.

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { updateInventoryItem, updateInventoryStock, deleteInventoryItem } from '@/lib/database-service';
+import { updateInventoryItem, updateInventoryStock, deleteInventoryItem, resolveInventoryItemRestaurantId } from '@/lib/database-service';
 import { debugInventory } from '@/lib/helpers';
 
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -7,12 +7,20 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const body = await request.json();
     const params = await context.params;
     debugInventory('PUT: request received with params %O and body %O', params, body);
-    
+
     const { id } = params;
-    
+    const restaurantId = body.data?.restaurantId || body.restaurantId || (await resolveInventoryItemRestaurantId(id));
+
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+
     if (body.action === 'adjustStock') {
       debugInventory('PUT: adjusting stock for item %s by amount %d', id, body.amount);
-      const updatedItem = await updateInventoryStock(id, body.amount);
+      const updatedItem = await updateInventoryStock(id, restaurantId, body.amount);
       if (updatedItem) {
         debugInventory('PUT: successfully adjusted stock for item %s', id);
         return NextResponse.json({ success: true, data: updatedItem });
@@ -25,7 +33,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
       }
     } else {
       debugInventory('PUT: updating item %s with data %O', id, body.data);
-      const updatedItem = await updateInventoryItem(id, body.data);
+      const updatedItem = await updateInventoryItem(id, restaurantId, body.data);
       if (updatedItem) {
         debugInventory('PUT: successfully updated item %s', id);
         return NextResponse.json({ success: true, data: updatedItem });
@@ -52,7 +60,14 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     const params = await context.params;
     const { id } = params;
     debugInventory('DELETE: request received for item with id %s', id);
-    await deleteInventoryItem(id);
+    const restaurantId = await resolveInventoryItemRestaurantId(id);
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'Inventory item not found' },
+        { status: 404 }
+      );
+    }
+    await deleteInventoryItem(id, restaurantId);
     debugInventory('DELETE: successfully deleted item with id %s', id);
     return NextResponse.json({ success: true });
   } catch (error) {

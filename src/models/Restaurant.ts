@@ -8,6 +8,7 @@ export interface IRestaurant extends Document {
   phone?: string;
   address?: string;
   city?: string;
+  country?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +26,7 @@ const RestaurantSchema: Schema = new Schema({
   phone: { type: String },
   address: { type: String },
   city: { type: String },
+  country: { type: String },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 }, {

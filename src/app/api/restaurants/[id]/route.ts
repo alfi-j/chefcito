@@ -55,11 +55,20 @@ export async function PUT(
       );
     }
 
+    // Only the owner can edit the restaurant (fall back to allow for legacy records without an ownerId)
+    if (body.ownerId && restaurant.ownerId && restaurant.ownerId !== body.ownerId) {
+      return NextResponse.json(
+        { error: 'Forbidden: you are not the owner of this restaurant' },
+        { status: 403 }
+      );
+    }
+
     // Update allowed fields
     if (body.name !== undefined) restaurant.name = body.name;
     if (body.phone !== undefined) restaurant.phone = body.phone;
     if (body.address !== undefined) restaurant.address = body.address;
     if (body.city !== undefined) restaurant.city = body.city;
+    if (body.country !== undefined) restaurant.country = body.country;
 
     await restaurant.save();
 

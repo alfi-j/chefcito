@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { type MenuItem, type Category, type OrderItem } from '@/lib/types';
 import { MinusCircle, PlusCircle, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -36,11 +36,11 @@ interface AddItemDialogProps {
   onRemove?: (itemId: string) => void;
   menuItems: MenuItem[];
   categories: Category[];
-  workstations?: any[];
+  workstations?: { id: string; name: string }[];
 }
 
 export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, onRemove, menuItems, categories, workstations }: AddItemDialogProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState(1);
   const [selectedExtras, setSelectedExtras] = useState<MenuItem[]>([]);
   const [notes, setNotes] = useState('');
@@ -88,14 +88,19 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
     return groups;
   }, [item, categories, menuItems]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setQuantity(orderItem?.quantity || 1);
-      setSelectedExtras(orderItem?.selectedExtras || []);
-      setNotes(orderItem?.notes || '');
-      setWorkstationId(orderItem?.workstationId || undefined);
-    }
-  }, [isOpen, orderItem]);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevOrderItem, setPrevOrderItem] = useState(orderItem);
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+  }
+  if (isOpen && (orderItem !== prevOrderItem || isOpen !== prevIsOpen)) {
+    setQuantity(orderItem?.quantity || 1);
+    setSelectedExtras(orderItem?.selectedExtras || []);
+    setNotes(orderItem?.notes || '');
+    setWorkstationId(orderItem?.workstationId || undefined);
+    setPrevOrderItem(orderItem);
+  }
   
   const handleExtraChange = (extra: MenuItem, checked: boolean) => {
     setSelectedExtras(prev => 
@@ -178,7 +183,7 @@ export function AddItemDialog({ isOpen, onOpenChange, item, orderItem, onSave, o
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="default">{t('pos.add_item_dialog.default_workstation')}</SelectItem>
-                        {workstations.map((ws: any, index: number) => (
+                        {workstations.map((ws, index: number) => (
                           <SelectItem key={`${ws.id}-${index}`} value={ws.id}>
                             {ws.name}
                           </SelectItem>

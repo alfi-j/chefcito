@@ -3,9 +3,42 @@
     "app": {
         "title": "Chefcito"
     },
+    "dashboard": {
+        "title": "Panel",
+        "subtitle": "Gestiona tus restaurantes y el acceso a ellos.",
+        "my_restaurants": "Mis Restaurantes",
+        "no_restaurants": "No se encontraron restaurantes",
+        "no_restaurants_desc": "Aún no tienes acceso a ningún restaurante. Crea uno para empezar.",
+        "active": "Activo",
+        "active_desc": "Este es el restaurante en el que estás trabajando actualmente.",
+        "manage": "Gestionar",
+        "access": "Acceder",
+        "membership_free": "Gratis",
+        "membership_pro": "Pro",
+        "add_restaurant": "Añadir Restaurante",
+        "create_restaurant": "Crear Restaurante",
+        "create_restaurant_desc": "Crea un nuevo restaurante y cambia a él de inmediato.",
+        "name": "Nombre del restaurante",
+        "name_placeholder": "Ej: La Casa de la Abuela",
+        "phone": "Teléfono",
+        "phone_placeholder": "+593 99 123 4567",
+        "address": "Dirección",
+        "address_placeholder": "Calle Principal 123",
+        "city": "Ciudad",
+        "city_placeholder": "Guayaquil",
+        "cancel": "Cancelar",
+        "create": "Crear",
+        "access_denied": "No tienes permiso para acceder a esta página.",
+        "loading": "Cargando restaurantes...",
+        "switch_success": "Ahora trabajando en {{name}}",
+        "switch_error": "No se pudo cambiar de restaurante. Inténtalo de nuevo.",
+        "create_error": "No se pudo crear el restaurante. Inténtalo de nuevo.",
+        "create_name_required": "Por favor, ingresa un nombre para el restaurante."
+    },
     "pos": {
         "title": "Terminal de Venta",
         "loading": "Cargando menú...",
+        "data_error_title": "No se pudieron cargar los datos",
         "current_order": {
             "title": "Orden Actual",
             "table": "Mesa",
@@ -161,6 +194,7 @@
     "kds": {
         "title": "Sistema de Cocina",
         "loading": "Cargando órdenes...",
+        "data_error_title": "No se pudieron cargar las órdenes",
         "no_orders": "No hay órdenes en esta categoría.",
         "tabs": {
             "pending": "Pendientes",
@@ -240,6 +274,27 @@
     "restaurant": {
         "title": "Restaurante",
         "loading": "Cargando datos...",
+        "general": {
+            "title": "General",
+            "loading": "Cargando configuración...",
+            "information_title": "Información del Restaurante",
+            "information_desc": "Administra la información básica de tu restaurante.",
+            "name": "Nombre del Restaurante",
+            "phone": "Teléfono",
+            "address": "Dirección",
+            "city": "Ciudad",
+            "country": "País",
+            "country_desc": "Se usa para declaraciones de impuestos y ajustes regionales.",
+            "save_info": "Guardar Información del Restaurante",
+            "info_saved": "Información del restaurante actualizada",
+            "info_error": "Error al actualizar la información del restaurante",
+            "preferences_title": "Preferencias Generales",
+            "preferences_desc": "Configura las preferencias generales del restaurante.",
+            "default_language": "Idioma Predeterminado",
+            "language_english": "Inglés",
+            "language_spanish": "Español",
+            "language_desc": "Esto cambia el idioma de la interfaz del restaurante."
+        },
         "menu": {
             "title": "Menú",
             "desc": "Gestiona los artículos, categorías y modificadores de tu menú.",
@@ -436,6 +491,7 @@
             "order": "Orden",
             "add_workstation": "Añadir Estación",
             "edit_workstation": "Editar Estación",
+            "dialog_description": "Añade o edita una estación para tu pantalla de cocina.",
             "default": "Por defecto",
             "default_locked": "La estación predeterminada no se puede mover",
             "move_up": "Subir",
@@ -465,14 +521,109 @@
     },
     "reports": {
         "title": "Informes",
-        "export": "Exportar",
+        "export": {
+            "button": "Exportar",
+            "label": "Exportar como",
+            "csv": "CSV",
+            "xlsx": "Excel",
+            "pdf": "PDF"
+        },
         "pick_a_date": "Elige una fecha",
         "loading": "Cargando datos del informe...",
         "no_data": "No hay datos disponibles para el período seleccionado.",
         "tabs": {
             "sales": "Ventas",
-            "items": "Artículos",
+            "transactions": "Por Transacción",
+            "sellers": "Por Vendedor",
+            "items": "Por Artículo",
+            "payments": "Por Método de Pago",
+            "z": "Reporte Z",
             "kitchen": "Cocina"
+        },
+        "transactions": {
+            "table": {
+                "id": "ID",
+                "date": "Fecha",
+                "table": "Mesa",
+                "customer": "Cliente",
+                "seller": "Vendedor",
+                "order_type": "Tipo de Pedido",
+                "items": "Artículos",
+                "total": "Total"
+            }
+        },
+        "sellers": {
+            "table": {
+                "seller": "Vendedor",
+                "orders": "Pedidos",
+                "revenue": "Ingresos",
+                "avg": "Prom. por Pedido"
+            }
+        },
+        "payments": {
+            "table": {
+                "method": "Método",
+                "orders": "Pedidos",
+                "revenue": "Ingresos",
+                "share": "Participación"
+            }
+        },
+        "z": {
+            "summary": {
+                "total_revenue": "Ingresos Totales",
+                "total_orders": "Total de Pedidos",
+                "avg_order_value": "Valor Prom. de Pedido"
+            },
+            "payment_breakdown": "Desglose por Método de Pago",
+            "totals": "Totales",
+            "tax_summary": "Resumen de Impuestos",
+            "tax_summary_desc": "Base gravable, impuestos y total neto del período.",
+            "taxable": "Base Gravable",
+            "taxes": "Impuestos",
+            "net_total": "Total Neto",
+            "table": {
+                "concept": "Concepto",
+                "value": "Valor",
+                "method": "Método",
+                "revenue": "Ingresos"
+            }
+        },
+        "tax": {
+            "button": "Declaración de Impuestos",
+            "title": "Declaración de Impuestos",
+            "description": "Genera un reporte de transacciones en formato SAF-T (XML) para fines tributarios. El motor de declaración soporta varios países.",
+            "country_section": "País",
+            "country": "País",
+            "regime": "Régimen Tributario",
+            "taxpayer_section": "Información del Contribuyente",
+            "ruc": "RUC / Identificación",
+            "business_name": "Razón Social",
+            "trade_name": "Nombre Comercial",
+            "activity": "Actividad Económica",
+            "address": "Dirección",
+            "phone": "Teléfono",
+            "email": "Correo Electrónico",
+            "emission_section": "Punto de Emisión",
+            "establishment_code": "Código de Establecimiento",
+            "emission_point_code": "Código de Punto de Emisión",
+            "sequence_start": "Secuencia Inicial",
+            "vat_rate": "IVA (%)",
+            "period": "Período",
+            "summary": {
+                "total": "Total Bruto",
+                "tax": "Impuesto (IVA)",
+                "net": "Total Neto"
+            },
+            "footer": "{{count}} transacciones se incluirán en la declaración.",
+            "cancel": "Cancelar",
+            "generate": "Generar Archivo",
+            "generating": "Generando...",
+            "success": "Declaración de impuestos generada exitosamente",
+            "errors": {
+                "missing_taxpayer": "RUC y razón social son obligatorios",
+                "no_transactions": "No hay transacciones en el período seleccionado",
+                "generation": "Error al generar la declaración de impuestos"
+            }
         },
         "sales": {
             "total_revenue": "Ingresos Totales",
@@ -743,8 +894,9 @@
         "signup_error_title": "Registro Fallido",
         "signup_error_desc": "No se pudo crear la cuenta. Por favor intente nuevamente.",
         "passwords_do_not_match": "Las contraseñas no coinciden.",
-        "profile": "Perfil",
-        "logout": "Cerrar Sesión",
+"profile": "Perfil",
+ "restaurant": "Restaurante",
+ "logout": "Cerrar Sesión",
 
         "font_size": {
             "title": "Tamaño de Fuente",

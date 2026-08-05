@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Trash2 } from 'lucide-react'
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { DeleteConfirmationDialog } from './delete-confirmation-dialog'
 
 interface BatchActionsToolbarProps {
@@ -12,7 +12,7 @@ interface BatchActionsToolbarProps {
 }
 
 export function BatchActionsToolbar({ selectedCount, onDelete }: BatchActionsToolbarProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   return (
     <div className="flex justify-between items-center bg-muted/50 p-2 rounded-md mb-4 border border-dashed">

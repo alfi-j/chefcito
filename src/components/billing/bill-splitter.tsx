@@ -6,19 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
+import { type OrderItem, type Payment } from '@/lib/types';
 import { type SplitConfig, type EqualSplitConfig, type CustomAmountSplitConfig, ConsolidatedSplitBillCalculator } from '@/lib/consolidated-split-bill-calculator';
-import { CreditCard, Landmark, DollarSign } from 'lucide-react';
 
 interface SimplifiedSplitBillSelectorProps {
-  orderItems: any[];
+  orderItems: OrderItem[];
   subtotal: number;
   tax: number;
   tip: number;
-  paymentMethods: any[];
+  paymentMethods: Payment[];
   onConfigChange: (config: SplitConfig | null) => void;
   initialMethod?: 'equal' | 'custom_amount';
 }
@@ -28,21 +26,16 @@ export function SimplifiedSplitBillSelector({
   subtotal,
   tax,
   tip,
-  paymentMethods,
   onConfigChange,
   initialMethod = 'equal'
 }: SimplifiedSplitBillSelectorProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const [selectedMethod, setSelectedMethod] = useState<'equal' | 'custom_amount'>(initialMethod);
   const [config, setConfig] = useState<SplitConfig>(getDefaultConfig(initialMethod));
 
   
   const calculator = new ConsolidatedSplitBillCalculator(orderItems, subtotal, tax, tip);
   const result = calculator.calculate(config);
-
-  useEffect(() => {
-    onConfigChange(result.isValid ? config : null);
-  }, [config, result.isValid]);
 
   function getDefaultConfig(method: 'equal' | 'custom_amount'): SplitConfig {
     switch (method) {
@@ -63,14 +56,6 @@ export function SimplifiedSplitBillSelector({
 
   const updateConfig = (newConfig: SplitConfig) => {
     setConfig(newConfig);
-  };
-
-  const getIconForMethod = (type: string) => {
-    switch (type) {
-      case 'card': return <CreditCard className="h-4 w-4" />;
-      case 'bank_transfer': return <Landmark className="h-4 w-4" />;
-      default: return <DollarSign className="h-4 w-4" />;
-    }
   };
 
 
@@ -172,7 +157,7 @@ export function SimplifiedSplitBillSelector({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {result.results.map((split, index) => (
+              {result.results.map((split) => (
                 <div key={split.personId} className="space-y-2 p-3 bg-muted rounded border">
                   <div className="flex justify-between items-center">
                     <span className="font-medium">{split.personName}:</span>
@@ -208,7 +193,6 @@ function EqualSplitConfigurator({
   tax: number;
   tip: number;
 }) {
-  const { t } = useI18nStore();
   const calculator = new ConsolidatedSplitBillCalculator([], totalAmount, tax, tip);
   const result = calculator.calculate(config);
   
@@ -294,10 +278,6 @@ function CustomAmountConfigurator({
   tax: number;
   tip: number;
 }) {
-  const { t } = useI18nStore();
-  const calculator = new ConsolidatedSplitBillCalculator([], totalAmount, tax, tip);
-  const result = calculator.calculate(config);
-  
   // Auto-update person names when allocations change
   useEffect(() => {
     const updatedAllocations = config.allocations.map((allocation, index) => ({
@@ -312,7 +292,7 @@ function CustomAmountConfigurator({
         allocations: updatedAllocations
       });
     }
-  }, [config.allocations]);
+  }, [config, onUpdate]);
   
   const addPerson = () => {
     const personIndex = config.allocations.length + 1;

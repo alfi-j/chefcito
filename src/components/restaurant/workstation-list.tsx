@@ -11,9 +11,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { 
-  MoreHorizontal, 
-  Pencil, 
-  Trash2,
+  MoreHorizontal,
   ArrowUp,
   ArrowDown,
   Lock,
@@ -26,11 +24,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { type IWorkstation } from '@/models/Workstation'
 import { WorkstationDialog } from './workstation-dialog'
 import { toast } from 'sonner'
-import { cn } from '@/lib/helpers'
 import {
   Tooltip,
   TooltipContent,
@@ -49,7 +46,7 @@ interface WorkstationListProps {
 }
 
 export function WorkstationList({ workstations, loading, error, onAdd, onUpdate, onDelete, onReorder }: WorkstationListProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingWorkstation, setEditingWorkstation] = useState<IWorkstation | undefined>(undefined)
 
@@ -67,8 +64,8 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
         await onAdd(workstationData)
         toast.success(t('restaurant.workstations.created_success'))
       }
-    } catch (error: any) {
-      toast.error(error.message || t('restaurant.workstations.error'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('restaurant.workstations.error'))
     }
   }
 
@@ -76,12 +73,12 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
     try {
       await onDelete(id)
       toast.success(t('restaurant.workstations.deleted_success', { name }))
-    } catch (error: any) {
-      toast.error(error.message || t('restaurant.workstations.error'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('restaurant.workstations.error'))
     }
   }
 
-  const isLocked = (name: string) => ['Kitchen', 'Ready'].includes(name)
+  const isLocked = (workstation?: IWorkstation) => workstation?.isFixed === true
 
   const moveWorkstation = async (index: number, direction: 'up' | 'down') => {
     const safe = Array.isArray(workstations) ? workstations : []
@@ -110,15 +107,15 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
         onReorder(Array.isArray(result.data) ? result.data : [])
       }
       toast.success(t('restaurant.workstations.positions_updated'))
-    } catch (error: any) {
-      toast.error(error.message || t('restaurant.workstations.error'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('restaurant.workstations.error'))
       try {
         const refreshResponse = await fetch('/api/workstations')
         const refreshResult = await refreshResponse.json()
         if (refreshResult.success && onReorder) {
           onReorder(Array.isArray(refreshResult.data) ? refreshResult.data : [])
         }
-      } catch (_) {}
+      } catch { }
     }
   }
 
@@ -172,9 +169,9 @@ export function WorkstationList({ workstations, loading, error, onAdd, onUpdate,
                 </TableRow>
               ) : (
                 safeWorkstations.map((workstation, index) => {
-                  const locked = isLocked(workstation.name)
-                  const canMoveUp = !locked && index > 0 && !isLocked(safeWorkstations[index - 1]?.name)
-                  const canMoveDown = !locked && index < lastIndex && !isLocked(safeWorkstations[index + 1]?.name)
+                  const locked = isLocked(workstation)
+                  const canMoveUp = !locked && index > 0 && !isLocked(safeWorkstations[index - 1])
+                  const canMoveDown = !locked && index < lastIndex && !isLocked(safeWorkstations[index + 1])
 
                   return (
                     <TableRow key={workstation.id || `ws-${workstation.name}-${workstation.position}`}>

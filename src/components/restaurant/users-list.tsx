@@ -1,20 +1,17 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   MoreHorizontal,
-  PlusCircle,
   Pencil,
   Trash2,
-  Eye,
   User,
   Mail,
   Shield,
   Clock,
-  Link2
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -24,7 +21,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useUsersStore } from '@/lib/stores/users-store'
 import { useUserStore } from '@/lib/stores/user-store'
 import { toast } from "sonner"
@@ -55,13 +52,16 @@ interface UserDialogUserData {
   status: 'On Shift' | 'Off Shift' | 'On Break';
 }
 
-import { IRole } from '@/models/Role';
-
-// Type alias for cleaner interface
-type Role = IRole;
+interface UserFormData {
+  name: string;
+  email: string;
+  role: string;
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+  password?: string;
+}
 
 export function UsersList() {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const usersStore = useUsersStore()
   const currentUser = useUserStore((state) => state.getCurrentUser())
   
@@ -77,14 +77,11 @@ export function UsersList() {
 
   // Listen for events from the restaurant page header buttons
   useEffect(() => {
-    const handleOpenAddUser = () => handleOpenDialog();
     const handleOpenInvite = () => setIsInviteDialogOpen(true);
 
-    window.addEventListener('openAddUserDialog', handleOpenAddUser);
     window.addEventListener('openInviteDialog', handleOpenInvite);
 
     return () => {
-      window.removeEventListener('openAddUserDialog', handleOpenAddUser);
       window.removeEventListener('openInviteDialog', handleOpenInvite);
     };
   }, []);
@@ -93,19 +90,32 @@ export function UsersList() {
   useEffect(() => {
     usersStore.fetchUsers(currentUser?.restaurantId);
     usersStore.fetchRoles(currentUser?.restaurantId);
-  }, [currentUser?.restaurantId])
+  }, [currentUser?.restaurantId, usersStore])
 
   const handleOpenDialog = (user?: User) => {
     setEditingUser(user || null)
     setIsDialogOpen(true)
   }
 
+  // Stable object for the dialog: a fresh object literal on every render made the
+  // UserDialog reset effect re-run (store write) on each render → infinite loop.
+  const userDialogUser = useMemo<UserDialogUserData | null>(
+    () => editingUser ? {
+      id: editingUser.id,
+      name: editingUser.name,
+      email: editingUser.email || '',
+      role: editingUser.role,
+      status: editingUser.status,
+    } : null,
+    [editingUser]
+  )
+
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setEditingUser(null)
   }
 
-  const handleSaveUser = async (userData: any) => {
+  const handleSaveUser = async (userData: UserFormData) => {
     try {
       if (editingUser) {
         // Update existing user
@@ -113,7 +123,7 @@ export function UsersList() {
         toast.success(t('restaurant.users.updated_success'))
       } else {
         // Add new user
-        await usersStore.addUser(userData);
+        await usersStore.addUser(userData as unknown as Omit<User, 'id'>);
         toast.success(t('restaurant.users.created_success'))
       }
       handleCloseDialog()
@@ -330,13 +340,7 @@ export function UsersList() {
       <UserDialog
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
-        user={editingUser ? {
-          id: editingUser.id,
-          name: editingUser.name,
-          email: editingUser.email || '',
-          role: editingUser.role,
-          status: editingUser.status,
-        } as UserDialogUserData : null}
+        user={userDialogUser}
         onSave={handleSaveUser}
         onClose={handleCloseDialog}
       />

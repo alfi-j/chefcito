@@ -29,7 +29,7 @@ export function RoleBasedContent({
 
   // Check restaurant membership access
   // Note: restaurantMembership is checked via the user's restaurant data
-  const hasMembershipAccess = !allowedRestaurantMembership || (user as any).restaurantMembership === allowedRestaurantMembership;
+  const hasMembershipAccess = !allowedRestaurantMembership || user.restaurantMembership === allowedRestaurantMembership;
 
   if (hasRoleAccess && hasMembershipAccess) {
     return <>{children}</>;

@@ -10,7 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
+import { ExportButton } from '@/components/reports/export-button';
+import type { ExportDataset } from '@/lib/export/exporter';
 
 interface ItemSale {
   name: string;
@@ -27,7 +29,23 @@ interface ItemReportProps {
 }
 
 export function ItemReport({ data, loading }: ItemReportProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
+
+  const dataset: ExportDataset = {
+    fileName: `items-${new Date().toISOString().slice(0, 10)}`,
+    sheetName: 'Items',
+    title: t('reports.tabs.items'),
+    columns: [
+      { key: 'name', label: t('reports.items.table.item') },
+      { key: 'quantity', label: t('reports.items.table.quantity_sold') },
+      { key: 'revenue', label: t('reports.items.table.total_revenue') },
+    ],
+    rows: [...(data?.bestSelling ?? []), ...(data?.leastSelling ?? [])].map((item) => ({
+      name: item.name,
+      quantity: item.quantity,
+      revenue: item.revenue,
+    })),
+  };
 
   const renderTable = (items: ItemSale[] | undefined, title: string) => (
     <Card>
@@ -76,9 +94,14 @@ export function ItemReport({ data, loading }: ItemReportProps) {
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="space-y-6">
+      <div className="flex justify-end">
+        <ExportButton dataset={dataset} />
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
       {renderTable(data.bestSelling, t('reports.items.best_selling'))}
       {renderTable(data.leastSelling, t('reports.items.least_selling'))}
+      </div>
     </div>
   );
 }

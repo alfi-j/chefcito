@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { deleteCategory, updateCategory } from '@/lib/database-service';
 
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
+
 export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const body = await request.json();
@@ -23,11 +26,11 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating category:', error);
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
-      { error: error.message || 'Failed to update category' },
+      { error: toErrorMessage(error) || 'Failed to update category' },
       { status }
     );
   }
@@ -51,11 +54,11 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     
     await deleteCategory(id, restaurantId);
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting category:', error);
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
-      { error: error.message || 'Failed to delete category' },
+      { error: toErrorMessage(error) || 'Failed to delete category' },
       { status }
     );
   }

@@ -5,11 +5,11 @@ import { LoginForm, SignupForm } from "@/components/login/login-form"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { GoogleButton } from "@/components/login/google-button"
 import LoginLayout from "@/components/layout/login-layout"
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("login")
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
 
   return (
     <LoginLayout>

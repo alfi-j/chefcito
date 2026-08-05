@@ -4,7 +4,7 @@ import { Order, OrderItem } from '@/lib/types';
 import { type IWorkstation } from '@/models/Workstation';
 import { DragEvent } from 'react';
 import { KDS_STATES } from '@/lib/constants';
-import { debugKDS, buildApiUrl } from '@/lib/helpers';
+import { buildApiUrl } from '@/lib/helpers';
 
 // Helper function to group similar items for stacking display
 const groupSimilarItems = (items: OrderItem[]): { [key: string]: OrderItem[] } => {
@@ -13,7 +13,7 @@ const groupSimilarItems = (items: OrderItem[]): { [key: string]: OrderItem[] } =
   items.forEach(item => {
     // Create a grouping key based on item properties that should be considered "similar"
     const groupingKey = [
-      item.menuItem.id,
+      item.menuItem?.id,
       item.status?.toString().toLowerCase(),
       item.workstationId || 'no-workstation',
       item.notes || 'no-notes',
@@ -118,6 +118,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     
     // Actions
     setWorkstations: (workstations) => {
+      if (!Array.isArray(workstations)) return;
       // Normalize workstations
       const normalizedWorkstations: Record<string, IWorkstation> = {};
       workstations.forEach(ws => {
@@ -133,6 +134,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     },
     
     setOrders: (orders) => {
+      if (!Array.isArray(orders)) return;
       // Normalize orders
       const normalizedOrders: Record<number, Order> = {};
       orders.forEach(order => {
@@ -200,8 +202,8 @@ const useKDSStore = create<NormalizedKDSState>()(
     
     getItemsByWorkstation: (orderId, workstationId) => {
       const order = get().entities.orders[orderId];
-      if (!order) return [];
-      
+      if (!order || !Array.isArray(order.items)) return [];
+
       const workstations = Object.values(get().entities.workstations);
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
       const firstWorkstationId = sortedWorkstations[0]?.id;
@@ -215,7 +217,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     
     // Item reordering
     reorderOrderItems: async (orderId, itemPositions) => {
-      const { entities, setOrders } = get();
+      const { entities } = get();
       
       try {
         // Find the order
@@ -272,7 +274,7 @@ const useKDSStore = create<NormalizedKDSState>()(
         }
         
         return true;
-      } catch (error) {
+      } catch {
         // Item position update error handled silently
         return false;
       }
@@ -280,12 +282,11 @@ const useKDSStore = create<NormalizedKDSState>()(
     
     // Transition system - NEW STATE MACHINE APPROACH
     transitionItem: async (orderId, itemId, targetWorkstation) => {
-      const { entities, setOrders } = get();
+      const { entities } = get();
       const workstations = Object.values(entities.workstations);
       // Sort workstations by position
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-      const orders = Object.values(entities.orders);
-      
+
       try {
         // Validate target workstation exists
         const targetWs = sortedWorkstations.find(ws => ws.id === targetWorkstation);
@@ -369,14 +370,14 @@ const useKDSStore = create<NormalizedKDSState>()(
         }
         
         return true;
-      } catch (error) {
+      } catch {
         // Item transition error handled silently
         return false;
       }
     },
     
     updateItemStatus: async (orderId, itemId, fromStatus) => {
-      const { entities, setOrders, getWorkstationById, getNextWorkstation } = get();
+      const { entities, getNextWorkstation } = get();
       const workstations = Object.values(entities.workstations);
       // Sort workstations by position
       const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -391,11 +392,6 @@ const useKDSStore = create<NormalizedKDSState>()(
         
         const item = order.items[itemIndex];
         
-        // Get current workstation from item's workstationId
-        const currentWorkstation = item.workstationId 
-          ? getWorkstationById(item.workstationId) 
-          : sortedWorkstations[0]; // Default to first workstation
-          
         // Check if current workstation is the Ready workstation (last in workflow)
         // Find current workstation by id or fallback to matching by _id if id is undefined
         const currentWsIndex = sortedWorkstations.findIndex(ws => 
@@ -513,7 +509,7 @@ const useKDSStore = create<NormalizedKDSState>()(
             if (errorData.error) {
               errorMessage = errorData.error;
             }
-          } catch (e) {
+          } catch {
             // Use default error message
           }
           
@@ -525,8 +521,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     },
 
     revertItemStatus: async (orderId, itemId, toStatus) => {
-      const { entities, setOrders, getWorkstationById, getPreviousWorkstation } = get();
-      const orders = Object.values(entities.orders);
+      const { entities, getPreviousWorkstation } = get();
       
       try {
         // Find the order and item
@@ -539,8 +534,6 @@ const useKDSStore = create<NormalizedKDSState>()(
         const item = order.items[itemIndex];
         let status = toStatus; // Make status mutable
         
-        // Get workstation details
-        const workstation = item.workstationId ? getWorkstationById(item.workstationId) : null;
         const workstations = Object.values(get().entities.workstations);
         // Sort workstations by position
         const sortedWorkstations = [...workstations].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -658,7 +651,7 @@ const useKDSStore = create<NormalizedKDSState>()(
             if (errorData.error) {
               errorMessage = errorData.error;
             }
-          } catch (e) {
+          } catch {
             // Use default error message
           }
           
@@ -670,8 +663,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     },
 
     togglePinOrder: async (orderId) => {
-      const { entities, setOrders } = get();
-      const orders = Object.values(entities.orders);
+      const { entities } = get();
       
       try {
         // Find the order
@@ -912,7 +904,7 @@ const useKDSStore = create<NormalizedKDSState>()(
     // Stacking helper
     getStackedItemsForWorkstation: (orderId, workstationId) => {
       const order = get().entities.orders[orderId];
-      if (!order) return [];
+      if (!order || !Array.isArray(order.items)) return [];
       
       // Fall back null workstationId to first workstation (matches workstationOrdersMemo logic)
       const workstations = Object.values(get().entities.workstations);

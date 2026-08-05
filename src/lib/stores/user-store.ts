@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { StaffPerformance } from '@/lib/types';
 
 // Simplified User interface without Mongoose document methods
 interface User {
@@ -13,7 +12,7 @@ interface User {
   restaurantMembership?: 'free' | 'pro'; // Membership belongs to the restaurant, not the user
   createdAt?: Date;
   updatedAt?: Date;
-  [key: string]: any; // Allow additional properties
+  [key: string]: unknown; // Allow additional properties
 }
 
 // Define normalized entities
@@ -102,7 +101,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
       }));
       localStorage.setItem('chefcito-user', JSON.stringify(plainUser));
       return true;
-    } catch (error) {
+    } catch {
       // Login error handled silently
       return false;
     }
@@ -163,7 +162,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ role }),
-    }).catch(error => {
+    }).catch(() => {
       // Role update error handled silently
     });
   },

@@ -1,10 +1,10 @@
-import { MongoClient, Db, Document } from 'mongodb';
+import { MongoClient, Db, Document, Filter, UpdateFilter, UpdateResult, InsertOneResult, InsertManyResult, DeleteResult } from 'mongodb';
 import { parse } from 'url';
+import path from 'path';
+import dotenv from 'dotenv';
 
 // Load environment variables
 if (typeof process.env.NODE_ENV === 'undefined' || process.env.NODE_ENV !== 'production') {
-  const path = require('path');
-  const dotenv = require('dotenv');
   dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 }
 
@@ -19,7 +19,7 @@ if (MONGODB_URI && !process.env.MONGODB_DB && MONGODB_URI.startsWith('mongodb+sr
     if (parsed.pathname && parsed.pathname.length > 1) {
       dbName = parsed.pathname.substring(1); // Remove leading slash
     }
-  } catch (e) {
+  } catch {
     console.warn('Could not parse database name from MONGODB_URI, using default:', dbName);
   }
 } else if (MONGODB_URI && !process.env.MONGODB_DB && MONGODB_URI.startsWith('mongodb://')) {
@@ -28,7 +28,7 @@ if (MONGODB_URI && !process.env.MONGODB_DB && MONGODB_URI.startsWith('mongodb+sr
     if (parsed.pathname && parsed.pathname.length > 1) {
       dbName = parsed.pathname.substring(1);
     }
-  } catch (e) {
+  } catch {
     console.warn('Could not parse database name from MONGODB_URI, using default:', dbName);
   }
 }
@@ -133,7 +133,7 @@ export const isDatabaseConnected = () => {
 };
 
 // Helper functions for common operations with timeout handling
-export const findOne = async <T>(collectionName: string, filter: any = {}): Promise<T | null> => {
+export const findOne = async <T>(collectionName: string, filter: Filter<Document> = {}): Promise<T | null> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return (await collection.findOne(filter)) as T | null;
@@ -143,7 +143,7 @@ export const findOne = async <T>(collectionName: string, filter: any = {}): Prom
   }
 };
 
-export const findMany = async <T>(collectionName: string, filter: any = {}): Promise<T[]> => {
+export const findMany = async <T>(collectionName: string, filter: Filter<Document> = {}): Promise<T[]> => {
   try {
     await dbManager.connect();
     const collection = await dbManager.getCollection(collectionName);
@@ -154,7 +154,7 @@ export const findMany = async <T>(collectionName: string, filter: any = {}): Pro
   }
 };
 
-export const insertOne = async <T extends Document>(collectionName: string, document: T): Promise<any> => {
+export const insertOne = async <T extends Document>(collectionName: string, document: T): Promise<InsertOneResult<Document>> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.insertOne(document);
@@ -164,7 +164,7 @@ export const insertOne = async <T extends Document>(collectionName: string, docu
   }
 };
 
-export const insertMany = async <T extends Document>(collectionName: string, documents: T[]): Promise<any> => {
+export const insertMany = async <T extends Document>(collectionName: string, documents: T[]): Promise<InsertManyResult<Document>> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.insertMany(documents);
@@ -174,11 +174,11 @@ export const insertMany = async <T extends Document>(collectionName: string, doc
   }
 };
 
-export const updateOne = async <T>(
+export const updateOne = async (
   collectionName: string,
-  filter: any,
-  update: any
-): Promise<any> => {
+  filter: Filter<Document>,
+  update: UpdateFilter<Document> | Document[]
+): Promise<UpdateResult> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.updateOne(filter, update);
@@ -188,11 +188,11 @@ export const updateOne = async <T>(
   }
 };
 
-export const updateMany = async <T>(
+export const updateMany = async (
   collectionName: string,
-  filter: any,
-  update: any
-): Promise<any> => {
+  filter: Filter<Document>,
+  update: UpdateFilter<Document> | Document[]
+): Promise<UpdateResult> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.updateMany(filter, update);
@@ -202,7 +202,7 @@ export const updateMany = async <T>(
   }
 };
 
-export const deleteOne = async (collectionName: string, filter: any): Promise<any> => {
+export const deleteOne = async (collectionName: string, filter: Filter<Document>): Promise<DeleteResult> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.deleteOne(filter);
@@ -212,7 +212,7 @@ export const deleteOne = async (collectionName: string, filter: any): Promise<an
   }
 };
 
-export const deleteMany = async (collectionName: string, filter: any): Promise<any> => {
+export const deleteMany = async (collectionName: string, filter: Filter<Document>): Promise<DeleteResult> => {
   try {
     const collection = await dbManager.getCollection(collectionName);
     return await collection.deleteMany(filter);

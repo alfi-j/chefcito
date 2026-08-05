@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPaymentMethods, updatePaymentMethod, deletePaymentMethod } from '@/lib/database-service';
+import { getPaymentMethods, updatePaymentMethod, deletePaymentMethod, resolvePaymentMethodRestaurantId } from '@/lib/database-service';
 
 // GET /api/payments/[id] - get specific payment method
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -12,7 +12,15 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       );
     }
 
-    const payments = await getPaymentMethods();
+    const restaurantId = await resolvePaymentMethodRestaurantId(params ? params['id'] : '');
+    if (!restaurantId) {
+      return NextResponse.json(
+        { success: false, error: 'Payment method not found' },
+        { status: 404 }
+      );
+    }
+
+    const payments = await getPaymentMethods(restaurantId);
     const method = payments.find(m => m.id === (params ? params['id'] : undefined));
     
     if (!method) {
@@ -23,10 +31,10 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     }
     
     return NextResponse.json({ success: true, data: method });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching payment method:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch payment method' },
+      { success: false, error: error instanceof Error ? error.message : 'Failed to fetch payment method' },
       { status: 500 }
     );
   }
@@ -44,7 +52,17 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }
 
     const body = await request.json();
-    const updatedMethod = await updatePaymentMethod(params ? params['id'] : '', body);
+    const restaurantId = body.restaurantId || (await resolvePaymentMethodRestaurantId(params ? params['id'] : ''));
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Payment method not found'
+        },
+        { status: 404 }
+      );
+    }
+    const updatedMethod = await updatePaymentMethod(params ? params['id'] : '', restaurantId, body);
     
     if (updatedMethod) {
       return NextResponse.json({ 
@@ -60,12 +78,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
         { status: 404 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating payment method:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: error.message || 'Failed to update payment method' 
+        error: error instanceof Error ? error.message : 'Failed to update payment method' 
       },
       { status: 500 }
     );
@@ -86,7 +104,18 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       );
     }
     
-    const result = await deletePaymentMethod(params ? params['id'] : '');
+    const restaurantId = await resolvePaymentMethodRestaurantId(params ? params['id'] : '');
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Payment method not found'
+        },
+        { status: 404 }
+      );
+    }
+
+    const result = await deletePaymentMethod(params ? params['id'] : '', restaurantId);
     if (result) {
       return NextResponse.json({ success: true });
     } else {
@@ -98,12 +127,12 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
         { status: 404 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting payment method:', error);
     return NextResponse.json(
       { 
         success: false,
-        error: error.message || 'Failed to delete payment method' 
+        error: error instanceof Error ? error.message : 'Failed to delete payment method' 
       },
       { status: 500 }
     );

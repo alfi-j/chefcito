@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getCustomers, addCustomer, updateCustomer, deleteCustomer } from '@/lib/database-service';
+import { getCustomers, addCustomer, updateCustomer, deleteCustomer, resolveCustomerRestaurantId } from '@/lib/database-service';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
 
 export async function GET(request: Request) {
   try {
@@ -20,14 +23,14 @@ export async function GET(request: Request) {
       error: null,
       message: null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching customers:', error);
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch customers',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error) || 'Failed to fetch customers',
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -47,10 +50,10 @@ export async function POST(request: Request) {
     
     const newCustomer = await addCustomer(body);
     return NextResponse.json(newCustomer);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding customer:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to add customer' },
+      { error: toErrorMessage(error) || 'Failed to add customer' },
       { status: 500 }
     );
   }
@@ -68,7 +71,15 @@ export async function PUT(request: Request) {
       );
     }
     
-    const result = await updateCustomer(id, customerData);
+    const restaurantId = customerData.restaurantId || (await resolveCustomerRestaurantId(id));
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+
+    const result = await updateCustomer(id, restaurantId, customerData);
     if (result) {
       return NextResponse.json({ success: true });
     } else {
@@ -77,10 +88,10 @@ export async function PUT(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating customer:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update customer' },
+      { error: toErrorMessage(error) || 'Failed to update customer' },
       { status: 500 }
     );
   }
@@ -98,7 +109,15 @@ export async function DELETE(request: Request) {
       );
     }
     
-    const result = await deleteCustomer(id);
+    const restaurantId = await resolveCustomerRestaurantId(id);
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'Customer not found' },
+        { status: 404 }
+      );
+    }
+
+    const result = await deleteCustomer(id, restaurantId);
     if (result) {
       return NextResponse.json({ success: true });
     } else {
@@ -107,10 +126,10 @@ export async function DELETE(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting customer:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete customer' },
+      { error: toErrorMessage(error) || 'Failed to delete customer' },
       { status: 500 }
     );
   }

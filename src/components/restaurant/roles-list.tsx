@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Pencil, Trash2, Plus } from "lucide-react"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { toast } from "sonner"
 import { useUserStore } from "@/lib/stores/user-store"
 import { useRolesStore } from '@/lib/stores/roles-store'
@@ -84,7 +84,7 @@ const EMPTY_FORM: RoleData = {
 };
 
 export function RolesList() {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const currentUser = useUserStore().getCurrentUser()
   const rolesStore = useRolesStore()
 
@@ -109,44 +109,7 @@ export function RolesList() {
     if (currentUser?.restaurantId) {
       rolesStore.fetchRoles(currentUser.restaurantId);
     }
-  }, [currentUser?.restaurantId])
-
-  const createPredefinedRoles = async () => {
-    const predefinedRoles = [
-      {
-        name: t('profile.roles.roles.waiter'),
-        description: t('restaurant.roles.predefined_roles.waiter_desc'),
-        permissions: ['menu_access', 'order_management'],
-        allowedWorkstations: [],
-      },
-      {
-        name: t('profile.roles.roles.cashier'),
-        description: t('restaurant.roles.predefined_roles.cashier_desc'),
-        permissions: ['menu_access', 'order_management', 'payment_processing'],
-        allowedWorkstations: [],
-      },
-      {
-        name: t('profile.roles.roles.kitchen_staff'),
-        description: t('restaurant.roles.predefined_roles.kitchen_staff_desc'),
-        permissions: ['kds_access', 'inventory_management'],
-        allowedWorkstations: [],
-      },
-    ];
-
-    if (!currentUser?.restaurantId) {
-      toast.error(t('restaurant.toast.create_predefined_roles_error'));
-      return;
-    }
-
-    try {
-      for (const roleData of predefinedRoles) {
-        await rolesStore.addRole({ ...roleData, restaurantId: currentUser.restaurantId });
-      }
-      toast.success(t('restaurant.toast.predefined_roles_created'));
-    } catch {
-      toast.error(t('restaurant.toast.create_predefined_roles_error'));
-    }
-  }
+  }, [currentUser?.restaurantId, rolesStore])
 
   const handleOpenDialog = (role?: Role) => {
     if (role) {

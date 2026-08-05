@@ -8,7 +8,8 @@ export interface IUser extends Document {
   email?: string;
   password: string;
   googleId?: string;
-  restaurantId?: string; // ownerId of the restaurant this user belongs to (staff only)
+  restaurantId?: string; // currently active restaurant id
+  restaurantIds: string[]; // all restaurants this user is a member of (single-owner multi-restaurant support)
   role: 'Owner' | 'Admin' | 'Staff' | string; // Extended to allow custom roles
   status: 'On Shift' | 'Off Shift' | 'On Break';
   createdAt?: Date;
@@ -24,6 +25,7 @@ const UserSchema: Schema = new Schema({
   password: { type: String, required: false, default: null },
   googleId: { type: String, required: false, default: null },
   restaurantId: { type: String, required: false, default: null },
+  restaurantIds: { type: [String], required: false, default: (): string[] => [] },
   role: {
     type: String,
     required: true
@@ -39,6 +41,11 @@ const UserSchema: Schema = new Schema({
 });
 
 UserSchema.pre<IUser>('save', async function (next) {
+  // Keep restaurantIds in sync with restaurantId (backward compatible:
+  // the app still reads restaurantId while multi-restaurant support grows).
+  if (this.restaurantId && !this.restaurantIds.includes(this.restaurantId)) {
+    this.restaurantIds.push(this.restaurantId);
+  }
   if (!this.isModified('password') || !this.password) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

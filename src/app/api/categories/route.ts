@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getCategories, addCategory } from '@/lib/database-service';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
 import { type Category } from '@/lib/types';
 
 export async function GET(request: Request) {
@@ -26,16 +29,16 @@ export async function GET(request: Request) {
       error: null,
       message: null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching categories:', error);
     // Return appropriate HTTP status based on error type
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch categories',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error) || 'Failed to fetch categories',
+        message: toErrorMessage(error)
       },
       { status }
     );
@@ -62,11 +65,11 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding category:', error);
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
-      { error: error.message || 'Failed to add category' },
+      { error: toErrorMessage(error) || 'Failed to add category' },
       { status }
     );
   }

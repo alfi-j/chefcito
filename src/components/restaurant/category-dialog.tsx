@@ -18,10 +18,9 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Pencil, Trash2, Save } from "lucide-react"
 import { type Category } from "@/lib/types"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/lib/stores/menu-store'
 import { useUserStore } from '@/lib/stores/user-store'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -32,13 +31,13 @@ interface RenderedCategory extends Category {
   depth: number;
 }
 
-export function CategoryDialog({ categories, onUpdate, trigger }: { categories: Category[], onUpdate: (category: Omit<Category, "id">) => void, trigger: React.ReactNode }) {
+export function CategoryDialog({ categories, trigger }: { categories: Category[], onUpdate: (category: Omit<Category, "id">, restaurantId?: string) => Promise<Category | null>, trigger: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isNewCategoryModifier, setIsNewCategoryModifier] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [originalCategory, setOriginalCategory] = useState<Category | null>(null);
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const { addCategory, updateCategory, deleteCategory, isCategoryInUse } = useMenuStore();
   const currentUser = useUserStore((state) => state.getCurrentUser());
   const restaurantId = currentUser?.restaurantId;
@@ -59,7 +58,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
       }, restaurantId);
       setNewCategoryName('');
       setIsNewCategoryModifier(false);
-    } catch(error: any) {
+    } catch(error) {
       console.error('Category add failed:', error);
     }
   };
@@ -70,7 +69,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
         throw new Error(`Cannot delete category "${name}" because it is still in use.`);
       }
       await deleteCategory(id, restaurantId);
-    } catch(error: any) {
+    } catch(error) {
       console.error('Category delete failed:', error);
     }
   };
@@ -89,7 +88,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
     try {
       await updateCategory(editingCategory.id, editingCategory, restaurantId);
       setEditingCategory(null);
-    } catch(error: any) {
+    } catch(error) {
       console.error('Category update failed:', error);
     }
   };
@@ -116,7 +115,7 @@ export function CategoryDialog({ categories, onUpdate, trigger }: { categories: 
 
     categories.forEach(category => {
         if (category.parentId && categoryMap.has(category.parentId)) {
-            categoryMap.get(category.parentId)!.children.push(category as any);
+            categoryMap.get(category.parentId)!.children.push(category);
         } else {
             roots.push(category);
         }

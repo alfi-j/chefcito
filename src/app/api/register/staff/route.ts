@@ -56,6 +56,7 @@ export async function POST(request: Request) {
       password,
       role: invitation.role,
       restaurantId: invitation.restaurantId,
+      restaurantIds: [invitation.restaurantId],
       status: 'Off Shift',
     });
     await user.save();

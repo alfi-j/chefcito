@@ -1,46 +1,53 @@
 "use client"
-import React, { useState, useMemo, useEffect, Suspense } from 'react';
-import { type MenuItem, type OrderItem, type Order, type Payment } from '@/lib/types';
-import { CurrentOrder } from '@/components/pos/order-panel';
+import React, { useState, useEffect, Suspense } from 'react';
+import { type MenuItem, type OrderItem, type Order, type DeliveryInfo, type Payment } from '@/lib/types';
+import { type IWorkstation } from '@/models/Workstation';
 import { MenuSelection } from '@/components/pos/menu-panel';
 import { AddItemDialog } from '@/components/pos/dialogs/add-item-modal';
 import { PaymentDialogRefactored } from '@/components/pos/dialogs/payment-modal';
 import { SheetCart } from '@/components/pos/cart-sheet';
 import { toast } from "sonner";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/lib/stores/user-store';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, File, Search, History, Settings, Home, ClipboardList, Users, BarChart, ShoppingCart, ChefHat, X } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { format } from 'date-fns'
+import { History, ShoppingCart, AlertTriangle } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ReceiptDialog } from '@/components/pos/dialogs/receipt-modal'
 import { OrderDetailsDialog } from '@/components/pos/dialogs/order-details-modal'
-import { getOrderTotal } from '@/lib/helpers'
-import { useCallback } from 'react'
 import { type Category } from '@/lib/types'
-import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals, useCurrentOrderItemCountByCategoryCompat as useCurrentOrderItemCountByCategory } from '@/lib/stores/current-order-store';
+import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals } from '@/lib/stores/current-order-store';
 import { fetcher } from '@/lib/swr-fetcher';
+
+interface KitchenOrderItem {
+  id: string;
+  menuItemId: string;
+  name: string;
+  price: number;
+  quantity: number;
+  selectedExtraIds: string[];
+  notes: string;
+  status: string;
+  workstationId: string | null;
+  originalItemId?: string;
+  unitNumber?: number;
+  totalUnits?: number;
+}
+
+interface SendOrderPayload {
+  restaurantId: string;
+  table: number;
+  items: KitchenOrderItem[];
+  notes: string;
+  orderType: string;
+  createdAt: string;
+  status: string;
+  staffName: string;
+  deliveryInfo?: DeliveryInfo;
+}
 
 function PosPageContent() {
   const router = useRouter();
@@ -49,22 +56,22 @@ function PosPageContent() {
   const [isPaymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [selectedOrder] = useState<Order | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSendingToKitchen, setIsSendingToKitchen] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
 
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.getCurrentUser());
 
   // SWR data fetching - filter menu items by restaurant
   const menuApiUrl = user?.restaurantId ? `/api/menu?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/menu';
-  const { data: menuItems = [], error: menuItemsError, isLoading: isLoadingMenu, mutate: mutateMenuItems } = useSWR<MenuItem[]>(menuApiUrl, fetcher, {
+  const { data: menuItems = [], error: menuItemsError } = useSWR<MenuItem[]>(menuApiUrl, fetcher, {
     fallbackData: [],
   });
 
-  const { data: categories = [], error: categoriesError, isLoading: isLoadingCategories, mutate: mutateCategories } = useSWR<Category[]>(
+  const { data: categories = [], error: categoriesError } = useSWR<Category[]>(
     user?.restaurantId ? `/api/categories?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
     fetcher,
     {
@@ -72,13 +79,13 @@ function PosPageContent() {
     }
   );
 
-  const { data: workstations = [], error: workstationsError, isLoading: isLoadingWorkstations, mutate: mutateWorkstations } = useSWR<any[]>(
+  const { data: workstations = [], error: workstationsError } = useSWR<IWorkstation[]>(
     user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
     fetcher, {
     fallbackData: [],
   });
 
-  const { data: orders = [], error: ordersError, isLoading: isLoadingOrders, mutate: mutateOrders } = useSWR<Order[]>(
+  const { data: orders = [], error: ordersError, mutate: mutateOrders } = useSWR<Order[]>(
     user?.restaurantId ? `/api/orders?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
     fetcher, {
     fallbackData: [],
@@ -86,7 +93,7 @@ function PosPageContent() {
     shouldRetryOnError: true
   });
 
-  const { data: paymentMethods = [], error: paymentMethodsError, isLoading: isLoadingPayments, mutate: mutatePayments } = useSWR<Payment[]>(
+  const { data: paymentMethods = [], error: paymentMethodsError } = useSWR<Payment[]>(
     user?.restaurantId ? `/api/payments?restaurantId=${encodeURIComponent(user.restaurantId)}` : null,
     fetcher,
     {
@@ -110,13 +117,11 @@ function PosPageContent() {
     addItem: currentOrderAddItem,
     updateItem: currentOrderUpdateItem,
     removeItem: currentOrderRemoveItem,
-    clearOrder: currentOrderClearOrder,
-    updateItemQuantity: currentOrderUpdateItemQuantity
+    clearOrder: currentOrderClearOrder
   } = useCurrentOrderStore();
 
   // Computed values from Zustand
-  const { subtotal, tax, total } = useCurrentOrderTotals();
-  const itemCountByCategory = useCurrentOrderItemCountByCategory();
+  const { total } = useCurrentOrderTotals();
 
   // Verificar autenticación al montar
   useEffect(() => {
@@ -127,38 +132,46 @@ function PosPageContent() {
     }
   }, [router]);
 
-  // Si no hay usuario, mostrar loading
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Check for editOrder parameter and load the order
   useEffect(() => {
     const editOrderId = searchParams?.get('editOrder');
     if (editOrderId && orders && orders.length > 0) {
       const orderToEdit = orders.find(order => order.id === parseInt(editOrderId));
       if (orderToEdit) {
-        handleEditOrder(orderToEdit);
+        // Clear current order first
+        currentOrderClearOrder();
+
+        const items = Array.isArray(orderToEdit.items) ? orderToEdit.items : [];
+
+        // Add each item from the selected order to the current order
+        items.forEach(item => {
+          if (!item.menuItem) return;
+          const orderItem: MenuItem = {
+            ...item.menuItem,
+            id: `${Date.now()}-${Math.random()}`, // Generate new ID for the order item
+          };
+          currentOrderAddItem(orderItem, item.quantity, item.selectedExtras || [], item.notes, item.workstationId);
+        });
+
+        // Set other order properties
+        if (orderToEdit.orderType === 'delivery' && orderToEdit.deliveryInfo) {
+          currentOrderSetDeliveryInfo(orderToEdit.deliveryInfo);
+        }
+        currentOrderSetOrderType(orderToEdit.orderType);
+        currentOrderSetTable(orderToEdit.table);
+        currentOrderSetNotes(orderToEdit.notes || '');
+
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsEditingOrder(orderToEdit);
         setIsCartOpen(true); // Automatically open the cart when editing an order
-        
+
         // Remove the query parameter from the URL
         const newSearchParams = new URLSearchParams(searchParams);
         newSearchParams.delete('editOrder');
         router.replace(`/pos?${newSearchParams.toString()}`, { scroll: false });
       }
     }
- }, [searchParams, orders]);
-  
-  // Combine loading states
-  const loading = isLoadingMenu || isLoadingCategories;
+  }, [searchParams, orders, router, currentOrderAddItem, currentOrderClearOrder, currentOrderSetDeliveryInfo, currentOrderSetNotes, currentOrderSetOrderType, currentOrderSetTable]);
   
   // Make sure we have default values
   const safeMenuItems = menuItems || [];
@@ -166,57 +179,17 @@ function PosPageContent() {
   const safePaymentMethods = paymentMethods || [];
   const safeWorkstations = workstations || [];
   
-  // Fetch all data function for refresh
-  const fetchAllData = useCallback(() => {
-    // Individual hooks handle their own data fetching
-  }, []);
-
-  // If you need to add an order with SWR
-  const addOrder = async (order: Order) => {
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(order),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to add order');
-      }
-      
-      // SWR will automatically revalidate and update the orders list
-      mutateOrders();
-      return await response.json();
-    } catch (error) {
-      console.error('Error adding order:', error);
-      throw error;
-    }
-  };
-
-  const handleEditOrder = (order: Order) => {
-    // Clear current order first
-    currentOrderClearOrder();
-    
-    // Add each item from the selected order to the current order
-    order.items.forEach(item => {
-      const orderItem: any = {
-        ...item,
-        id: `${Date.now()}-${Math.random()}`, // Generate new ID for the order item
-        menuItemId: item.menuItem.id,
-      };
-      currentOrderAddItem(orderItem, item.quantity, item.selectedExtras || [], item.notes, item.workstationId);
-    });
-    
-    // Set other order properties
-    if (order.orderType === 'delivery' && order.deliveryInfo) {
-      currentOrderSetDeliveryInfo(order.deliveryInfo);
-    }
-    currentOrderSetOrderType(order.orderType);
-    currentOrderSetTable(order.table);
-    currentOrderSetNotes(order.notes || '');
-  };
+  // Si no hay usuario, mostrar loading
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">{t('pos.loading')}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleUpdateEditedOrder = async () => {
     if (!isEditingOrder) return;
@@ -257,21 +230,12 @@ function PosPageContent() {
         description: t('orders.toast.updated_desc'),
         duration: 3000,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(t('toast.error'), {
-        description: error.message || t('orders.toast.update_error'),
+        description: error instanceof Error ? error.message : t('orders.toast.update_error'),
         duration: 3000,
       });
     }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingOrder(null);
-    currentOrderClearOrder();
-    
-    toast.info(t('orders.toast.edit_cancelled'), {
-      duration: 3000,
-    });
   };
 
   const handleAddItemToOrder = (item: MenuItem) => {
@@ -322,10 +286,8 @@ function PosPageContent() {
     try {
       setIsSendingToKitchen(true);
       
-      // Get the first workstation (if available)
-      const workstationsUrl = user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/workstations';
-      const workstations = await fetch(workstationsUrl).then(res => res.json());
-      const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
+      // Get the first workstation (if available) from SWR data
+      const firstWorkstation = safeWorkstations[0] || null;
       
       // Split quantity-based items into individual units for KDS tracking
       const expandedItems: Array<{ 
@@ -343,6 +305,7 @@ function PosPageContent() {
         totalUnits: number 
       }> = [];
       currentOrderItems.forEach((item: OrderItem) => {
+        if (!item.menuItem) return;
         // Create individual units for each quantity
         for (let i = 0; i < item.quantity; i++) {
           expandedItems.push({
@@ -351,7 +314,7 @@ function PosPageContent() {
             name: item.menuItem.name,
             price: item.menuItem.price,
             quantity: 1, // Each unit has quantity 1
-            selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || [],
+            selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || [],
             notes: item.notes || '',
             // Initialize status for KDS tracking
             status: 'new',
@@ -365,7 +328,7 @@ function PosPageContent() {
       });
 
       // Prepare order data based on order type
-      const orderData: any = {
+      const orderData: SendOrderPayload = {
         restaurantId: user?.restaurantId || '',
         table: currentOrderTable,
         items: expandedItems,
@@ -401,9 +364,9 @@ function PosPageContent() {
       });
       currentOrderClearOrder();
       mutateOrders(); // Refresh orders list
-    } catch (error: any) {
+    } catch (error: unknown) {
        toast.error(t('toast.error'), {
-        description: error.message || t('pos.toast.send_error'),
+        description: error instanceof Error ? error.message : t('pos.toast.send_error'),
         duration: 5000,
       });
     } finally {
@@ -434,13 +397,11 @@ function PosPageContent() {
     try {
       setIsProcessingPayment(true);
       
-      // Get the first workstation (if available)
-      const workstationsUrl = user?.restaurantId ? `/api/workstations?restaurantId=${encodeURIComponent(user.restaurantId)}` : '/api/workstations';
-      const workstations = await fetch(workstationsUrl).then(res => res.json());
-      const firstWorkstation = workstations.data?.length > 0 ? workstations.data[0] : null;
+      // Get the first workstation (if available) from SWR data
+      const firstWorkstation = safeWorkstations[0] || null;
       
       // Prepare order data based on order type
-      const orderData: any = {
+      const orderData: SendOrderPayload = {
         restaurantId: user?.restaurantId || '',
         table: currentOrderTable,
         items: currentOrderItems.map((item: OrderItem) => ({
@@ -449,7 +410,7 @@ function PosPageContent() {
           name: item.menuItem.name,
           price: item.menuItem.price,
           quantity: item.quantity,
-          selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || [],
+          selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || [],
           notes: item.notes || '',
           // For completed orders, mark all as served
           status: 'served',
@@ -485,9 +446,9 @@ function PosPageContent() {
       });
       currentOrderClearOrder();
       mutateOrders(); // Refresh orders list
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(t('toast.error'), {
-        description: error.message || t('pos.toast.send_error'),
+        description: error instanceof Error ? error.message : t('pos.toast.send_error'),
         duration: 3000,
       });
     } finally {
@@ -519,64 +480,6 @@ function PosPageContent() {
       }
     }
   }
-
-  // Create a currentOrder object that mimics the hook's return value for compatibility
-  const currentOrder = {
-    items: currentOrderItems,
-    table: currentOrderTable,
-    setTable: (value: any) => {
-      if (typeof value === 'function') {
-        // Handle React's setState function form
-        const newValue = value(currentOrderTable);
-        currentOrderSetTable(newValue);
-      } else {
-        // Handle direct value
-        currentOrderSetTable(value);
-      }
-    },
-    notes: currentOrderNotes,
-    setNotes: (value: any) => {
-      if (typeof value === 'function') {
-        // Handle React's setState function form
-        const newValue = value(currentOrderNotes);
-        currentOrderSetNotes(newValue);
-      } else {
-        // Handle direct value
-        currentOrderSetNotes(value);
-      }
-    },
-    orderType: currentOrderType,
-    setOrderType: (value: any) => {
-      if (typeof value === 'function') {
-        // Handle React's setState function form
-        const newValue = value(currentOrderType);
-        currentOrderSetOrderType(newValue);
-      } else {
-        // Handle direct value
-        currentOrderSetOrderType(value);
-      }
-    },
-    deliveryInfo: currentOrderDeliveryInfo,
-    setDeliveryInfo: (value: any) => {
-      if (typeof value === 'function') {
-        // Handle React's setState function form
-        const newValue = value(currentOrderDeliveryInfo);
-        currentOrderSetDeliveryInfo(newValue);
-      } else {
-        // Handle direct value
-        currentOrderSetDeliveryInfo(value);
-      }
-    },
-    addItem: currentOrderAddItem,
-    updateItem: currentOrderUpdateItem,
-    removeItem: currentOrderRemoveItem,
-    clearOrder: currentOrderClearOrder,
-    updateItemQuantity: currentOrderUpdateItemQuantity,
-    subtotal,
-    tax,
-    total,
-    itemCountByCategory
-  };
 
   return (
     <>
@@ -617,6 +520,15 @@ function PosPageContent() {
       />
         
       <div className="flex flex-1 flex-col gap-4 p-1 md:p-1 overflow-hidden md:pt-1 pt-1">
+        {(menuItemsError || categoriesError || ordersError || paymentMethodsError || workstationsError) && (
+          <Alert variant="destructive" className="mb-1">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>{t('pos.data_error_title')}</AlertTitle>
+            <AlertDescription>
+              {(menuItemsError?.message || ordersError?.message || paymentMethodsError?.message || categoriesError?.message || workstationsError?.message || '').toString()}
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Order History Button */}
         <div className="flex justify-end">
           <Button 
@@ -628,7 +540,7 @@ function PosPageContent() {
             }}
           >
             <History className="h-5 w-5" />
-            <span className="ml-2">Orders</span>
+            <span className="ml-2">{t('orders.title')}</span>
           </Button>
         </div>
         

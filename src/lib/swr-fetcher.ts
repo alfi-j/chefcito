@@ -24,7 +24,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
       }
 
       const errorData = await res.json().catch(() => ({}));
-      const error: Error & { info?: any; status?: number } = new Error(
+      const error: Error & { info?: unknown; status?: number } = new Error(
         `An error occurred while fetching the data: ${res.status} ${res.statusText}`
       );
       error.info = errorData;
@@ -37,7 +37,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
     // Handle standardized API response format
     if (response && typeof response === 'object' && 'success' in response) {
       if (!response.success) {
-        const error: Error & { info?: any; status?: number } = new Error(
+        const error: Error & { info?: unknown; status?: number } = new Error(
           response.error || response.message || 'API request failed'
         );
         error.info = response;
@@ -49,23 +49,25 @@ export const fetcher = async <T>(url: string): Promise<T> => {
 
     // Handle direct array/object response (backward compatibility)
     return response as T;
-  } catch (error: any) {
+  } catch (error) {
     console.error(`Error fetching from ${url}:`, error);
+
+    const err = error as { name?: string; status?: number };
 
     // Provide more specific error messages based on the error type
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error('Network error: Unable to connect to the server. Please check your internet connection.');
     }
 
-    if (error.name === 'TimeoutError') {
+    if (err.name === 'TimeoutError') {
       throw new Error('Request timeout: The server took too long to respond. Please try again later.');
     }
 
-    if (error.status === 503) {
+    if (err.status === 503) {
       throw new Error('Service unavailable: Database connection failed. Please try again later.');
     }
 
-    if (error.status === 500) {
+    if (err.status === 500) {
       throw new Error('Server error: An unexpected error occurred. Please try again later.');
     }
 

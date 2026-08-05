@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { type Order, type OrderItem } from "@/lib/types"
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 import { format } from "date-fns"
 import { getItemTotal, getOrderTotal } from "@/lib/helpers"
 import { Package, PersonStanding } from "lucide-react"
@@ -32,7 +32,7 @@ const getStatusVariant = (status: Order['status']) => {
 }
 
 export function OrderDetailsDialog({ isOpen, onOpenChange, order, onViewReceipt }: OrderDetailsDialogProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
 
   if (!order) return null
 

@@ -27,13 +27,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Owner not found' }, { status: 404 });
     }
 
+    // Use the owner's actual restaurant id (fall back to ownerId for legacy owners)
+    const ownerRestaurantId = owner.restaurantId || owner.restaurantIds?.[0] || null;
+
     const token = uuidv4();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     await Invitation.create({
       token,
       ownerId,
-      restaurantId: ownerId, // no separate restaurant entity; use ownerId
+      restaurantId: ownerRestaurantId || ownerId, // resolve to the real restaurant id
       restaurantName: owner.name,
       role,
       expiresAt,

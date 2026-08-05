@@ -2,19 +2,27 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Store active connections
-const clients: any[] = [];
+interface SseClient {
+  id: number;
+  res: WritableStreamDefaultWriter;
+  restaurantId: string | null;
+}
+const clients: SseClient[] = [];
 
-// Function to send updates to all connected clients
-export function sendOrderUpdate() {
+// Function to send updates to connected clients, optionally scoped to a restaurant
+export function sendOrderUpdate(restaurantId?: string | null) {
   clients.forEach(client => {
-    if (client.res.writable) {
-      client.res.write(`data: ${JSON.stringify({ type: 'orders_update', timestamp: Date.now() })}\n\n`);
-    }
+    // Only notify clients subscribed to the same restaurant (unless broadcasting)
+    if (restaurantId && client.restaurantId && client.restaurantId !== restaurantId) return;
+    client.res.write(`data: ${JSON.stringify({ type: 'orders_update', restaurantId: client.restaurantId || null, timestamp: Date.now() })}\n\n`);
   });
 }
 
 // Middleware to handle SSE connections
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const restaurantId = searchParams.get('restaurantId');
+
   // Create a readable stream
   const { readable, writable } = new TransformStream();
   const writer = writable.getWriter();
@@ -33,6 +41,7 @@ export async function GET(request: NextRequest) {
   const newClient = {
     id: clientId,
     res: writer,
+    restaurantId,
   };
   
   clients.push(newClient);

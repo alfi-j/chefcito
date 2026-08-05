@@ -1,21 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getInventory, addInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/lib/database-service';
+import { getInventory, addInventoryItem, updateInventoryItem, deleteInventoryItem, resolveInventoryItemRestaurantId } from '@/lib/database-service';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
 import { debugInventory } from '@/lib/helpers';
 
-export async function GET(request: Request, context: { params: Promise<{}> }) {
+export async function GET(request: Request, context: { params: Promise<{ id?: string }> }) {
   const resolvedParams = await context.params;
   
   // Check if we're fetching a specific item by ID
-  // @ts-ignore
   if (resolvedParams && resolvedParams['id']) {
     try {
-      // @ts-ignore
       const { id } = resolvedParams;
       debugInventory('GET: fetching specific item with id %s', id);
       
       // Get restaurantId from query params
       const { searchParams } = new URL(request.url);
-      const restaurantId = searchParams.get('restaurantId') || undefined;
+      const restaurantId = searchParams.get('restaurantId');
+
+      if (!restaurantId) {
+        return NextResponse.json(
+          { success: false, error: 'restaurantId is required' },
+          { status: 400 }
+        );
+      }
       
       const inventoryItems = await getInventory(restaurantId);
       const item = inventoryItems.find(i => i.id === id);
@@ -30,11 +38,11 @@ export async function GET(request: Request, context: { params: Promise<{}> }) {
       
       debugInventory('GET: successfully found item with id %s', id);
       return NextResponse.json({ success: true, data: item });
-    } catch (error: any) {
+    } catch (error: unknown) {
       debugInventory('GET: error fetching inventory item: %O', error);
       console.error('Error fetching inventory item:', error);
       return NextResponse.json(
-        { success: false, error: error.message || 'Failed to fetch inventory item' },
+        { success: false, error: toErrorMessage(error) || 'Failed to fetch inventory item' },
         { status: 500 }
       );
     }
@@ -61,15 +69,15 @@ export async function GET(request: Request, context: { params: Promise<{}> }) {
       error: null,
       message: null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugInventory('GET: error fetching inventory items: %O', error);
     console.error('Error fetching inventory items:', error);
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch inventory items',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error) || 'Failed to fetch inventory items',
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -97,11 +105,11 @@ export async function POST(request: Request) {
     const newItem = await addInventoryItem(mappedData);
     debugInventory('POST: successfully added new item with id %s', newItem.id);
     return NextResponse.json(newItem);
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugInventory('POST: error adding inventory item: %O', error);
     console.error('Error adding inventory item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to add inventory item' },
+      { error: toErrorMessage(error) || 'Failed to add inventory item' },
       { status: 500 }
     );
   }
@@ -120,7 +128,14 @@ export async function PUT(request: Request) {
     }
     
     debugInventory('PUT: updating item %s with data %O', id, itemData);
-    const result = await updateInventoryItem(id, itemData);
+    const restaurantId = itemData.restaurantId || (await resolveInventoryItemRestaurantId(id));
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+    const result = await updateInventoryItem(id, restaurantId, itemData);
     
     if (result) {
       debugInventory('PUT: successfully updated item %s', id);
@@ -132,11 +147,11 @@ export async function PUT(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugInventory('PUT: error updating inventory item: %O', error);
     console.error('Error updating inventory item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update inventory item' },
+      { error: toErrorMessage(error) || 'Failed to update inventory item' },
       { status: 500 }
     );
   }
@@ -155,7 +170,14 @@ export async function DELETE(request: Request) {
     }
     
     debugInventory('DELETE: deleting item %s', id);
-    const result = await deleteInventoryItem(id);
+    const restaurantId = await resolveInventoryItemRestaurantId(id);
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'Inventory item not found' },
+        { status: 404 }
+      );
+    }
+    const result = await deleteInventoryItem(id, restaurantId);
     
     if (result) {
       debugInventory('DELETE: successfully deleted item %s', id);
@@ -167,11 +189,11 @@ export async function DELETE(request: Request) {
         { status: 500 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugInventory('DELETE: error deleting inventory item: %O', error);
     console.error('Error deleting inventory item:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete inventory item' },
+      { error: toErrorMessage(error) || 'Failed to delete inventory item' },
       { status: 500 }
     );
   }

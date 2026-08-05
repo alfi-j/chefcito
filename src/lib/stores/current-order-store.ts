@@ -67,7 +67,7 @@ const getServerSnapshot = (): NormalizedState => {
   return serverSnapshot;
 };
 
-export const useNormalizedCurrentOrderStore = create<NormalizedCurrentOrderState>()((set, get) => ({
+export const useNormalizedCurrentOrderStore = create<NormalizedCurrentOrderState>()((set) => ({
   ...getServerSnapshot(),
   
   setItems: (items) => set((state) => {

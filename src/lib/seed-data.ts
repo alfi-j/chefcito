@@ -69,9 +69,9 @@ async function seedWorkstations(restaurantId: string) {
   }
 
   const workstations = [
-    { id: uuidv4(), restaurantId, name: 'Kitchen', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 0 },
-    { id: uuidv4(), restaurantId, name: 'Bar', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 1 },
-    { id: uuidv4(), restaurantId, name: 'Ready', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 2 },
+    { id: uuidv4(), restaurantId, name: 'Kitchen', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 0, isFixed: true },
+    { id: uuidv4(), restaurantId, name: 'Bar', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 1, isFixed: false },
+    { id: uuidv4(), restaurantId, name: 'Ready', states: { new: 'new', inProgress: 'in progress', ready: 'ready' }, position: 2, isFixed: true },
   ];
 
   await WorkstationModel.insertMany(workstations);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Restaurant } from '@/models';
+import { Restaurant, User } from '@/models';
 import { errorReporter } from '@/lib/helpers';
 import { connectToDatabase, isDatabaseConnected } from '@/lib/mongo-init';
 import { v4 as uuidv4 } from 'uuid';
@@ -23,14 +23,21 @@ function createApiResponse<T>(data?: T, error?: string): ApiResponse<T> {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Ensure mongoose is connected using centralized function
     if (!isDatabaseConnected()) {
       await connectToDatabase();
     }
-    
-    const restaurants = await Restaurant.find({});
+
+    const { searchParams } = new URL(request.url);
+    const ids = searchParams.get('ids');
+    const singleId = searchParams.get('id');
+
+    const whitelist = ids ? ids.split(',').map((s: string) => s.trim()).filter(Boolean) : (singleId ? [singleId] : []);
+    const query = whitelist.length > 0 ? { id: { $in: whitelist } } : { id: { $in: [] } };
+
+    const restaurants = await Restaurant.find(query);
     
     // Validate response data
     if (!Array.isArray(restaurants)) {
@@ -41,7 +48,7 @@ export async function GET() {
       createApiResponse(restaurants.map(r => r.toObject())),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching restaurants:', error);
     
     // Use the enhanced error reporting utility
@@ -77,7 +84,18 @@ export async function POST(request: Request) {
     // Create new restaurant
     const newRestaurant = new Restaurant(restaurantData);
     const savedRestaurant = await newRestaurant.save();
-    
+
+    // Link the restaurant to its owner so a single person can manage multiple restaurants.
+    if (restaurantData.ownerId) {
+      await User.updateOne(
+        { id: restaurantData.ownerId },
+        {
+          $set: { restaurantId: savedRestaurant.id },
+          $addToSet: { restaurantIds: savedRestaurant.id }
+        }
+      );
+    }
+
     // Seed default data so new users can test the app immediately
     await seedRestaurantData(savedRestaurant.id);
     
@@ -85,7 +103,7 @@ export async function POST(request: Request) {
       createApiResponse(savedRestaurant.toObject()),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error saving restaurants:', error);
     
     // Use the enhanced error reporting utility

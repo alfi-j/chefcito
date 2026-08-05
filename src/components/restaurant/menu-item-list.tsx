@@ -4,9 +4,9 @@ import React, { useMemo, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Pencil, Trash2, ImageOff, Utensils } from "lucide-react"
+import { Pencil, Trash2, Utensils } from "lucide-react"
 import { type MenuItem, type Category } from "@/lib/types"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/lib/stores/menu-store'
 import { DeleteConfirmationDialog } from './delete-confirmation-dialog'
 import { toast } from "sonner"
@@ -25,40 +25,16 @@ interface MenuItemListProps {
   onEdit: (item: MenuItem) => void
 }
 
-interface RenderedCategory extends Category {
-  depth: number
+interface CategoryOption {
+  name: string
+  label?: string
 }
 
 export function MenuItemList({ menuItems = [], categories = [], onEdit }: MenuItemListProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const { deleteMenuItem } = useMenuStore()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
-
-  const renderedCategories = useMemo(() => {
-    if (!categories || categories.length === 0) return [];
-    
-    const categoryMap = new Map(categories.map(c => [c.id, { ...c, children: [] as Category[] }]))
-    const roots: Category[] = []
-
-    categories.forEach(category => {
-      if (category.parentId && categoryMap.has(category.parentId)) {
-        categoryMap.get(category.parentId)!.children.push(category as any)
-      } else {
-        roots.push(category)
-      }
-    })
-
-    const flattened: RenderedCategory[] = []
-    const traverse = (category: Category, depth: number) => {
-      flattened.push({ ...category, depth })
-      const children = categoryMap.get(category.id)?.children || []
-      children.sort((a, b) => a.name.localeCompare(b.name)).forEach(child => traverse(child, depth + 1))
-    }
-
-    roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0))
-    return flattened
-  }, [categories])
 
   const filteredMenuItems = useMemo(() => {
     if (!menuItems) return [];
@@ -74,12 +50,12 @@ export function MenuItemList({ menuItems = [], categories = [], onEdit }: MenuIt
     try {
       await deleteMenuItem(id)
       toast.success(t('restaurant.menu_items.delete_success', { name }))
-    } catch (error: any) {
-      toast.error(error.message || t('restaurant.menu_items.delete_error'))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('restaurant.menu_items.delete_error'))
     }
   }
 
-  const categoryOptions = useMemo(() => {
+  const categoryOptions = useMemo<CategoryOption[]>(() => {
     return [{ name: 'all', label: t('restaurant.menu_items.all_categories') }, ...(categories || [])]
   }, [categories, t])
 
@@ -107,7 +83,7 @@ export function MenuItemList({ menuItems = [], categories = [], onEdit }: MenuIt
           <SelectContent>
             {categoryOptions.map(category => (
               <SelectItem key={category.name} value={category.name}>
-                {category.name === 'all' ? (category as any).label : category.name}
+                {category.name === 'all' ? category.label : category.name}
               </SelectItem>
             ))}
           </SelectContent>

@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';

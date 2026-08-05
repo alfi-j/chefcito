@@ -12,7 +12,6 @@ export * from './payments-store';
 export * from './workstations-store';
 export * from './users-store';
 export * from './roles-store';
-export * from './i18n-store';
 
 // Utils
 export * from './utils';

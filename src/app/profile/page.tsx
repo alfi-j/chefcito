@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { SubscriptionCard } from '@/components/subscription/subscription-card'
 import { PayphonePaymentBox } from '@/components/subscription/payphone-payment-box'
 import { CancelSubscriptionDialog } from '@/components/subscription/cancel-subscription-dialog'
@@ -27,20 +27,16 @@ interface Subscription {
 }
 
 export default function ProfilePage() {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const user = useUserStore((state) => state.getCurrentUser())
   const refreshUser = useUserStore((state) => state.refreshUser)
 
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [restaurantMembership, setRestaurantMembership] = useState<'free' | 'pro'>('free')
-  const [restaurantName, setRestaurantName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [isOwner, setIsOwner] = useState(false)
-  const [phone, setPhone] = useState('')
-  const [address, setAddress] = useState('')
-  const [city, setCity] = useState('')
 
   // Cargar suscripción y membresía del restaurante al montar
   useEffect(() => {
@@ -56,16 +52,12 @@ export default function ProfilePage() {
           }
         }
 
-        // Load restaurant membership and details
+        // Load restaurant membership
         const restaurantResponse = await fetch(`/api/restaurants/${user.restaurantId}`)
         if (restaurantResponse.ok) {
           const restaurantData = await restaurantResponse.json()
           if (restaurantData && !restaurantData.error) {
             setRestaurantMembership(restaurantData.membership || 'free')
-            setRestaurantName(restaurantData.name || '')
-            setPhone(restaurantData.phone || '')
-            setAddress(restaurantData.address || '')
-            setCity(restaurantData.city || '')
           }
         }
 
@@ -83,7 +75,6 @@ export default function ProfilePage() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const paymentStatus = urlParams.get('payment')
-    const txId = urlParams.get('txId')
 
     if (paymentStatus) {
       if (paymentStatus === 'success') {
@@ -137,23 +128,7 @@ export default function ProfilePage() {
       // Limpiar parámetro de la URL
       window.history.replaceState({}, document.title, '/profile')
     }
-  }, [])
-
-  const loadSubscription = async () => {
-    if (!user?.restaurantId) return
-
-    try {
-      const response = await fetch(`/api/subscriptions?restaurantId=${user.restaurantId}`)
-      if (response.ok) {
-        const data = await response.json()
-        if (data.hasSubscription && data.subscription) {
-          setSubscription(data.subscription)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading subscription:', error)
-    }
-  }
+  }, [t])
 
   const handleSavePersonalInfo = async () => {
     if (!user?.id) return
@@ -163,7 +138,7 @@ export default function ProfilePage() {
       const response = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: nameValue }),
+        body: JSON.stringify({ name: nameValue, restaurantId: user.restaurantId }),
       })
 
       if (response.ok) {
@@ -175,32 +150,6 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error saving personal info:', error)
       toast.error('Error al actualizar la información')
-    }
-  }
-
-  const handleSaveRestaurantInfo = async () => {
-    if (!user?.restaurantId) return
-
-    try {
-      const response = await fetch(`/api/restaurants/${user.restaurantId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: restaurantName,
-          phone,
-          address,
-          city,
-        }),
-      })
-
-      if (response.ok) {
-        toast.success('Información del restaurante actualizada')
-      } else {
-        toast.error('Error al actualizar la información del restaurante')
-      }
-    } catch (error) {
-      console.error('Error saving restaurant info:', error)
-      toast.error('Error al actualizar la información del restaurante')
     }
   }
 
@@ -265,57 +214,6 @@ export default function ProfilePage() {
               <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
               <p className="text-xs text-muted-foreground">El email no se puede cambiar</p>
             </div>
-            
-            {/* Restaurant Info - Solo para el dueño */}
-            {isOwner && user?.restaurantId && (
-              <>
-                <Separator />
-                <div>
-                  <Label className="text-sm font-semibold">Información del Restaurante</Label>
-                  <p className="text-xs text-muted-foreground mt-1">Datos públicos de tu restaurante</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="restaurant-name">Nombre del Restaurante</Label>
-                  <Input 
-                    id="restaurant-name" 
-                    value={restaurantName} 
-                    onChange={(e) => setRestaurantName(e.target.value)}
-                    placeholder="Ej: Mi Restaurante Sabroso"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Teléfono</Label>
-                  <Input 
-                    id="phone" 
-                    type="tel"
-                    value={phone} 
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+593 99 123 4567"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Dirección</Label>
-                  <Input 
-                    id="address" 
-                    value={address} 
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Calle Principal 123, Ciudad"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="city">Ciudad</Label>
-                  <Input 
-                    id="city" 
-                    value={city} 
-                    onChange={(e) => setCity(e.target.value)}
-                    placeholder="Guayaquil"
-                  />
-                </div>
-                <Button onClick={handleSaveRestaurantInfo} className="w-full">
-                  Guardar Información del Restaurante
-                </Button>
-              </>
-            )}
             
             <Separator />
             <Button onClick={handleSavePersonalInfo} className="w-full">{t('profile.save_button')}</Button>

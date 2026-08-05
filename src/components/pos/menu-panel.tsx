@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { type MenuItem, type Category, type OrderItem } from '@/lib/types'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Utensils } from 'lucide-react'
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { useCurrentOrderStoreCompat as useCurrentOrderStore } from '@/lib/stores/current-order-store'
@@ -20,8 +20,8 @@ interface MenuSelectionProps {
   onAddItem: (item: MenuItem) => void;
 }
 
-export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectionProps) {
-  const { t } = useI18nStore();
+export function MenuSelection({ menuItems, categories }: MenuSelectionProps) {
+  const { t } = useTranslation();
   
   // Get current order items to display badges
   const { items: orderItems, addItem: addItemToOrder } = useCurrentOrderStore();
@@ -39,12 +39,13 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
   }, [orderItems]);
 
   const renderedCategories = useMemo(() => {
-    const categoryMap = new Map(categories.map(c => [c.id, {...c, children: [] as Category[]}]));
+    const categoryMap = new Map<number, Category & { children: Category[] }>();
+    categories.forEach(c => categoryMap.set(c.id, { ...c, children: [] }));
     const roots: Category[] = [];
 
     categories.forEach(category => {
         if (category.parentId && categoryMap.has(category.parentId)) {
-            (categoryMap.get(category.parentId) as any).children.push(category);
+            categoryMap.get(category.parentId)!.children.push(category);
         } else {
             roots.push(category);
         }
@@ -53,11 +54,11 @@ export function MenuSelection({ menuItems, categories, onAddItem }: MenuSelectio
     const flattened: RenderedCategory[] = [];
     const traverse = (category: Category, depth: number) => {
         flattened.push({ ...category, depth });
-        const children = (categoryMap.get(category.id) as any)?.children || [];
-        children.sort((a: Category,b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
+        const children = categoryMap.get(category.id)?.children ?? [];
+        children.sort((a: Category, b: Category) => a.name.localeCompare(b.name)).forEach((child: Category) => traverse(child, depth + 1));
     };
 
-    roots.sort((a,b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
+    roots.sort((a, b) => a.name.localeCompare(b.name)).forEach(root => traverse(root, 0));
     return flattened;
   }, [categories]);
 

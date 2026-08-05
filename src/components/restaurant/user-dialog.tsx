@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useUsersStore } from '@/lib/stores/users-store'
 import { toast } from "sonner"
 
@@ -31,16 +31,19 @@ interface User {
   status: 'On Shift' | 'Off Shift' | 'On Break';
 }
 
-interface Role {
-  id: string;
+interface UserFormData {
   name: string;
+  email: string;
+  role: string;
+  status: 'On Shift' | 'Off Shift' | 'On Break';
+  password?: string;
 }
 
 interface UserDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   user: User | null;
-  onSave: (userData: any) => Promise<void>;
+  onSave: (userData: UserFormData) => Promise<void>;
   onClose: () => void;
 }
 
@@ -51,7 +54,7 @@ export function UserDialog({
   onSave,
   onClose
 }: UserDialogProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const usersStore = useUsersStore()
   
   // Form state from store
@@ -64,14 +67,14 @@ export function UserDialog({
   const loading = usersStore.loading
   const roles = usersStore.getRoles()
   
-  // Reset form when dialog opens/closes or user changes
+  // Reset form when dialog opens/closes or the edited user changes.
   useEffect(() => {
     if (isOpen) {
       usersStore.resetForm(!!user, user)
     } else {
       usersStore.clearForm()
     }
-  }, [isOpen, user])
+  }, [isOpen, user, usersStore])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -227,7 +230,7 @@ export function UserDialog({
               </Label>
               <Select 
                 value={formStatus} 
-                onValueChange={(value) => usersStore.setFormStatus(value as any)}
+                onValueChange={(value) => usersStore.setFormStatus(value as 'On Shift' | 'Off Shift' | 'On Break')}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue />

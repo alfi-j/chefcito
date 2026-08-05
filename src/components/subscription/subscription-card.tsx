@@ -1,10 +1,10 @@
 "use client"
 
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { Crown, CheckCircle2, XCircle, Clock, AlertCircle, Sparkles, Zap, Star, Trophy, Gift } from 'lucide-react'
 
 interface Subscription {
@@ -33,12 +33,10 @@ export function SubscriptionCard({
   currentMembership,
   onSubscribe,
   onCancel,
-  isLoading = false,
-  isOwner = false
+  isLoading = false
 }: SubscriptionCardProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isHovered, setIsHovered] = useState(false)
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -104,8 +102,6 @@ export function SubscriptionCard({
       <div
         className="relative group self-start"
         onMouseMove={handleMouseMove}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         {/* Animated gradient border */}
         <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-500 via-pink-500 to-purple-500 rounded-xl opacity-50 group-hover:opacity-100 blur transition-opacity duration-500 animate-gradient-xy" />
@@ -218,8 +214,6 @@ export function SubscriptionCard({
     <div
       className="relative group self-start"
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Glowing border */}
       <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 rounded-xl opacity-75 blur animate-gradient-xy" />

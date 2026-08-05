@@ -6,11 +6,10 @@ import {
   type Payment,
   type Category
 } from '@/lib/types';
-import { type IWorkstation as Workstation, type IUser as User } from '@/models/index';
+import { type IWorkstation as Workstation } from '@/models/index';
 import { DateRange } from 'react-day-picker';
-import { subDays, eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
+import { eachDayOfInterval, format, differenceInMinutes } from 'date-fns';
 import { type OrderItem } from '@/lib/types';
-import debug from 'debug';
 import { getItemTotal, getOrderTotal } from '@/lib/helpers';
 
 // Direct model imports to avoid recompilation issues
@@ -28,13 +27,41 @@ import {
 
 // Import Mongoose
 import mongoose from 'mongoose';
-import { KDS_STATES } from '@/lib/constants';
 
 // Debug loggers - imported from centralized helpers
 import { debugInventory, debugOrders } from '@/lib/helpers';
 
 // Generate a random ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// Minimal shapes for documents inflated from the database
+interface InflateOrderItem {
+  id?: string;
+  name?: string;
+  price?: number;
+  menuItemId?: string;
+  quantity?: number;
+  status?: string;
+  workstationId?: string;
+  selectedExtraIds?: string[];
+  [key: string]: unknown;
+}
+
+interface InflateOrder {
+  id?: string | number;
+  createdAt?: string | Date;
+  completedAt?: string | Date | null;
+  items: InflateOrderItem[];
+  [key: string]: unknown;
+}
+
+interface InflateWorkstation {
+  id?: string;
+  _id?: { toString(): string };
+  name?: string;
+  position?: number;
+  [key: string]: unknown;
+}
 
 // Initialize database connection
 export const initializeDatabase = async () => {
@@ -61,10 +88,10 @@ const getAllMenuItems = async (restaurantId?: string) => {
   return menuItems.map(item => item.toObject());
 };
 
-const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstations: any[]): Promise<Order> => {
+const inflateOrder = async (order: InflateOrder, allMenuItems: MenuItem[], allWorkstations: InflateWorkstation[]): Promise<Order> => {
   const workstations = allWorkstations;
   
-  const inflatedItems = await Promise.all(order.items.map(async (item: any) => {
+  const inflatedItems = await Promise.all(order.items.map(async (item: InflateOrderItem) => {
     const menuItem = allMenuItems.find(mi => mi.id === item.menuItemId);
     if (!menuItem) {
       console.warn(
@@ -124,10 +151,10 @@ const inflateOrder = async (order: any, allMenuItems: MenuItem[], allWorkstation
 
   return {
     ...order,
-    createdAt: new Date(order.createdAt),
+    createdAt: new Date(order.createdAt as string | Date),
     completedAt: order.completedAt ? new Date(order.completedAt) : undefined,
     items: inflatedItems as OrderItem[],
-  };
+  } as Order;
 };
 
 // Users
@@ -187,17 +214,17 @@ export const addCustomer = async (customerData: Omit<Customer, 'id'>) => {
   return newCustomer.toObject();
 };
 
-export const updateCustomer = async (id: string, customerData: Partial<Customer>) => {
+export const updateCustomer = async (id: string, restaurantId: string, customerData: Partial<Customer>) => {
   const result = await CustomerModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: customerData }
   );
 
   return result.modifiedCount > 0;
 };
 
-export const deleteCustomer = async (id: string) => {
-  const result = await CustomerModel.deleteOne({ id });
+export const deleteCustomer = async (id: string, restaurantId: string) => {
+  const result = await CustomerModel.deleteOne({ id, restaurantId });
   return result.deletedCount > 0;
 };
 
@@ -207,16 +234,17 @@ export const getCategories = async (restaurantId: string): Promise<Category[]> =
     await initializeDatabase();
     const categories = await CategoryModel.find({ restaurantId }).maxTimeMS(10000);
     return categories.map(category => category.toObject());
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error fetching categories from database:', error);
+    const err = error as { name?: string; message?: string };
     // Provide more context in the error message
-    if (error.name === 'MongoNetworkError' || error.name === 'MongooseServerSelectionError') {
+    if (err.name === 'MongoNetworkError' || err.name === 'MongooseServerSelectionError') {
       throw new Error('Database connection failed. Please check your MongoDB connection.');
     }
-    if (error.name === 'MongoTimeoutError' || (error.message && error.message.includes('buffering timed out'))) {
+    if (err.name === 'MongoTimeoutError' || (err.message && err.message.includes('buffering timed out'))) {
       throw new Error('Database operation timed out. The database may be slow or unreachable.');
     }
-    throw new Error(`Database error: ${error.message}`);
+    throw new Error(`Database error: ${err.message}`);
   }
 };
 
@@ -264,22 +292,22 @@ export const addMenuItem = async (itemData: Omit<MenuItem, 'id'> & { restaurantI
   return newItem.toObject();
 };
 
-export const updateMenuItem = async (id: string, itemData: Partial<MenuItem>) => {
+export const updateMenuItem = async (id: string, restaurantId: string, itemData: Partial<MenuItem>) => {
   const result = await MenuItemModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: itemData }
   );
 
   if (result.modifiedCount > 0) {
-    const updatedItem = await MenuItemModel.findOne({ id });
+    const updatedItem = await MenuItemModel.findOne({ id, restaurantId });
     return updatedItem ? updatedItem.toObject() : null;
   }
 
   return null;
 };
 
-export const deleteMenuItem = async (id: string) => {
-  const result = await MenuItemModel.deleteOne({ id });
+export const deleteMenuItem = async (id: string, restaurantId: string) => {
+  const result = await MenuItemModel.deleteOne({ id, restaurantId });
   return result.deletedCount > 0;
 };
 
@@ -307,8 +335,8 @@ export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
     throw new Error('Order must contain at least one item');
   }
   
-  // Get the highest existing order ID globally and increment by 1
-  const latestOrder = await OrderModel.findOne().sort({ id: -1 }).limit(1);
+  // Get the highest existing order ID for this restaurant and increment by 1
+  const latestOrder = await OrderModel.findOne({ restaurantId: orderData.restaurantId }).sort({ id: -1 }).limit(1);
   const newId = latestOrder ? latestOrder.id + 1 : 1;
 
   // Ensure items have proper initial workstation assignment
@@ -363,15 +391,15 @@ export const updateOrderStatus = async (id: number, restaurantId: string, newSta
   return false;
 };
 
-export const deleteOrder = async (id: number, restaurantId?: string) => {
-  debugOrders('deleteOrder: called with id %d and restaurantId %s', id, restaurantId || 'all');
+export const deleteOrder = async (id: number, restaurantId: string) => {
+  debugOrders('deleteOrder: called with id %d and restaurantId %s', id, restaurantId);
 
   try {
     // Initialize database connection
     await initializeDatabase();
 
-    // First check if the order exists
-    const query = restaurantId ? { id, restaurantId } : { id };
+    // First check if the order exists, scoped to the restaurant
+    const query = { id, restaurantId };
     const orderExists = await OrderModel.findOne(query);
     debugOrders('deleteOrder: order exists check %O', orderExists);
 
@@ -398,9 +426,9 @@ export const updateOrder = async (id: number, restaurantId: string, orderData: P
   return result.modifiedCount > 0;
 };
 
-export const toggleOrderPin = async ({ orderId }: { orderId: number }) => {
+export const toggleOrderPin = async ({ orderId, restaurantId }: { orderId: number; restaurantId: string }) => {
   try {
-    const order = await OrderModel.findOne({ id: orderId });
+    const order = await OrderModel.findOne({ id: orderId, restaurantId });
     if (!order) {
       return { success: false, error: 'Order not found' };
     }
@@ -409,14 +437,16 @@ export const toggleOrderPin = async ({ orderId }: { orderId: number }) => {
     await order.save();
 
     return { success: true, isPinned: order.isPinned };
-  } catch (error: any) {
+  } catch (error) {
+    const err = error as { message?: string };
     console.error('Error toggling order pin:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: err.message };
   }
 };
 
 export const updateOrderItemStatus = async ({
   orderId,
+  restaurantId,
   itemId,
   status,
   moveToNextWorkstation = false,
@@ -425,6 +455,7 @@ export const updateOrderItemStatus = async ({
   previousWorkstationId
 }: {
   orderId: number;
+  restaurantId: string;
   itemId: string;
   status: string;
   moveToNextWorkstation?: boolean;
@@ -434,14 +465,14 @@ export const updateOrderItemStatus = async ({
 }) => {
   try {
     await initializeDatabase();
-    debugOrders('updateOrderItemStatus called with:', { orderId, itemId, status, moveToNextWorkstation, moveToPreviousWorkstation, nextWorkstationId, previousWorkstationId });
+    debugOrders('updateOrderItemStatus called with:', { orderId, restaurantId, itemId, status, moveToNextWorkstation, moveToPreviousWorkstation, nextWorkstationId, previousWorkstationId });
     
-    const order = await OrderModel.findOne({ id: orderId });
+    const order = await OrderModel.findOne({ id: orderId, restaurantId });
     if (!order) {
       throw new Error('Order not found');
     }
 
-    const itemIndex = order.items.findIndex((item: any) => item.id === itemId);
+    const itemIndex = order.items.findIndex((item: { id?: string }) => item.id === itemId);
     if (itemIndex === -1) {
       throw new Error('Item not found in order');
     }
@@ -478,7 +509,7 @@ export const updateOrderItemStatus = async ({
     }
 
     // Create update object preserving all required fields
-    const updateFields: any = {
+    const updateFields: Record<string, unknown> = {
       'items.$.status': status,
       'items.$.name': currentItem.name || currentItem.menuItem?.name,
       'items.$.price': currentItem.price || currentItem.menuItem?.price,
@@ -509,7 +540,6 @@ export const updateOrderItemStatus = async ({
           // Check if current workstation is the "Ready" workstation (last in workflow)
           // Only proceed if we found the current workstation
           if (currentIndex >= 0) {
-            const currentWorkstation = workstations[currentIndex];
             const isLastWorkstation = currentIndex === workstations.length - 1;
             
             if (!isLastWorkstation && currentIndex >= 0 && currentIndex < workstations.length - 1) {
@@ -611,18 +641,18 @@ export const updateOrderItemStatus = async ({
 
     debugOrders('Update fields:', updateFields);
 
-    // Update the specific item using positional operator
+    // Update the specific item using positional operator, scoped to restaurant
     const updateResult = await OrderModel.updateOne(
-      { id: orderId, 'items.id': itemId },
+      { id: orderId, restaurantId, 'items.id': itemId },
       { $set: updateFields }
     );
     
     debugOrders('Update result:', updateResult);
 
     // After updating, check if all items are served to mark order as completed
-    const updatedOrder = await OrderModel.findOne({ id: orderId });
+    const updatedOrder = await OrderModel.findOne({ id: orderId, restaurantId });
     if (updatedOrder) {
-      const allItemsServed = updatedOrder.items.every((i: any) => i.status === 'served');
+      const allItemsServed = updatedOrder.items.every((i: { status?: string }) => i.status === 'served');
       if (allItemsServed) {
         updatedOrder.status = 'completed';
         updatedOrder.completedAt = new Date();
@@ -633,7 +663,7 @@ export const updateOrderItemStatus = async ({
 
     debugOrders('Item status updated successfully');
     return true;
-  } catch (error: any) {
+  } catch (error) {
     debugOrders('Error updating order item status:', error);
     throw error;
   }
@@ -672,7 +702,7 @@ export const addPaymentMethod = async (methodData: Omit<Payment, 'id'>) => {
   }
 };
 
-export const updatePaymentMethod = async (id: string, methodData: Partial<Payment>) => {
+export const updatePaymentMethod = async (id: string, restaurantId: string, methodData: Partial<Payment>) => {
   try {
     // Ensure banks array is handled properly
     const updateData = { ...methodData };
@@ -682,13 +712,13 @@ export const updatePaymentMethod = async (id: string, methodData: Partial<Paymen
     }
 
     const result = await PaymentModel.updateOne(
-      { id },
+      { id, restaurantId },
       { $set: updateData }
     );
 
     if (result.modifiedCount > 0) {
       // Return the updated payment method
-      const updatedMethod = await PaymentModel.findOne({ id });
+      const updatedMethod = await PaymentModel.findOne({ id, restaurantId });
       return updatedMethod ? updatedMethod.toObject() : null;
     }
 
@@ -699,9 +729,9 @@ export const updatePaymentMethod = async (id: string, methodData: Partial<Paymen
   }
 };
 
-export const deletePaymentMethod = async (id: string) => {
+export const deletePaymentMethod = async (id: string, restaurantId: string) => {
   try {
-    const result = await PaymentModel.deleteOne({ id });
+    const result = await PaymentModel.deleteOne({ id, restaurantId });
     return result.deletedCount > 0;
   } catch (error) {
     console.error('Error deleting payment method:', error);
@@ -749,34 +779,34 @@ export const addInventoryItem = async (itemData: Omit<Inventory, 'id'>) => {
   return result;
 };
 
-export const updateInventoryItem = async (id: string, itemData: Partial<Inventory>) => {
+export const updateInventoryItem = async (id: string, restaurantId: string, itemData: Partial<Inventory>) => {
   debugInventory('updateInventoryItem: called with id %s and data %O', id, itemData);
   const result = await InventoryModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: itemData }
   );
   debugInventory('updateInventoryItem: modified %d documents', result.modifiedCount);
   return result.modifiedCount > 0;
 };
 
-export const deleteInventoryItem = async (id: string) => {
+export const deleteInventoryItem = async (id: string, restaurantId: string) => {
   debugInventory('deleteInventoryItem: called with id %s', id);
-  const result = await InventoryModel.deleteOne({ id });
+  const result = await InventoryModel.deleteOne({ id, restaurantId });
   debugInventory('deleteInventoryItem: deleted %d documents', result.deletedCount);
   return result.deletedCount > 0;
 };
 
-export const updateInventoryStock = async (id: string, quantity: number) => {
+export const updateInventoryStock = async (id: string, restaurantId: string, quantity: number) => {
   debugInventory('updateInventoryStock: called with id %s and quantity %d', id, quantity);
   const result = await InventoryModel.updateOne(
-    { id },
+    { id, restaurantId },
     { $set: { quantity, lastRestocked: new Date() } }
   );
   debugInventory('updateInventoryStock: modified %d documents', result.modifiedCount);
 
   if (result.modifiedCount > 0) {
     // Return the updated inventory item
-    const updatedItem = await InventoryModel.findOne({ id });
+    const updatedItem = await InventoryModel.findOne({ id, restaurantId });
     if (updatedItem) {
       const itemObj = updatedItem.toObject();
       return {
@@ -918,7 +948,7 @@ export const getKitchenReport = async (dateRange: DateRange, restaurantId?: stri
   const avgPrepTime = completedItemCount > 0 ? totalPrepTime / completedItemCount : 0;
 
   // Calculate average prep time per item
-  const itemsWithAvgTime = Object.entries(itemPrepTimes).map(([id, data]) => ({
+  const itemsWithAvgTime = Object.entries(itemPrepTimes).map(([, data]) => ({
     ...data,
     avgTime: data.count > 0 ? data.totalTime / data.count : 0
   }));
@@ -946,45 +976,105 @@ export const addWorkstation = async (workstationData: Omit<Workstation, 'id'>) =
   if (!workstationData.restaurantId) {
     throw new Error('restaurantId is required when creating a workstation');
   }
-  
-  // Get the highest position value and add 1
-  const workstations = await getWorkstations(workstationData.restaurantId);
-  const maxPosition = workstations.length > 0 ? Math.max(...workstations.map(w => w.position || 0)) : 0;
+
+  // Existing workstations sorted by position
+  const existing = await getWorkstations(workstationData.restaurantId);
+
+  // Insert the new workstation just before the last fixed workstation (e.g. Ready),
+  // so the fixed endpoints always keep their place in the workflow.
+  let insertIndex = existing.length;
+  for (let i = existing.length - 1; i >= 0; i--) {
+    if (existing[i].isFixed) {
+      insertIndex = i;
+      break;
+    }
+  }
 
   const newWorkstation = new WorkstationModel({
     id: generateId(),
     ...workstationData,
-    position: maxPosition + 1
+    isFixed: false,
+    position: insertIndex
   });
   await newWorkstation.save();
-  return newWorkstation.toObject();
+
+  // Re-normalize positions so the new one sits before the last fixed workstation
+  const ordered = [...existing.slice(0, insertIndex), newWorkstation, ...existing.slice(insertIndex)];
+  const bulkOps = ordered.map((ws, i) => ({
+    updateOne: {
+      filter: { id: ws.id, restaurantId: workstationData.restaurantId },
+      update: { $set: { position: i } }
+    }
+  }));
+  await WorkstationModel.bulkWrite(bulkOps);
+
+  // Return the newly created workstation plus the full reordered list so the
+  // frontend can update atomically without a reload or a second fetch.
+  const workstations = await getWorkstations(workstationData.restaurantId);
+  return { workstation: newWorkstation.toObject(), workstations };
 };
 
-export const updateWorkstation = async (id: string, workstationData: Partial<Workstation>) => {
+export const updateWorkstation = async (id: string, restaurantId: string, workstationData: Partial<Workstation>) => {
+  // Protect the fixed flag and position from being modified through a generic update
+  const safeData = Object.fromEntries(
+    Object.entries(workstationData).filter(([key]) => key !== 'isFixed' && key !== 'position')
+  );
   const result = await WorkstationModel.updateOne(
-    { id },
-    { $set: workstationData }
+    { id, restaurantId },
+    { $set: safeData }
   );
 
   return result.modifiedCount > 0;
 };
 
-export const deleteWorkstation = async (id: string) => {
-  const result = await WorkstationModel.deleteOne({ id });
+export const deleteWorkstation = async (id: string, restaurantId: string) => {
+  const existing = await WorkstationModel.findOne({ id, restaurantId });
+  if (existing && existing.isFixed) {
+    throw new Error('The first and last workstations are fixed and cannot be deleted');
+  }
+  const result = await WorkstationModel.deleteOne({ id, restaurantId });
   return result.deletedCount > 0;
 };
 
-export const updateWorkstationPositions = async (positions: { id: string; position: number }[]) => {
+export const updateWorkstationPositions = async (restaurantId: string, positions: { id: string; position: number }[]) => {
   try {
-    const bulkOps = positions.map(({ id, position }) => ({
+    const all = await WorkstationModel.find({ restaurantId }).sort({ position: 1 }).lean();
+    const knownIds = new Set(all.map(w => w.id));
+
+    // Identify the fixed first and fixed last workstations from the current order.
+    // They must stay at the extremes regardless of the requested reorder.
+    const fixed = all.filter(w => w.isFixed);
+    const firstFixedId = fixed.length > 0 ? fixed[0].id : undefined;
+    const lastFixedId = fixed.length > 1 ? fixed[fixed.length - 1].id : firstFixedId;
+
+    const incomingIds = positions.map(p => p.id).filter(id => knownIds.has(id));
+
+    let orderedIds: string[];
+    if (firstFixedId) {
+      if (firstFixedId === lastFixedId) {
+        orderedIds = [firstFixedId, ...incomingIds.filter(id => id !== firstFixedId)];
+      } else {
+        orderedIds = [
+          firstFixedId,
+          ...incomingIds.filter(id => id !== firstFixedId && id !== lastFixedId),
+          lastFixedId as string,
+        ];
+      }
+    } else {
+      orderedIds = incomingIds;
+    }
+
+    const bulkOps = orderedIds.map((id, i) => ({
       updateOne: {
-        filter: { id },
-        update: { $set: { position } }
+        filter: { id, restaurantId },
+        update: { $set: { position: i } }
       }
     }));
 
-    const result = await WorkstationModel.bulkWrite(bulkOps);
-    return result.modifiedCount || 0;
+    await WorkstationModel.bulkWrite(bulkOps);
+
+    const updatedWorkstations = await WorkstationModel.find({ id: { $in: orderedIds }, restaurantId }).sort({ position: 1 }).lean();
+    return updatedWorkstations;
   } catch (error) {
     console.error('Error updating workstation positions:', error);
     throw error;
@@ -992,10 +1082,10 @@ export const updateWorkstationPositions = async (positions: { id: string; positi
 };
 
 // Add this new function for reordering orders
-export const updateOrderPositions = async (orderId: number, newPosition: number) => {
+export const updateOrderPositions = async (orderId: number, newPosition: number, restaurantId: string) => {
   try {
-    // First, get all orders sorted by their current positions
-    const orders = await OrderModel.find({}).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000); // Reduce timeout
+    // First, get all orders for the restaurant sorted by their current positions
+    const orders = await OrderModel.find({ restaurantId }).sort({ position: 1, createdAt: -1 }).maxTimeMS(5000); // Reduce timeout
 
     // Find the order we're moving
     const orderIndex = orders.findIndex(order => order.id === orderId);
@@ -1029,17 +1119,17 @@ export const updateOrderPositions = async (orderId: number, newPosition: number)
   }
 };
 
-export const updateOrderItemPositions = async (orderId: number, itemPositions: { itemId: string; position: number }[]) => {
+export const updateOrderItemPositions = async (orderId: number, restaurantId: string, itemPositions: { itemId: string; position: number }[]) => {
   try {
-    // Get the order
-    const order = await OrderModel.findOne({ id: orderId }).maxTimeMS(3000);
+    // Get the order, scoped to the restaurant
+    const order = await OrderModel.findOne({ id: orderId, restaurantId }).maxTimeMS(3000);
     
     if (!order) {
       return { success: false, error: 'Order not found' };
     }
     
     // Update item positions
-    const updatedItems = order.items.map((item: any) => {
+    const updatedItems = order.items.map((item: { id?: string; position?: number }) => {
       const positionUpdate = itemPositions.find(p => p.itemId === item.id);
       if (positionUpdate) {
         return { ...item, position: positionUpdate.position };
@@ -1049,7 +1139,7 @@ export const updateOrderItemPositions = async (orderId: number, itemPositions: {
     
     // Update the order in the database
     await OrderModel.updateOne(
-      { id: orderId },
+      { id: orderId, restaurantId },
       { $set: { items: updatedItems } }
     );
     
@@ -1060,12 +1150,12 @@ export const updateOrderItemPositions = async (orderId: number, itemPositions: {
   }
 };
 
-export const swapOrderPositions = async (orderId1: number, orderId2: number) => {
+export const swapOrderPositions = async (orderId1: number, orderId2: number, restaurantId: string) => {
   try {
-    // Get the two orders we want to swap with timeout
+    // Get the two orders we want to swap with timeout, scoped to restaurant
     const [order1, order2] = await Promise.all([
-      OrderModel.findOne({ id: orderId1 }).maxTimeMS(3000),
-      OrderModel.findOne({ id: orderId2 }).maxTimeMS(3000)
+      OrderModel.findOne({ id: orderId1, restaurantId }).maxTimeMS(3000),
+      OrderModel.findOne({ id: orderId2, restaurantId }).maxTimeMS(3000)
     ]);
 
     if (!order1 || !order2) {
@@ -1080,13 +1170,13 @@ export const swapOrderPositions = async (orderId1: number, orderId2: number) => 
     await OrderModel.bulkWrite([
       {
         updateOne: {
-          filter: { id: orderId1 },
+          filter: { id: orderId1, restaurantId },
           update: { $set: { position: position2 } }
         }
       },
       {
         updateOne: {
-          filter: { id: orderId2 },
+          filter: { id: orderId2, restaurantId },
           update: { $set: { position: position1 } }
         }
       }
@@ -1094,7 +1184,45 @@ export const swapOrderPositions = async (orderId1: number, orderId2: number) => 
 
     return { success: true };
   } catch (error) {
-    console.error('Error swapping order positions:', error);
+    console.error('Error swapping order sizes positions:', error);
     throw error;
   }
+};
+
+// Tenant resolution helpers.
+// These look up the owning restaurant from a resource's own record so that
+// update/delete endpoints can stay scoped without trusting a client-supplied id.
+export const resolveMenuItemRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await MenuItemModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolveCustomerRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await CustomerModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolvePaymentMethodRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await PaymentModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolveInventoryItemRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await InventoryModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolveWorkstationRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await WorkstationModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolveUserRestaurantId = async (id: string): Promise<string | null> => {
+  const doc = await UserModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
+};
+
+export const resolveOrderRestaurantId = async (id: number): Promise<string | null> => {
+  const doc = await OrderModel.findOne({ id }).select('restaurantId').lean();
+  return (doc as { restaurantId?: string } | null)?.restaurantId ?? null;
 };

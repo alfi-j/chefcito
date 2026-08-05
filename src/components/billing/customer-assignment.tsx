@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { type OrderItem, type CustomerPaymentAssignment, type Payment } from '@/lib/types';
 import { ConsolidatedSplitBillCalculator, type CustomerItemAssignmentConfig } from '@/lib/consolidated-split-bill-calculator';
 import { Plus, X, ShoppingCart, CreditCard, Landmark, DollarSign } from 'lucide-react';
@@ -31,41 +31,19 @@ export function CustomerItemAssignment({
   onConfigChange,
   initialAssignments = []
 }: CustomerItemAssignmentProps) {
-  const { t } = useI18nStore();
-  const [assignments, setAssignments] = useState<(CustomerPaymentAssignment & { bankId?: string })[]>(initialAssignments);
+  const { t } = useTranslation();
+  const [assignments, setAssignments] = useState<(CustomerPaymentAssignment & { bankId?: string })[]>(() =>
+    initialAssignments.length > 0
+      ? initialAssignments
+      : [{
+          customerId: `customer_${Date.now()}`,
+          customerName: `Customer ${initialAssignments.length + 1}`,
+          items: [],
+          amount: 0,
+          status: 'pending'
+        }]
+  );
   const [calculator] = useState(() => new ConsolidatedSplitBillCalculator(orderItems, subtotal, tax, tip));
-  
-  // Initialize with one customer if empty
-  useEffect(() => {
-    if (assignments.length === 0) {
-      addCustomer();
-    }
-  }, []);
-
-  // Auto-update customer names when assignments change
-  useEffect(() => {
-    const updatedAssignments = assignments.map((assignment, index) => ({
-      ...assignment,
-      customerName: assignment.customerName || `Customer ${index + 1}`
-    }));
-    
-    // Only update if names actually changed
-    if (JSON.stringify(assignments) !== JSON.stringify(updatedAssignments)) {
-      setAssignments(updatedAssignments);
-    }
-  }, [assignments]);
-
-  // Calculate result and notify parent
-  useEffect(() => {
-    const config: CustomerItemAssignmentConfig = {
-      method: 'customer_item_assignment',
-      assignments,
-      includeTaxTips: true
-    };
-    
-    const result = calculator.calculate(config);
-    onConfigChange(result.isValid ? config : null);
-  }, [assignments, calculator, onConfigChange]);
 
   const addCustomer = () => {
     const customerIndex = assignments.length + 1;
@@ -78,6 +56,21 @@ export function CustomerItemAssignment({
     };
     setAssignments([...assignments, newCustomer]);
   };
+
+  // Calculate result and notify parent
+  useEffect(() => {
+    const config: CustomerItemAssignmentConfig = {
+      method: 'customer_item_assignment',
+      assignments: assignments.map((assignment, index) => ({
+        ...assignment,
+        customerName: assignment.customerName || `Customer ${index + 1}`
+      })),
+      includeTaxTips: true
+    };
+    
+    const result = calculator.calculate(config);
+    onConfigChange(result.isValid ? config : null);
+  }, [assignments, calculator, onConfigChange]);
 
   const removeCustomer = (customerId: string) => {
     if (assignments.length <= 1) return;
@@ -190,7 +183,7 @@ export function CustomerItemAssignment({
                     <CardTitle className="text-base flex items-center gap-2">
                       <span>👤</span>
                       <Input
-                        value={assignment.customerName}
+                        value={assignment.customerName || `Customer ${index + 1}`}
                         onChange={(e) => updateCustomerName(assignment.customerId, e.target.value)}
                         placeholder={t('pos.payment_dialog.person_name_placeholder')}
                         className="text-base font-normal px-2 py-1 h-8"
@@ -346,7 +339,7 @@ export function CustomerItemAssignment({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {getUnassignedItems().map((orderItem: any) => (
+                {getUnassignedItems().map((orderItem) => (
                   <div key={orderItem.id} className="flex items-center justify-between p-2 bg-muted/30 rounded hover:bg-muted/50 transition-colors">
                     <div className="flex-1">
                       <div className="text-sm font-medium">{orderItem.menuItem.name}</div>
@@ -401,7 +394,7 @@ export function CustomerItemAssignment({
                 </div>
                 <div className="flex justify-between">
                   <span>{t('pos.payment_dialog.unassigned_items')}:</span>
-                  <span className="font-medium">{getUnassignedItems().reduce((sum: number, item: any) => sum + item.quantity, 0)}</span>
+                  <span className="font-medium">{getUnassignedItems().reduce((sum, item) => sum + item.quantity, 0)}</span>
                 </div>
                 <Separator className="my-2" />
                 <div className="flex justify-between font-medium">

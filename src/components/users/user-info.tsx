@@ -1,13 +1,13 @@
 "use client"
 
 import { useUserStore } from "@/lib/stores/user-store";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 export function UserInfo() {
   const user = useUserStore().getCurrentUser();
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   if (!user) {
     return null;

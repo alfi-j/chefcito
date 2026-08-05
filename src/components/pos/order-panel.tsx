@@ -1,5 +1,4 @@
 "use client"
-import Image from 'next/image'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -9,9 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { type OrderItem, type OrderType, type DeliveryInfo } from '@/lib/types'
-import { useI18nStore } from '@/lib/stores/i18n-store'
-import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals } from '@/lib/stores/current-order-store'
+import { type OrderItem, type OrderType, type DeliveryInfo, type MenuItem } from '@/lib/types'
+import { useTranslation } from 'react-i18next'
 import { MinusCircle, Package, PersonStanding, PlusCircle, Send, StickyNote, CreditCard, Utensils } from 'lucide-react'
 
 // Define the type for our current order object
@@ -25,8 +23,8 @@ interface CurrentOrderType {
   setOrderType: (value: OrderType | ((prev: OrderType) => OrderType)) => void;
   deliveryInfo: DeliveryInfo;
   setDeliveryInfo: (value: DeliveryInfo | ((prev: DeliveryInfo) => DeliveryInfo)) => void;
-  addItem: (itemToAdd: any, quantity: number, selectedExtras: any[], notes?: string) => void;
-  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: any[], notes?: string) => void;
+  addItem: (itemToAdd: MenuItem, quantity: number, selectedExtras: MenuItem[], notes?: string) => void;
+  updateItem: (itemId: string, newQuantity: number, newSelectedExtras: MenuItem[], notes?: string) => void;
   removeItem: (itemId: string) => void;
   clearOrder: () => void;
   updateItemQuantity: (itemId: string, adjustment: number) => void;
@@ -44,7 +42,7 @@ interface CurrentOrderProps {
 }
 
 export function CurrentOrder({ order, onSendToKitchen, onPayment, onEditItem }: CurrentOrderProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const { 
     items, subtotal, tax, total, clearOrder, 
     table, setTable, notes, setNotes,

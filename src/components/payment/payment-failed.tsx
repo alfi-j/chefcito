@@ -20,7 +20,7 @@ export function PaymentFailed({ transactionId, clientTransactionId, reference }:
     if (countdown === 0) { router.push('/profile'); return }
     const t = setTimeout(() => setCountdown(c => c - 1), 1000)
     return () => clearTimeout(t)
-  }, [countdown])
+  }, [countdown, router])
 
   return (
     <Card className="w-full max-w-md mx-auto border-red-200 bg-red-50/50 animate-in fade-in zoom-in duration-500">

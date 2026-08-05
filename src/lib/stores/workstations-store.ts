@@ -111,16 +111,29 @@ export const useWorkstationsStore = create<WorkstationStore>()((set, get) => ({
       const result = await response.json();
       
       if (result.success) {
-        const newWorkstation = result.data;
-        set((state) => ({
-          entities: {
-            ...state.entities,
-            workstations: {
-              ...state.entities.workstations,
-              [newWorkstation.id]: newWorkstation
+        const payload = result.data;
+        const newWorkstation = payload.workstation || payload;
+        const fullList = Array.isArray(payload.workstations) ? payload.workstations : null;
+
+        if (fullList) {
+          // Replace the whole map atomically so positions reflect the reordered list
+          set({
+            entities: {
+              ...get().entities,
+              workstations: Object.fromEntries(fullList.map((ws: IWorkstation) => [ws.id, ws]))
             }
-          }
-        }));
+          });
+        } else {
+          set((state) => ({
+            entities: {
+              ...state.entities,
+              workstations: {
+                ...state.entities.workstations,
+                [newWorkstation.id]: newWorkstation
+              }
+            }
+          }));
+        }
         return newWorkstation;
       } else {
         throw new Error(result.error || 'Failed to add workstation');

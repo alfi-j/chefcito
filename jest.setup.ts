@@ -11,10 +11,7 @@ console.log('🔧 Loaded PAYPHONE_TOKEN:', process.env.PAYPHONE_TOKEN ? '✅ Set
 
 // Mock debug package to avoid console noise
 jest.mock('debug', () => {
-  return () => (...args: any[]) => {
-    // Uncomment to see debug logs
-    // console.log(...args);
-  };
+  return () => () => {};
 });
 
 // Global test timeout

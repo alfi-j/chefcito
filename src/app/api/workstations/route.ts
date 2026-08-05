@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
-import { getWorkstations, addWorkstation, updateWorkstation, deleteWorkstation, updateWorkstationPositions } from '@/lib/database-service';
+import { getWorkstations, addWorkstation, updateWorkstation, deleteWorkstation, updateWorkstationPositions, resolveWorkstationRestaurantId } from '@/lib/database-service';
 import { IWorkstation } from '@/models/Workstation';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
+
+interface WorkstationPayload {
+  id?: string;
+  restaurantId?: string;
+  name?: string;
+  states?: IWorkstation['states'];
+  position?: number;
+  isFixed?: boolean;
+}
 
 export async function GET(request: Request) {
   try {
@@ -26,15 +38,15 @@ export async function GET(request: Request) {
       error: null,
       message: null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching workstations:', error);
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch workstations',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error) || 'Failed to fetch workstations',
+        message: toErrorMessage(error)
       },
       { status }
     );
@@ -43,7 +55,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const workstationData = await request.json();
+    const workstationData = await request.json() as WorkstationPayload;
     
     // Validate restaurantId
     if (!workstationData.restaurantId) {
@@ -78,21 +90,27 @@ export async function POST(request: Request) {
       ready: 'ready'
     };
     
-    const workstation = await addWorkstation(workstationData);
+    const workstation = await addWorkstation({
+      restaurantId: workstationData.restaurantId!,
+      name: workstationData.name!,
+      states: workstationData.states!,
+      position: workstationData.position ?? 0,
+      isFixed: workstationData.isFixed ?? false,
+    } as Omit<IWorkstation, 'id'>);
     return NextResponse.json({ 
       success: true,
       data: workstation,
       error: null,
       message: 'Workstation created successfully'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating workstation:', error);
     return NextResponse.json(
       {
         success: false,
         data: null,
-        error: error.message || 'Failed to create workstation',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error),
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -116,8 +134,21 @@ export async function PATCH(request: Request) {
       );
     }
     
-    // Update the positions
-    const updatedWorkstations = await updateWorkstationPositions(positions);
+    // Update the positions (scoped to the restaurant owning these stations)
+    const firstWid = positions[0]?.id;
+    const restaurantId = await resolveWorkstationRestaurantId(firstWid);
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'restaurantId is required',
+          message: 'Unable to resolve restaurant for positions'
+        },
+        { status: 400 }
+      );
+    }
+    const updatedWorkstations = await updateWorkstationPositions(restaurantId, positions);
     
     return NextResponse.json({ 
       success: true,
@@ -125,14 +156,14 @@ export async function PATCH(request: Request) {
       error: null,
       message: 'Workstation positions updated successfully'
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating workstation positions:', error);
     return NextResponse.json(
       {
         success: false,
         data: null,
-        error: error.message || 'Failed to update workstation positions',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error),
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -141,11 +172,23 @@ export async function PATCH(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const data = await request.json();
+    const data = await request.json() as WorkstationPayload;
     
     // Regular workstation update (not position update)
     const { id, ...updateData } = data;
-    
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'Workstation id is required',
+          message: 'Workstation id is required'
+        },
+        { status: 400 }
+      );
+    }
+
     // Validate workstation data if provided
     if (updateData.name !== undefined && updateData.name.trim().length === 0) {
       return NextResponse.json(
@@ -159,12 +202,24 @@ export async function PUT(request: Request) {
       );
     }
     
-    const result = await updateWorkstation(id, updateData);
+    const restaurantId = updateData.restaurantId || (await resolveWorkstationRestaurantId(id));
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'restaurantId is required',
+          message: 'restaurantId is required'
+        },
+        { status: 400 }
+      );
+    }
+
+    const result = await updateWorkstation(id, restaurantId, updateData);
     if (result) {
       // Get the updated workstation to return in the response
-      const restaurantId = updateData.restaurantId as string | undefined;
       const updatedWorkstation = await getWorkstations(restaurantId);
-      const workstation = updatedWorkstation.find((w: any) => w.id === id);
+      const workstation = updatedWorkstation.find((w: IWorkstation) => w.id === id);
       return NextResponse.json({ 
         success: true,
         data: workstation,
@@ -182,14 +237,14 @@ export async function PUT(request: Request) {
         { status: 404 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating workstation:', error);
     return NextResponse.json(
       {
         success: false,
         data: null,
-        error: error.message || 'Failed to update workstation',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error),
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -199,7 +254,19 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { id } = await request.json();
-    const result = await deleteWorkstation(id);
+    const restaurantId = await resolveWorkstationRestaurantId(id);
+    if (!restaurantId) {
+      return NextResponse.json(
+        {
+          success: false,
+          data: null,
+          error: 'Workstation not found',
+          message: 'Workstation not found'
+        },
+        { status: 404 }
+      );
+    }
+    const result = await deleteWorkstation(id, restaurantId);
     if (result) {
       return NextResponse.json({ 
         success: true,
@@ -218,16 +285,17 @@ export async function DELETE(request: Request) {
         { status: 404 }
       );
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const isFixedError = String(toErrorMessage(error)).includes('cannot be deleted');
     console.error('Error deleting workstation:', error);
     return NextResponse.json(
       {
         success: false,
         data: null,
-        error: error.message || 'Failed to delete workstation',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error),
+        message: toErrorMessage(error)
       },
-      { status: 500 }
+      { status: isFixedError ? 400 : 500 }
     );
   }
 }

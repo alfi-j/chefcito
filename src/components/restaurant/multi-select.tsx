@@ -12,7 +12,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Command as CommandPrimitive } from "cmdk";
-import { cn } from "@/lib/utils";
 
 type Option = Record<"value" | "label", string>;
 
@@ -28,7 +27,6 @@ export function MultiSelect({
   options,
   selected,
   onChange,
-  className,
   ...props
 }: MultiSelectProps) {
   const inputRef = React.useRef<HTMLInputElement>(null);

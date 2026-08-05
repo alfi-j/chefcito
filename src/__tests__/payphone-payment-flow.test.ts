@@ -49,6 +49,18 @@ global.fetch = mockFetch;
 import { POST as confirmPayment } from '@/app/api/payphone/confirm/route';
 import { GET as checkSubscriptionStatus } from '@/app/api/subscriptions/status/route';
 
+// Fixture type for mocked subscription documents (props are set at runtime
+interface MockSubscriptionFixture {
+  _id?: string;
+  clientTransactionId: string;
+  restaurantId: string;
+  amount?: number;
+  status: string;
+  save?: jest.Mock;
+  toObject?: () => Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 describe('PayPhone Payment Flow', () => {
   const TEST_CLIENT_TX_ID = 'SUB-TEST-1234567890-abcdef';
   const TEST_PAYPHONE_ID = '83288286';
@@ -98,7 +110,7 @@ describe('PayPhone Payment Flow', () => {
       });
 
       // Mock existing subscription
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -121,7 +133,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -154,7 +166,7 @@ describe('PayPhone Payment Flow', () => {
         }),
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -169,7 +181,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -187,7 +199,7 @@ describe('PayPhone Payment Flow', () => {
     });
 
     it('should be idempotent - skip PayPhone API for active subscription', async () => {
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -201,7 +213,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -223,7 +235,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: 'NONEXISTENT-' + Date.now(),
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
 
@@ -239,7 +251,7 @@ describe('PayPhone Payment Flow', () => {
         text: async () => 'Internal Server Error',
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -253,7 +265,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -269,7 +281,7 @@ describe('PayPhone Payment Flow', () => {
     it('should handle network timeout gracefully', async () => {
       mockFetch.mockRejectedValueOnce(new Error('The operation was aborted'));
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -283,7 +295,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -301,7 +313,7 @@ describe('PayPhone Payment Flow', () => {
           id: TEST_PAYPHONE_ID,
           // Missing clientTransactionId
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
 
@@ -315,7 +327,7 @@ describe('PayPhone Payment Flow', () => {
         json: async () => {
           throw new Error('Invalid JSON');
         },
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
 
@@ -337,7 +349,7 @@ describe('PayPhone Payment Flow', () => {
         }),
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -358,7 +370,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       await confirmPayment(mockRequest);
 
@@ -379,7 +391,7 @@ describe('PayPhone Payment Flow', () => {
         }),
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -400,7 +412,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       await confirmPayment(mockRequest);
 
@@ -414,7 +426,7 @@ describe('PayPhone Payment Flow', () => {
   describe('2. Subscription Status Check Endpoint', () => {
     
     it('should return subscription for valid clientTransactionId', async () => {
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -476,7 +488,7 @@ describe('PayPhone Payment Flow', () => {
     
     it('should complete full payment flow: confirm → active', async () => {
       // Step 1: Mock subscription exists (pending)
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -510,7 +522,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any);
+      } as unknown as Request);
 
       const confirmData = await confirmResponse.json();
 
@@ -531,7 +543,7 @@ describe('PayPhone Payment Flow', () => {
     });
 
     it('should handle cancelled payment in full flow', async () => {
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -556,7 +568,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any);
+      } as unknown as Request);
 
       const confirmData = await confirmResponse.json();
 
@@ -571,7 +583,7 @@ describe('PayPhone Payment Flow', () => {
   describe('4. Edge Cases and Security', () => {
     
     it('should handle already cancelled subscription (idempotent)', async () => {
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -585,7 +597,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -608,7 +620,7 @@ describe('PayPhone Payment Flow', () => {
         }),
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: 'nonexistent-restaurant',
@@ -624,7 +636,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -647,7 +659,7 @@ describe('PayPhone Payment Flow', () => {
         }),
       });
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -661,7 +673,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();
@@ -678,7 +690,7 @@ describe('PayPhone Payment Flow', () => {
     it('should handle missing PAYPHONE_TOKEN gracefully', async () => {
       delete process.env.PAYPHONE_TOKEN;
 
-      const mockSub: any = {
+      const mockSub: MockSubscriptionFixture = {
         _id: 'mock-sub-id',
         clientTransactionId: TEST_CLIENT_TX_ID,
         restaurantId: TEST_RESTAURANT_ID,
@@ -692,7 +704,7 @@ describe('PayPhone Payment Flow', () => {
           clientTransactionId: TEST_CLIENT_TX_ID,
           id: TEST_PAYPHONE_ID,
         }),
-      } as any;
+      } as unknown as Request;
 
       const response = await confirmPayment(mockRequest);
       const data = await response.json();

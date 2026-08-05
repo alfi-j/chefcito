@@ -3,9 +3,42 @@
     "app": {
         "title": "Chefcito"
     },
+    "dashboard": {
+        "title": "Dashboard",
+        "subtitle": "Manage your restaurants and access to them.",
+        "my_restaurants": "My Restaurants",
+        "no_restaurants": "No restaurants found",
+        "no_restaurants_desc": "You don't have access to any restaurant yet. Create one to get started.",
+        "active": "Active",
+        "active_desc": "This is the restaurant you are currently working on.",
+        "manage": "Manage",
+        "access": "Access",
+        "membership_free": "Free",
+        "membership_pro": "Pro",
+        "add_restaurant": "Add Restaurant",
+        "create_restaurant": "Create Restaurant",
+        "create_restaurant_desc": "Create a new restaurant and switch to it immediately.",
+        "name": "Restaurant name",
+        "name_placeholder": "e.g. La Casa de la Abuela",
+        "phone": "Phone",
+        "phone_placeholder": "+593 99 123 4567",
+        "address": "Address",
+        "address_placeholder": "Main St. 123",
+        "city": "City",
+        "city_placeholder": "Guayaquil",
+        "cancel": "Cancel",
+        "create": "Create",
+        "access_denied": "You don't have permission to access this page.",
+        "loading": "Loading restaurants...",
+        "switch_success": "Now working on {{name}}",
+        "switch_error": "Could not switch restaurant. Please try again.",
+        "create_error": "Could not create restaurant. Please try again.",
+        "create_name_required": "Please enter a restaurant name."
+    },
     "pos": {
         "title": "POS",
         "loading": "Loading menu...",
+        "data_error_title": "Unable to load data",
         "current_order": {
             "title": "Current Order",
             "table": "Table",
@@ -161,6 +194,7 @@
     "kds": {
         "title": "KDS",
         "loading": "Loading orders...",
+        "data_error_title": "Unable to load orders",
         "no_orders": "No orders in this category.",
         "tabs": {
             "pending": "Pending",
@@ -240,6 +274,27 @@
     "restaurant": {
         "title": "Restaurant",
         "loading": "Loading data...",
+        "general": {
+            "title": "General",
+            "loading": "Loading settings...",
+            "information_title": "Restaurant Information",
+            "information_desc": "Manage your restaurant's basic information.",
+            "name": "Restaurant Name",
+            "phone": "Phone",
+            "address": "Address",
+            "city": "City",
+            "country": "Country",
+            "country_desc": "Used for tax declarations and regional settings.",
+            "save_info": "Save Restaurant Information",
+            "info_saved": "Restaurant information updated",
+            "info_error": "Error updating restaurant information",
+            "preferences_title": "General Preferences",
+            "preferences_desc": "Configure restaurant-wide preferences.",
+            "default_language": "Default Language",
+            "language_english": "English",
+            "language_spanish": "Spanish",
+            "language_desc": "This changes the interface language for the restaurant."
+        },
         "menu": {
             "title": "Menu",
             "desc": "Manage your menu items, categories, and modifiers.",
@@ -436,6 +491,7 @@
             "order": "Order",
             "add_workstation": "Add Workstation",
             "edit_workstation": "Edit Workstation",
+            "dialog_description": "Add or edit a workstation for your kitchen display.",
             "default": "Default",
             "default_locked": "Default workstation cannot be moved",
             "move_up": "Move up",
@@ -606,14 +662,109 @@
     },
     "reports": {
         "title": "Reports",
-        "export": "Export",
+        "export": {
+            "button": "Export",
+            "label": "Export as",
+            "csv": "CSV",
+            "xlsx": "Excel",
+            "pdf": "PDF"
+        },
         "pick_a_date": "Pick a date",
         "loading": "Loading report data...",
         "no_data": "No data available for the selected period.",
         "tabs": {
             "sales": "Sales",
+            "transactions": "Transactions",
+            "sellers": "Sellers",
             "items": "Items",
+            "payments": "Payment Methods",
+            "z": "Z Report",
             "kitchen": "Kitchen"
+        },
+        "transactions": {
+            "table": {
+                "id": "ID",
+                "date": "Date",
+                "table": "Table",
+                "customer": "Customer",
+                "seller": "Seller",
+                "order_type": "Order Type",
+                "items": "Items",
+                "total": "Total"
+            }
+        },
+        "sellers": {
+            "table": {
+                "seller": "Seller",
+                "orders": "Orders",
+                "revenue": "Revenue",
+                "avg": "Avg. Order"
+            }
+        },
+        "payments": {
+            "table": {
+                "method": "Method",
+                "orders": "Orders",
+                "revenue": "Revenue",
+                "share": "Share"
+            }
+        },
+        "z": {
+            "summary": {
+                "total_revenue": "Total Revenue",
+                "total_orders": "Total Orders",
+                "avg_order_value": "Avg. Order Value"
+            },
+            "payment_breakdown": "Payment Breakdown",
+            "totals": "Totals",
+            "tax_summary": "Tax Summary",
+            "tax_summary_desc": "Taxable base, taxes and net total for the period.",
+            "taxable": "Taxable Base",
+            "taxes": "Taxes",
+            "net_total": "Net Total",
+            "table": {
+                "concept": "Concept",
+                "value": "Value",
+                "method": "Method",
+                "revenue": "Revenue"
+            }
+        },
+        "tax": {
+            "button": "Tax Declaration",
+            "title": "Tax Declaration",
+            "description": "Generate a SAF-T transaction report (XML) for tax purposes. The declaration engine supports multiple countries.",
+            "country_section": "Country",
+            "country": "Country",
+            "regime": "Tax Regime",
+            "taxpayer_section": "Taxpayer Information",
+            "ruc": "RUC / Tax ID",
+            "business_name": "Business Name",
+            "trade_name": "Trade Name",
+            "activity": "Business Activity",
+            "address": "Address",
+            "phone": "Phone",
+            "email": "Email",
+            "emission_section": "Emission Point",
+            "establishment_code": "Establishment Code",
+            "emission_point_code": "Emission Point Code",
+            "sequence_start": "Sequence Start",
+            "vat_rate": "VAT Rate (%)",
+            "period": "Period",
+            "summary": {
+                "total": "Gross Total",
+                "tax": "Tax (VAT)",
+                "net": "Net Total"
+            },
+            "footer": "{{count}} transactions will be included in the declaration.",
+            "cancel": "Cancel",
+            "generate": "Generate File",
+            "generating": "Generating...",
+            "success": "Tax declaration generated successfully",
+            "errors": {
+                "missing_taxpayer": "RUC and business name are required",
+                "no_transactions": "There are no transactions in the selected period",
+                "generation": "Error generating the tax declaration"
+            }
         },
         "sales": {
             "total_revenue": "Total Revenue",
@@ -767,8 +918,9 @@
         "signup_error_title": "Registration Failed",
         "signup_error_desc": "Could not create account. Please try again.",
         "passwords_do_not_match": "Passwords do not match.",
-        "profile": "Profile",
-        "logout": "Logout",
+"profile": "Profile",
+ "restaurant": "Restaurant",
+ "logout": "Logout",
 
         "font_size": {
             "title": "Font Size",

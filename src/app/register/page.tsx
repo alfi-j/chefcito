@@ -22,8 +22,10 @@ function RegisterForm() {
   const token = searchParams.get("token")
 
   const [invitation, setInvitation] = useState<InvitationInfo | null>(null)
-  const [inviteError, setInviteError] = useState<string | null>(null)
-  const [loadingInvite, setLoadingInvite] = useState(true)
+  const [inviteError, setInviteError] = useState<string | null>(() =>
+    token ? null : "No invitation token provided."
+  )
+  const [loadingInvite, setLoadingInvite] = useState(() => !!token)
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -33,8 +35,6 @@ function RegisterForm() {
 
   useEffect(() => {
     if (!token) {
-      setInviteError("No invitation token provided.")
-      setLoadingInvite(false)
       return
     }
 

@@ -1,4 +1,4 @@
-import { type OrderItem } from '@/lib/types';
+import { type OrderItem, type CustomerPaymentAssignment } from '@/lib/types';
 
 // Consolidated split bill method types - supporting both simple and advanced use cases
 export type SplitMethod = 
@@ -84,7 +84,7 @@ export interface SharedItemsSplitConfig {
 // Customer item assignment - for payment processing
 export interface CustomerItemAssignmentConfig {
   method: 'customer_item_assignment';
-  assignments: any[]; // CustomerPaymentAssignment[]
+  assignments: CustomerPaymentAssignment[];
   includeTaxTips?: boolean;
 }
 
@@ -116,7 +116,7 @@ export interface SplitResult {
 
 export interface SplitCalculationResult {
   results: SplitResult[];
-  assignments?: any[]; // For customer item assignment
+  assignments?: CustomerPaymentAssignment[];
   totalAmount: number;
   totalTax: number;
   totalTip: number;
@@ -148,15 +148,15 @@ export class ConsolidatedSplitBillCalculator {
       case 'equal':
         return this.calculateEqualSplit(config);
       case 'by_item':
-        return this.calculateByItemSplit(config);
+        return this.calculateByItemSplit();
       case 'by_person':
-        return this.calculateByPersonSplit(config);
+        return this.calculateByPersonSplit();
       case 'percentage':
-        return this.calculatePercentageSplit(config);
+        return this.calculatePercentageSplit();
       case 'custom_amount':
         return this.calculateCustomAmountSplit(config);
       case 'shared_items':
-        return this.calculateSharedItemsSplit(config);
+        return this.calculateSharedItemsSplit();
       case 'customer_item_assignment':
         return this.calculateCustomerItemAssignment(config);
       default:
@@ -363,19 +363,19 @@ export class ConsolidatedSplitBillCalculator {
   }
 
   // Placeholder implementations for other methods - these would be expanded as needed
-  private calculateByItemSplit(config: ByItemSplitConfig): SplitCalculationResult {
+  private calculateByItemSplit(): SplitCalculationResult {
     return this.createInvalidResult('By item split method not yet implemented');
   }
 
-  private calculateByPersonSplit(config: ByPersonSplitConfig): SplitCalculationResult {
+  private calculateByPersonSplit(): SplitCalculationResult {
     return this.createInvalidResult('By person split method not yet implemented');
   }
 
-  private calculatePercentageSplit(config: PercentageSplitConfig): SplitCalculationResult {
+  private calculatePercentageSplit(): SplitCalculationResult {
     return this.createInvalidResult('Percentage split method not yet implemented');
   }
 
-  private calculateSharedItemsSplit(config: SharedItemsSplitConfig): SplitCalculationResult {
+  private calculateSharedItemsSplit(): SplitCalculationResult {
     return this.createInvalidResult('Shared items split method not yet implemented');
   }
 
@@ -450,12 +450,12 @@ export class ConsolidatedSplitBillCalculator {
   }
 
   // Helper method to get unassigned items (for customer assignment)
-  getUnassignedItems(assignments: any[]): OrderItem[] {
+  getUnassignedItems(assignments: CustomerPaymentAssignment[]): OrderItem[] {
     const assignedItemMap = new Map<string, number>();
     
     assignments.forEach(assignment => {
       if (assignment.items) {
-        assignment.items.forEach((itemAssignment: any) => {
+        assignment.items.forEach((itemAssignment) => {
           const currentCount = assignedItemMap.get(itemAssignment.orderItemId) || 0;
           assignedItemMap.set(itemAssignment.orderItemId, currentCount + itemAssignment.quantity);
         });
@@ -480,7 +480,7 @@ export class ConsolidatedSplitBillCalculator {
   }
 
   // Helper method to validate if all items are assigned
-  areAllItemsAssigned(assignments: any[]): boolean {
+  areAllItemsAssigned(assignments: CustomerPaymentAssignment[]): boolean {
     const unassignedItems = this.getUnassignedItems(assignments);
     return unassignedItems.length === 0;
   }

@@ -37,11 +37,16 @@ export function PaymentStatusPoll({
   initialStatusCode,
 }: PaymentStatusPollProps) {
   const router = useRouter()
-  const [status, setStatus] = useState<'polling' | 'timeout' | 'redirecting' | 'cancelled'>('polling')
+  const [status, setStatus] = useState<'polling' | 'timeout' | 'redirecting' | 'cancelled'>(() => {
+    if (initialStatusCode === '3') return 'redirecting'
+    if (initialStatusCode === '2') return 'cancelled'
+    if (!clientTransactionId) return 'timeout'
+    return 'polling'
+  })
   const [elapsed, setElapsed] = useState(0)
+  const [pollCount, setPollCount] = useState(0)
   const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null)
   const [confirmError, setConfirmError] = useState<string | null>(null)
-  const pollCountRef = useRef(0)
   const clientTransactionIdRef = useRef(clientTransactionId)
   const transactionIdRef = useRef(transactionId)
   const routerRef = useRef(router)
@@ -117,24 +122,19 @@ export function PaymentStatusPoll({
   }, [])
 
   useEffect(() => {
-    // If we already have a terminal status from server-side, don't poll
-    if (initialStatusCode === '3') {
-      setStatus('redirecting')
-      setTimeout(() => {
-        router.push('/profile?payment=success&txId=' + clientTransactionId)
-      }, 2000)
-      return
-    }
-    if (initialStatusCode === '2') {
-      setStatus('cancelled')
-      return
-    }
+    // Terminal status from server-side: redirect after a short delay
+    if (status !== 'redirecting' || initialStatusCode !== '3') return
 
-    // If no clientTransactionId, can't poll
-    if (!clientTransactionId) {
-      setStatus('timeout')
-      return
-    }
+    const redirectTimer = setTimeout(() => {
+      router.push('/profile?payment=success&txId=' + clientTransactionId)
+    }, 2000)
+
+    return () => clearTimeout(redirectTimer)
+  }, [status, initialStatusCode, router, clientTransactionId])
+
+  useEffect(() => {
+    // If we're on a terminal state, don't poll
+    if (status !== 'polling') return
 
     // Start polling with countdown timer
     const startTime = Date.now()
@@ -156,7 +156,7 @@ export function PaymentStatusPoll({
       }
 
       internalPollCount++
-      pollCountRef.current = internalPollCount
+      setPollCount(internalPollCount)
 
       // Every 3rd poll, call the confirm endpoint to actively try to activate
       if (internalPollCount % 3 === 1) {
@@ -202,8 +202,7 @@ export function PaymentStatusPoll({
       clearTimeout(pollTimeout)
       clearInterval(timerInterval)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clientTransactionId, initialStatusCode, router, callConfirm, checkStatus])
+  }, [status, clientTransactionId, router, callConfirm, checkStatus])
 
   const remainingMs = POLL_TIMEOUT_MS - elapsed * 1000
   const isUrgent = remainingMs > 0 && remainingMs < URGENCY_THRESHOLD_MS
@@ -421,7 +420,7 @@ export function PaymentStatusPoll({
             <p className={`text-xs mt-1 ${
               isUrgent ? 'text-red-700 font-bold' : 'text-yellow-700'
             }`}>
-              {elapsed}s transcurridos · {remainingSeconds}s restantes ({pollCountRef.current} intentos)
+              {elapsed}s transcurridos · {remainingSeconds}s restantes ({pollCount} intentos)
             </p>
             {subscriptionStatus && (
               <p className="text-xs text-muted-foreground mt-1 font-mono">

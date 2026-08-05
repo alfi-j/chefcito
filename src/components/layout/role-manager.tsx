@@ -1,16 +1,15 @@
 "use client"
 
 import { useUserStore } from "@/lib/stores/user-store";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
 export function RoleManager() {
   const user = useUserStore().getCurrentUser();
   const { updateUserRole } = useUserStore();
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   
   // Only owners and admins can manage roles
   const isOwner = user?.role === "Owner";

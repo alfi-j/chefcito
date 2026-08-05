@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/lib/stores/user-store';
 import useSWR from 'swr';
 import { fetcher } from '@/lib/swr-fetcher';
@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,7 +57,7 @@ export default function OrdersPage() {
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const itemsPerPage = 10;
   
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   
 
 
@@ -124,12 +124,12 @@ export default function OrdersPage() {
         description: t('orders.toast.deleted_desc'),
         duration: 3000,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       debugOrders('Error deleting order %d: %O', orderId, error);
       console.error('Error deleting order:', error);
       
       toast.error(t('toast.error'), {
-        description: error.message || t('orders.toast.delete_error'),
+        description: error instanceof Error ? error.message : t('orders.toast.delete_error'),
         duration: 3000,
       });
     }
@@ -139,11 +139,6 @@ export default function OrdersPage() {
     // Navigate to POS page with the order to edit
     router.push(`/pos?editOrder=${order.id}`);
   }
-  
-  // Reset to first page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, activeTab]);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -176,21 +171,21 @@ export default function OrdersPage() {
           <div className="flex flex-wrap gap-2">
             <Button 
               variant={activeTab === 'all' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('all')}
+              onClick={() => { setActiveTab('all'); setCurrentPage(1); }}
               className="flex-1 min-w-[120px]"
             >
               {t('orders.tabs.all')}
             </Button>
             <Button 
               variant={activeTab === 'pending' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('pending')}
+              onClick={() => { setActiveTab('pending'); setCurrentPage(1); }}
               className="flex-1 min-w-[120px]"
             >
               {t('orders.tabs.pending')}
             </Button>
             <Button 
               variant={activeTab === 'completed' ? 'default' : 'outline'} 
-              onClick={() => setActiveTab('completed')}
+              onClick={() => { setActiveTab('completed'); setCurrentPage(1); }}
               className="flex-1 min-w-[120px]"
             >
               {t('orders.tabs.completed')}
@@ -203,7 +198,7 @@ export default function OrdersPage() {
               placeholder={t('orders.table.search_placeholder')}
               className="pl-8 w-full"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
             />
           </div>
         </div>

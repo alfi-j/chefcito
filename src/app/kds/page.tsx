@@ -1,11 +1,12 @@
 "use client";
 import useSWR from 'swr';
-import { useMemo, useEffect, type DragEvent } from "react";
+import { useMemo, useEffect } from "react";
 import { OrderCard } from "@/components/kds/order-card";
 import { type Order, type OrderItem } from "@/lib/types";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card } from "@/components/ui/card";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertTriangle } from 'lucide-react'
+import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/lib/stores/user-store';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
@@ -15,7 +16,7 @@ import useKDSStore from '@/lib/stores/kds-store';
 import { usePermissions } from '@/lib/hooks/use-permissions';
 
 export default function KdsPage() {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const user = useUserStore((state) => state.getCurrentUser());
   const { can, getAllowedWorkstations } = usePermissions();
   const kdsStore = useKDSStore();
@@ -30,24 +31,13 @@ export default function KdsPage() {
   
   const {
     activeTab,
-    draggedOrderId,
     dragOverOrderId,
     setWorkstations,
     setOrders,
     setActiveTab,
-    setDraggedOrderId,
-    setDragOverOrderId,
-    transitionItem,
     updateItemStatus,
     revertItemStatus,
     togglePinOrder,
-    getWorkstationById,
-    getWorkstationIndex,
-    getNextWorkstation,
-    getPreviousWorkstation,
-    getOrderByID,
-    getItemsByWorkstation,
-    reorderOrderItems,
     handleDragStart,
     handleDragEnd,
     handleDrop,
@@ -101,28 +91,38 @@ export default function KdsPage() {
 
   // Set up Server-Sent Events for real-time updates
   useEffect(() => {
-    const eventSource = new EventSource('/api/orders/events');
+    if (!user?.restaurantId) {
+      return;
+    }
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        debugKDS('SSE message received:', data);
-        if (data.type === 'orders_update') {
-          mutate();
+    let eventSource: EventSource;
+
+    try {
+      eventSource = new EventSource(`/api/orders/events?restaurantId=${encodeURIComponent(user.restaurantId)}`);
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          debugKDS('SSE message received:', data);
+          if (data.type === 'orders_update') {
+            mutate();
+          }
+        } catch (error) {
+          debugKDS('Error parsing SSE message:', error);
         }
-      } catch (error) {
-        debugKDS('Error parsing SSE message:', error);
-      }
-    };
+      };
 
-    eventSource.onerror = (error) => {
-      debugKDS('SSE error:', error);
-    };
+      eventSource.onerror = (error) => {
+        debugKDS('SSE error:', error);
+      };
+    } catch (error) {
+      debugKDS('Failed to create EventSource:', error);
+    }
 
     return () => {
-      eventSource.close();
+      eventSource?.close();
     };
-  }, [mutate]);
+  }, [mutate, user?.restaurantId]);
 
   // Set the first workstation as the default tab when workstations load
   useEffect(() => {
@@ -156,14 +156,17 @@ export default function KdsPage() {
       // Group items by their workstation
       const itemsByWorkstation: Record<string, OrderItem[]> = {};
 
+      // Guard against malformed orders
+      const orderItems = Array.isArray(order.items) ? order.items : [];
+
       // Sort items by position before grouping
-      const sortedItems = [...order.items].sort((a, b) => {
+      const sortedItems = [...orderItems].sort((a, b) => {
         // Sort by position if available
         if (a.position !== undefined && b.position !== undefined) {
           return a.position - b.position;
         }
         // If position is not available, sort by creation timestamp or ID
-        return a.id.localeCompare(b.id);
+        return (a.id || '').localeCompare(b.id || '');
       });
 
       sortedItems.forEach((item: OrderItem) => {
@@ -213,8 +216,8 @@ export default function KdsPage() {
           // Priority: New (1) > In Progress (2) > Ready (3) > Served (4)
           let highestPriority = 4; // Default to lowest priority (served)
 
-          for (const item of order.items) {
-            const itemStatus = item.status.toLowerCase();
+          for (const item of (Array.isArray(order.items) ? order.items : [])) {
+            const itemStatus = (item.status || '').toString().toLowerCase();
             
             // Check for 'new' status (highest priority)
             if (itemStatus === 'new' || itemStatus === KDS_STATES.NEW.toLowerCase()) {
@@ -251,7 +254,11 @@ export default function KdsPage() {
           if (a.position !== undefined && b.position !== undefined) {
             return a.position - b.position;
           }
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          const aTime = a.createdAt instanceof Date ? a.createdAt.getTime() : new Date(a.createdAt).getTime();
+          const bTime = b.createdAt instanceof Date ? b.createdAt.getTime() : new Date(b.createdAt).getTime();
+          const safeATime = isNaN(aTime) ? 0 : aTime;
+          const safeBTime = isNaN(bTime) ? 0 : bTime;
+          return safeBTime - safeATime;
         }
 
         // Sort by state priority (lower number means higher priority)
@@ -351,7 +358,7 @@ export default function KdsPage() {
       <div key="workstations-card">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="p-2 sm:p-3 sm:px-0">
           <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${Math.max(workstations.length, 1)}, minmax(0, 1fr))` }}>
-            {workstations.map((ws, index) => {
+            {workstations.map((ws) => {
               const wsId = `workstation-${ws.id}`;
               // Count orders for this workstation (using stacked items)
               const workstationOrders = workstationOrdersMemo[wsId] || [];
@@ -400,5 +407,16 @@ export default function KdsPage() {
     );
   }
 
-  return renderWorkstations();
+  return (
+    <>
+      {error && (
+        <Alert variant="destructive" className="m-4">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{t('kds.data_error_title')}</AlertTitle>
+          <AlertDescription>{(error as Error).message || String(error)}</AlertDescription>
+        </Alert>
+      )}
+      {renderWorkstations()}
+    </>
+  );
 }

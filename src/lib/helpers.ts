@@ -1,7 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { format, formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { type Order, type OrderItem } from "@/lib/types";
 
 export function buildApiUrl(path: string, restaurantId?: string): string {
@@ -48,7 +47,7 @@ export function formatTimeAgo(date: Date, language: 'en' | 'es' = 'en'): string 
       const days = Math.floor(diffInSeconds / 86400);
       return language === 'es' ? `${days} d` : `${days} d`;
     }
-  } catch (error) {
+  } catch {
     // Fallback to a simple date format if there's an error
     return format(date, 'PPp');
   }
@@ -88,7 +87,7 @@ export interface ErrorContext {
   timestamp?: string;
   userId?: string;
   endpoint?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface ErrorResponse {
@@ -99,16 +98,17 @@ export interface ErrorResponse {
 }
 
 class ErrorReporter {
-  createErrorResponse(error: any, context?: ErrorContext): ErrorResponse {
+  createErrorResponse(error: unknown, context?: ErrorContext): ErrorResponse {
+    const err = error as { message?: string; stack?: string } | null;
     return {
-      message: error.message || 'An unknown error occurred',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      message: err?.message || 'An unknown error occurred',
+      stack: process.env.NODE_ENV === 'development' ? err?.stack : undefined,
       context,
       timestamp: new Date().toISOString()
     };
   }
   
-  logError(error: any, context?: ErrorContext) {
+  logError(error: unknown, context?: ErrorContext) {
     const errorResponse = this.createErrorResponse(error, context);
     
     // Log to console in development
@@ -127,7 +127,7 @@ class ErrorReporter {
   ): Promise<T> {
     try {
       return await operation();
-    } catch (error: any) {
+    } catch (error) {
       this.logError(error, context);
       throw error;
     }
@@ -137,17 +137,17 @@ class ErrorReporter {
 export const errorReporter = new ErrorReporter();
 
 // Utility functions for debugging
-export function logDebug(message: string, data?: any) {
+export function logDebug(message: string, data?: unknown) {
   if (process.env.NODE_ENV === 'development') {
     console.log(`[DEBUG] ${new Date().toISOString()}: ${message}`, data || '');
   }
 }
 
-export function logError(error: any, context?: ErrorContext) {
+export function logError(error: unknown, context?: ErrorContext) {
   errorReporter.logError(error, context);
 }
 
-export function formatError(error: any): string {
+export function formatError(error: unknown): string {
   if (error === null) {
     return 'null';
   }

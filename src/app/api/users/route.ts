@@ -17,7 +17,7 @@ async function ensureDbConnection() {
 }
 
 // POST /api/users - Create a new user
-export async function POST(request: Request, context: any = {}) {
+export async function POST(request: Request) {
   try {
     await ensureDbConnection();
     
@@ -68,7 +68,7 @@ export async function POST(request: Request, context: any = {}) {
     // Seed default data so new users can test the app immediately
     await seedRestaurantData(restaurantId);
 
-    await User.updateOne({ id: userId }, { $set: { restaurantId } });
+    await User.updateOne({ id: userId }, { $set: { restaurantId, restaurantIds: [restaurantId] } });
   }
 
   const freshUser = await User.findOne({ id: userId });
@@ -90,10 +90,9 @@ export async function POST(request: Request, context: any = {}) {
 
 // GET /api/users - Get all users
 export async function GET(request: Request) {
-  // @ts-ignore - params is accessed through a different mechanism
   const params = undefined;
   // Handle GET /api/users/[id] - get specific user
-  // @ts-ignore - accessing id property
+  // @ts-expect-error - accessing id property
   if (params?.id) {
     try {
       await ensureDbConnection();
@@ -110,7 +109,6 @@ export async function GET(request: Request) {
       
       // Remove password from response
       const userObject = user.toObject();
-      // @ts-ignore - password is required in the schema but we want to remove it from the response
       delete userObject.password;
       
       return NextResponse.json(userObject);
@@ -130,7 +128,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const restaurantId = searchParams.get('restaurantId');
 
-    const query = restaurantId ? { restaurantId } : {};
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId query param is required' },
+        { status: 400 }
+      );
+    }
+
+    const query = { restaurantId };
     const users = await User.find(query).select('-password');
 
     return NextResponse.json(users);
@@ -145,7 +150,6 @@ export async function GET(request: Request) {
 
 // PUT /api/users/[id] - Update user
 export async function PUT(request: Request) {
-  // @ts-ignore - params is accessed through a different mechanism
   const params = undefined;
   try {
     await ensureDbConnection();
@@ -153,7 +157,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     
     // Handle PUT /api/users/[id]/role - update user role
-    // @ts-ignore - accessing id property
+    // @ts-expect-error - accessing id property
     if (params?.id) {
       const { id } = await params;
       
@@ -163,7 +167,7 @@ export async function PUT(request: Request) {
         
         // Validate role against existing roles in database
         const existingRoles = await Role.find({});
-        const validRoleNames = existingRoles.map((r: any) => r.name);
+        const validRoleNames = existingRoles.map((r: { name: string }) => r.name);
         
         if (!validRoleNames.includes(role)) {
           return NextResponse.json(
@@ -191,7 +195,6 @@ export async function PUT(request: Request) {
         
         // Return updated user without password
         const userObject = updatedUser.toObject();
-        // @ts-ignore - password is required in the schema but we want to remove it from the response
         delete userObject.password;
         
         return NextResponse.json(userObject);
@@ -219,7 +222,6 @@ export async function PUT(request: Request) {
       
       // Remove password from response
       const userObject = updatedUser.toObject();
-      // @ts-ignore - password is required in the schema but we want to remove it from the response
       delete userObject.password;
       
       return NextResponse.json({
@@ -242,19 +244,15 @@ export async function PUT(request: Request) {
 }
 
 // DELETE /api/users/[id] - Delete user
-export async function DELETE(request: Request, context: { params: Promise<{}> }) {
-  // @ts-ignore
+export async function DELETE(request: Request, context: { params: Promise<{ id?: string }> }) {
   const resolvedParams = context.params ? await context.params : undefined;
-  // @ts-ignore
   const params = resolvedParams;
   try {
     await ensureDbConnection();
     
-    // @ts-ignore
     const { id } = params && params['id'] ? params : { id: '' };
     
     // Delete user
-    // @ts-ignore
     const result = await User.deleteOne({ id: id || '' });
     
     if (result.deletedCount === 0) {

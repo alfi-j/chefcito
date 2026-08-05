@@ -1,7 +1,21 @@
 import { NextResponse } from 'next/server';
-import { deleteOrder, updateOrder } from '@/lib/database-service';
+import { deleteOrder, updateOrder, resolveOrderRestaurantId } from '@/lib/database-service';
 import { debugOrders } from '@/lib/helpers';
+import { type MenuItem } from '@/lib/types';
 import { sendOrderUpdate } from '../events/route';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
+
+interface IncomingOrderItem {
+  name?: string;
+  price?: number;
+  menuItemId?: string;
+  selectedExtraIds?: string[];
+  selectedExtras?: MenuItem[];
+  menuItem?: MenuItem;
+  workstationId?: string;
+}
 
 // Define response structure
 interface ApiResponse<T> {
@@ -57,12 +71,12 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     // Transform items data to match database structure
     const updateData = { ...body };
     if (updateData.items) {
-      updateData.items = updateData.items.map((item: any) => ({
+      updateData.items = updateData.items.map((item: IncomingOrderItem) => ({
         ...item,
         name: item.name || item.menuItem?.name,
         price: item.price || item.menuItem?.price,
         menuItemId: item.menuItem?.id || item.menuItemId,
-        selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || item.selectedExtraIds || [],
+        selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || item.selectedExtraIds || [],
         workstationId: item.workstationId || null
       }));
     }
@@ -78,17 +92,17 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     }
 
     debugOrders('PUT [id]: successfully updated order %d', orderId);
-    sendOrderUpdate();
+    sendOrderUpdate(restaurantId);
 
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('PUT [id]: error updating order: %O', error);
     console.error('Error updating order:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to update order'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to update order'),
       { status: 500 }
     );
   }
@@ -117,7 +131,16 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       );
     }
     
-    const result = await deleteOrder(orderId);
+    const restaurantId = await resolveOrderRestaurantId(orderId);
+    if (!restaurantId) {
+      debugOrders('DELETE: order not found, id %d', orderId);
+      return NextResponse.json(
+        createApiResponse(undefined, "Order not found"),
+        { status: 404 }
+      );
+    }
+
+    const result = await deleteOrder(orderId, restaurantId);
     
     if (!result) {
       debugOrders('DELETE: order not found or could not be deleted, id %d', orderId);
@@ -128,15 +151,16 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     }
     
     debugOrders('DELETE: successfully deleted order %d', orderId);
+    sendOrderUpdate(restaurantId);
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('DELETE: error deleting order: %O', error);
     console.error('Error deleting order:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to delete order'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to delete order'),
       { status: 500 }
     );
   }

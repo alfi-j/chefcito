@@ -24,13 +24,13 @@ export async function GET(request: Request) {
       data: payments,
       error: null,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching payments:', error);
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch payments',
+        error: error instanceof Error ? error.message : 'Failed to fetch payments',
       },
       { status: 500 }
     );
@@ -58,16 +58,16 @@ export async function POST(request: Request) {
       success: true,
       data: newMethod 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error adding payment method:', error);
     // Log the error details
-    if (error.name === 'ValidationError') {
-      console.error('Validation error details:', error.errors);
+    if (error instanceof Error && error.name === 'ValidationError') {
+      console.error('Validation error details:', (error as { errors?: unknown }).errors);
     }
     return NextResponse.json(
       { 
         success: false,
-        error: error.message || 'Failed to add payment method' 
+        error: error instanceof Error ? error.message : 'Failed to add payment method' 
       },
       { status: 500 }
     );

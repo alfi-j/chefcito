@@ -10,6 +10,7 @@ export interface IWorkstation extends Document {
     ready: string;
   };
   position: number;
+  isFixed: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +24,8 @@ const WorkstationSchema: Schema = new Schema({
     inProgress: { type: String, required: true, default: 'in progress' },
     ready: { type: String, required: true, default: 'ready' }
   },
-  position: { type: Number, default: 0, required: true }
+  position: { type: Number, default: 0, required: true },
+  isFixed: { type: Boolean, default: false }
 }, {
   timestamps: true
 });

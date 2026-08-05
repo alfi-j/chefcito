@@ -12,7 +12,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { useTranslation } from 'react-i18next';
 
 interface SalesReportProps {
   data: {
@@ -25,7 +25,7 @@ interface SalesReportProps {
 }
 
 export function SalesReport({ data, loading }: SalesReportProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   if (loading) {
     return <div className="flex justify-center items-center h-full min-h-[400px]"><p>{t('reports.loading')}</p></div>;

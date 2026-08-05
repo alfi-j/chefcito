@@ -30,7 +30,9 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('chefcito-user');
       }
     }
-    setIsLoaded(true);
+    // Defer the load-complete flag to avoid a synchronous setState in the effect
+    const loadTimer = setTimeout(() => setIsLoaded(true), 0);
+    return () => clearTimeout(loadTimer);
   }, [setUser]);
 
   const user = getCurrentUser();
@@ -67,7 +69,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuth() {
-  const { getCurrentUser, logout } = useUserStore();
+  const { getCurrentUser } = useUserStore();
   const user = getCurrentUser();
 
   return useMemo(() => ({

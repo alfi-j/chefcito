@@ -86,13 +86,13 @@ export const withAsyncHandling = async <T>(
 /**
  * Debounce function for optimizing frequent calls
  */
-export const debounce = <T extends (...args: any[]) => any>(
-  func: T,
+export const debounce = <A extends unknown[]>(
+  func: (...args: A) => unknown,
   wait: number
-): (...args: Parameters<T>) => void => {
+): ((...args: A) => void) => {
   let timeout: NodeJS.Timeout;
   
-  return (...args: Parameters<T>) => {
+  return (...args: A) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
@@ -101,13 +101,13 @@ export const debounce = <T extends (...args: any[]) => any>(
 /**
  * Throttle function for rate limiting
  */
-export const throttle = <T extends (...args: any[]) => any>(
-  func: T,
+export const throttle = <A extends unknown[]>(
+  func: (...args: A) => unknown,
   limit: number
-): ((...args: Parameters<T>) => void) => {
+): ((...args: A) => void) => {
   let inThrottle: boolean;
   
-  return (...args: Parameters<T>) => {
+  return (...args: A) => {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
@@ -119,15 +119,19 @@ export const throttle = <T extends (...args: any[]) => any>(
 /**
  * Deep merge utility for combining objects
  */
-export const deepMerge = <T extends Record<string, any>>(target: T, source: Partial<T>): T => {
+export const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
   const result = { ...target } as T;
   
   Object.keys(source).forEach(key => {
     const typedKey = key as keyof T;
-    if (source[typedKey] && typeof source[typedKey] === 'object' && !Array.isArray(source[typedKey])) {
-      result[typedKey] = deepMerge(result[typedKey] || ({} as any), source[typedKey] as Partial<T>);
+    const sourceValue = source[typedKey];
+    if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+      result[typedKey] = deepMerge(
+        (result[typedKey] as Record<string, unknown>) || {},
+        sourceValue as Partial<T>
+      ) as unknown as T[keyof T];
     } else {
-      result[typedKey] = source[typedKey] as T[keyof T];
+      result[typedKey] = sourceValue as T[keyof T];
     }
   });
   

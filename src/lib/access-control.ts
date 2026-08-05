@@ -14,7 +14,7 @@ interface User {
   role: string;
   restaurantId?: string;
   restaurantMembership?: 'free' | 'pro';
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Define predefined roles and their permissions (exported for use in hooks)
@@ -78,7 +78,7 @@ export async function hasPermission(user: User, permission: Permission): Promise
     const result = await response.json();
     
     if (result.success) {
-      const role = result.data.find((r: any) => r.name === user.role);
+      const role = result.data.find((r: { name: string }) => r.name === user.role);
       if (role && role.permissions) {
         return role.permissions.includes(permission);
       }

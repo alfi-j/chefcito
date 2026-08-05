@@ -10,9 +10,14 @@ interface PayphonePaymentBoxProps {
   restaurantId: string
 }
 
+interface PayphoneButtonBoxInstance {
+  render: (id: string) => void
+  destroy?: () => void
+}
+
 declare global {
   interface Window {
-    PPaymentButtonBox?: any
+    PPaymentButtonBox?: new (config: Record<string, unknown>) => PayphoneButtonBoxInstance
   }
 }
 
@@ -46,12 +51,13 @@ export function PayphonePaymentBox({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const ppbInstanceRef = useRef<any>(null)
+  const ppbInstanceRef = useRef<PayphoneButtonBoxInstance | null>(null)
   const isInitializedRef = useRef(false)
   const initPromiseRef = useRef<Promise<void> | null>(null)
 
   useLayoutEffect(() => {
     let isMounted = true
+    const containerElement = containerRef.current
 
     // Prevent duplicate initialization (handles React StrictMode)
     if (isInitializedRef.current) return
@@ -65,7 +71,6 @@ export function PayphonePaymentBox({
         // Check again after await (another effect might have initialized)
         if (isInitializedRef.current || !isMounted) return
 
-        const containerElement = containerRef.current
         if (!containerElement) {
           throw new Error('Contenedor de pago no disponible')
         }
@@ -124,8 +129,7 @@ export function PayphonePaymentBox({
         ppbInstanceRef.current = null
       }
 
-      const container = containerRef.current
-      if (container) container.innerHTML = ''
+      if (containerElement) containerElement.innerHTML = ''
 
       isInitializedRef.current = false
       initPromiseRef.current = null

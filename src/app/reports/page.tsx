@@ -1,74 +1,120 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
+import { ChevronDown, FileBarChart } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DateRangePicker } from "@/components/reports/date-range-picker";
-import { SalesReport } from "@/components/reports/sales-report";
+import { TransactionsReport } from "@/components/reports/transactions-report";
+import { SellersReport } from "@/components/reports/sellers-report";
 import { ItemReport } from "@/components/reports/item-report";
+import { PaymentsReport } from "@/components/reports/payments-report";
+import { ZReport } from "@/components/reports/z-report";
 import { KitchenReport } from "@/components/reports/kitchen-report";
-import { useI18nStore } from '@/lib/stores/i18n-store';
+import { TaxDeclarationPanel } from "@/components/reports/tax-declaration-panel";
+import { useTranslation } from 'react-i18next';
 import { useReportsStore } from '@/lib/stores/reports-store';
+import { useUserStore } from '@/lib/stores/user-store';
 import { type DateRange } from 'react-day-picker';
 import { addDays } from 'date-fns';
-import { File } from 'lucide-react';
-import { toast } from 'sonner';
+import { Landmark } from 'lucide-react';
+
+const REPORT_TABS = [
+  { value: 'transactions', labelKey: 'reports.tabs.transactions' },
+  { value: 'sellers', labelKey: 'reports.tabs.sellers' },
+  { value: 'items', labelKey: 'reports.tabs.items' },
+  { value: 'payments', labelKey: 'reports.tabs.payments' },
+  { value: 'z', labelKey: 'reports.tabs.z' },
+  { value: 'kitchen', labelKey: 'reports.tabs.kitchen' },
+] as const;
 
 export default function ReportsPage() {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
+
+  const currentUser = useUserStore((state) => state.getCurrentUser());
+  const restaurantId = currentUser?.restaurantId;
 
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -7),
     to: new Date(),
   });
+  const [isTaxOpen, setIsTaxOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<(typeof REPORT_TABS)[number]['value']>('transactions');
 
-  const reportsStore = useReportsStore();
-  const sales = reportsStore.getSalesReport();
-  const items = reportsStore.getItemsReport();
-  const kitchen = reportsStore.getKitchenReport();
-  const { loading, fetchReports } = reportsStore;
+  const { data, loading, fetchReports } = useReportsStore();
 
-  // Fetch reports when date range changes
+  const loadReports = useCallback(() => {
+    if (!restaurantId) return;
+    fetchReports(restaurantId, date);
+  }, [restaurantId, date, fetchReports]);
+
   useEffect(() => {
-    fetchReports(date);
-  }, [date]);
-
-  const handleExport = () => {
-    // This is a mock export. In a real app, this would trigger a download.
-    toast.info(t('reports.toast.export_title'), {
-      description: t('reports.toast.export_desc'),
-      duration: 3000,
-    });
-  }
+    loadReports();
+  }, [loadReports]);
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-headline font-bold">{t('reports.title')}</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <div className="w-full sm:w-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto flex items-center gap-2">
+                <FileBarChart className="h-4 w-4" />
+                {t(REPORT_TABS.find((tab) => tab.value === activeTab)?.labelKey ?? REPORT_TABS[0].labelKey)}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-full sm:w-56">
+              {REPORT_TABS.map((tab) => (
+                <DropdownMenuItem key={tab.value} onSelect={() => setActiveTab(tab.value)}>
+                  {t(tab.labelKey)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center w-full sm:w-auto">
           <DateRangePicker date={date} onDateChange={setDate} className="w-full sm:w-auto" />
-          <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
-            <File className="mr-2 h-4 w-4" />
-            {t('reports.export')}
+          <Button variant="outline" onClick={() => setIsTaxOpen(true)} className="w-full sm:w-auto">
+            <Landmark className="mr-2 h-4 w-4" />
+            {t('reports.tax.button')}
           </Button>
         </div>
       </div>
-      <Tabs defaultValue="sales" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="sales">{t('reports.tabs.sales')}</TabsTrigger>
-          <TabsTrigger value="items">{t('reports.tabs.items')}</TabsTrigger>
-          <TabsTrigger value="kitchen">{t('reports.tabs.kitchen')}</TabsTrigger>
-        </TabsList>
-        <TabsContent value="sales">
-          <SalesReport data={sales} loading={loading} />
-        </TabsContent>
-        <TabsContent value="items">
-          <ItemReport data={items} loading={loading} />
-        </TabsContent>
-        <TabsContent value="kitchen">
-          <KitchenReport data={kitchen} loading={loading} />
-        </TabsContent>
-      </Tabs>
+
+      <div className="space-y-4">
+        {activeTab === 'transactions' && (
+          <TransactionsReport data={data?.transactions ?? null} loading={loading} />
+        )}
+        {activeTab === 'sellers' && (
+          <SellersReport data={data?.sellers ?? null} loading={loading} />
+        )}
+        {activeTab === 'items' && (
+          <ItemReport data={data?.items ?? null} loading={loading} />
+        )}
+        {activeTab === 'payments' && (
+          <PaymentsReport data={data?.payments ?? null} loading={loading} />
+        )}
+        {activeTab === 'z' && (
+          <ZReport data={data} loading={loading} />
+        )}
+        {activeTab === 'kitchen' && (
+          <KitchenReport data={data?.kitchen ?? null} loading={loading} />
+        )}
+      </div>
+
+      <TaxDeclarationPanel
+        open={isTaxOpen}
+        onOpenChange={setIsTaxOpen}
+        transactions={data?.transactions ?? []}
+        periodFrom={date?.from?.toISOString()}
+        periodTo={date?.to?.toISOString()}
+      />
     </div>
   );
 }

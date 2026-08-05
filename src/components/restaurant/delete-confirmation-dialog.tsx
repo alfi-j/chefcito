@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/helpers'
 
@@ -22,25 +22,24 @@ interface DeleteConfirmationDialogProps {
 }
 
 export function DeleteConfirmationDialog({ children, count, onConfirm }: DeleteConfirmationDialogProps) {
-    const { t } = useI18nStore();
+    const { t } = useTranslation();
     return (
         <AlertDialog>
-            <AlertDialogTrigger asChild {...({} as any)}>
+            <AlertDialogTrigger asChild>
                 <div>{children}</div>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle {...({} as any)}>{t('restaurant.delete_dialog.title', { count })}</AlertDialogTitle>
-                    <AlertDialogDescription {...({} as any)}>
+                    <AlertDialogTitle>{t('restaurant.delete_dialog.title', { count })}</AlertDialogTitle>
+                    <AlertDialogDescription>
                         {t('restaurant.delete_dialog.desc')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel {...({} as any)}>{t('dialog.cancel')}</AlertDialogCancel>
+                    <AlertDialogCancel>{t('dialog.cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                         className={cn(buttonVariants({ variant: "destructive" }))}
                         onClick={onConfirm}
-                        {...({} as any)}
                     >
                         {t('restaurant.delete_dialog.confirm')}
                     </AlertDialogAction>

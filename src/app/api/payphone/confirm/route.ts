@@ -102,7 +102,6 @@ export async function POST(request: Request) {
     // Call PayPhone Confirm API
     const payphoneToken = process.env.PAYPHONE_TOKEN;
 
-    let payphoneStatus: string | null = null;
     let payphoneStatusCode: string | null = null;
     let payphoneAmount: number | undefined;
     let payphoneReference: string | undefined;
@@ -143,7 +142,6 @@ export async function POST(request: Request) {
           log('[Confirm] PayPhone Confirm API response:', JSON.stringify(result, null, 2));
 
           payphoneStatusCode = result.statusCode != null ? String(result.statusCode) : null;
-          payphoneStatus = result.status || null;
           payphoneAmount = result.amount;
           payphoneReference = result.reference;
           payphoneTransactionId = result.transactionId != null ? String(result.transactionId) : undefined;

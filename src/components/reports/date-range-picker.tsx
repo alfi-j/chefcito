@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { addDays, format } from "date-fns"
+import { format } from "date-fns"
 import { DateRange } from "react-day-picker"
 
 import { cn } from "@/lib/helpers"
@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useI18nStore } from "@/lib/stores/i18n-store"
+import { useTranslation } from 'react-i18next'
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date?: DateRange,
@@ -22,11 +22,9 @@ interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function DateRangePicker({
   className,
-  // Remove the default date prop and handle state internally
-  date: initialDate,
   onDateChange
 }: DateRangePickerProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   const [date, setDate] = React.useState<DateRange | undefined>(undefined);
   return (

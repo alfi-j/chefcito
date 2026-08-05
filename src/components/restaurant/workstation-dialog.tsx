@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter
@@ -11,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useWorkstationsStore } from '@/lib/stores/workstations-store'
 import { type IWorkstation } from '@/models/Workstation'
 
@@ -23,7 +24,7 @@ interface WorkstationDialogProps {
 }
 
 export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }: WorkstationDialogProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const workstationsStore = useWorkstationsStore()
   
   const formName = workstationsStore.getFormName()
@@ -36,7 +37,7 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
     } else {
       workstationsStore.clearForm()
     }
-  }, [isOpen, workstation])
+  }, [isOpen, workstation, workstationsStore])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,6 +64,9 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
               ? t('restaurant.workstations.edit_workstation') 
               : t('restaurant.workstations.add_workstation')}
           </DialogTitle>
+          <DialogDescription>
+            {t('restaurant.workstations.dialog_description')}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">

@@ -12,7 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 
 interface CancelSubscriptionDialogProps {
   open: boolean
@@ -27,7 +27,7 @@ export function CancelSubscriptionDialog({
   onConfirm,
   isLoading = false
 }: CancelSubscriptionDialogProps) {
-  const { t } = useI18nStore()
+  const { t } = useTranslation()
   const [reason, setReason] = useState('')
 
   const handleConfirm = () => {

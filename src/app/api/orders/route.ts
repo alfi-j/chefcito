@@ -1,9 +1,23 @@
 import { NextResponse } from 'next/server';
-import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions } from '@/lib/database-service';
+import { getInitialOrders, updateOrderStatus, addOrder, deleteOrder, updateOrder, toggleOrderPin, updateOrderItemStatus, swapOrderPositions, resolveOrderRestaurantId } from '@/lib/database-service';
 import { debugOrders } from '@/lib/helpers';
+import { type MenuItem } from '@/lib/types';
 
 // Import the SSE update function
 import { sendOrderUpdate } from './events/route';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
+
+interface IncomingOrderItem {
+  name?: string;
+  price?: number;
+  menuItemId?: string;
+  selectedExtraIds?: string[];
+  selectedExtras?: MenuItem[];
+  menuItem?: MenuItem;
+  workstationId?: string;
+}
 
 // Define response structure
 interface ApiResponse<T> {
@@ -24,18 +38,16 @@ function createApiResponse<T>(data?: T, error?: string): ApiResponse<T> {
 }
 
 // Helper function to send SSE updates after order changes
-function notifyOrderUpdate() {
+function notifyOrderUpdate(restaurantId?: string | null) {
   try {
-    sendOrderUpdate();
+    sendOrderUpdate(restaurantId);
   } catch (error) {
     console.error('Error sending SSE update:', error);
   }
 }
 
 export async function GET(request: Request) {
-  // @ts-ignore - params is accessed through a different mechanism
   const params = undefined;
-  // @ts-ignore - accessing id property on resolved params
   if (params && params['id']) {
     try {
       const { id } = await params;
@@ -85,11 +97,11 @@ export async function GET(request: Request) {
         createApiResponse(order),
         { status: 200 }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       debugOrders('GET: error fetching order: %O', error);
       console.error('Error fetching order:', error);
       return NextResponse.json(
-        createApiResponse(undefined, error.message || 'Failed to fetch order'),
+        createApiResponse(undefined, toErrorMessage(error) || 'Failed to fetch order'),
         { status: 500 }
       );
     }
@@ -114,19 +126,19 @@ export async function GET(request: Request) {
       createApiResponse(orders),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('GET: error fetching orders: %O', error);
     console.error('Error fetching orders:', error);
     // Return appropriate HTTP status based on error type
-    const status = error.message?.includes('Database connection failed') ? 503 : 500;
+    const status = toErrorMessage(error).includes('Database connection failed') ? 503 : 500;
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to fetch orders'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to fetch orders'),
       { status }
     );
   }
 }
 
-export async function POST(request: Request, context: any = {}) {
+export async function POST(request: Request) {
   try {
     debugOrders('POST: creating new order');
     const orderData = await request.json();
@@ -152,28 +164,27 @@ export async function POST(request: Request, context: any = {}) {
     debugOrders('POST: successfully created order with id %d', newOrder.id);
     
     // Notify clients of the update
-    notifyOrderUpdate();
+    notifyOrderUpdate(newOrder.restaurantId || orderData.restaurantId);
     
     return NextResponse.json(
       createApiResponse(newOrder),
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('POST: error adding order: %O', error);
     console.error('Error adding order:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to add order'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to add order'),
       { status: 500 }
     );
   }
 }
 
 export async function PUT(request: Request) {
-  // @ts-ignore - params is accessed through a different mechanism
   const params = undefined;
   debugOrders('PUT: request received with params %O', params);
   // Handle PUT /api/orders/[id] - update specific order
-  // @ts-ignore - accessing id property
+  // @ts-expect-error - accessing id property
   if (params?.id) {
     try {
       const { id } = await params;
@@ -198,7 +209,12 @@ export async function PUT(request: Request) {
       }
       
       // Remove fields that should not be updated directly
-      const { id: _, _id, __v, createdAt, restaurantId, ...updateData } = body;
+      const { restaurantId, ...restData } = body;
+      const updateData = { ...restData };
+      delete updateData.id;
+      delete updateData._id;
+      delete updateData.__v;
+      delete updateData.createdAt;
       
       if (!restaurantId) {
         debugOrders('PUT: restaurantId is required');
@@ -210,12 +226,12 @@ export async function PUT(request: Request) {
       
       // Transform items data to match database structure
       if (updateData.items) {
-        updateData.items = updateData.items.map((item: any) => ({
+        updateData.items = updateData.items.map((item: IncomingOrderItem) => ({
           ...item,
           name: item.name || item.menuItem?.name,  // Preserve name field
           price: item.price || item.menuItem?.price,  // Preserve price field
           menuItemId: item.menuItem?.id || item.menuItemId,
-          selectedExtraIds: item.selectedExtras?.map((extra: any) => extra.id) || item.selectedExtraIds || [],
+          selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || item.selectedExtraIds || [],
           workstationId: item.workstationId || null // Preserve workstationId
         }));
       }
@@ -233,17 +249,17 @@ export async function PUT(request: Request) {
       debugOrders('PUT: successfully updated order %d', orderId);
       
       // Notify clients of the update
-      notifyOrderUpdate();
+      notifyOrderUpdate(restaurantId);
       
       return NextResponse.json(
         createApiResponse({ success: true }),
         { status: 200 }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       debugOrders('PUT: error updating order: %O', error);
       console.error('Error updating order:', error);
       return NextResponse.json(
-        createApiResponse(undefined, error.message || 'Failed to update order'),
+        createApiResponse(undefined, toErrorMessage(error) || 'Failed to update order'),
         { status: 500 }
       );
     }
@@ -255,11 +271,20 @@ export async function PUT(request: Request) {
     debugOrders('PUT: updating order status with data %O', body);
     
     // Handle update item status
+// Handle update item status
     if ('itemId' in body && 'status' in body) {
-      const { orderId, itemId, status, moveToNextWorkstation, moveToPreviousWorkstation, nextWorkstationId, previousWorkstationId } = body;
+      const { orderId, itemId, status, moveToNextWorkstation, moveToPreviousWorkstation, nextWorkstationId, previousWorkstationId, restaurantId: bodyRestaurantId } = body;
+      const restaurantId = bodyRestaurantId || (await resolveOrderRestaurantId(orderId));
+      if (!restaurantId) {
+        return NextResponse.json(
+          createApiResponse(undefined, "Order not found"),
+          { status: 404 }
+        );
+      }
       debugOrders('PUT: updating item %s status to %s in order %d', itemId, status, orderId);
       const result = await updateOrderItemStatus({ 
-        orderId, 
+        orderId,
+        restaurantId,
         itemId, 
         status, 
         moveToNextWorkstation, 
@@ -270,7 +295,7 @@ export async function PUT(request: Request) {
       debugOrders('PUT: successfully updated item status');
       
       // Notify clients of the update
-      notifyOrderUpdate();
+      notifyOrderUpdate(restaurantId);
       
       return NextResponse.json(
         createApiResponse(result),
@@ -303,7 +328,7 @@ export async function PUT(request: Request) {
       
       // Update item positions
       const updatedItems = order.items.map(item => {
-        const positionUpdate = positions.find((p: any) => p.itemId === item.id);
+        const positionUpdate = positions.find((p: { itemId: string; position: number }) => p.itemId === item.id);
         if (positionUpdate) {
           return { ...item, position: positionUpdate.position };
         }
@@ -316,7 +341,7 @@ export async function PUT(request: Request) {
       debugOrders('PUT: successfully updated item positions');
       
       // Notify clients of the update
-      notifyOrderUpdate();
+      notifyOrderUpdate(restaurantId);
       
       return NextResponse.json(
         createApiResponse({ success: true }),
@@ -339,28 +364,27 @@ export async function PUT(request: Request) {
     debugOrders('PUT: successfully updated order status');
     
     // Notify clients of the update
-    notifyOrderUpdate();
+    notifyOrderUpdate(restaurantId);
     
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('PUT: error updating order status: %O', error);
     console.error('Error updating order status:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to update order status'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to update order status'),
       { status: 500 }
     );
   }
 }
 
 export async function PATCH(request: Request) {
-  // @ts-ignore - params is accessed through a different mechanism
   const params = undefined;
   debugOrders('PATCH: request received with params %O', params);
   // Handle PATCH /api/orders/[id]/pin - toggle order pin
-  // @ts-ignore - accessing id property
+  // @ts-expect-error - accessing id property
   if (params?.id) {
     try {
       const { id } = await params;
@@ -383,8 +407,8 @@ export async function PATCH(request: Request) {
         );
       }
       
-      const result = await toggleOrderPin({ orderId });
-      
+      const result = await toggleOrderPin({ orderId, restaurantId: await resolveOrderRestaurantId(orderId) || '' });
+
       if (!result.success) {
         debugOrders('PATCH: failed to toggle order pin for order %d', orderId);
         return NextResponse.json(
@@ -396,17 +420,17 @@ export async function PATCH(request: Request) {
       debugOrders('PATCH: successfully toggled pin for order %d', orderId);
       
       // Notify clients of the update
-      notifyOrderUpdate();
+      notifyOrderUpdate(await resolveOrderRestaurantId(orderId));
       
       return NextResponse.json(
         createApiResponse(result),
         { status: 200 }
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       debugOrders('PATCH: error toggling order pin: %O', error);
       console.error('Error toggling order pin:', error);
       return NextResponse.json(
-        createApiResponse(undefined, error.message || 'Failed to toggle order pin'),
+        createApiResponse(undefined, toErrorMessage(error) || 'Failed to toggle order pin'),
         { status: 500 }
       );
     }
@@ -419,11 +443,12 @@ export async function PATCH(request: Request) {
     
     // Handle order reordering
     if (body.type === 'reorder') {
-      const { orderId, targetOrderId } = body;
+      const { orderId, targetOrderId, restaurantId: bodyRestaurantId } = body;
       debugOrders('PATCH: swapping order %d with order %d', orderId, targetOrderId);
+      const restaurantId = bodyRestaurantId || (await resolveOrderRestaurantId(orderId)) || '';
       
       // Use the actual function to swap order positions
-      const result = await swapOrderPositions(orderId, targetOrderId);
+      const result = await swapOrderPositions(orderId, targetOrderId, restaurantId);
       
       if (!result.success) {
         debugOrders('PATCH: failed to swap orders: %s', result.error);
@@ -436,7 +461,7 @@ export async function PATCH(request: Request) {
       debugOrders('PATCH: successfully swapped orders');
       
       // Notify clients of the update
-      notifyOrderUpdate();
+      notifyOrderUpdate(restaurantId);
       
       return NextResponse.json(
         createApiResponse(result),
@@ -447,7 +472,7 @@ export async function PATCH(request: Request) {
     // Handle existing pin functionality if no type is specified
     const { orderId } = body;
     debugOrders('PATCH: toggling pin for order (legacy) %d', orderId);
-    const result = await toggleOrderPin({ orderId });
+    const result = await toggleOrderPin({ orderId, restaurantId: await resolveOrderRestaurantId(orderId) || '' });
     
     if (!result.success) {
       debugOrders('PATCH: failed to toggle order pin for order %d', orderId);
@@ -460,29 +485,26 @@ export async function PATCH(request: Request) {
     debugOrders('PATCH: successfully toggled pin for order %d', orderId);
     
     // Notify clients of the update
-    notifyOrderUpdate();
+    notifyOrderUpdate(await resolveOrderRestaurantId(orderId));
     
     return NextResponse.json(
       createApiResponse(result),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('PATCH: error in order operation: %O', error);
     console.error('Error in order operation:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to process order operation'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to process order operation'),
       { status: 500 }
     );
   }
 }
 
-export async function DELETE(request: Request, context: { params: Promise<{}> }) {
-  // @ts-ignore
+export async function DELETE(request: Request, context: { params: Promise<{ id?: string }> }) {
   const resolvedParams = context.params ? await context.params : undefined;
-  // @ts-ignore
   const params = resolvedParams;
   try {
-    // @ts-ignore
     const { id } = params && params['id'] ? params : { id: '' };
     debugOrders('DELETE: deleting order %s', id);
     
@@ -527,17 +549,17 @@ export async function DELETE(request: Request, context: { params: Promise<{}> })
     debugOrders('DELETE: successfully deleted order %d', orderId);
     
     // Notify clients of the update
-    notifyOrderUpdate();
+    notifyOrderUpdate(restaurantId);
     
     return NextResponse.json(
       createApiResponse({ success: true }),
       { status: 200 }
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugOrders('DELETE: error deleting order: %O', error);
     console.error('Error deleting order:', error);
     return NextResponse.json(
-      createApiResponse(undefined, error.message || 'Failed to delete order'),
+      createApiResponse(undefined, toErrorMessage(error) || 'Failed to delete order'),
       { status: 500 }
     );
   }

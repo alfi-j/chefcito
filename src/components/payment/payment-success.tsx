@@ -21,7 +21,7 @@ export function PaymentSuccess({ transactionId, clientTransactionId, reference, 
     if (countdown === 0) { router.push('/profile?payment=success'); return }
     const t = setTimeout(() => setCountdown(c => c - 1), 1000)
     return () => clearTimeout(t)
-  }, [countdown])
+  }, [countdown, router])
 
   return (
     <Card className="w-full max-w-md mx-auto border-green-200 bg-green-50/50 animate-in fade-in zoom-in duration-500">

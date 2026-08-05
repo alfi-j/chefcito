@@ -6,16 +6,33 @@ import {
   addCategory,
   updateCategory,
   deleteCategory,
-  getMenuItems
+  getMenuItems,
+  resolveMenuItemRestaurantId
 } from '@/lib/database-service';
 import { debugMenu } from '@/lib/helpers';
+
+const toErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'An unknown error occurred';
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const restaurantId = searchParams.get('restaurantId') || undefined;
+    const restaurantId = searchParams.get('restaurantId');
+
+    if (!restaurantId) {
+      debugMenu('GET: restaurantId is required');
+      return NextResponse.json(
+        {
+          success: false,
+          data: [],
+          error: 'restaurantId is required',
+          message: 'restaurantId is required'
+        },
+        { status: 400 }
+      );
+    }
     
-    debugMenu('GET: fetching menu items for restaurant %s', restaurantId || 'all');
+    debugMenu('GET: fetching menu items for restaurant %s', restaurantId);
     const menuItems = await getMenuItems(restaurantId);
     debugMenu('GET: successfully fetched %d menu items', menuItems.length);
     return NextResponse.json({
@@ -24,15 +41,15 @@ export async function GET(request: Request) {
       error: null,
       message: null
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     debugMenu('GET: error fetching menu items: %O', error);
     console.error('Error fetching menu items:', error);
     return NextResponse.json(
       {
         success: false,
         data: [],
-        error: error.message || 'Failed to fetch menu items',
-        message: error.message || 'An unknown error occurred'
+        error: toErrorMessage(error) || 'Failed to fetch menu items',
+        message: toErrorMessage(error)
       },
       { status: 500 }
     );
@@ -106,7 +123,11 @@ export async function PUT(request: Request) {
         
       case 'updateMenuItem':
         debugMenu('PUT: updating menu item %s with data %O', body.id, body.data);
-        const updatedItem = await updateMenuItem(body.id, body.data);
+        const menuRestaurantId = body.data.restaurantId || (await resolveMenuItemRestaurantId(body.id));
+        if (!menuRestaurantId) {
+          return NextResponse.json({ error: 'restaurantId is required' }, { status: 400 });
+        }
+        const updatedItem = await updateMenuItem(body.id, menuRestaurantId, body.data);
         if (updatedItem) {
           debugMenu('PUT: successfully updated menu item %s', body.id);
           return NextResponse.json(updatedItem);
@@ -143,7 +164,15 @@ export async function DELETE(request: Request) {
     switch (body.action) {
       case 'deleteMenuItem':
         debugMenu('DELETE: deleting menu item %s', body.id);
-        const deleteResult = await deleteMenuItem(body.id);
+        const deleteRestaurantId = await resolveMenuItemRestaurantId(body.id);
+        if (!deleteRestaurantId) {
+          debugMenu('DELETE: menu item %s not found', body.id);
+          return NextResponse.json(
+            { error: 'Menu item not found' },
+            { status: 404 }
+          );
+        }
+        const deleteResult = await deleteMenuItem(body.id, deleteRestaurantId);
         if (deleteResult) {
           debugMenu('DELETE: successfully deleted menu item %s', body.id);
           return NextResponse.json({ success: true });
@@ -158,7 +187,10 @@ export async function DELETE(request: Request) {
       case 'deleteMenuItems':
         // Delete multiple menu items
         debugMenu('DELETE: deleting %d menu items', body.ids.length);
-        const results = await Promise.all(body.ids.map((id: string) => deleteMenuItem(id)));
+        const results = await Promise.all(body.ids.map(async (id: string) => {
+          const rid = await resolveMenuItemRestaurantId(id);
+          return rid ? deleteMenuItem(id, rid) : false;
+        }));
         const successCount = results.filter(result => result).length;
         debugMenu('DELETE: successfully deleted %d menu items', successCount);
         if (successCount === body.ids.length) {

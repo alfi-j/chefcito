@@ -19,9 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { type Payment } from "@/lib/types"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { usePaymentsStore } from '@/lib/stores/payments-store'
 import { PlusCircle, Trash2 } from 'lucide-react'
 
@@ -36,7 +35,7 @@ export function PaymentMethodDialog({
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const isEditMode = !!method;
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const paymentsStore = usePaymentsStore();
   
   // Form state from store
@@ -52,7 +51,7 @@ export function PaymentMethodDialog({
     } else {
       paymentsStore.clearForm();
     }
-  }, [isOpen, method]);
+  }, [isOpen, method, paymentsStore]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +116,7 @@ export function PaymentMethodDialog({
 
             <div className="space-y-2">
               <Label htmlFor="type">{t('restaurant.payment_method_dialog.type')}</Label>
-              <Select value={formType} onValueChange={(value: any) => paymentsStore.setFormType(value)}>
+              <Select value={formType} onValueChange={(value: 'cash' | 'card' | 'bank_transfer') => paymentsStore.setFormType(value)}>
                 <SelectTrigger id="type">
                   <SelectValue placeholder={t('restaurant.payment_method_dialog.select_type')} />
                 </SelectTrigger>

@@ -11,6 +11,7 @@ import {
   Languages,
   Settings,
   BarChart3,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
@@ -28,48 +29,43 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/helpers";
-import { useI18nStore } from "@/lib/stores/i18n-store";
+import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '@/lib/i18n';
 import { useAuth } from "@/components/layout/auth-provider";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { useRolesStore } from "@/lib/stores/roles-store";
-
-// Simple cookie utility
-const eraseCookie = (name: string) => {
-  document.cookie = name + '=; Max-Age=-99999999; path=/;';
-};
 
 // Permission required to see each nav route (Owner/Admin always see everything)
 const NAV_PERMISSIONS: Record<string, string> = {
   '/pos': 'order_management',
   '/kds': 'kds_access',
-  '/restaurant': 'restaurant_settings',
   '/reports': 'reports_access',
 };
 
 export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const { logout } = useAuth();
   const [fontSize, setFontSize] = useState("medium");
-  const { can } = usePermissions();
+  const { can, user } = usePermissions();
   const fetchRoles = useRolesStore((s) => s.fetchRoles);
   const rolesLoaded = useRolesStore((s) => Object.keys(s.entities.roles).length > 0);
 
   // Ensure custom roles are loaded so permission checks work for custom roles
   useEffect(() => {
-    if (!rolesLoaded) {
-      fetchRoles();
+    if (!rolesLoaded && user?.restaurantId) {
+      fetchRoles(user.restaurantId);
     }
-  }, [rolesLoaded, fetchRoles]);
+  }, [rolesLoaded, fetchRoles, user?.restaurantId]);
 
   const allMenuItems = [
+    { href: "/dashboard", label: t('dashboard.title'), icon: Store, ownerOnly: true },
     { href: "/pos", label: t('pos.title'), icon: LayoutGrid },
     { href: "/kds", label: t('kds.title'), icon: ClipboardList },
-    { href: "/restaurant", label: t('restaurant.title'), icon: Utensils },
     { href: "/reports", label: t('reports.title'), icon: BarChart3 },
     { href: "/profile", label: t('profile.title'), icon: Settings, isHidden: true },
   ];
@@ -77,6 +73,9 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   // Filter nav items the current user is allowed to see
   const menuItems = allMenuItems.filter((item) => {
     if (item.isHidden) return true; // always keep hidden items (profile)
+    if (item.ownerOnly) {
+      return user?.role === 'Owner' || user?.role === 'Admin';
+    }
     const requiredPermission = NAV_PERMISSIONS[item.href];
     if (!requiredPermission) return true;
     return can(requiredPermission);
@@ -127,7 +126,12 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
             <h2 className="text-xl font-headline font-semibold md:hidden">
               {currentPage}
             </h2>
-            <UserNav fontSize={fontSize} onFontSizeChange={setFontSize} onLogout={handleLogout} />
+            <UserNav
+              fontSize={fontSize}
+              onFontSizeChange={setFontSize}
+              onLogout={handleLogout}
+              showRestaurant={user?.role === 'Owner' || user?.role === 'Admin'}
+            />
           </div>
         </div>
       </header>
@@ -157,8 +161,8 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void }) {
-  const { t, language, setLanguage } = useI18nStore();
+function UserNav({ fontSize, onFontSizeChange, onLogout, showRestaurant }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void, showRestaurant: boolean }) {
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   return (
@@ -185,6 +189,13 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           <span>{t('userMenu.profile')}</span>
         </DropdownMenuItem>
 
+        {showRestaurant && (
+          <DropdownMenuItem onSelect={() => router.push('/restaurant?tab=general')}>
+            <Utensils className="mr-2 h-4 w-4" />
+            <span>{t('userMenu.restaurant')}</span>
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Type className="mr-2 h-4 w-4" />
@@ -208,7 +219,7 @@ function UserNav({ fontSize, onFontSizeChange, onLogout }: { fontSize: string, o
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={language} onValueChange={(value: string) => setLanguage(value as 'en' | 'es')}>
+              <DropdownMenuRadioGroup value={i18n.language} onValueChange={(value: string) => changeLanguage(value as 'en' | 'es')}>
                 <DropdownMenuRadioItem value="en">{t('userMenu.language.en')}</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="es">{t('userMenu.language.es')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>

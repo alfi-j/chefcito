@@ -1,14 +1,16 @@
 "use client";
 
-import { type Order, type OrderItem } from "@/lib/types";
+import { type OrderItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import useKDSStore from '@/lib/stores/kds-store';
-import { RotateCcw, CircleAlert, ChefHat, CircleCheckBig } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { KDS_STATES } from "@/lib/constants";
 import { debugKDS } from "@/lib/helpers";
 
+type OrderItemWithStack = OrderItem & { stackCount?: number; isStacked?: boolean };
+
 interface OrderItemProps {
-  item: OrderItem & { stackCount?: number; isStacked?: boolean };
+  item: OrderItemWithStack;
   orderId: number;
   currentTab: 'kitchen' | 'serving';
   onUpdateItemStatus: (orderId: number, itemId: string, fromStatus: string) => void;
@@ -26,16 +28,92 @@ const statusColors: Record<string, string> = {
   'served': 'bg-gray-500/10 text-gray-800',
 };
 
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case KDS_STATES.NEW: return <CircleAlert className="h-4 w-4" />;
-    case KDS_STATES.IN_PROGRESS: return <ChefHat className="h-4 w-4" />;
-    case KDS_STATES.READY: return <CircleCheckBig className="h-4 w-4" />;
-    default: return null;
-  }
+const ItemInfo = ({ item }: { item: OrderItemWithStack }) => (
+  <div className="flex-1 min-w-0">
+    {/* Number and icon in a column, item name centered vertically */}
+    <div className="flex items-center gap-1.5">
+      <div className="text-center" style={{ minWidth: '2rem' }}>
+        <div className="font-bold text-xl leading-tight">
+          {item.isStacked ? (
+            // Show stack count for stacked items
+            <span className="text-blue-600">{item.stackCount}×</span>
+          ) : (
+            // Show individual quantity
+            <>{item.quantity}x</>
+          )}
+        </div>
+        <div className="mt-1 flex justify-center">
+          {/* Status icon removed from here as it's now shown in the button group */}
+        </div>
+      </div>
+      <span className="font-semibold text-xl whitespace-normal break-words leading-tight">
+        {item.menuItem?.name || '(item)'}
+      </span>
+    </div>
+    {item.selectedExtras && item.selectedExtras.length > 0 && (
+      <div className="pl-8 text-sm text-muted-foreground font-medium">
+        {item.selectedExtras.map(extra => (
+          <div key={extra.id}>+ {extra.name}</div>
+        ))}
+      </div>
+    )}
+    {item.notes && (
+      <p className="pl-8 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
+    )}
+  </div>
+);
+
+const StatusRow = ({
+  item,
+  status,
+  onClick,
+  onRevert,
+}: {
+  item: OrderItemWithStack,
+  status: string,
+  displayStatus?: string,
+  onClick?: () => void,
+  onRevert?: () => void,
+}) => {
+  const canRevert = !!onRevert;
+
+  // Add visual indicator for stacked items
+  const isStackedItem = item.isStacked && item.stackCount && item.stackCount > 1;
+
+  return (
+    <div
+      className={cn(
+        "p-0.5 rounded-md transition-all group h-full",
+        statusColors[status] || 'bg-muted',
+        onClick && "cursor-pointer",
+        isStackedItem && "border-l-4 border-blue-400"
+      )}
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+    >
+      <div className="flex justify-between items-center gap-2 h-full">
+        <ItemInfo item={item} />
+        <div className="flex items-center gap-1">
+          {/* Rollback button on the right */}
+          {canRevert && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRevert(); }}
+              className="p-1 -m-1 rounded-full hover:bg-black/10"
+              aria-label={`Revert status`}
+            >
+              <RotateCcw className={cn("h-4 w-4", {
+                "text-yellow-700": status === KDS_STATES.IN_PROGRESS,
+                "text-green-700": status === KDS_STATES.READY,
+                "text-gray-700": status === 'served',
+              })} />
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderItemProps) {
+export function OrderItem({ item, orderId, onUpdateItemStatus, onRevertItemStatus, workstationIndex, totalWorkstations, workstationName, isLastWorkstation }: OrderItemProps) {
   debugKDS('OrderItem rendered:', { 
     orderId, 
     itemId: item.id,
@@ -48,91 +126,6 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
     isStacked: item.isStacked,
     stackCount: item.stackCount
   });
-
-  const ItemInfo = () => (
-    <div className="flex-1 min-w-0">
-      {/* Number and icon in a column, item name centered vertically */}
-      <div className="flex items-center gap-1.5">
-        <div className="text-center" style={{ minWidth: '2rem' }}>
-          <div className="font-bold text-xl leading-tight">
-            {item.isStacked ? (
-              // Show stack count for stacked items
-              <span className="text-blue-600">{item.stackCount}×</span>
-            ) : (
-              // Show individual quantity
-              <>{item.quantity}x</>
-            )}
-          </div>
-          <div className="mt-1 flex justify-center">
-            {/* Status icon removed from here as it's now shown in the button group */}
-          </div>
-        </div>
-        <span className="font-semibold text-xl whitespace-normal break-words leading-tight">
-          {item.menuItem.name}
-        </span>
-      </div>
-      {item.selectedExtras && item.selectedExtras.length > 0 && (
-        <div className="pl-8 text-sm text-muted-foreground font-medium">
-          {item.selectedExtras.map(extra => (
-            <div key={extra.id}>+ {extra.name}</div>
-          ))}
-        </div>
-      )}
-      {item.notes && (
-        <p className="pl-8 text-sm text-primary/80 font-medium italic whitespace-pre-wrap">Notes: {item.notes}</p>
-      )}
-    </div>
-  );
-
-  const StatusRow = ({
-    status,
-    displayStatus,
-    onClick,
-    onRevert,
-  }: {
-    status: string,
-    displayStatus?: string,
-    onClick?: () => void,
-    onRevert?: () => void,
-  }) => {
-    const canRevert = !!onRevert;
-    const label = displayStatus || status;
-    
-    // Add visual indicator for stacked items
-    const isStackedItem = item.isStacked && item.stackCount && item.stackCount > 1;
-    
-    return (
-      <div
-        className={cn(
-          "p-0.5 rounded-md transition-all group h-full",
-          statusColors[status] || 'bg-muted',
-          onClick && "cursor-pointer",
-          isStackedItem && "border-l-4 border-blue-400"
-        )}
-        onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-      >
-        <div className="flex justify-between items-center gap-2 h-full">
-          <ItemInfo />
-          <div className="flex items-center gap-1">
-            {/* Rollback button on the right */}
-            {canRevert && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onRevert(); }}
-                className="p-1 -m-1 rounded-full hover:bg-black/10"
-                aria-label={`Revert status`}
-              >
-                <RotateCcw className={cn("h-4 w-4", {
-                  "text-yellow-700": status === KDS_STATES.IN_PROGRESS,
-                  "text-green-700": status === KDS_STATES.READY,
-                  "text-gray-700": status === 'served',
-                })} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // Get current state index
   const getCurrentStateIndex = (status: string | undefined): number => {
@@ -164,6 +157,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         return (
           <div className="space-y-0.5">
             <StatusRow
+              item={item}
               status={KDS_STATES.READY}
               displayStatus="Ready"
               onRevert={() => {
@@ -182,6 +176,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       return (
         <div className="space-y-0.5">
           <StatusRow
+            item={item}
             status={KDS_STATES.NEW}
             onClick={() => {
               debugKDS('NEW item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });
@@ -201,6 +196,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         return (
           <div className="space-y-0.5">
             <StatusRow
+              item={item}
               status={KDS_STATES.READY}
               displayStatus="Ready"
               onRevert={() => {
@@ -215,6 +211,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       return (
         <div className="space-y-0.5">
           <StatusRow
+            item={item}
             status={KDS_STATES.IN_PROGRESS}
             onClick={() => {
               debugKDS('IN_PROGRESS item clicked:', { orderId, itemId: item.id, status: KDS_STATES.IN_PROGRESS });
@@ -235,6 +232,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         return (
           <div className="space-y-0.5">
             <StatusRow
+              item={item}
               status={KDS_STATES.READY}
               displayStatus="Ready"
               onClick={() => {
@@ -262,6 +260,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
         return (
           <div className="space-y-0.5">
             <StatusRow
+              item={item}
               status={KDS_STATES.NEW}
               onClick={() => {
                 debugKDS('NEW item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });
@@ -280,6 +279,7 @@ export function OrderItem({ item, orderId, currentTab, onUpdateItemStatus, onRev
       return (
         <div className="space-y-0.5">
           <StatusRow
+            item={item}
             status={KDS_STATES.NEW}
             onClick={() => {
               debugKDS('DEFAULT item clicked:', { orderId, itemId: item.id, status: KDS_STATES.NEW });

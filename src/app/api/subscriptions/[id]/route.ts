@@ -18,7 +18,7 @@ export async function PUT(
     const { status, plan, payphoneTransactionId, cancellationReason, clientTransactionId } = body;
 
     // Buscar suscripción por clientTransactionId o _id
-    let subscription = await Subscription.findOne({ 
+    const subscription = await Subscription.findOne({ 
       $or: [{ clientTransactionId: id }, { _id: id }] 
     });
 

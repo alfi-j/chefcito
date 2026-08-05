@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
 
 import User from '../../../../models/User';
 import Role from '../../../../models/Role';
+import Restaurant from '../../../../models/Restaurant';
 import mongoose from 'mongoose';
-import * as bcrypt from 'bcryptjs';
 
 // Helper function to ensure database connection
 async function ensureDbConnection() {
@@ -21,8 +20,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     
     const resolvedParams = await params;
     const { id } = resolvedParams;
-    
-    const user = await User.findOne({ id });
+
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+
+    const query = restaurantId ? { id, restaurantId } : { id };
+
+    const user = await User.findOne(query);
     
     if (!user) {
       return NextResponse.json(
@@ -55,13 +59,20 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     
     const body = await request.json();
     
+    if (!body.restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
+    
     // Handle role update specifically
     if (body.action === 'updateRole') {
       const { role } = body;
       
       // Validate role against existing roles in database
       const existingRoles = await Role.find({});
-      const validRoleNames = existingRoles.map((r: any) => r.name);
+      const validRoleNames = existingRoles.map((r: { name: string }) => r.name);
       
       if (!validRoleNames.includes(role)) {
         return NextResponse.json(
@@ -75,7 +86,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       
       // Update user role
       const updatedUser = await User.findOneAndUpdate(
-        { id },
+        { id, restaurantId: body.restaurantId },
         { role },
         { new: true }
       );
@@ -97,12 +108,53 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       });
     }
     
+    // Handle active restaurant switch (single owner / admin, multiple restaurants)
+    if (body.action === 'switchRestaurant') {
+      const targetId = body.restaurantId;
+
+      const user = await User.findOne({ id });
+      if (!user) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+
+      const target = await Restaurant.findOne({ id: targetId });
+      if (!target) {
+        return NextResponse.json(
+          { error: 'Restaurant not found' },
+          { status: 404 }
+        );
+      }
+
+      const isMember = (user.restaurantIds || []).includes(targetId);
+      if (!isMember && user.role !== 'Owner') {
+        return NextResponse.json(
+          { error: 'Forbidden: you are not a member of this restaurant' },
+          { status: 403 }
+        );
+      }
+
+      user.restaurantId = targetId;
+      user.restaurantIds = Array.from(new Set([...(user.restaurantIds || []), targetId]));
+      await user.save();
+
+      const userObject = user.toObject();
+      delete userObject.password;
+
+      return NextResponse.json({
+        success: true,
+        data: userObject
+      });
+    }
+
     // Update user general info
     const { role, status } = body;
 
     // Update user
     const updatedUser = await User.findOneAndUpdate(
-      { id },
+      { id, restaurantId: body.restaurantId },
       {
         ...(role && { role }),
         ...(status && { status })
@@ -141,9 +193,19 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     
     const resolvedParams = await params;
     const { id } = resolvedParams;
+
+    const { searchParams } = new URL(request.url);
+    const restaurantId = searchParams.get('restaurantId');
+
+    if (!restaurantId) {
+      return NextResponse.json(
+        { error: 'restaurantId is required' },
+        { status: 400 }
+      );
+    }
     
     // Delete user
-    const result = await User.deleteOne({ id });
+    const result = await User.deleteOne({ id, restaurantId });
     
     if (result.deletedCount === 0) {
       return NextResponse.json(

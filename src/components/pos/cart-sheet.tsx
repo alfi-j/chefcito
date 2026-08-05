@@ -7,15 +7,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ShoppingCart, PlusCircle, MinusCircle, X } from 'lucide-react';
-import { useI18nStore } from '@/lib/stores/i18n-store';
-import { type OrderItem, type OrderType, type DeliveryInfo, type MenuItem } from '@/lib/types';
+import { useTranslation } from 'react-i18next';
+import { type OrderItem, type OrderType, type MenuItem } from '@/lib/types';
 import { useCurrentOrderStoreCompat as useCurrentOrderStore, useCurrentOrderTotalsCompat as useCurrentOrderTotals } from '@/lib/stores/current-order-store';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Select,
@@ -41,7 +40,7 @@ interface SheetCartProps {
 }
 
 export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonText, isEditingOrder, open, onOpenChange }: SheetCartProps) {
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const { 
     items,
     table,
@@ -53,8 +52,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
     deliveryInfo,
     setDeliveryInfo,
     clearOrder,
-    updateItemQuantity,
-    removeItem
+    updateItemQuantity
   } = useCurrentOrderStore();
   
   const { subtotal, tax, total } = useCurrentOrderTotals();
@@ -108,7 +106,7 @@ export function SheetCart({ onSendToKitchen, onPayment, onEditItem, sendButtonTe
           )}
         </Button>
       </SheetTrigger>
-      <SheetContent {...({} as any)} className="p-0 sm:p-0 sm:pt-0 w-full md:max-w-sm [&>button]:hidden">
+      <SheetContent className="p-0 sm:p-0 sm:pt-0 w-full md:max-w-sm [&>button]:hidden">
         <div className="flex flex-col h-full">
           {renderCartContent()}
         </div>

@@ -28,7 +28,7 @@ interface NormalizedMenuState extends NormalizedState {
   };
   
   // Menu item actions
-  addMenuItem: (itemData: Omit<MenuItem, 'id'>) => Promise<MenuItem | null>;
+  addMenuItem: (itemData: Omit<MenuItem, 'id'> & { restaurantId: string }) => Promise<MenuItem | null>;
   updateMenuItem: (id: string, itemData: Partial<MenuItem>) => Promise<boolean>;
   deleteMenuItem: (id: string) => Promise<boolean>;
   
@@ -328,7 +328,7 @@ export const useMenuStore = create<NormalizedMenuState>()((set, get) => ({
       // For now, we'll check if any menu items are using this category
       const { entities } = get();
       return Object.values(entities.menuItems).some((item) => item.category === id.toString());
-    } catch (error) {
+    } catch {
       return false;
     }
   },

@@ -20,9 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { toast } from "sonner";
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useMenuStore } from '@/lib/stores/menu-store'
 import { type MenuItem, type Category } from "@/lib/types"
 import { MultiSelect } from './multi-select'
@@ -30,7 +29,7 @@ import { MultiSelect } from './multi-select'
 interface MenuItemDialogProps {
   item?: MenuItem;
   categories: Category[];
-  onSave: (item: MenuItem | Omit<MenuItem, "id">) => void;
+  onSave: (item: Omit<MenuItem, 'id' | 'restaurantId'> & { id?: string }) => void;
   trigger?: React.ReactNode;
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -39,7 +38,7 @@ interface MenuItemDialogProps {
 export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: externalIsOpen, onOpenChange: externalOnOpenChange }: MenuItemDialogProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
   const menuStore = useMenuStore();
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
 
   // Form state from store
   const formName = menuStore.getFormName();
@@ -64,7 +63,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
     } else {
       menuStore.clearForm();
     }
-  }, [open, item]);
+  }, [open, item, menuStore]);
 
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
@@ -111,7 +110,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
 
       menuStore.clearForm();
       handleOpenChange(false);
-    } catch (error: any) {
+    } catch {
       // Handle error
     }
   };

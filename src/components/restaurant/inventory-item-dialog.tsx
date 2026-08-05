@@ -12,10 +12,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { type InventoryItem, type MenuItem } from "@/lib/types"
-import { useI18nStore } from '@/lib/stores/i18n-store'
+import { useTranslation } from 'react-i18next'
 import { useInventoryStore } from '@/lib/stores/inventory-store'
 import { MultiSelect } from './multi-select'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 export function InventoryItemDialog({ 
   item,
@@ -31,7 +30,7 @@ export function InventoryItemDialog({
   menuItems: MenuItem[],
 }) {
   const isEditMode = !!item;
-  const { t } = useI18nStore();
+  const { t } = useTranslation();
   const inventoryStore = useInventoryStore();
   
   // Form state from store
@@ -51,7 +50,7 @@ export function InventoryItemDialog({
     } else {
       inventoryStore.clearForm();
     }
-  }, [isOpen, item]);
+  }, [isOpen, item, inventoryStore]);
   
   const handleSubmit = () => {
     // Validation using store validation
