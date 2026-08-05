@@ -335,9 +335,8 @@ export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
     throw new Error('Order must contain at least one item');
   }
   
-  // Get the highest existing order ID for this restaurant and increment by 1
-  const latestOrder = await OrderModel.findOne({ restaurantId: orderData.restaurantId }).sort({ id: -1 }).limit(1);
-  const newId = latestOrder ? latestOrder.id + 1 : 1;
+  // Use timestamp-based ID for global uniqueness across restaurants
+  const newId = Date.now();
 
   // Ensure items have proper initial workstation assignment
   const workstations = await WorkstationModel.find({ restaurantId: orderData.restaurantId }).sort({ position: 1 });
