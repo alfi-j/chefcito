@@ -38,6 +38,7 @@ export type DeliveryInfo = {
 
 export type Order = {
   id: number;
+  orderNumber: number;
   restaurantId: string;
   items: OrderItem[];
   status: 'pending' | 'completed';

@@ -236,7 +236,7 @@ export default function OrdersPage() {
                   ) : (
                     currentOrders.map((order) => (
                       <TableRow key={order.id} className="cursor-pointer">
-                        <TableCell className="font-medium">#{order.id}</TableCell>
+                        <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                         <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
                         <TableCell className="hidden md:table-cell">
                           {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
@@ -293,7 +293,7 @@ export default function OrdersPage() {
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-bold text-lg">#{order.id}</p>
+                          <p className="font-bold text-lg">#{order.orderNumber}</p>
                           <p className="text-sm text-muted-foreground mt-1">
                             {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
                           </p>

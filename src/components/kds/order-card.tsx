@@ -216,7 +216,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
               <div className="flex items-center justify-center gap-4 w-full">
                 <CardTitle className="font-headline text-2xl flex items-center gap-2">
                   <ClipboardList className="h-5 w-5" />
-                  <span>{order.id}</span>
+                  <span>{order.orderNumber}</span>
                 </CardTitle>
                 <div className="flex items-center gap-1.5 text-lg text-muted-foreground font-semibold">
                   <MdOutlineTableRestaurant className="h-5 w-5" />
