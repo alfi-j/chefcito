@@ -1,6 +1,7 @@
 export { default as Category, type ICategory } from './Category';
 export { default as MenuItem, type IMenuItem } from './MenuItem';
 export { default as Order, type IOrder } from './Order';
+export { default as OrderCounter, type IOrderCounter } from './OrderCounter';
 export { default as Inventory, type IInventoryItem } from './Inventory';
 export { default as Customer, type ICustomer } from './Customer';
 export { default as Payment, type IPayment } from './Payment';

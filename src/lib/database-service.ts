@@ -21,7 +21,8 @@ import {
   Customer as CustomerModel,
   Payment as PaymentModel,
   User as UserModel,
-  Workstation as WorkstationModel
+  Workstation as WorkstationModel,
+  OrderCounter as OrderCounterModel
 } from '@/models/index';
 
 
@@ -338,16 +339,15 @@ export const addOrder = async (orderData: Omit<Order, 'id' | 'createdAt'>) => {
   // Use timestamp-based ID for global uniqueness across restaurants
   const newId = Date.now();
 
-  // Generate daily order number per restaurant (resets every day)
+  // Generate daily order number per restaurant using atomic counter (resets every day)
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(today);
-  todayEnd.setHours(23, 59, 59, 999);
-  const latestOrderToday = await OrderModel.findOne({
-    restaurantId: orderData.restaurantId,
-    createdAt: { $gte: today, $lte: todayEnd }
-  }).sort({ orderNumber: -1 }).limit(1);
-  const newOrderNumber = latestOrderToday ? latestOrderToday.orderNumber + 1 : 1;
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const counter = await OrderCounterModel.findOneAndUpdate(
+    { restaurantId: orderData.restaurantId, date: todayStr },
+    { $inc: { lastOrderNumber: 1 } },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  const newOrderNumber = counter.lastOrderNumber;
 
   // Ensure items have proper initial workstation assignment
   const workstations = await WorkstationModel.find({ restaurantId: orderData.restaurantId }).sort({ position: 1 });

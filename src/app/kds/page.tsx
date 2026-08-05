@@ -105,7 +105,7 @@ export default function KdsPage() {
           const data = JSON.parse(event.data);
           debugKDS('SSE message received:', data);
           if (data.type === 'orders_update') {
-            mutate();
+            setTimeout(() => mutate(), 300);
           }
         } catch (error) {
           debugKDS('Error parsing SSE message:', error);
