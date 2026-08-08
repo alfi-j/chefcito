@@ -543,6 +543,11 @@ function RestaurantSettings() {
   const paymentsStore = usePaymentsStore();
   const workstationsStore = useWorkstationsStore();
   
+  // Stable action references (do not change identity on state updates)
+  const fetchInventoryItems = useInventoryStore(state => state.fetchInventoryItems);
+  const fetchPaymentMethods = usePaymentsStore(state => state.fetchPaymentMethods);
+  const fetchWorkstations = useWorkstationsStore(state => state.fetchWorkstations);
+  
   const inventoryItemsById = useInventoryStore(state => state.entities.inventoryItems);
   const paymentMethodsById = usePaymentsStore(state => state.entities.paymentMethods);
   const workstationsById = useWorkstationsStore(state => state.entities.workstations);
@@ -553,15 +558,15 @@ function RestaurantSettings() {
     [workstationsById]
   );
   
-  // Fetch initial data - avoid store objects in dependencies to prevent infinite loops
+  // Fetch initial data - only depend on stable action refs to avoid infinite loops
   useEffect(() => {
     const restaurantId = currentUser?.restaurantId;
     if (!restaurantId) return;
     fetchMenuData(restaurantId);
-    inventoryStore.fetchInventoryItems(restaurantId);
-    paymentsStore.fetchPaymentMethods(restaurantId);
-    workstationsStore.fetchWorkstations(restaurantId);
-  }, [fetchMenuData, currentUser?.restaurantId, inventoryStore, paymentsStore, workstationsStore]);
+    fetchInventoryItems(restaurantId);
+    fetchPaymentMethods(restaurantId);
+    fetchWorkstations(restaurantId);
+  }, [fetchMenuData, currentUser?.restaurantId, fetchInventoryItems, fetchPaymentMethods, fetchWorkstations]);
   
   // Inventory functions
   const addInventoryItem = async (itemData: Omit<InventoryItem, 'id' | 'lastRestocked'>) => {
