@@ -24,7 +24,7 @@ interface PaymentDialogRefactoredProps {
   orderItems: OrderItem[];
   totalAmount: number;
   onConfirmPayment: (paymentData: { 
-    method: Payment; 
+    method?: Payment; 
     amount: number; 
     splitDetails?: SimpleSplitConfig | CustomerItemAssignmentConfig | null;
   }) => void;
@@ -105,7 +105,12 @@ export function PaymentDialogRefactored({
   }
 
   const handleConfirm = async () => {
-    if (!selectedMethod) return;
+    if (useSplitBill) {
+      if (enhancedSplitMethod === 'simple' && (!splitConfig || !splitValid)) return;
+      if (enhancedSplitMethod === 'item_assignment' && (!enhancedSplitConfig || !enhancedSplitValid)) return;
+    } else if (!selectedMethod) {
+      return;
+    }
 
     setIsProcessing(true);
   
@@ -131,9 +136,6 @@ export function PaymentDialogRefactored({
   };
 
   const canConfirm = useCallback(() => {
-    if (!selectedMethodId) return false;
-    if (selectedMethod?.type === 'bank_transfer' && !selectedBank) return false;
-    
     if (useSplitBill) {
       if (enhancedSplitMethod === 'simple') {
         return splitConfig !== null && splitValid;
@@ -141,6 +143,9 @@ export function PaymentDialogRefactored({
         return enhancedSplitConfig !== null && enhancedSplitValid;
       }
     }
+
+    if (!selectedMethodId) return false;
+    if (selectedMethod?.type === 'bank_transfer' && !selectedBank) return false;
     return true;
   }, [selectedMethodId, selectedMethod, selectedBank, useSplitBill, enhancedSplitMethod, splitConfig, splitValid, enhancedSplitConfig, enhancedSplitValid]);
 

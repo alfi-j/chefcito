@@ -226,6 +226,9 @@
             "pending": "En Progreso",
             "completed": "Lista"
         },
+        "payment_status": "Pago",
+        "paid": "Pagado",
+        "unpaid": "No pagado",
         "table": {
             "order_id": "Orden #",
             "date": "Fecha y Hora",
@@ -293,7 +296,15 @@
             "default_language": "Idioma Predeterminado",
             "language_english": "Inglés",
             "language_spanish": "Español",
-            "language_desc": "Esto cambia el idioma de la interfaz del restaurante."
+            "language_desc": "Esto cambia el idioma de la interfaz del restaurante.",
+            "danger_zone": "Zona de Peligro",
+            "danger_zone_desc": "Acciones irreversibles que afectan permanentemente a este restaurante y sus datos.",
+            "delete_restaurant": "Eliminar Restaurante",
+            "deleting": "Eliminando...",
+            "delete_confirm_title": "¿Eliminar este restaurante?",
+            "delete_confirm_desc": "Esto eliminará permanentemente el restaurante y TODOS sus datos, incluyendo menú, órdenes, inventario, métodos de pago, estaciones de trabajo, usuarios y suscripciones. Esta acción no se puede deshacer.",
+            "delete_success": "Restaurante eliminado",
+            "delete_error": "Error al eliminar el restaurante"
         },
         "menu": {
             "title": "Menú",

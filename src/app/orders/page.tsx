@@ -221,6 +221,7 @@ export default function OrdersPage() {
                     <TableHead className="hidden sm:table-cell">{t('orders.table.date')}</TableHead>
                     <TableHead className="hidden md:table-cell">{t('orders.table.table')}</TableHead>
                     <TableHead className="hidden sm:table-cell">{t('orders.table.status')}</TableHead>
+                    <TableHead className="hidden sm:table-cell">{t('orders.payment_status')}</TableHead>
                     <TableHead>{t('orders.table.staff')}</TableHead>
                     <TableHead className="text-right">{t('orders.table.total')}</TableHead>
                     <TableHead><span className="sr-only">{t('orders.table.actions')}</span></TableHead>
@@ -229,7 +230,7 @@ export default function OrdersPage() {
                 <TableBody>
                   {currentOrders.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={8} className="text-center py-8">
                         {t('orders.no_orders_found')}
                       </TableCell>
                     </TableRow>
@@ -245,6 +246,13 @@ export default function OrdersPage() {
                           <Badge variant={getStatusVariant(order.status)} className="capitalize">
                             {t(`orders.status.${order.status}`)}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {order.isPaid ? (
+                            <Badge className="border-transparent bg-green-500/15 text-green-800">{t('orders.paid')}</Badge>
+                          ) : (
+                            <Badge variant="secondary" className="capitalize">{t('orders.unpaid')}</Badge>
+                          )}
                         </TableCell>
                         <TableCell>{order.staffName || 'N/A'}</TableCell>
                         <TableCell className="text-right font-semibold">
@@ -298,9 +306,14 @@ export default function OrdersPage() {
                             {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
                           </p>
                         </div>
-                        <Badge variant={getStatusVariant(order.status)} className="capitalize">
-                          {t(`orders.status.${order.status}`)}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant={getStatusVariant(order.status)} className="capitalize">
+                            {t(`orders.status.${order.status}`)}
+                          </Badge>
+                          <Badge className={order.isPaid ? 'border-transparent bg-green-500/15 text-green-800' : 'border-transparent bg-secondary text-secondary-foreground'}>
+                            {order.isPaid ? t('orders.paid') : t('orders.unpaid')}
+                          </Badge>
+                        </div>
                       </div>
                       <div className="text-sm text-muted-foreground mt-3 space-y-1">
                         <p>{format(new Date(order.createdAt), 'PPp')}</p>

@@ -46,8 +46,8 @@ export function CustomerItemAssignment({
   const [calculator] = useState(() => new ConsolidatedSplitBillCalculator(orderItems, subtotal, tax, tip));
   const [itemCustomerSelection, setItemCustomerSelection] = useState<Record<string, string>>({});
 
-  const getItemTargetCustomer = (itemId: string) => {
-    const selected = itemCustomerSelection[itemId];
+  const getItemTargetCustomer = (selectionKey: string) => {
+    const selected = itemCustomerSelection[selectionKey];
     if (selected && assignments.some(a => a.customerId === selected)) return selected;
     return assignments.length > 0 ? assignments[0].customerId : '';
   };
@@ -346,44 +346,47 @@ export function CustomerItemAssignment({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {getUnassignedItems().map((orderItem) => {
-                  const selectedCustomerId = getItemTargetCustomer(orderItem.id);
-                  return (
-                    <div key={orderItem.id} className="flex items-center justify-between gap-2 p-2 bg-muted/30 rounded hover:bg-muted/50 transition-colors">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{orderItem.menuItem.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          ${orderItem.menuItem.price.toFixed(2)} × {orderItem.quantity} = ${(orderItem.menuItem.price * orderItem.quantity).toFixed(2)}
+                {getUnassignedItems().flatMap((orderItem) => {
+                  return Array.from({ length: orderItem.quantity }, (_, unitIndex) => {
+                    const selectionKey = `${orderItem.id}-unit-${unitIndex + 1}`;
+                    const selectedCustomerId = getItemTargetCustomer(selectionKey);
+                    return (
+                      <div key={selectionKey} className="flex items-center justify-between gap-2 p-2 bg-muted/30 rounded hover:bg-muted/50 transition-colors">
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{orderItem.menuItem.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            ${orderItem.menuItem.price.toFixed(2)}
+                          </div>
                         </div>
+                        <Select
+                          value={selectedCustomerId}
+                          disabled={assignments.length === 0}
+                          onValueChange={(customerId) => setItemCustomerSelection(prev => ({ ...prev, [selectionKey]: customerId }))}
+                        >
+                          <SelectTrigger className="w-[140px] h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {assignments.map((customer, idx) => (
+                              <SelectItem key={customer.customerId} value={customer.customerId}>
+                                {customer.customerName || `Customer ${idx + 1}`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            addItemToCustomer(selectedCustomerId, orderItem.id);
+                          }}
+                          disabled={assignments.length === 0}
+                        >
+                          {t('pos.payment_dialog.assign')}
+                        </Button>
                       </div>
-                      <Select
-                        value={selectedCustomerId}
-                        disabled={assignments.length === 0}
-                        onValueChange={(customerId) => setItemCustomerSelection(prev => ({ ...prev, [orderItem.id]: customerId }))}
-                      >
-                        <SelectTrigger className="w-[140px] h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {assignments.map((customer, idx) => (
-                            <SelectItem key={customer.customerId} value={customer.customerId}>
-                              {customer.customerName || `Customer ${idx + 1}`}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          addItemToCustomer(selectedCustomerId, orderItem.id);
-                        }}
-                        disabled={assignments.length === 0}
-                      >
-                        {t('pos.payment_dialog.assign')}
-                      </Button>
-                    </div>
-                  );
+                    );
+                  });
                 })}
                 
                 {getUnassignedItems().length === 0 && (

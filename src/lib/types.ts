@@ -50,6 +50,7 @@ export type Order = {
   customerId?: string;
   staffName?: string;
   statusHistory?: OrderStatusUpdate[];
+  isPaid?: boolean;
   notes?: string;
   orderType: OrderType;
   deliveryInfo?: DeliveryInfo;

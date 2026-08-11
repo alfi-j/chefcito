@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { changeLanguage, type SupportedLanguage } from '@/lib/i18n'
 import { supportedCountries } from '@/lib/tax/registry'
+import { useUserStore } from '@/lib/stores/user-store'
 import { toast } from 'sonner'
 
 interface GeneralSettingsProps {
@@ -18,6 +21,8 @@ interface GeneralSettingsProps {
 
 export function GeneralSettings({ restaurantId }: GeneralSettingsProps) {
   const { t, i18n } = useTranslation()
+  const router = useRouter()
+  const currentUser = useUserStore().getCurrentUser()
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -26,6 +31,10 @@ export function GeneralSettings({ restaurantId }: GeneralSettingsProps) {
   const [country, setCountry] = useState<string>(supportedCountries[0]?.code ?? '')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const isOwner = currentUser?.role === 'Owner'
+  const ownerId = currentUser?.id
 
   useEffect(() => {
     if (!restaurantId) return
@@ -83,6 +92,31 @@ export function GeneralSettings({ restaurantId }: GeneralSettingsProps) {
 
   const handleChangeLanguage = (value: string) => {
     changeLanguage(value as SupportedLanguage)
+  }
+
+  const handleDeleteRestaurant = async () => {
+    setIsDeleting(true)
+    try {
+      const response = await fetch(`/api/restaurants/${restaurantId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ownerId }),
+      })
+
+      if (response.ok) {
+        toast.success(t('restaurant.general.delete_success'))
+        // Clear the current session and redirect to login
+        useUserStore.getState().logout()
+        router.push('/login')
+      } else {
+        toast.error(t('restaurant.general.delete_error'))
+        setIsDeleting(false)
+      }
+    } catch (error) {
+      console.error('Error deleting restaurant:', error)
+      toast.error(t('restaurant.general.delete_error'))
+      setIsDeleting(false)
+    }
   }
 
   if (isLoading) {
@@ -183,6 +217,49 @@ export function GeneralSettings({ restaurantId }: GeneralSettingsProps) {
           </div>
         </CardContent>
       </Card>
+
+      {isOwner && (
+        <>
+          <Separator />
+
+          {/* Danger Zone */}
+          <Card className="border-destructive/40">
+            <CardHeader>
+              <CardTitle className="text-destructive">{t('restaurant.general.danger_zone')}</CardTitle>
+              <CardDescription>{t('restaurant.general.danger_zone_desc')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? t('restaurant.general.deleting') : t('restaurant.general.delete_restaurant')}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('restaurant.general.delete_confirm_title')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('restaurant.general.delete_confirm_desc')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>{t('dialog.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteRestaurant}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {t('restaurant.general.delete_restaurant')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

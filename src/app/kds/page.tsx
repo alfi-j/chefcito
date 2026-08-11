@@ -149,7 +149,7 @@ export default function KdsPage() {
 
     // Distribute orders based on explicit workstation assignments
     safeOrders.forEach((order: Order) => {
-      if (order.status === 'completed') {
+      if (order.status === 'completed' || order.isPaid) {
         return;
       }
 

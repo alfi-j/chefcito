@@ -45,6 +45,7 @@ interface SendOrderPayload {
   orderType: string;
   createdAt: string;
   status: string;
+  isPaid?: boolean;
   staffName: string;
   deliveryInfo?: DeliveryInfo;
 }
@@ -393,7 +394,7 @@ function PosPageContent() {
       return;
     }
     
-    // Send order as completed
+    // Send order as paid (keeps KDS workflow intact — status stays pending)
     try {
       setIsProcessingPayment(true);
       
@@ -412,13 +413,14 @@ function PosPageContent() {
           quantity: item.quantity,
           selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || [],
           notes: item.notes || '',
-          // For completed orders, mark all as served
-          status: 'served',
+          // Keep items in the kitchen workflow so the KDS can process them
+          status: 'new',
           workstationId: item.workstationId || (firstWorkstation ? firstWorkstation.id : null)
         })),
         notes: currentOrderNotes,
         orderType: currentOrderType,
-        status: 'completed',
+        status: 'pending',
+        isPaid: true,
         createdAt: new Date().toISOString(),
         staffName: 'POS Terminal'
       };

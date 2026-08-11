@@ -12,6 +12,7 @@ export interface IOrder extends Document {
   status: 'pending' | 'completed';
   statusHistory?: { status: 'pending' | 'completed'; timestamp: Date }[];
   isPinned?: boolean;
+  isPaid?: boolean;
   position?: number;
   createdAt: Date;
   completedAt?: Date;
@@ -47,6 +48,7 @@ const OrderSchema: Schema = new Schema({
     timestamp: { type: Date }
   }],
   isPinned: { type: Boolean, default: false },
+  isPaid: { type: Boolean, default: false },
   position: { type: Number, default: 0 },
   createdAt: { type: Date, required: true },
   completedAt: { type: Date }
