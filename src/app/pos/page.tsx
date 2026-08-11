@@ -45,7 +45,6 @@ interface SendOrderPayload {
   orderType: string;
   createdAt: string;
   status: string;
-  isPaid?: boolean;
   staffName: string;
   deliveryInfo?: DeliveryInfo;
 }
@@ -60,7 +59,6 @@ function PosPageContent() {
   const [selectedOrder] = useState<Order | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSendingToKitchen, setIsSendingToKitchen] = useState(false);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isEditingOrder, setIsEditingOrder] = useState<Order | null>(null);
 
   const { t } = useTranslation();
@@ -386,76 +384,15 @@ function PosPageContent() {
     setPaymentSheetOpen(true);
   }
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = () => {
+    // Payment only records the transaction — the current order stays in the
+    // cart (editable) and is NOT sent to the kitchen, so the KDS is untouched.
     setPaymentSheetOpen(false);
-    
-    // Prevent double submission
-    if (isProcessingPayment) {
-      return;
-    }
-    
-    // Send order as paid (keeps KDS workflow intact — status stays pending)
-    try {
-      setIsProcessingPayment(true);
-      
-      // Get the first workstation (if available) from SWR data
-      const firstWorkstation = safeWorkstations[0] || null;
-      
-      // Prepare order data based on order type
-      const orderData: SendOrderPayload = {
-        restaurantId: user?.restaurantId || '',
-        table: currentOrderTable,
-        items: currentOrderItems.map((item: OrderItem) => ({
-          id: item.id,
-          menuItemId: item.menuItem.id,
-          name: item.menuItem.name,
-          price: item.menuItem.price,
-          quantity: item.quantity,
-          selectedExtraIds: item.selectedExtras?.map((extra: MenuItem) => extra.id) || [],
-          notes: item.notes || '',
-          // Keep items in the kitchen workflow so the KDS can process them
-          status: 'new',
-          workstationId: item.workstationId || (firstWorkstation ? firstWorkstation.id : null)
-        })),
-        notes: currentOrderNotes,
-        orderType: currentOrderType,
-        status: 'pending',
-        isPaid: true,
-        createdAt: new Date().toISOString(),
-        staffName: 'POS Terminal'
-      };
 
-      // Only include deliveryInfo for delivery orders
-      if (currentOrderType === 'delivery' && currentOrderDeliveryInfo) {
-        orderData.deliveryInfo = currentOrderDeliveryInfo;
-      }
-
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to process payment');
-      }
-
-      toast.success(t('pos.toast.payment_success_title'), {
-        description: t('pos.toast.payment_success_desc'),
-        duration: 3000,
-      });
-      currentOrderClearOrder();
-      mutateOrders(); // Refresh orders list
-    } catch (error: unknown) {
-      toast.error(t('toast.error'), {
-        description: error instanceof Error ? error.message : t('pos.toast.send_error'),
-        duration: 3000,
-      });
-    } finally {
-      setIsProcessingPayment(false);
-    }
+    toast.success(t('pos.toast.payment_success_title'), {
+      description: t('pos.toast.payment_success_desc'),
+      duration: 3000,
+    });
   }
 
   const displayCategories = Array.isArray(categories) ? categories.filter(c => !c.isModifierGroup) : [];
