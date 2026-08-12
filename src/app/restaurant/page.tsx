@@ -54,6 +54,7 @@ import { PaymentMethodDialog } from "@/components/restaurant/payment-method-dial
 import { InventoryItemDialog } from "@/components/restaurant/inventory-item-dialog";
 import { Checkbox } from '@/components/ui/checkbox'
 import { BatchActionsToolbar } from "@/components/restaurant/batch-actions-toolbar";
+import { ErrorBoundaryImpl } from "@/components/restaurant/error-boundary";
 import { toast } from 'sonner'
 
 function InventoryList({ 
@@ -488,6 +489,7 @@ function RestaurantSettings() {
   
   const {
     loading,
+    error: menuError,
     addCategory,
     addMenuItem,
     updateMenuItem,
@@ -496,8 +498,14 @@ function RestaurantSettings() {
     fetchMenuData
   } = menuStore;
   
+  const VALID_TABS = ['general', 'menu', 'inventory', 'payments', 'workstations', 'roles', 'users'] as const;
+  type ValidTab = typeof VALID_TABS[number];
+
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState(() => searchParams.get('tab') || 'general');
+  const [activeTab, setActiveTab] = useState<ValidTab>(() => {
+    const raw = searchParams.get('tab');
+    return VALID_TABS.includes(raw as ValidTab) ? (raw as ValidTab) : 'general';
+  });
   const [isItemDialogOpen, setIsItemDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | undefined>(undefined);
   
@@ -689,6 +697,15 @@ function RestaurantSettings() {
     )
   }
 
+  if (menuError) {
+    return (
+        <div className="flex flex-col items-center justify-center gap-4 h-full text-center py-16 px-4">
+            <p className="text-destructive font-medium">{t('restaurant.load_error')}</p>
+            <p className="text-muted-foreground text-sm max-w-md break-words">{menuError}</p>
+        </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
         <div>
@@ -803,6 +820,7 @@ function RestaurantSettings() {
           </div>
           
           <div className="mt-4">
+            <ErrorBoundaryImpl key={activeTab}>
             {activeTab === 'general' && (
               <GeneralSettings restaurantId={currentUser?.restaurantId || ''} />
             )}
@@ -840,7 +858,7 @@ function RestaurantSettings() {
                       // Remove lastRestocked from the item before adding
                       const { lastRestocked, ...itemData } = item as Omit<InventoryItem, 'restaurantId'>;
                       void lastRestocked;
-                      await addInventoryItem({ ...itemData, restaurantId: currentUser!.restaurantId ?? '', lastRestocked: new Date().toISOString() } as Omit<InventoryItem, 'id'>);
+                      await addInventoryItem({ ...itemData, restaurantId: currentUser?.restaurantId ?? '', lastRestocked: new Date().toISOString() } as Omit<InventoryItem, 'id'>);
                     }
                   }}
                   onAdjustStock={adjustInventoryStock}
@@ -933,6 +951,7 @@ function RestaurantSettings() {
                 <UsersList />
               </div>
             )}
+            </ErrorBoundaryImpl>
           </div>
         </div>
       </div>

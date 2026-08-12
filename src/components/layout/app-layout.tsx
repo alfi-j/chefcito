@@ -53,14 +53,14 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const [fontSize, setFontSize] = useState("medium");
   const { can, user } = usePermissions();
   const fetchRoles = useRolesStore((s) => s.fetchRoles);
-  const rolesLoaded = useRolesStore((s) => Object.keys(s.entities.roles).length > 0);
+  const fetchedRestaurantId = useRolesStore((s) => s.fetchedRestaurantId);
 
   // Ensure custom roles are loaded so permission checks work for custom roles
   useEffect(() => {
-    if (!rolesLoaded && user?.restaurantId) {
+    if (user?.restaurantId && fetchedRestaurantId !== user.restaurantId) {
       fetchRoles(user.restaurantId);
     }
-  }, [rolesLoaded, fetchRoles, user?.restaurantId]);
+  }, [fetchedRestaurantId, fetchRoles, user?.restaurantId]);
 
   const allMenuItems = [
     { href: "/dashboard", label: t('dashboard.title'), icon: Store, ownerOnly: true },

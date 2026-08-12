@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -55,32 +55,41 @@ export function UserDialog({
   onClose
 }: UserDialogProps) {
   const { t } = useTranslation()
-  const usersStore = useUsersStore()
-  
-  // Form state from store
-  const formName = usersStore.getFormName()
-  const formEmail = usersStore.getFormEmail()
-  const formPassword = usersStore.getFormPassword()
-  const formConfirmPassword = usersStore.getFormConfirmPassword()
-  const formRole = usersStore.getFormRole()
-  const formStatus = usersStore.getFormStatus()
-  const loading = usersStore.loading
-  const roles = usersStore.getRoles()
-  
+  const formName = useUsersStore((state) => state.getFormName())
+  const formEmail = useUsersStore((state) => state.getFormEmail())
+  const formPassword = useUsersStore((state) => state.getFormPassword())
+  const formConfirmPassword = useUsersStore((state) => state.getFormConfirmPassword())
+  const formRole = useUsersStore((state) => state.getFormRole())
+  const formStatus = useUsersStore((state) => state.getFormStatus())
+  const loading = useUsersStore((state) => state.loading)
+  const rolesRecord = useUsersStore((state) => state.entities.roles)
+  const resetForm = useUsersStore((state) => state.resetForm)
+  const clearForm = useUsersStore((state) => state.clearForm)
+  const getFormErrors = useUsersStore((state) => state.getFormErrors)
+  const setLoading = useUsersStore((state) => state.setLoading)
+  const setFormName = useUsersStore((state) => state.setFormName)
+  const setFormEmail = useUsersStore((state) => state.setFormEmail)
+  const setFormPassword = useUsersStore((state) => state.setFormPassword)
+  const setFormConfirmPassword = useUsersStore((state) => state.setFormConfirmPassword)
+  const setFormRole = useUsersStore((state) => state.setFormRole)
+  const setFormStatus = useUsersStore((state) => state.setFormStatus)
+
+  const roles = useMemo(() => Object.values(rolesRecord), [rolesRecord])
+
   // Reset form when dialog opens/closes or the edited user changes.
   useEffect(() => {
     if (isOpen) {
-      usersStore.resetForm(!!user, user)
+      resetForm(!!user, user)
     } else {
-      usersStore.clearForm()
+      clearForm()
     }
-  }, [isOpen, user, usersStore])
+  }, [isOpen, user, resetForm, clearForm])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validation using store validation
-    const errors = usersStore.getFormErrors()
+    const errors = getFormErrors()
     if (errors.length > 0) {
       errors.forEach(error => toast.error(error))
       return
@@ -98,7 +107,7 @@ export function UserDialog({
     }
     
     try {
-      usersStore.setLoading(true)
+      setLoading(true)
       
       const userData = {
         name: formName.trim(),
@@ -109,11 +118,11 @@ export function UserDialog({
       }
       
       await onSave(userData)
-      usersStore.clearForm()
+      clearForm()
     } catch (error) {
       console.error('Error saving user:', error)
     } finally {
-      usersStore.setLoading(false)
+      setLoading(false)
     }
   }
 
@@ -147,7 +156,7 @@ export function UserDialog({
               <Input
                 id="name"
                 value={formName}
-                onChange={(e) => usersStore.setFormName(e.target.value)}
+                onChange={(e) => setFormName(e.target.value)}
                 className="col-span-3"
                 placeholder={t('restaurant.users.dialog.name_placeholder')}
                 required
@@ -162,7 +171,7 @@ export function UserDialog({
                 id="email"
                 type="email"
                 value={formEmail}
-                onChange={(e) => usersStore.setFormEmail(e.target.value)}
+                onChange={(e) => setFormEmail(e.target.value)}
                 className="col-span-3"
                 placeholder={t('restaurant.users.dialog.email_placeholder')}
                 required
@@ -180,7 +189,7 @@ export function UserDialog({
                     id="password"
                     type="password"
                     value={formPassword}
-                    onChange={(e) => usersStore.setFormPassword(e.target.value)}
+                    onChange={(e) => setFormPassword(e.target.value)}
                     className="col-span-3"
                     placeholder={t('restaurant.users.dialog.password_placeholder')}
                     minLength={6}
@@ -195,7 +204,7 @@ export function UserDialog({
                     id="confirmPassword"
                     type="password"
                     value={formConfirmPassword}
-                    onChange={(e) => usersStore.setFormConfirmPassword(e.target.value)}
+                    onChange={(e) => setFormConfirmPassword(e.target.value)}
                     className="col-span-3"
                     placeholder={t('restaurant.users.dialog.confirm_password_placeholder')}
                   />
@@ -209,7 +218,7 @@ export function UserDialog({
               </Label>
               <Select 
                 value={formRole} 
-                onValueChange={(value) => usersStore.setFormRole(value)}
+                onValueChange={(value) => setFormRole(value)}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder={t('restaurant.users.dialog.role_placeholder')} />
@@ -230,7 +239,7 @@ export function UserDialog({
               </Label>
               <Select 
                 value={formStatus} 
-                onValueChange={(value) => usersStore.setFormStatus(value as 'On Shift' | 'Off Shift' | 'On Break')}
+                onValueChange={(value) => setFormStatus(value as 'On Shift' | 'Off Shift' | 'On Break')}
               >
                 <SelectTrigger className="col-span-3">
                   <SelectValue />

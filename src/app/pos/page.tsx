@@ -390,7 +390,6 @@ function PosPageContent() {
     setPaymentSheetOpen(false);
 
     toast.success(t('pos.toast.payment_success_title'), {
-      description: t('pos.toast.payment_success_desc'),
       duration: 3000,
     });
   }

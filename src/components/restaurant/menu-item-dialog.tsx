@@ -37,16 +37,24 @@ interface MenuItemDialogProps {
 
 export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: externalIsOpen, onOpenChange: externalOnOpenChange }: MenuItemDialogProps) {
   const [internalOpen, setInternalOpen] = React.useState(false);
-  const menuStore = useMenuStore();
   const { t } = useTranslation();
 
   // Form state from store
-  const formName = menuStore.getFormName();
-  const formPrice = menuStore.getFormPrice();
-  const formDescription = menuStore.getFormDescription();
-  const formCategory = menuStore.getFormCategory();
-  const formImageUrl = menuStore.getFormImageUrl();
-  const formLinkedModifiers = menuStore.getFormLinkedModifiers();
+  const formName = useMenuStore((state) => state.form.name);
+  const formPrice = useMenuStore((state) => state.form.price);
+  const formDescription = useMenuStore((state) => state.form.description);
+  const formCategory = useMenuStore((state) => state.form.category);
+  const formImageUrl = useMenuStore((state) => state.form.imageUrl);
+  const formLinkedModifiers = useMenuStore((state) => state.form.linkedModifiers);
+  const resetForm = useMenuStore((state) => state.resetForm);
+  const clearForm = useMenuStore((state) => state.clearForm);
+  const getFormErrors = useMenuStore((state) => state.getFormErrors);
+  const setFormName = useMenuStore((state) => state.setFormName);
+  const setFormPrice = useMenuStore((state) => state.setFormPrice);
+  const setFormDescription = useMenuStore((state) => state.setFormDescription);
+  const setFormCategory = useMenuStore((state) => state.setFormCategory);
+  const setFormImageUrl = useMenuStore((state) => state.setFormImageUrl);
+  const setFormLinkedModifiers = useMenuStore((state) => state.setFormLinkedModifiers);
 
   // Use external open state if provided, otherwise use internal state
   const open = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
@@ -56,14 +64,14 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
     .filter(c => c.isModifierGroup)
     .map(c => ({ value: c.name, label: c.name }));
 
-  // Reset form when item changes or dialog opens - avoid store in dependencies to prevent infinite loops
+  // Reset form when item changes or dialog opens
   useEffect(() => {
     if (open) {
-      menuStore.resetForm(item);
+      resetForm(item);
     } else {
-      menuStore.clearForm();
+      clearForm();
     }
-  }, [open, item, menuStore]);
+  }, [open, item, resetForm, clearForm]);
 
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
@@ -73,7 +81,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
     e.preventDefault();
     
     // Validation using store validation
-    const errors = menuStore.getFormErrors();
+    const errors = getFormErrors();
     if (errors.length > 0) {
       errors.forEach(error => toast.error(t('toast.error'), { description: error, duration: 3000 }));
       return;
@@ -108,7 +116,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
         });
       }
 
-      menuStore.clearForm();
+      clearForm();
       handleOpenChange(false);
     } catch {
       // Handle error
@@ -137,7 +145,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
               <Input
                 id="name"
                 value={formName}
-                onChange={(e) => menuStore.setFormName(e.target.value)}
+                onChange={(e) => setFormName(e.target.value)}
                 placeholder={t('restaurant.menu_item_dialog.name_placeholder')}
                 className="text-lg h-12 px-4 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
@@ -153,7 +161,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
                 step="0.01"
                 min="0"
                 value={formPrice}
-                onChange={(e) => menuStore.setFormPrice(e.target.value)}
+                onChange={(e) => setFormPrice(e.target.value)}
                 placeholder={t('restaurant.menu_item_dialog.price_placeholder')}
                 className="text-lg h-12 px-4 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
@@ -166,7 +174,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
               <Textarea
                 id="description"
                 value={formDescription}
-                onChange={(e) => menuStore.setFormDescription(e.target.value)}
+                onChange={(e) => setFormDescription(e.target.value)}
                 placeholder={t('restaurant.menu_item_dialog.description_placeholder')}
                 className="min-h-[100px] text-base px-4 py-3 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
@@ -176,7 +184,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
               <label htmlFor="category" className="text-sm font-semibold text-foreground">
                 {t('restaurant.menu_item_dialog.category')}
               </label>
-              <Select value={formCategory} onValueChange={(value) => menuStore.setFormCategory(value)}>
+              <Select value={formCategory} onValueChange={(value) => setFormCategory(value)}>
                 <SelectTrigger className="h-12 text-base border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all">
                   <SelectValue placeholder={t('restaurant.menu_item_dialog.category_placeholder')} />
                 </SelectTrigger>
@@ -205,7 +213,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
               <Input
                 id="imageUrl"
                 value={formImageUrl}
-                onChange={(e) => menuStore.setFormImageUrl(e.target.value)}
+                onChange={(e) => setFormImageUrl(e.target.value)}
                 placeholder={t('restaurant.menu_item_dialog.image_url_placeholder')}
                 className="text-sm h-10 px-4 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
               />
@@ -224,7 +232,7 @@ export function MenuItemDialog({ item, categories, onSave, trigger, isOpen: exte
                                       const actualValues = typeof values === 'function' 
                                         ? values(formLinkedModifiers)
                                         : values;
-                                      menuStore.setFormLinkedModifiers(actualValues);
+                                      setFormLinkedModifiers(actualValues);
                                     }}
                 className="border-border/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all"
               />

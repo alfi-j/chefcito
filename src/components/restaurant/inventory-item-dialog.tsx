@@ -31,30 +31,38 @@ export function InventoryItemDialog({
 }) {
   const isEditMode = !!item;
   const { t } = useTranslation();
-  const inventoryStore = useInventoryStore();
   
   // Form state from store
-  const formName = inventoryStore.getFormName();
-  const formQuantity = inventoryStore.getFormQuantity();
-  const formUnit = inventoryStore.getFormUnit();
-  const formReorderThreshold = inventoryStore.getFormReorderThreshold();
-  const formCategory = inventoryStore.getFormCategory();
-  const formLinkedItemIds = inventoryStore.getFormLinkedItemIds();
+  const formName = useInventoryStore((state) => state.form.name);
+  const formQuantity = useInventoryStore((state) => state.form.quantity);
+  const formUnit = useInventoryStore((state) => state.form.unit);
+  const formReorderThreshold = useInventoryStore((state) => state.form.reorderThreshold);
+  const formCategory = useInventoryStore((state) => state.form.category);
+  const formLinkedItemIds = useInventoryStore((state) => state.form.linkedItemIds);
+  const resetForm = useInventoryStore((state) => state.resetForm);
+  const clearForm = useInventoryStore((state) => state.clearForm);
+  const getFormErrors = useInventoryStore((state) => state.getFormErrors);
+  const setFormName = useInventoryStore((state) => state.setFormName);
+  const setFormQuantity = useInventoryStore((state) => state.setFormQuantity);
+  const setFormUnit = useInventoryStore((state) => state.setFormUnit);
+  const setFormReorderThreshold = useInventoryStore((state) => state.setFormReorderThreshold);
+  const setFormCategory = useInventoryStore((state) => state.setFormCategory);
+  const setFormLinkedItemIds = useInventoryStore((state) => state.setFormLinkedItemIds);
   
   const menuItemOptions = menuItems.map(mi => ({ value: mi.id, label: mi.name }));
   
-  // Reset form when dialog opens/closes or item changes - exclude store from dependencies to prevent infinite loops
+  // Reset form when dialog opens/closes or item changes
   useEffect(() => {
     if (isOpen) {
-      inventoryStore.resetForm(item);
+      resetForm(item);
     } else {
-      inventoryStore.clearForm();
+      clearForm();
     }
-  }, [isOpen, item, inventoryStore]);
+  }, [isOpen, item, resetForm, clearForm]);
   
   const handleSubmit = () => {
     // Validation using store validation
-    const errors = inventoryStore.getFormErrors();
+    const errors = getFormErrors();
     if (errors.length > 0) {
       // Handle validation errors
       return;
@@ -81,7 +89,7 @@ export function InventoryItemDialog({
     } else {
       onSave(itemData);
     }
-    inventoryStore.clearForm();
+    clearForm();
     onOpenChange(false);
   };
 
@@ -105,7 +113,7 @@ export function InventoryItemDialog({
             <div className="space-y-3 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="name" className="text-base">{t('restaurant.inventory.dialog.name')}</Label>
-                    <Input id="name" value={formName} onChange={(e) => inventoryStore.setFormName(e.target.value)} />
+                    <Input id="name" value={formName} onChange={(e) => setFormName(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -115,12 +123,12 @@ export function InventoryItemDialog({
                         type="text"
                         inputMode="decimal"
                         value={formQuantity}
-                        onChange={handleNumericInputChange(inventoryStore.setFormQuantity)}
+                        onChange={handleNumericInputChange(setFormQuantity)}
                     />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="unit" className="text-base">{t('restaurant.inventory.dialog.unit')}</Label>
-                        <Input id="unit" value={formUnit} onChange={(e) => inventoryStore.setFormUnit(e.target.value)} placeholder="e.g. kg, L, pcs"/>
+                        <Input id="unit" value={formUnit} onChange={(e) => setFormUnit(e.target.value)} placeholder="e.g. kg, L, pcs"/>
                     </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -131,12 +139,12 @@ export function InventoryItemDialog({
                         type="text" 
                         inputMode="decimal"
                         value={formReorderThreshold}
-                        onChange={handleNumericInputChange(inventoryStore.setFormReorderThreshold)}
+                        onChange={handleNumericInputChange(setFormReorderThreshold)}
                         />
                     </div>
                     <div className="space-y-2">
                     <Label htmlFor="category" className="text-base">{t('restaurant.inventory.dialog.category')}</Label>
-                    <Input id="category" value={formCategory} onChange={(e) => inventoryStore.setFormCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
+                    <Input id="category" value={formCategory} onChange={(e) => setFormCategory(e.target.value)} placeholder="e.g. Dairy, Produce"/>
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -149,7 +157,7 @@ export function InventoryItemDialog({
                                           const actualValues = typeof values === 'function' 
                                             ? values(formLinkedItemIds)
                                             : values;
-                                          inventoryStore.setFormLinkedItemIds(actualValues);
+                                          setFormLinkedItemIds(actualValues);
                                         }}
                     placeholder={t('restaurant.inventory.dialog.select_items')}
                     />

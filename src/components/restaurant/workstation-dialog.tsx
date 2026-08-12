@@ -25,33 +25,37 @@ interface WorkstationDialogProps {
 
 export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }: WorkstationDialogProps) {
   const { t } = useTranslation()
-  const workstationsStore = useWorkstationsStore()
   
-  const formName = workstationsStore.getFormName()
-  const formError = workstationsStore.getFormError()
+  const formName = useWorkstationsStore((state) => state.form.name)
+  const formError = useWorkstationsStore((state) => state.form.error)
+  const resetForm = useWorkstationsStore((state) => state.resetForm)
+  const clearForm = useWorkstationsStore((state) => state.clearForm)
+  const setFormName = useWorkstationsStore((state) => state.setFormName)
+  const setFormError = useWorkstationsStore((state) => state.setFormError)
+  const getIsFormValid = useWorkstationsStore((state) => state.getIsFormValid)
   
   // Reset form when dialog opens/closes or workstation changes
   useEffect(() => {
     if (isOpen) {
-      workstationsStore.resetForm(workstation)
+      resetForm(workstation)
     } else {
-      workstationsStore.clearForm()
+      clearForm()
     }
-  }, [isOpen, workstation, workstationsStore])
+  }, [isOpen, workstation, resetForm, clearForm])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
     // Validate inputs
-    if (!workstationsStore.getIsFormValid()) {
-      workstationsStore.setFormError(t('restaurant.workstations.errors.name_required'))
+    if (!getIsFormValid()) {
+      setFormError(t('restaurant.workstations.errors.name_required'))
       return
     }
     
     onSave({
       name: formName.trim()
     })
-    workstationsStore.clearForm()
+    clearForm()
     onOpenChange(false)
   }
 
@@ -78,7 +82,7 @@ export function WorkstationDialog({ workstation, isOpen, onOpenChange, onSave }:
               <Input
                 id="name"
                 value={formName}
-                onChange={(e) => workstationsStore.setFormName(e.target.value)}
+                onChange={(e) => setFormName(e.target.value)}
                 required
               />
             </div>

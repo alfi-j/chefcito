@@ -36,28 +36,35 @@ export function PaymentMethodDialog({
   const [isOpen, setIsOpen] = React.useState(false);
   const isEditMode = !!method;
   const { t } = useTranslation();
-  const paymentsStore = usePaymentsStore();
   
   // Form state from store
-  const formName = paymentsStore.getFormName();
-  const formType = paymentsStore.getFormType();
-  const formBanks = paymentsStore.getFormBanks();
-  const formNewBank = paymentsStore.getFormNewBank();
+  const formName = usePaymentsStore((state) => state.form.name);
+  const formType = usePaymentsStore((state) => state.form.type);
+  const formBanks = usePaymentsStore((state) => state.form.banks);
+  const formNewBank = usePaymentsStore((state) => state.form.newBank);
+  const resetForm = usePaymentsStore((state) => state.resetForm);
+  const clearForm = usePaymentsStore((state) => state.clearForm);
+  const getIsFormValid = usePaymentsStore((state) => state.getIsFormValid);
+  const setFormName = usePaymentsStore((state) => state.setFormName);
+  const setFormType = usePaymentsStore((state) => state.setFormType);
+  const setFormNewBank = usePaymentsStore((state) => state.setFormNewBank);
+  const addBank = usePaymentsStore((state) => state.addBank);
+  const deleteBank = usePaymentsStore((state) => state.deleteBank);
   
-  // Reset form when dialog opens/closes or method changes - exclude store from dependencies to prevent infinite loops
+  // Reset form when dialog opens/closes or method changes
   useEffect(() => {
     if (isOpen) {
-      paymentsStore.resetForm(method);
+      resetForm(method);
     } else {
-      paymentsStore.clearForm();
+      clearForm();
     }
-  }, [isOpen, method, paymentsStore]);
+  }, [isOpen, method, resetForm, clearForm]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
-    if (!paymentsStore.getIsFormValid()) {
+    if (!getIsFormValid()) {
       return;
     }
     
@@ -70,16 +77,16 @@ export function PaymentMethodDialog({
     };
 
     onSave(methodData);
-    paymentsStore.clearForm();
+    clearForm();
     setIsOpen(false);
   };
 
   const handleAddBank = () => {
-    paymentsStore.addBank(formNewBank);
+    addBank(formNewBank);
   };
 
   const handleDeleteBank = (bankToDelete: string) => {
-    paymentsStore.deleteBank(bankToDelete);
+    deleteBank(bankToDelete);
   };
 
   return (
@@ -109,14 +116,14 @@ export function PaymentMethodDialog({
               <Input 
                 id="name" 
                 value={formName} 
-                onChange={(e) => paymentsStore.setFormName(e.target.value)}
+                onChange={(e) => setFormName(e.target.value)}
                 placeholder={t('restaurant.payment_method_dialog.name_placeholder')}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="type">{t('restaurant.payment_method_dialog.type')}</Label>
-              <Select value={formType} onValueChange={(value: 'cash' | 'card' | 'bank_transfer') => paymentsStore.setFormType(value)}>
+              <Select value={formType} onValueChange={(value: 'cash' | 'card' | 'bank_transfer') => setFormType(value)}>
                 <SelectTrigger id="type">
                   <SelectValue placeholder={t('restaurant.payment_method_dialog.select_type')} />
                 </SelectTrigger>
@@ -144,7 +151,7 @@ export function PaymentMethodDialog({
                           <Input 
                               placeholder={t('restaurant.payment_method_dialog.add_bank')}
                               value={formNewBank}
-                              onChange={(e) => paymentsStore.setFormNewBank(e.target.value)}
+                              onChange={(e) => setFormNewBank(e.target.value)}
                               onKeyDown={(e) => e.key === 'Enter' && handleAddBank()}
                           />
                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleAddBank}>

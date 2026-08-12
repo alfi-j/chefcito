@@ -11,7 +11,7 @@
         "no_restaurants_desc": "Aún no tienes acceso a ningún restaurante. Crea uno para empezar.",
         "active": "Activo",
         "active_desc": "Este es el restaurante en el que estás trabajando actualmente.",
-        "manage": "Gestionar",
+        "manage": "Gestionando",
         "access": "Acceder",
         "membership_free": "Gratis",
         "membership_pro": "Pro",
@@ -187,8 +187,7 @@
             "order_sent_desc": "La orden ha sido enviada a la cocina.",
             "fetch_error": "No se pudieron cargar los datos del menú.",
             "send_error": "Error al enviar la orden a la cocina.",
-            "payment_success_title": "Pago Exitoso",
-            "payment_success_desc": "La orden ha sido pagada y completada."
+            "payment_success_title": "Información de pago guardada"
         }
     },
     "kds": {
@@ -277,6 +276,11 @@
     "restaurant": {
         "title": "Restaurante",
         "loading": "Cargando datos...",
+        "load_error": "Error al cargar los datos del restaurante",
+        "error_boundary": {
+            "title": "Algo salió mal en esta sección",
+            "retry": "Reintentar"
+        },
         "general": {
             "title": "General",
             "loading": "Cargando configuración...",

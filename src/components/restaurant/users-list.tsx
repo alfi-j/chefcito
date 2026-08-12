@@ -62,13 +62,19 @@ interface UserFormData {
 
 export function UsersList() {
   const { t } = useTranslation()
-  const usersStore = useUsersStore()
   const currentUser = useUserStore((state) => state.getCurrentUser())
-  
-  const users = usersStore.getUsers()
-  const roles = usersStore.getRoles()
-  const loading = usersStore.loading
-  const error = usersStore.error
+  const usersRecord = useUsersStore((state) => state.entities.users)
+  const rolesRecord = useUsersStore((state) => state.entities.roles)
+  const loading = useUsersStore((state) => state.loading)
+  const error = useUsersStore((state) => state.error)
+  const fetchUsers = useUsersStore((state) => state.fetchUsers)
+  const fetchRoles = useUsersStore((state) => state.fetchRoles)
+  const addUser = useUsersStore((state) => state.addUser)
+  const updateUser = useUsersStore((state) => state.updateUser)
+  const deleteUser = useUsersStore((state) => state.deleteUser)
+
+  const users = useMemo(() => Object.values(usersRecord), [usersRecord])
+  const roles = useMemo(() => Object.values(rolesRecord), [rolesRecord])
   
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
@@ -88,9 +94,11 @@ export function UsersList() {
 
   // Fetch users and roles
   useEffect(() => {
-    usersStore.fetchUsers(currentUser?.restaurantId);
-    usersStore.fetchRoles(currentUser?.restaurantId);
-  }, [currentUser?.restaurantId, usersStore])
+    if (currentUser?.restaurantId) {
+      fetchUsers(currentUser.restaurantId);
+      fetchRoles(currentUser.restaurantId);
+    }
+  }, [currentUser?.restaurantId, fetchUsers, fetchRoles])
 
   const handleOpenDialog = (user?: User) => {
     setEditingUser(user || null)
@@ -119,11 +127,11 @@ export function UsersList() {
     try {
       if (editingUser) {
         // Update existing user
-        await usersStore.updateUser(editingUser.id, userData);
+        await updateUser(editingUser.id, userData);
         toast.success(t('restaurant.users.updated_success'))
       } else {
         // Add new user
-        await usersStore.addUser(userData as unknown as Omit<User, 'id'>);
+        await addUser(userData as unknown as Omit<User, 'id'>);
         toast.success(t('restaurant.users.created_success'))
       }
       handleCloseDialog()
@@ -136,7 +144,7 @@ export function UsersList() {
   const handleDeleteUser = async (userId: string) => {
     try {
       setDeletingUserId(userId)
-      await usersStore.deleteUser(userId);
+      await deleteUser(userId);
       toast.success(t('restaurant.users.deleted_success'))
     } catch (error) {
       console.error('Error deleting user:', error)

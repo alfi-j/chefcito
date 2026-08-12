@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -85,11 +85,16 @@ const EMPTY_FORM: RoleData = {
 
 export function RolesList() {
   const { t } = useTranslation()
-  const currentUser = useUserStore().getCurrentUser()
-  const rolesStore = useRolesStore()
+  const currentUser = useUserStore((state) => state.getCurrentUser())
+  const rolesRecord = useRolesStore((state) => state.entities.roles)
+  const loading = useRolesStore((state) => state.loading)
+  const fetchRoles = useRolesStore((state) => state.fetchRoles)
+  const fetchedRestaurantId = useRolesStore((state) => state.fetchedRestaurantId)
+  const addRole = useRolesStore((state) => state.addRole)
+  const updateRole = useRolesStore((state) => state.updateRole)
+  const deleteRole = useRolesStore((state) => state.deleteRole)
 
-  const roles = rolesStore.getRoles()
-  const loading = rolesStore.loading
+  const roles = useMemo(() => Object.values(rolesRecord), [rolesRecord])
 
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRole, setEditingRole] = useState<Role | null>(null)
@@ -106,10 +111,10 @@ export function RolesList() {
   })
 
   useEffect(() => {
-    if (currentUser?.restaurantId) {
-      rolesStore.fetchRoles(currentUser.restaurantId);
+    if (currentUser?.restaurantId && fetchedRestaurantId !== currentUser.restaurantId) {
+      fetchRoles(currentUser.restaurantId);
     }
-  }, [currentUser?.restaurantId, rolesStore])
+  }, [currentUser?.restaurantId, fetchedRestaurantId, fetchRoles])
 
   const handleOpenDialog = (role?: Role) => {
     if (role) {
@@ -160,14 +165,14 @@ export function RolesList() {
     e.preventDefault()
     try {
       if (editingRole) {
-        await rolesStore.updateRole(editingRole.id, formData);
+        await updateRole(editingRole.id, formData);
         toast.success(t('restaurant.toast.role_updated'))
       } else {
         if (!currentUser?.restaurantId) {
           toast.error(t('restaurant.toast.save_role_error'));
           return;
         }
-        await rolesStore.addRole({ ...formData, restaurantId: currentUser.restaurantId });
+        await addRole({ ...formData, restaurantId: currentUser.restaurantId });
         toast.success(t('restaurant.toast.role_created'))
       }
       handleCloseDialog()
@@ -178,7 +183,7 @@ export function RolesList() {
 
   const handleDeleteRole = async (roleId: string) => {
     try {
-      await rolesStore.deleteRole(roleId);
+      await deleteRole(roleId);
       toast.success(t('restaurant.toast.role_deleted'))
     } catch {
       toast.error(t('restaurant.toast.delete_role_error'))

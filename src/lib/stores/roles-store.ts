@@ -13,6 +13,8 @@ interface RolesState {
   entities: RoleEntities;
   loading: boolean;
   error: string | null;
+  /** restaurantId whose roles have already been fetched (or null if none) */
+  fetchedRestaurantId: string | null;
 }
 
 // Simplified role data type for form submission
@@ -47,7 +49,8 @@ const initialState: RolesState = {
     roles: {}
   },
   loading: false,
-  error: null
+  error: null,
+  fetchedRestaurantId: null
 };
 
 export const useRolesStore = create<RolesStore>()((set, get) => ({
@@ -72,18 +75,21 @@ export const useRolesStore = create<RolesStore>()((set, get) => ({
             ...get().entities,
             roles
           },
-          loading: false
+          loading: false,
+          fetchedRestaurantId: restaurantId || null
         });
       } else {
         set({
           error: result.error || 'Failed to fetch roles',
-          loading: false
+          loading: false,
+          fetchedRestaurantId: restaurantId || null
         });
       }
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'An unknown error occurred',
-        loading: false
+        loading: false,
+        fetchedRestaurantId: restaurantId || null
       });
     }
   },
