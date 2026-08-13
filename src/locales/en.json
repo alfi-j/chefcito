@@ -5,8 +5,7 @@
     },
     "dashboard": {
         "title": "Dashboard",
-        "subtitle": "Manage your restaurants and access to them.",
-        "my_restaurants": "My Restaurants",
+        "subtitle": "Manage your restaurants and access to them.",        "my_restaurants": "My Restaurants",
         "no_restaurants": "No restaurants found",
         "no_restaurants_desc": "You don't have access to any restaurant yet. Create one to get started.",
         "active": "Active",
@@ -34,6 +33,12 @@
         "switch_error": "Could not switch restaurant. Please try again.",
         "create_error": "Could not create restaurant. Please try again.",
         "create_name_required": "Please enter a restaurant name."
+    },
+    "accessibility": {
+        "title": "Accessibility",
+        "text_small": "Small text",
+        "text_medium": "Medium text",
+        "text_large": "Large text"
     },
     "pos": {
         "title": "POS",

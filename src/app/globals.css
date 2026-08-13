@@ -74,6 +74,18 @@
 }
 
 @layer utilities {
+  .a11y-text-small {
+    font-size: 125%;
+  }
+  .a11y-text-medium {
+    font-size: 150%;
+  }
+  .a11y-text-large {
+    font-size: 175%;
+  }
+}
+
+@layer utilities {
   .animate-blink {
     animation: blink 1.5s infinite;
   }

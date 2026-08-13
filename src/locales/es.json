@@ -35,6 +35,12 @@
         "create_error": "No se pudo crear el restaurante. Inténtalo de nuevo.",
         "create_name_required": "Por favor, ingresa un nombre para el restaurante."
     },
+    "accessibility": {
+        "title": "Accesibilidad",
+        "text_small": "Texto pequeño",
+        "text_medium": "Texto mediano",
+        "text_large": "Texto grande"
+    },
     "pos": {
         "title": "Terminal de Venta",
         "loading": "Cargando menú...",
