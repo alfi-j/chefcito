@@ -97,6 +97,17 @@ export default function KdsPage() {
     }
 
     let eventSource: EventSource;
+    // Coalesce bursts of SSE messages (e.g. rapid multi-item transitions)
+    // into a single debounced refetch so the store isn't churned by many
+    // overlapping revalidations.
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        refreshTimer = null;
+        mutate();
+      }, 120);
+    };
 
     try {
       const token = getAuthToken();
@@ -109,7 +120,7 @@ export default function KdsPage() {
           const data = JSON.parse(event.data);
           debugKDS('SSE message received:', data);
           if (data.type === 'orders_update') {
-            setTimeout(() => mutate(), 300);
+            scheduleRefresh();
           }
         } catch (error) {
           debugKDS('Error parsing SSE message:', error);
@@ -124,6 +135,7 @@ export default function KdsPage() {
     }
 
     return () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
       eventSource?.close();
     };
   }, [mutate, user?.restaurantId]);

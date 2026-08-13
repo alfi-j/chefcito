@@ -52,11 +52,36 @@ interface NormalizedEntities {
   workstations: Record<string, IWorkstation>;
 }
 
+// A transition that has been applied optimistically but not yet confirmed
+// by the server. Keyed as `${orderId}:${itemId}`.
+interface PendingTransition {
+  orderId: number;
+  itemId: string;
+  status: string;
+  workstationId?: string;
+  ts: number;
+}
+
+const clearPendingTransition = (
+  pending: Record<string, PendingTransition>,
+  key: string
+): Record<string, PendingTransition> => {
+  const next = { ...pending };
+  delete next[key];
+  return next;
+};
+
+// How long an optimistic transition is protected from server snapshots.
+// A transition confirmed via SSE clears its lock immediately; this TTL is the
+// safety valve for a lost confirm so a stale lock can never block real data.
+const PENDING_TRANSITION_TTL_MS = 4000;
+
 interface NormalizedState {
   entities: NormalizedEntities;
   activeTab: string;
   draggedOrderId: number | null;
   dragOverOrderId: number | null;
+  pendingTransitions: Record<string, PendingTransition>;
 }
 
 interface NormalizedKDSState extends NormalizedState {
@@ -109,7 +134,8 @@ const initialState: NormalizedState = {
   },
   activeTab: "",
   draggedOrderId: null,
-  dragOverOrderId: null
+  dragOverOrderId: null,
+  pendingTransitions: {}
 };
 
 const useKDSStore = create<NormalizedKDSState>()(
@@ -137,15 +163,58 @@ const useKDSStore = create<NormalizedKDSState>()(
       if (!Array.isArray(orders)) return;
       // Normalize orders
       const normalizedOrders: Record<number, Order> = {};
+      const remainingPending = { ...get().pendingTransitions };
+      const now = Date.now();
+
+      // Expire stale locks so a lost SSE confirm never blocks real server data.
+      Object.keys(remainingPending).forEach(key => {
+        if (now - (remainingPending[key].ts || 0) > PENDING_TRANSITION_TTL_MS) {
+          delete remainingPending[key];
+        }
+      });
+
       orders.forEach(order => {
+        // Preserve optimistic (pending) transitions for this order's items.
+        // Without this, a server refetch triggered by our own SSE echo could
+        // clobber a transition that was just applied locally but whose snapshot
+        // predates the DB commit -> visible rollback-then-advance flicker.
+        const pendingItems = Object.values(remainingPending)
+          .filter(p => `${p.orderId}` === `${order.id}`);
+        if (pendingItems.length > 0) {
+          const pendingByItemId = new Map(pendingItems.map(p => [p.itemId, p]));
+          order = {
+            ...order,
+            items: order.items.map(item => {
+              const pending = pendingByItemId.get(item.id);
+              if (!pending) return item;
+
+              // If the server snapshot already reflects the transition, the
+              // server has confirmed it -> release the pending lock.
+              const serverMatches = item.status === pending.status &&
+                (!pending.workstationId || !item.workstationId || item.workstationId === pending.workstationId);
+              if (serverMatches) {
+                delete remainingPending[`${order.id}:${item.id}`];
+                return item;
+              }
+
+              // Snapshot is stale (predates our commit): keep the optimistic value.
+              return {
+                ...item,
+                status: pending.status,
+                ...(pending.workstationId ? { workstationId: pending.workstationId } : {}),
+              };
+            })
+          };
+        }
         normalizedOrders[order.id] = order;
       });
-      
+
       set((state) => ({
         entities: {
           ...state.entities,
           orders: normalizedOrders
-        }
+        },
+        pendingTransitions: remainingPending
       }));
     },
     
@@ -448,32 +517,40 @@ const useKDSStore = create<NormalizedKDSState>()(
           return;
         }
         
-        // Optimistically update the UI
-        const updatedOrder = {
-          ...order,
-          items: order.items.map((item, idx) => {
-            if (idx === itemIndex) {
-              const updatedItem = { ...item, status };
-              // If moving to next workstation, update workstationId as well
-              if (moveToNextWorkstation && nextWorkstationId) {
-                updatedItem.workstationId = nextWorkstationId;
-                updatedItem.status = 'New'; // Make sure status is 'New' in new workstation
+        // Optimistically update the UI. Patch only the transitioning item using
+        // the store's latest order inside the updater, so a concurrent setOrders
+        // (SSE refetch) can never be clobbered by a stale snapshot rebuild.
+        const optimisticStatus = (moveToNextWorkstation && nextWorkstationId) ? 'New' : status;
+        const optimisticWorkstationId = (moveToNextWorkstation && nextWorkstationId) ? nextWorkstationId : item.workstationId;
+
+        set((state) => {
+          const currentOrder = state.entities.orders[orderId];
+          if (!currentOrder) return {};
+          const items = currentOrder.items.map(it =>
+            it.id === itemId
+              ? { ...it, status: optimisticStatus, workstationId: optimisticWorkstationId }
+              : it
+          );
+          return {
+            entities: {
+              ...state.entities,
+              orders: {
+                ...state.entities.orders,
+                [orderId]: { ...currentOrder, items }
               }
-              return updatedItem;
+            },
+            pendingTransitions: {
+              ...state.pendingTransitions,
+              [`${orderId}:${itemId}`]: {
+                orderId,
+                itemId,
+                status: optimisticStatus,
+                ...(optimisticWorkstationId ? { workstationId: optimisticWorkstationId } : {}),
+                ts: Date.now(),
+              }
             }
-            return item;
-          })
-        };
-        
-        set((state) => ({
-          entities: {
-            ...state.entities,
-            orders: {
-              ...state.entities.orders,
-              [orderId]: updatedOrder
-            }
-          }
-        }));
+          };
+        });
         
         // Send the update to the backend
         const response = await fetch(`/api/orders`, {
@@ -492,15 +569,20 @@ const useKDSStore = create<NormalizedKDSState>()(
         
         if (!response.ok) {
           // Rollback optimistic update on failure
-          set((state) => ({
-            entities: {
-              ...state.entities,
-              orders: {
-                ...state.entities.orders,
-                [orderId]: order
-              }
-            }
-          }));
+          set((state) => {
+            const currentOrder = state.entities.orders[orderId];
+            if (!currentOrder) return { pendingTransitions: clearPendingTransition(state.pendingTransitions, `${orderId}:${itemId}`) };
+            return {
+              entities: {
+                ...state.entities,
+                orders: {
+                  ...state.entities.orders,
+                  [orderId]: order
+                }
+              },
+              pendingTransitions: clearPendingTransition(state.pendingTransitions, `${orderId}:${itemId}`)
+            };
+          });
           
           // Try to parse error message
           let errorMessage = 'Failed to update item status';
@@ -590,32 +672,40 @@ const useKDSStore = create<NormalizedKDSState>()(
         // Removed duplicate check - already handled above
         
         // Optimistically update the UI
-        const updatedOrder = {
-          ...order,
-          items: order.items.map((item, idx) => {
-            if (idx === itemIndex) {
-              const updatedItem = { ...item, status };
-              // If moving to previous workstation, update workstationId as well
-              if (moveToPreviousWorkstation && previousWorkstationId) {
-                updatedItem.workstationId = previousWorkstationId;
-                updatedItem.status = 'In Progress'; // When moving back, set to 'In Progress'
+        // Optimistically update the UI. Patch only the reverting item using the
+        // store's latest order inside the updater.
+        const optimisticStatus = (moveToPreviousWorkstation && previousWorkstationId) ? 'In Progress' : status;
+        const optimisticWorkstationId = (moveToPreviousWorkstation && previousWorkstationId) ? previousWorkstationId : item.workstationId;
+
+        set((state) => {
+          const currentOrder = state.entities.orders[orderId];
+          if (!currentOrder) return {};
+          const items = currentOrder.items.map(it =>
+            it.id === itemId
+              ? { ...it, status: optimisticStatus, workstationId: optimisticWorkstationId }
+              : it
+          );
+          return {
+            entities: {
+              ...state.entities,
+              orders: {
+                ...state.entities.orders,
+                [orderId]: { ...currentOrder, items }
               }
-              return updatedItem;
+            },
+            pendingTransitions: {
+              ...state.pendingTransitions,
+              [`${orderId}:${itemId}`]: {
+                orderId,
+                itemId,
+                status: optimisticStatus,
+                ...(optimisticWorkstationId ? { workstationId: optimisticWorkstationId } : {}),
+                ts: Date.now(),
+              }
             }
-            return item;
-          })
-        };
-        
-        set((state) => ({
-          entities: {
-            ...state.entities,
-            orders: {
-              ...state.entities.orders,
-              [orderId]: updatedOrder
-            }
-          }
-        }));
-        
+          };
+        });
+
         const response = await fetch(`/api/orders`, {
           method: 'PUT',
           headers: {
@@ -634,15 +724,20 @@ const useKDSStore = create<NormalizedKDSState>()(
         
         if (!response.ok) {
           // Rollback optimistic update on failure
-          set((state) => ({
-            entities: {
-              ...state.entities,
-              orders: {
-                ...state.entities.orders,
-                [orderId]: order
-              }
-            }
-          }));
+          set((state) => {
+            const currentOrder = state.entities.orders[orderId];
+            if (!currentOrder) return { pendingTransitions: clearPendingTransition(state.pendingTransitions, `${orderId}:${itemId}`) };
+            return {
+              entities: {
+                ...state.entities,
+                orders: {
+                  ...state.entities.orders,
+                  [orderId]: order
+                }
+              },
+              pendingTransitions: clearPendingTransition(state.pendingTransitions, `${orderId}:${itemId}`)
+            };
+          });
           
           // Try to parse error message
           let errorMessage = 'Failed to revert item status';
