@@ -17,10 +17,11 @@ const PUBLIC_PREFIXES = [
   '/api/register',
   '/api/invitations',
   // Payment status polling used immediately after a PayPhone callback lands
-  // on public /thank-you (before the user store has a token)
-  '/api/payphone',
+  // on public /thank-you (before the user store has a token). PayPhone has no
+  // webhooks, so confirm + status polling are the only activation path.
+  '/api/payphone/confirm',
   '/api/subscriptions/status',
-  // Super-admin reconciliation job (no user token; guarded by IP in handler)
+  // Reconciliation job (no user token; guarded by x-admin-key in handler)
   '/api/subscriptions/reconcile',
 ]
 

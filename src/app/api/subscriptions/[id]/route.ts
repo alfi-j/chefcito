@@ -2,6 +2,29 @@ import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
+import { requireAuth } from '@/lib/auth';
+
+async function assertOwnerOfSubscription(request: Request, subscriptionId: string) {
+  const auth = await requireAuth(request);
+  if (!auth?.userId) {
+    return { error: 'No autorizado', status: 401 };
+  }
+
+  const subscription = await Subscription.findOne({
+    $or: [{ clientTransactionId: subscriptionId }, { _id: subscriptionId }]
+  });
+
+  if (!subscription) {
+    return { error: 'Suscripción no encontrada', status: 404 };
+  }
+
+  const restaurant = await Restaurant.findOne({ id: subscription.restaurantId });
+  if (!restaurant || restaurant.ownerId !== auth.userId) {
+    return { error: 'No autorizado para esta suscripción', status: 403 };
+  }
+
+  return { subscription };
+}
 
 // PUT /api/subscriptions/[id] - Actualizar suscripción (activar después de pago)
 export async function PUT(
@@ -13,24 +36,28 @@ export async function PUT(
 
     const resolvedParams = await params;
     const { id } = resolvedParams;
+
+    const result = await assertOwnerOfSubscription(request, id);
+    if ('error' in result || !result.subscription) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
+    }
+
+    const subscription = result.subscription;
     const body = await request.json();
 
-    const { status, plan, payphoneTransactionId, cancellationReason, clientTransactionId } = body;
-
-    // Buscar suscripción por clientTransactionId o _id
-    const subscription = await Subscription.findOne({ 
-      $or: [{ clientTransactionId: id }, { _id: id }] 
-    });
-
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Suscripción no encontrada' },
-        { status: 404 }
-      );
-    }
+    const { status, plan, payphoneTransactionId, cancellationReason } = body;
 
     // Actualizar estado si se proporciona
     if (status) {
+      // Activation must only happen through the PayPhone confirm/reconcile
+      // flow, never directly — otherwise anyone could set a subscription
+      // to "active" and unlock Pro for free.
+      if (status === 'active') {
+        return NextResponse.json(
+          { error: 'La activación solo puede realizarse tras confirmar el pago con PayPhone' },
+          { status: 400 }
+        );
+      }
       subscription.status = status;
     }
 
@@ -44,11 +71,6 @@ export async function PUT(
       subscription.payphoneTransactionId = payphoneTransactionId;
     }
 
-    // Actualizar clientTransactionId si se proporciona
-    if (clientTransactionId) {
-      subscription.clientTransactionId = clientTransactionId;
-    }
-
     // Manejar cancelación
     if (status === 'cancelled') {
       subscription.cancelledAt = new Date();
@@ -58,17 +80,6 @@ export async function PUT(
       await Restaurant.findOneAndUpdate(
         { id: subscription.restaurantId },
         { membership: 'free' }
-      );
-    }
-
-    // Manejar activación
-    if (status === 'active') {
-      subscription.startDate = new Date();
-
-      // Actualizar membresía del restaurante a 'pro'
-      await Restaurant.findOneAndUpdate(
-        { id: subscription.restaurantId },
-        { membership: 'pro' }
       );
     }
 
@@ -97,21 +108,16 @@ export async function DELETE(
 
     const resolvedParams = await params;
     const { id } = resolvedParams;
-    const body = await request.json();
-    const { reason } = body || {};
 
-    // Buscar suscripción
-    const subscription = await Subscription.findOne({ 
-      clientTransactionId: id,
-      status: 'active'
-    });
-
-    if (!subscription) {
-      return NextResponse.json(
-        { error: 'Suscripción activa no encontrada' },
-        { status: 404 }
-      );
+    const result = await assertOwnerOfSubscription(request, id);
+    if ('error' in result || !result.subscription) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
+
+    const subscription = result.subscription;
+
+    const body = await request.json().catch(() => ({}));
+    const { reason } = body || {};
 
     // Cancelar suscripción
     subscription.status = 'cancelled';

@@ -53,13 +53,13 @@ Copy `.env.local.example` → `.env.local`.
 | `MONGODB_DB` | DB name (optional if in URI) |
 | `PAYPHONE_TOKEN` | PayPhone API token |
 | `PAYPHONE_STORE_ID` | PayPhone store ID |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `RECONCILE_ADMIN_KEY` | Admin key for the subscription reconciliation job (`x-admin-key` header) |
 | `NEXT_PUBLIC_BASE_URL` | Canonical app URL (PayPhone redirects) |
 
 ## Notes
 
 - `package.json` name is `"nextn"`, not "chefcito".
 - `tsconfig.check.json` is stale (content: `// Temp files deleted`).
-- `src/app/api/payphone/webhook/` exists but is untested.
 - `scripts/` is gitignored (local dev utilities only).
+- Subscription activation flow: `/api/payphone/init` (owner-only, creates pending sub + returns widget config) → PayPhone widget → `/thank-you` server resolver + `/api/payphone/confirm` (public, idempotent) → `/api/subscriptions/status` polling. Recovery job `/api/subscriptions/reconcile` (needs `x-admin-key`). PayPhone has NO webhooks.
 - `src/lib/utils.ts` is a barrel re-exporting constants, types, helpers — import from `@/lib` directly.

@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
+import User from '@/models/User';
 import { initializeDatabase } from '@/lib/database-service';
+import { requireAuth } from '@/lib/auth';
+import { newClientTransactionId } from '@/lib/subscription';
 
 // GET /api/subscriptions - Obtener suscripción del restaurante
 export async function GET(request: Request) {
   try {
     await initializeDatabase();
+
+    const auth = await requireAuth(request);
+    if (!auth?.userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
 
     const { searchParams } = new URL(request.url);
     const restaurantId = searchParams.get('restaurantId');
@@ -15,6 +23,16 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { error: 'Restaurant ID es requerido' },
         { status: 400 }
+      );
+    }
+
+    // Only members of the restaurant can read its subscription
+    const user = await User.findOne({ id: auth.userId });
+    const isMember = user?.restaurantIds?.includes(restaurantId) || user?.restaurantId === restaurantId;
+    if (!isMember) {
+      return NextResponse.json(
+        { error: 'No autorizado para este restaurante' },
+        { status: 403 }
       );
     }
 
@@ -49,12 +67,16 @@ export async function POST(request: Request) {
   try {
     console.log('[Subscription API] Iniciando creación de suscripción...')
     await initializeDatabase()
-    console.log('[Subscription API] Conexión a MongoDB establecida')
+
+    const auth = await requireAuth(request);
+    if (!auth?.userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+    }
 
     const body = await request.json()
-    const { restaurantId, plan, amount, clientTransactionId, payphoneTransactionId } = body
+    const { restaurantId, plan, amount } = body
 
-    console.log('[Subscription API] Datos recibidos:', { restaurantId, plan, amount, clientTransactionId })
+    console.log('[Subscription API] Datos recibidos:', { restaurantId, plan, amount })
 
     if (!restaurantId || !plan || !amount) {
       console.error('[Subscription API] Faltan datos requeridos')
@@ -72,7 +94,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verificar si el restaurante existe
+    // Verificar que el restaurante existe y pertenece al usuario autenticado
     const restaurant = await Restaurant.findOne({ id: restaurantId })
     console.log('[Subscription API] Restaurante encontrado:', restaurant ? 'Sí' : 'No')
 
@@ -83,13 +105,20 @@ export async function POST(request: Request) {
       )
     }
 
+    if (restaurant.ownerId !== auth.userId) {
+      return NextResponse.json(
+        { error: 'No autorizado para este restaurante' },
+        { status: 403 }
+      )
+    }
+
     // Cancelar suscripciones activas previas
     await Subscription.updateMany(
       { restaurantId, status: { $in: ['active', 'pending'] } },
       { status: 'cancelled', cancelledAt: new Date() }
     )
 
-    // Crear nueva suscripción
+    // Crear nueva suscripción con clientTransactionId generado en el servidor
     console.log('[Subscription API] Creando suscripción...')
     const subscription = await Subscription.create({
       restaurantId,
@@ -97,8 +126,7 @@ export async function POST(request: Request) {
       status: 'pending',
       amount,
       currency: 'USD',
-      clientTransactionId,
-      payphoneTransactionId: payphoneTransactionId || null,
+      clientTransactionId: newClientTransactionId(),
       startDate: new Date()
     })
     console.log('[Subscription API] Suscripción creada:', subscription._id)

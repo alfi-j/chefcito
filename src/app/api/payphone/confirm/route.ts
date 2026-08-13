@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
+import { billingPeriod } from '@/lib/subscription';
 import debug from 'debug';
 
 const log = debug('chefcito:payphone:confirm');
@@ -168,15 +169,13 @@ export async function POST(request: Request) {
 
     // Handle approved payment (statusCode = "3")
     if (payphoneStatusCode === '3') {
-      const now = new Date();
-      const nextBillingDate = new Date(now);
-      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+      const period = billingPeriod();
 
       // Update subscription
       subscription.status = 'active';
-      subscription.startDate = now;
-      subscription.endDate = nextBillingDate;
-      subscription.nextBillingDate = nextBillingDate;
+      subscription.startDate = period.startDate;
+      subscription.endDate = period.endDate;
+      subscription.nextBillingDate = period.nextBillingDate;
 
       // Save the actual PayPhone transaction ID
       if (payphoneTransactionId) {

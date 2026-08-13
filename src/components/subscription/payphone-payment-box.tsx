@@ -117,7 +117,6 @@ export function PayphonePaymentBox({
     }
 
     initPromiseRef.current = initPayment()
-    initPayment()
 
     return () => {
       isMounted = false

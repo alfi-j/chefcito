@@ -39,3 +39,15 @@ export function extractToken(request: Request): string | null {
   const url = new URL(request.url)
   return url.searchParams.get('token')
 }
+
+/**
+ * Verifies the JWT on an incoming API request and returns the payload.
+ * Used by route handlers that need the authenticated user's identity
+ * (the middleware already gates access; this re-verifies for handlers
+ * that make authorization decisions, so tests can call them directly).
+ */
+export async function requireAuth(request: Request): Promise<AuthPayload | null> {
+  const token = extractToken(request)
+  if (!token) return null
+  return verifyToken(token)
+}

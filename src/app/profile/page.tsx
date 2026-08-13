@@ -33,6 +33,7 @@ export default function ProfilePage() {
 
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [restaurantMembership, setRestaurantMembership] = useState<'free' | 'pro'>('free')
+  const [restaurantName, setRestaurantName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
@@ -58,6 +59,7 @@ export default function ProfilePage() {
           const restaurantData = await restaurantResponse.json()
           if (restaurantData && !restaurantData.error) {
             setRestaurantMembership(restaurantData.membership || 'free')
+            setRestaurantName(restaurantData.name || '')
           }
         }
 
@@ -107,6 +109,7 @@ export default function ProfilePage() {
               const restaurantData = await restaurantResponse.json()
               if (restaurantData && !restaurantData.error) {
                 setRestaurantMembership(restaurantData.membership || 'free')
+                setRestaurantName(restaurantData.name || '')
               }
             }
           } catch (error) {
@@ -247,7 +250,7 @@ export default function ProfilePage() {
           <div className="p-4 sm:p-6 space-y-4">
             <PayphonePaymentBox
               ownerEmail={user?.email ?? ''}
-              restaurantName={user?.name ?? ''}
+              restaurantName={restaurantName || user?.name || ''}
               restaurantId={user?.restaurantId ?? ''}
             />
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-2 pt-2 border-t border-border/50">

@@ -8,6 +8,7 @@ import { PayphoneEscapeFrame } from '@/components/payment/payphone-escape-frame'
 import Subscription from '@/models/Subscription'
 import Restaurant from '@/models/Restaurant'
 import { initializeDatabase } from '@/lib/database-service'
+import { billingPeriod } from '@/lib/subscription'
 import debug from 'debug'
 
 const log = debug('chefcito:payphone:thankyou')
@@ -119,14 +120,12 @@ async function resolvePayment(
   if (resolvedCode === '3') {
     const subscription = await Subscription.findOne({ clientTransactionId })
     if (subscription && subscription.status !== 'active') {
-      const now = new Date()
-      const nextBilling = new Date(now)
-      nextBilling.setDate(nextBilling.getDate() + 30)
+      const period = billingPeriod()
       subscription.status = 'active'
       if (transactionId) subscription.payphoneTransactionId = transactionId
-      subscription.startDate = now
-      subscription.endDate = nextBilling
-      subscription.nextBillingDate = nextBilling
+      subscription.startDate = period.startDate
+      subscription.endDate = period.endDate
+      subscription.nextBillingDate = period.nextBillingDate
       await Restaurant.findOneAndUpdate({ id: subscription.restaurantId }, { membership: 'pro' })
       await subscription.save()
       log('[ResolvePayment] Suscripción activada para clientTransactionId:', clientTransactionId)

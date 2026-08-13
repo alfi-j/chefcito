@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
+import { SUBSCRIPTION_GRACE_MS, billingPeriod } from '@/lib/subscription';
 import debug from 'debug';
 
 const log = debug('chefcito:payphone:reconcile');
@@ -24,26 +25,43 @@ interface PayphoneTransactionStatus {
  * actual payment status via PayPhone's Confirm API. Activates any that
  * were approved but not yet activated.
  *
- * In production, this endpoint should be protected with admin authentication.
- * For development, it's open but logs all actions.
- *
- * TODO: Add admin authentication middleware before deploying to production.
+ * Protected with an admin key (sent as `x-admin-key` header) matching
+ * `RECONCILE_ADMIN_KEY`. The endpoint runs as a scheduled job; keep the
+ * value secret and rotate it if it leaks.
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const adminKey = process.env.RECONCILE_ADMIN_KEY;
+    if (!adminKey) {
+      log('[Reconcile] RECONCILE_ADMIN_KEY not configured, rejecting');
+      return NextResponse.json(
+        { error: 'Reconciliation is not configured' },
+        { status: 503 }
+      );
+    }
+
+    const providedKey = request.headers.get('x-admin-key');
+    if (providedKey !== adminKey) {
+      log('[Reconcile] Invalid admin key, rejecting');
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     await initializeDatabase();
 
     log('[Reconcile] Starting reconciliation process...');
 
-    // Find all pending subscriptions older than 10 minutes
-    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+    // Find all pending subscriptions older than the grace period
+    const graceAgo = new Date(Date.now() - SUBSCRIPTION_GRACE_MS);
 
     const pendingSubscriptions = await Subscription.find({
       status: 'pending',
-      createdAt: { $lte: tenMinutesAgo },
+      createdAt: { $lte: graceAgo },
     });
 
-    log('[Reconcile] Found', pendingSubscriptions.length, 'pending subscriptions older than 10 minutes');
+    log('[Reconcile] Found', pendingSubscriptions.length, 'pending subscriptions older than', SUBSCRIPTION_GRACE_MS, 'ms');
 
     const results = {
       total: pendingSubscriptions.length,
@@ -105,14 +123,12 @@ export async function GET() {
 
         if (statusCode === '3') {
           // Payment was approved - activate the subscription
-          const now = new Date();
-          const nextBillingDate = new Date(now);
-          nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+          const period = billingPeriod();
 
           subscription.status = 'active';
-          subscription.startDate = now;
-          subscription.endDate = nextBillingDate;
-          subscription.nextBillingDate = nextBillingDate;
+          subscription.startDate = period.startDate;
+          subscription.endDate = period.endDate;
+          subscription.nextBillingDate = period.nextBillingDate;
           if (payphoneStatus?.transactionId) {
             subscription.payphoneTransactionId = payphoneStatus.transactionId;
           }

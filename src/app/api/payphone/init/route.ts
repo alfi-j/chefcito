@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import Subscription from '@/models/Subscription';
 import Restaurant from '@/models/Restaurant';
 import { initializeDatabase } from '@/lib/database-service';
+import { requireAuth } from '@/lib/auth';
+import { PRO_PLAN, newClientTransactionId, proReference } from '@/lib/subscription';
 import debug from 'debug';
 
 const log = debug('chefcito:payphone:init');
@@ -21,22 +23,39 @@ export async function POST(request: Request) {
   try {
     await initializeDatabase();
 
-    const body = await request.json();
-    const { restaurantId, restaurantName, ownerEmail } = body;
-
-    if (!restaurantId || !restaurantName || !ownerEmail) {
+    const auth = await requireAuth(request);
+    if (!auth?.userId) {
       return NextResponse.json(
-        { error: 'restaurantId, restaurantName y ownerEmail son requeridos' },
+        { error: 'No autorizado' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { restaurantId, ownerEmail } = body;
+
+    if (!restaurantId || !ownerEmail) {
+      return NextResponse.json(
+        { error: 'restaurantId y ownerEmail son requeridos' },
         { status: 400 }
       );
     }
 
-    // Verify restaurant exists
+    // Verify restaurant exists and the authenticated user owns it.
+    // Ownership is enforced server-side; the client-supplied restaurantId
+    // is never trusted to authorize a subscription.
     const restaurant = await Restaurant.findOne({ id: restaurantId });
     if (!restaurant) {
       return NextResponse.json(
         { error: 'Restaurante no encontrado' },
         { status: 404 }
+      );
+    }
+
+    if (restaurant.ownerId !== auth.userId) {
+      return NextResponse.json(
+        { error: 'No autorizado para este restaurante' },
+        { status: 403 }
       );
     }
 
@@ -58,15 +77,15 @@ export async function POST(request: Request) {
     );
 
     // Always generate a NEW unique transaction ID — PayPhone rejects duplicates
-    const clientTransactionId = `SUB-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`.substring(0, 50);
+    const clientTransactionId = newClientTransactionId();
 
     // Create pending subscription record
     await Subscription.create({
       restaurantId,
-      plan: 'pro',
+      plan: PRO_PLAN.plan,
       status: 'pending',
-      amount: 499,
-      currency: 'USD',
+      amount: PRO_PLAN.amount,
+      currency: PRO_PLAN.currency,
       clientTransactionId,
       paymentMethod: 'payphone',
       startDate: new Date(),
@@ -74,22 +93,22 @@ export async function POST(request: Request) {
 
     log('[Init] Pending subscription created successfully');
 
-    const reference = `Suscripción Pro - ${restaurantName}`.substring(0, 100);
+    const reference = proReference(restaurant.name);
 
-    log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId, amount: 499, amountWithoutTax: 499, currency: 'USD', reference, email: ownerEmail, lang: 'es', defaultMethod: 'card', timeZone: -5 }, null, 2));
+    log('[Init] Widget config being sent:', JSON.stringify({ token: '***', storeId, clientTransactionId, amount: PRO_PLAN.amount, amountWithoutTax: PRO_PLAN.amountWithoutTax, currency: PRO_PLAN.currency, reference, email: ownerEmail, lang: PRO_PLAN.lang, defaultMethod: PRO_PLAN.defaultMethod, timeZone: PRO_PLAN.timeZone }, null, 2));
 
     return NextResponse.json({
       token,
       storeId,
       clientTransactionId,
-      amount: 499,
-      amountWithoutTax: 499,
-      currency: 'USD',
+      amount: PRO_PLAN.amount,
+      amountWithoutTax: PRO_PLAN.amountWithoutTax,
+      currency: PRO_PLAN.currency,
       reference,
       email: ownerEmail,
-      lang: 'es',
-      defaultMethod: 'card',
-      timeZone: -5,
+      lang: PRO_PLAN.lang,
+      defaultMethod: PRO_PLAN.defaultMethod,
+      timeZone: PRO_PLAN.timeZone,
     });
   } catch (error) {
     log('[Init] Error:', error);
