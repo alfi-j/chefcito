@@ -78,19 +78,19 @@
  * fonts unlayered + higher specificity makes them take precedence.
  */
 html:root {
-  font-size: 125%;
-}
-
-html:root.a11y-text-small {
   font-size: 112.5%;
 }
 
+html:root.a11y-text-small {
+  font-size: 100%;
+}
+
 html:root.a11y-text-medium {
-  font-size: 125%;
+  font-size: 112.5%;
 }
 
 html:root.a11y-text-large {
-  font-size: 137.5%;
+  font-size: 125%;
 }
 
 @layer utilities {
