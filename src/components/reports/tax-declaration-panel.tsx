@@ -13,11 +13,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Switch } from "@/components/ui/switch"
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { generateTaxDeclaration } from '@/lib/tax/engine'
-import { supportedCountries } from '@/lib/tax/registry'
-import type { TaxCountry, TaxDeclarationConfig } from '@/lib/tax/types'
+import { supportedCountries, getCountrySpec } from '@/lib/tax/registry'
+import type { TaxCountry, TaxDeclarationConfig, TaxMode } from '@/lib/tax/types'
 import type { TaxTransaction } from '@/lib/tax/types'
 import { format } from 'date-fns'
 
@@ -43,12 +44,14 @@ interface DeclarationForm {
   emissionPointCode: string
   sequenceStart: string
   vatRate: string
+  taxMode: TaxMode
+  fixedTaxAmount: string
 }
 
 const STORAGE_KEY = 'chefcito-tax-declaration-config'
 
-const emptyForm = (): DeclarationForm => ({
-  country: 'ec',
+const emptyForm = (country: TaxCountry = 'ec'): DeclarationForm => ({
+  country,
   ruc: '',
   businessName: '',
   tradeName: '',
@@ -60,7 +63,9 @@ const emptyForm = (): DeclarationForm => ({
   establishmentCode: '001',
   emissionPointCode: '001',
   sequenceStart: '1',
-  vatRate: '15',
+  vatRate: String(getCountrySpec(country).defaultVatRate ?? 15),
+  taxMode: 'percentage',
+  fixedTaxAmount: '',
 })
 
 export function TaxDeclarationPanel({
@@ -91,15 +96,29 @@ export function TaxDeclarationPanel({
   }
 
   const setField = (key: keyof DeclarationForm) => (value: string) => {
+    if (key === 'country') {
+      const country = value as TaxCountry
+      setForm((prev) => ({
+        ...prev,
+        country,
+        vatRate: String(getCountrySpec(country).defaultVatRate ?? 15),
+      }))
+      return
+    }
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  const currencySymbol = getCountrySpec(form.country).currencySymbol ?? '$'
+
   const summary = useMemo(() => {
     const total = transactions.reduce((sum, tx) => sum + tx.total, 0)
-    const vatRate = parseFloat(form.vatRate) || 15
-    const tax = (total * vatRate) / 100
+    const fixedTaxAmount = parseFloat(form.fixedTaxAmount) || 0
+    const tax =
+      form.taxMode === 'fixed'
+        ? fixedTaxAmount
+        : (total * (parseFloat(form.vatRate) || 0)) / 100
     return { total, tax, net: total - tax }
-  }, [transactions, form.vatRate])
+  }, [transactions, form.vatRate, form.taxMode, form.fixedTaxAmount])
 
   const handleGenerate = () => {
     if (!form.ruc.trim() || !form.businessName.trim()) {
@@ -108,6 +127,10 @@ export function TaxDeclarationPanel({
     }
     if (transactions.length === 0) {
       toast.error(t('reports.tax.errors.no_transactions'))
+      return
+    }
+    if (form.taxMode === 'fixed' && (!form.fixedTaxAmount || parseFloat(form.fixedTaxAmount) <= 0)) {
+      toast.error(t('reports.tax.errors.fixed_tax_amount'))
       return
     }
 
@@ -135,7 +158,9 @@ export function TaxDeclarationPanel({
           emissionPointCode: form.emissionPointCode.trim() || '001',
           sequenceStart: parseInt(form.sequenceStart, 10) || 1,
         },
-        vatRate: (parseFloat(form.vatRate) || 15) / 100,
+        vatRate: (parseFloat(form.vatRate) || 0) / 100,
+        taxMode: form.taxMode,
+        fixedTaxAmount: form.taxMode === 'fixed' ? parseFloat(form.fixedTaxAmount) : undefined,
       }
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(form))
@@ -262,20 +287,47 @@ export function TaxDeclarationPanel({
                 <Input value={`${periodFrom ?? '—'} / ${periodTo ?? '—'}`} disabled />
               </div>
             </div>
+
+            <div className="mt-4 flex items-center justify-between gap-4 rounded-lg border p-4">
+              <div>
+                <p className="text-sm font-medium">{t('reports.tax.fixed_tax_label')}</p>
+                <p className="text-xs text-muted-foreground">{t('reports.tax.fixed_tax_hint')}</p>
+              </div>
+              <Switch
+                checked={form.taxMode === 'fixed'}
+                onCheckedChange={(checked) =>
+                  setField('taxMode')(checked ? 'fixed' : 'percentage')
+                }
+              />
+            </div>
+            {form.taxMode === 'fixed' && (
+              <div className="mt-2 space-y-2">
+                <Label htmlFor="tax-fixed-amount">{t('reports.tax.fixed_tax_amount')}</Label>
+                <Input
+                  id="tax-fixed-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder={`${currencySymbol} 0.00`}
+                  value={form.fixedTaxAmount}
+                  onChange={(e) => setField('fixedTaxAmount')(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="rounded-lg border p-4 grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-xs text-muted-foreground">{t('reports.tax.summary.total')}</p>
-              <p className="text-lg font-bold">${summary.total.toFixed(2)}</p>
+              <p className="text-lg font-bold">{currencySymbol}{summary.total.toFixed(2)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{t('reports.tax.summary.tax')}</p>
-              <p className="text-lg font-bold">${summary.tax.toFixed(2)}</p>
+              <p className="text-lg font-bold">{currencySymbol}{summary.tax.toFixed(2)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">{t('reports.tax.summary.net')}</p>
-              <p className="text-lg font-bold">${summary.net.toFixed(2)}</p>
+              <p className="text-lg font-bold">{currencySymbol}{summary.net.toFixed(2)}</p>
             </div>
           </div>
 

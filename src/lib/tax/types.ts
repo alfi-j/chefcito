@@ -1,4 +1,6 @@
-export type TaxCountry = 'ec';
+export type TaxCountry = 'ec' | 'us' | 'ca' | 'es';
+
+export type TaxMode = 'percentage' | 'fixed';
 
 export interface TaxpayerInfo {
   ruc: string;
@@ -29,6 +31,12 @@ export interface TaxDeclarationConfig {
   period: TaxPeriod;
   emission: EmissionPoint;
   vatRate: number; // e.g. 0.15
+  /**
+   * How the tax is computed. Use 'fixed' to replace the percentage rate with a
+   * flat amount for the whole period (e.g. special contributors / simplified regime).
+   */
+  taxMode?: TaxMode;
+  fixedTaxAmount?: number; // currency units for the whole period when taxMode === 'fixed'
 }
 
 // Transaction input shared with the reports engine
@@ -64,4 +72,10 @@ export interface CountrySpec {
   name: string;
   format: 'xml';
   generator: SaftGenerator;
+  /** ISO 4217 currency code, e.g. USD */
+  currency: string;
+  /** Currency symbol for display, e.g. $ */
+  currencySymbol: string;
+  /** Default tax rate (as a percentage, e.g. 15) used to prefill the panel */
+  defaultVatRate: number;
 }

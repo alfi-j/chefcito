@@ -622,11 +622,14 @@
             "establishment_code": "Código de Establecimiento",
             "emission_point_code": "Código de Punto de Emisión",
             "sequence_start": "Secuencia Inicial",
-            "vat_rate": "IVA (%)",
+            "vat_rate": "Tasa de Impuesto (%)",
             "period": "Período",
+            "fixed_tax_label": "Impuesto de monto fijo",
+            "fixed_tax_hint": "Reemplaza la tasa porcentual por un impuesto fijo para todo el período (p. ej. contribuyentes especiales).",
+            "fixed_tax_amount": "Monto fijo de impuesto",
             "summary": {
                 "total": "Total Bruto",
-                "tax": "Impuesto (IVA)",
+                "tax": "Impuesto",
                 "net": "Total Neto"
             },
             "footer": "{{count}} transacciones se incluirán en la declaración.",
@@ -637,6 +640,7 @@
             "errors": {
                 "missing_taxpayer": "RUC y razón social son obligatorios",
                 "no_transactions": "No hay transacciones en el período seleccionado",
+                "fixed_tax_amount": "Se requiere un monto fijo de impuesto mayor que cero",
                 "generation": "Error al generar la declaración de impuestos"
             }
         },

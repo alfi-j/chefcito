@@ -763,11 +763,14 @@
             "establishment_code": "Establishment Code",
             "emission_point_code": "Emission Point Code",
             "sequence_start": "Sequence Start",
-            "vat_rate": "VAT Rate (%)",
+            "vat_rate": "Tax Rate (%)",
             "period": "Period",
+            "fixed_tax_label": "Fixed tax amount",
+            "fixed_tax_hint": "Replace the percentage rate with a flat tax for the whole period (e.g. special contributors).",
+            "fixed_tax_amount": "Fixed Tax Amount",
             "summary": {
                 "total": "Gross Total",
-                "tax": "Tax (VAT)",
+                "tax": "Tax",
                 "net": "Net Total"
             },
             "footer": "{{count}} transactions will be included in the declaration.",
@@ -778,6 +781,7 @@
             "errors": {
                 "missing_taxpayer": "RUC and business name are required",
                 "no_transactions": "There are no transactions in the selected period",
+                "fixed_tax_amount": "A fixed tax amount greater than zero is required",
                 "generation": "Error generating the tax declaration"
             }
         },
