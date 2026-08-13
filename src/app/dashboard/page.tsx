@@ -35,7 +35,6 @@ import {
 } from 'lucide-react';
 import { useProAccess } from '@/lib/hooks/use-pro-access';
 import { ProFeatureGate } from '@/components/subscription/pro-feature-gate';
-import { AccessibilityMenu } from '@/components/accessibility/accessibility-menu';
 
 interface RestaurantData {
   id: string;
@@ -345,8 +344,6 @@ export default function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AccessibilityMenu />
     </div>
   );
 }

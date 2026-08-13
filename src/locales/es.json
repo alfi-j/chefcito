@@ -35,12 +35,6 @@
         "create_error": "No se pudo crear el restaurante. Inténtalo de nuevo.",
         "create_name_required": "Por favor, ingresa un nombre para el restaurante."
     },
-    "accessibility": {
-        "title": "Accesibilidad",
-        "text_small": "Texto pequeño",
-        "text_medium": "Texto mediano",
-        "text_large": "Texto grande"
-    },
     "pos": {
         "title": "Terminal de Venta",
         "loading": "Cargando menú...",
@@ -306,6 +300,7 @@
             "default_language": "Idioma Predeterminado",
             "language_english": "Inglés",
             "language_spanish": "Español",
+            "language_french": "Francés",
             "language_desc": "Esto cambia el idioma de la interfaz del restaurante.",
             "danger_zone": "Zona de Peligro",
             "danger_zone_desc": "Acciones irreversibles que afectan permanentemente a este restaurante y sus datos.",
@@ -933,8 +928,10 @@
 
         "language": {
             "title": "Idioma",
+            "title_fr": "Francés",
             "en": "Inglés",
-            "es": "Español"
+            "es": "Español",
+            "fr": "Francés"
         },
         "contact_email": "staff@chefcito.com"
     },

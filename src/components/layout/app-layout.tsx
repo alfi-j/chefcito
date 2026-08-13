@@ -32,7 +32,7 @@ import { Avatar } from "@/components/ui/avatar";
 import React, { useEffect } from "react";
 import { cn } from "@/lib/helpers";
 import { useTranslation } from 'react-i18next';
-import { changeLanguage } from '@/lib/i18n';
+import { changeLanguage, type SupportedLanguage } from '@/lib/i18n';
 import { useAuth } from "@/components/layout/auth-provider";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { useRolesStore } from "@/lib/stores/roles-store";
@@ -204,9 +204,13 @@ function UserNav({ onLogout, showRestaurant }: { onLogout: () => void, showResta
           </DropdownMenuSubTrigger>
           <DropdownMenuPortal>
             <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={i18n.language} onValueChange={(value: string) => changeLanguage(value as 'en' | 'es')}>
+              <DropdownMenuRadioGroup
+                value={i18n.language}
+                onValueChange={(value: string) => changeLanguage(value as SupportedLanguage)}
+              >
                 <DropdownMenuRadioItem value="en">{t('userMenu.language.en')}</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="es">{t('userMenu.language.es')}</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="fr">{t('userMenu.language.fr')}</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuPortal>

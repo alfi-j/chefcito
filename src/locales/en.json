@@ -34,12 +34,6 @@
         "create_error": "Could not create restaurant. Please try again.",
         "create_name_required": "Please enter a restaurant name."
     },
-    "accessibility": {
-        "title": "Accessibility",
-        "text_small": "Small text",
-        "text_medium": "Medium text",
-        "text_large": "Large text"
-    },
     "pos": {
         "title": "POS",
         "loading": "Loading menu...",
@@ -305,6 +299,7 @@
             "default_language": "Default Language",
             "language_english": "English",
             "language_spanish": "Spanish",
+            "language_french": "French",
             "language_desc": "This changes the interface language for the restaurant.",
             "danger_zone": "Danger Zone",
             "danger_zone_desc": "Irreversible actions that permanently affect this restaurant and its data.",
@@ -957,8 +952,10 @@
         "language": {
             "title": "Language",
             "title_es": "Idioma",
+            "title_fr": "Français",
             "en": "English",
-            "es": "Spanish"
+            "es": "Spanish",
+            "fr": "French"
         },
         "contact_email": "staff@chefcito.com"
     },

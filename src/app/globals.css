@@ -71,26 +71,15 @@
 }
 
 /*
- * Root font-size. These rules are intentionally NOT inside a @layer:
+ * Root font-size. This rule is intentionally NOT inside a @layer:
  * the PayPhone "Cajita de Pagos" stylesheet (loaded in the root layout)
  * ships an unlayered `:root { font-size: 13px }`, and unlayered author
- * styles win over layered ones regardless of specificity. Keeping our
- * fonts unlayered + higher specificity makes them take precedence.
+ * styles win over layered ones regardless of specificity. Keeping the
+ * root at 100% (unlayered) pins the app to the browser default and
+ * prevents the widget's stylesheet from shrinking the whole UI.
  */
 html:root {
-  font-size: 112.5%;
-}
-
-html:root.a11y-text-small {
   font-size: 100%;
-}
-
-html:root.a11y-text-medium {
-  font-size: 112.5%;
-}
-
-html:root.a11y-text-large {
-  font-size: 125%;
 }
 
 @layer utilities {

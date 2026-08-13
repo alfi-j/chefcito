@@ -23,29 +23,28 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Format a date to a relative time string (e.g., "2 hrs")
  * @param date - The date to format
- * @param language - The language to use for formatting ('en' or 'es')
  * @returns A formatted time ago string with abbreviated units
  */
-export function formatTimeAgo(date: Date, language: 'en' | 'es' = 'en'): string {
+export function formatTimeAgo(date: Date): string {
   try {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
     
     if (diffInSeconds < 60) {
       // Less than a minute - show "1 min" instead of seconds
-      return language === 'es' ? `1 min` : `1 min`;
+      return `1 min`;
     } else if (diffInSeconds < 3600) {
       // Less than an hour
       const minutes = Math.floor(diffInSeconds / 60);
-      return language === 'es' ? `${minutes} min` : `${minutes} min`;
+      return `${minutes} min`;
     } else if (diffInSeconds < 86400) {
       // Less than a day
       const hours = Math.floor(diffInSeconds / 3600);
-      return language === 'es' ? `${hours} hr` : `${hours} hr`;
+      return `${hours} hr`;
     } else {
       // A day or more
       const days = Math.floor(diffInSeconds / 86400);
-      return language === 'es' ? `${days} d` : `${days} d`;
+      return `${days} d`;
     }
   } catch {
     // Fallback to a simple date format if there's an error

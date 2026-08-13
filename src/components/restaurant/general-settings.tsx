@@ -211,6 +211,7 @@ export function GeneralSettings({ restaurantId }: GeneralSettingsProps) {
               <SelectContent>
                 <SelectItem value="en">{t('restaurant.general.language_english')}</SelectItem>
                 <SelectItem value="es">{t('restaurant.general.language_spanish')}</SelectItem>
+                <SelectItem value="fr">{t('restaurant.general.language_french')}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">{t('restaurant.general.language_desc')}</p>

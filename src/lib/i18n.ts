@@ -4,12 +4,14 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import en from '@/locales/en.json';
 import es from '@/locales/es.json';
+import fr from '@/locales/fr.json';
 
 if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
     resources: {
       en: { translation: en },
       es: { translation: es },
+      fr: { translation: fr },
     },
     lng: 'en',
     fallbackLng: 'en',
@@ -20,7 +22,7 @@ if (!i18n.isInitialized) {
   });
 }
 
-export type SupportedLanguage = 'en' | 'es';
+export type SupportedLanguage = 'en' | 'es' | 'fr';
 
 export function changeLanguage(language: SupportedLanguage) {
   i18n.changeLanguage(language);

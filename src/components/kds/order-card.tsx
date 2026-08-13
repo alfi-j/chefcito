@@ -6,7 +6,6 @@ import { cn, formatTimeAgo } from "@/lib/utils"
 import { Clock, ClipboardList, GripVertical, AlertTriangle, Pin, PinOff, StickyNote } from 'lucide-react'
 import { MdOutlineTableRestaurant } from "react-icons/md";
 import { useState, useEffect, useMemo, type DragEvent } from "react"
-import { useTranslation } from 'react-i18next'
 import { OrderItem as OrderItemComponent } from "./order-item"
 import { KDS_STATES } from "@/lib/constants"
 import { debugKDS } from "@/lib/helpers"
@@ -51,10 +50,6 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     return order.createdAt instanceof Date ? order.createdAt : new Date(order.createdAt);
   }, [order.createdAt]);
 
-  const { i18n } = useTranslation();
-  const language = i18n.language as 'en' | 'es';
-
-  // Update the display clock every minute; timeAgo is derived during render
   const [now, setNow] = useState(() => new Date().getTime());
 
   useEffect(() => {
@@ -65,7 +60,7 @@ export function OrderCard({ order, items, onUpdateItemStatus, onRevertItemStatus
     return () => clearInterval(interval);
   }, []);
 
-  const timeAgo = formatTimeAgo(createdAtDate, language);
+  const timeAgo = formatTimeAgo(createdAtDate);
 
   const elapsedMinutes = (now - createdAtDate.getTime()) / (1000 * 60);
   const isUrgent = elapsedMinutes > 10;
