@@ -12,9 +12,10 @@ const PUBLIC_PREFIXES = [
   '/api/auth/google',
   // Public Owner signup (creates restaurant)
   '/api/auth/signup',
-  // Owner signup (creates restaurant), invitation-based staff registration,
-  // and invitation token validation
+  // Owner signup (creates restaurant) and invitation-based staff registration
   '/api/register',
+  // Invitation token validation (staff registration page, pre-auth). The
+  // POST handler enforces auth + ownership + role validation itself.
   '/api/invitations',
   // Payment status polling used immediately after a PayPhone callback lands
   // on public /thank-you (before the user store has a token). PayPhone has no

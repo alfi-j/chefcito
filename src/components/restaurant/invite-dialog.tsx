@@ -56,7 +56,7 @@ export function InviteDialog({ isOpen, onOpenChange, roles }: InviteDialogProps)
       const res = await fetch("/api/invitations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ownerId: currentUser.id, role: selectedRole }),
+        body: JSON.stringify({ role: selectedRole }),
       })
 
       const data = await res.json()

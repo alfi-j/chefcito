@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server';
-import { Invitation } from '@/models';
-import mongoose from 'mongoose';
-
-async function ensureConnected() {
-  if (mongoose.connection.readyState !== 1) {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017');
-  }
-}
+import Invitation from '@/models/Invitation';
+import { initializeDatabase } from '@/lib/database-service';
 
 // GET /api/invitations/[token] — validate a token and return invitation info
 export async function GET(
@@ -14,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    await ensureConnected();
+    await initializeDatabase();
 
     const { token } = await params;
     const invitation = await Invitation.findOne({ token });
