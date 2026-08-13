@@ -29,7 +29,7 @@ export function ProFeatureGate({ children }: ProFeatureGateProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center p-16">
-        <p className="text-muted-foreground">{t('subscription.gate.loading')}</p>
+        <p className="text-muted-foreground">{t('profile.gate.loading')}</p>
       </div>
     )
   }
@@ -46,8 +46,8 @@ export function ProFeatureGate({ children }: ProFeatureGateProps) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
           <Lock className="h-8 w-8 text-muted-foreground" />
         </div>
-        <h2 className="text-2xl font-headline font-bold">{t('subscription.gate.locked_title')}</h2>
-        <p className="max-w-md text-muted-foreground">{t('subscription.gate.locked_desc')}</p>
+        <h2 className="text-2xl font-headline font-bold">{t('profile.gate.locked_title')}</h2>
+        <p className="max-w-md text-muted-foreground">{t('profile.gate.locked_desc')}</p>
       </div>
     )
   }
@@ -67,10 +67,10 @@ export function ProFeatureGate({ children }: ProFeatureGateProps) {
         <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-auto w-[95vw] sm:w-auto">
           <DialogHeader className="p-3 sm:p-4 pb-0">
             <DialogTitle className="font-headline text-2xl">
-              {t('subscription.gate.pay_title')}
+              {t('profile.gate.pay_title')}
             </DialogTitle>
             <p className="mt-2 text-sm text-muted-foreground">
-              {t('subscription.gate.pay_desc')}
+              {t('profile.gate.pay_desc')}
             </p>
           </DialogHeader>
 
@@ -85,7 +85,7 @@ export function ProFeatureGate({ children }: ProFeatureGateProps) {
               className="w-full"
               onClick={() => setIsPaymentDialogOpen(false)}
             >
-              {t('subscription.gate.pay_cancel')}
+              {t('profile.gate.pay_cancel')}
             </Button>
           </div>
         </DialogContent>
