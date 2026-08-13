@@ -567,15 +567,15 @@
                 "management": "Management"
             },
             "permissions": {
-                "manage_menu": "Manage Menu",
-                "manage_orders": "Manage Orders",
+                "menu_access": "Manage Menu",
+                "order_management": "Manage Orders",
                 "kds_access": "Access Kitchen Display",
-                "view_reports": "View Reports",
-                "manage_restaurant_settings": "Manage Restaurant Settings",
-                "manage_staff": "Manage Staff",
-                "manage_payments": "Manage Payments",
-                "manage_inventory": "Manage Inventory",
-                "manage_roles": "Manage Roles"
+                "reports_access": "View Reports",
+                "restaurant_settings": "Manage Restaurant Settings",
+                "user_management": "Manage Staff",
+                "payment_processing": "Manage Payments",
+                "inventory_management": "Manage Inventory",
+                "role_management": "Manage Roles"
             },
             "predefined_roles": {
                 "waiter_desc": "Serving staff who take orders and serve customers",

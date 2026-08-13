@@ -51,9 +51,9 @@ const PERMISSION_GROUPS = [
     labelKey: 'restaurant.roles.permission_groups.pos_orders',
     fallback: 'POS & Orders',
     permissions: [
-      { id: 'menu_access', labelKey: 'restaurant.roles.permissions.manage_menu', fallback: 'Manage menu' },
-      { id: 'order_management', labelKey: 'restaurant.roles.permissions.manage_orders', fallback: 'Manage orders' },
-      { id: 'payment_processing', labelKey: 'restaurant.roles.permissions.manage_payments', fallback: 'Process payments' },
+      { id: 'menu_access', labelKey: 'restaurant.roles.permissions.menu_access', fallback: 'Manage menu' },
+      { id: 'order_management', labelKey: 'restaurant.roles.permissions.order_management', fallback: 'Manage orders' },
+      { id: 'payment_processing', labelKey: 'restaurant.roles.permissions.payment_processing', fallback: 'Process payments' },
     ]
   },
   {
@@ -61,17 +61,17 @@ const PERMISSION_GROUPS = [
     fallback: 'Kitchen',
     permissions: [
       { id: 'kds_access', labelKey: 'restaurant.roles.permissions.kds_access', fallback: 'Kitchen display (KDS)' },
-      { id: 'inventory_management', labelKey: 'restaurant.roles.permissions.manage_inventory', fallback: 'Manage inventory' },
+      { id: 'inventory_management', labelKey: 'restaurant.roles.permissions.inventory_management', fallback: 'Manage inventory' },
     ]
   },
   {
     labelKey: 'restaurant.roles.permission_groups.management',
     fallback: 'Management',
     permissions: [
-      { id: 'reports_access', labelKey: 'restaurant.roles.permissions.view_reports', fallback: 'View reports' },
-      { id: 'restaurant_settings', labelKey: 'restaurant.roles.permissions.manage_restaurant_settings', fallback: 'Restaurant settings' },
-      { id: 'user_management', labelKey: 'restaurant.roles.permissions.manage_staff', fallback: 'Manage staff' },
-      { id: 'role_management', labelKey: 'restaurant.roles.permissions.manage_roles', fallback: 'Manage roles' },
+      { id: 'reports_access', labelKey: 'restaurant.roles.permissions.reports_access', fallback: 'View reports' },
+      { id: 'restaurant_settings', labelKey: 'restaurant.roles.permissions.restaurant_settings', fallback: 'Restaurant settings' },
+      { id: 'user_management', labelKey: 'restaurant.roles.permissions.user_management', fallback: 'Manage staff' },
+      { id: 'role_management', labelKey: 'restaurant.roles.permissions.role_management', fallback: 'Manage roles' },
     ]
   },
 ];
