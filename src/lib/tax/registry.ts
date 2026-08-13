@@ -13,24 +13,6 @@ import { generateSpainSaft } from '@/lib/tax/saft/spain';
  * default tax rate used to prefill the declaration panel.
  */
 export const saftRegistry: Record<TaxCountry, CountrySpec> = {
-  ec: {
-    code: 'ec',
-    name: 'Ecuador',
-    format: 'xml',
-    generator: generateEcuadorSaft,
-    currency: 'USD',
-    currencySymbol: '$',
-    defaultVatRate: 15,
-  },
-  us: {
-    code: 'us',
-    name: 'United States',
-    format: 'xml',
-    generator: generateUnitedStatesSaft,
-    currency: 'USD',
-    currencySymbol: '$',
-    defaultVatRate: 7,
-  },
   ca: {
     code: 'ca',
     name: 'Canada',
@@ -39,6 +21,15 @@ export const saftRegistry: Record<TaxCountry, CountrySpec> = {
     currency: 'CAD',
     currencySymbol: 'CA$',
     defaultVatRate: 5,
+  },
+  ec: {
+    code: 'ec',
+    name: 'Ecuador',
+    format: 'xml',
+    generator: generateEcuadorSaft,
+    currency: 'USD',
+    currencySymbol: '$',
+    defaultVatRate: 15,
   },
   es: {
     code: 'es',
@@ -49,9 +40,20 @@ export const saftRegistry: Record<TaxCountry, CountrySpec> = {
     currencySymbol: '€',
     defaultVatRate: 21,
   },
+  us: {
+    code: 'us',
+    name: 'United States',
+    format: 'xml',
+    generator: generateUnitedStatesSaft,
+    currency: 'USD',
+    currencySymbol: '$',
+    defaultVatRate: 7,
+  },
 };
 
-export const supportedCountries: CountrySpec[] = Object.values(saftRegistry);
+export const supportedCountries: CountrySpec[] = Object.values(saftRegistry).sort((a, b) =>
+  a.name.localeCompare(b.name)
+);
 
 export function getCountrySpec(country: TaxCountry): CountrySpec {
   const spec = saftRegistry[country];
