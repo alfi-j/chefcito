@@ -925,12 +925,6 @@
  "restaurant": "Restaurante",
  "logout": "Cerrar Sesión",
 
-        "font_size": {
-            "title": "Tamaño de Fuente",
-            "small": "Pequeño",
-            "medium": "Mediano",
-            "large": "Grande"
-        },
         "language": {
             "title": "Idioma",
             "en": "Inglés",
@@ -945,10 +939,6 @@
     },
     "settings": {
         "language": "Idioma",
-        "font_size": "Tamaño de Fuente",
-        "small": "Pequeño",
-        "medium": "Mediano",
-        "large": "Grande",
         "light": "Claro",
         "system": "Sistema"
     },

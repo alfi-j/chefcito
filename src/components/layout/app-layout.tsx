@@ -7,7 +7,6 @@ import {
   Utensils,
   LogOut,
   User,
-  Type,
   Languages,
   Settings,
   BarChart3,
@@ -30,7 +29,7 @@ import {
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { Avatar } from "@/components/ui/avatar";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { cn } from "@/lib/helpers";
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '@/lib/i18n';
@@ -51,7 +50,6 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { t } = useTranslation();
   const { logout } = useAuth();
-  const [fontSize, setFontSize] = useState("medium");
   const { can, user } = usePermissions();
   const { isPro } = useProAccess();
   const fetchRoles = useRolesStore((s) => s.fetchRoles);
@@ -132,8 +130,6 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
               {currentPage}
             </h2>
             <UserNav
-              fontSize={fontSize}
-              onFontSizeChange={setFontSize}
               onLogout={handleLogout}
               showRestaurant={user?.role === 'Owner' || user?.role === 'Admin'}
             />
@@ -141,7 +137,7 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", `font-size-${fontSize}`, "pb-24 md:pb-6")}>
+      <main className={cn("flex-1 overflow-auto p-4 sm:p-6 bg-muted/30", "pb-24 md:pb-6")}>
         {children}
       </main>
 
@@ -166,7 +162,7 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-function UserNav({ fontSize, onFontSizeChange, onLogout, showRestaurant }: { fontSize: string, onFontSizeChange: (size: string) => void, onLogout: () => void, showRestaurant: boolean }) {
+function UserNav({ onLogout, showRestaurant }: { onLogout: () => void, showRestaurant: boolean }) {
   const { t, i18n } = useTranslation();
   const router = useRouter();
 
@@ -200,22 +196,6 @@ function UserNav({ fontSize, onFontSizeChange, onLogout, showRestaurant }: { fon
             <span>{t('userMenu.restaurant')}</span>
           </DropdownMenuItem>
         )}
-
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Type className="mr-2 h-4 w-4" />
-            <span>{t('userMenu.font_size.title')}</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              <DropdownMenuRadioGroup value={fontSize} onValueChange={onFontSizeChange}>
-                <DropdownMenuRadioItem value="small">{t('userMenu.font_size.small')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="medium">{t('userMenu.font_size.medium')}</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="large">{t('userMenu.font_size.large')}</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
 
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>

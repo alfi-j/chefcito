@@ -949,12 +949,6 @@
  "restaurant": "Restaurant",
  "logout": "Logout",
 
-        "font_size": {
-            "title": "Font Size",
-            "small": "Small",
-            "medium": "Medium",
-            "large": "Large"
-        },
         "language": {
             "title": "Language",
             "title_es": "Idioma",
@@ -970,10 +964,6 @@
     },
     "settings": {
         "language": "Language",
-        "font_size": "Font Size",
-        "small": "Small",
-        "medium": "Medium",
-        "large": "Large",
         "light": "Light",
         "system": "System"
     },
