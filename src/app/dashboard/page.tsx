@@ -33,6 +33,8 @@ import {
   Store,
   Check,
 } from 'lucide-react';
+import { useProAccess } from '@/lib/hooks/use-pro-access';
+import { ProFeatureGate } from '@/components/subscription/pro-feature-gate';
 
 interface RestaurantData {
   id: string;
@@ -51,6 +53,7 @@ export default function DashboardPage() {
   const updateUserOptimistically = useUserStore((s) => s.updateUserOptimistically);
 
   const isRestaurantManager = user?.role === 'Owner' || user?.role === 'Admin';
+  const { isPro } = useProAccess();
   const idsFromUser = (user?.restaurantIds as string[] | undefined) ?? [];
   const restaurantIds = idsFromUser.length
     ? idsFromUser
@@ -184,11 +187,19 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-headline font-bold">{t('dashboard.title')}</h1>
           <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
         </div>
-        <Button onClick={() => setIsCreateOpen(true)} className="sm:flex-none">
-          <Plus className="mr-2 h-4 w-4" />
-          {t('dashboard.add_restaurant')}
-        </Button>
+        {isPro || restaurants.length === 0 ? (
+          <Button onClick={() => setIsCreateOpen(true)} className="sm:flex-none">
+            <Plus className="mr-2 h-4 w-4" />
+            {t('dashboard.add_restaurant')}
+          </Button>
+        ) : null}
       </div>
+
+      {!isPro && restaurants.length > 0 && (
+        <ProFeatureGate>
+          <span className="hidden" />
+        </ProFeatureGate>
+      )}
 
       <div>
         <h2 className="text-lg font-headline font-semibold mb-4">

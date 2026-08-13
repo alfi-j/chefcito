@@ -37,6 +37,7 @@ import { changeLanguage } from '@/lib/i18n';
 import { useAuth } from "@/components/layout/auth-provider";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { useRolesStore } from "@/lib/stores/roles-store";
+import { useProAccess } from "@/lib/hooks/use-pro-access";
 
 // Permission required to see each nav route (Owner/Admin always see everything)
 const NAV_PERMISSIONS: Record<string, string> = {
@@ -52,6 +53,7 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [fontSize, setFontSize] = useState("medium");
   const { can, user } = usePermissions();
+  const { isPro } = useProAccess();
   const fetchRoles = useRolesStore((s) => s.fetchRoles);
   const fetchedRestaurantId = useRolesStore((s) => s.fetchedRestaurantId);
 
@@ -75,6 +77,9 @@ export function AppLayoutContent({ children }: { children: React.ReactNode }) {
     if (item.isHidden) return true; // always keep hidden items (profile)
     if (item.ownerOnly) {
       return user?.role === 'Owner' || user?.role === 'Admin';
+    }
+    if (item.href === '/reports' && !isPro) {
+      return false; // Reports is a Pro-only feature
     }
     const requiredPermission = NAV_PERMISSIONS[item.href];
     if (!requiredPermission) return true;

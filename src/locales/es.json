@@ -751,6 +751,14 @@
             "processing": "Procesando...",
             "loading": "Cargando suscripción..."
         },
+        "gate": {
+            "loading": "Verificando suscripción...",
+            "locked_title": "Esta función requiere la suscripción Pro",
+            "locked_desc": "Pide al dueño del restaurante que se suscriba a Pro para desbloquear esta función.",
+            "pay_title": "Suscríbete a Pro",
+            "pay_desc": "Completa el pago con PayPhone para desbloquear esta función de inmediato.",
+            "pay_cancel": "Más tarde"
+        },
         "role_management_title": "Gestión de Roles",
         "role_management_desc": "Gestiona tu rol de usuario",
         "change_role": "Cambiar Rol",

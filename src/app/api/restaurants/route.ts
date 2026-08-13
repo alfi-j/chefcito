@@ -4,6 +4,8 @@ import { errorReporter } from '@/lib/helpers';
 import { connectToDatabase, isDatabaseConnected } from '@/lib/mongo-init';
 import { v4 as uuidv4 } from 'uuid';
 import { seedRestaurantData } from '@/lib/seed-data';
+import { requireAuth } from '@/lib/auth';
+import { countOwnedRestaurants, ownerHasProAccess } from '@/lib/subscription-access';
 
 // Define response structure
 interface ApiResponse<T> {
@@ -73,9 +75,32 @@ export async function POST(request: Request) {
     if (!isDatabaseConnected()) {
       await connectToDatabase();
     }
-    
+
+    // The owner identity comes from the JWT, never from the request body
+    const auth = await requireAuth(request);
+    if (!auth?.userId) {
+      return NextResponse.json(
+        createApiResponse(undefined, 'Unauthorized'),
+        { status: 401 }
+      );
+    }
+
+    // Free accounts are limited to one restaurant; additional locations are a
+    // Pro feature.
+    const ownedCount = await countOwnedRestaurants(auth.userId);
+    if (ownedCount >= 1 && !(await ownerHasProAccess(auth.userId))) {
+      return NextResponse.json(
+        createApiResponse(undefined, 'Creating additional restaurants requires a Pro subscription'),
+        { status: 403 }
+      );
+    }
+
     const restaurantData = await request.json();
-    
+
+    // Ignore any client-supplied ownerId — the restaurant always belongs to
+    // the authenticated user.
+    restaurantData.ownerId = auth.userId;
+
     // Generate a unique ID if not provided
     if (!restaurantData.id) {
       restaurantData.id = uuidv4();

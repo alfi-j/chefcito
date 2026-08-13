@@ -892,6 +892,14 @@
             "processing": "Processing...",
             "loading": "Loading subscription..."
         },
+        "gate": {
+            "loading": "Checking subscription...",
+            "locked_title": "This feature requires a Pro subscription",
+            "locked_desc": "Ask the restaurant owner to upgrade to Pro to unlock this feature.",
+            "pay_title": "Subscribe to Pro",
+            "pay_desc": "Complete the payment with PayPhone to unlock this feature immediately.",
+            "pay_cancel": "Later"
+        },
         "role_management_title": "Role Management",
         "role_management_desc": "Manage your user role",
         "change_role": "Change Role",

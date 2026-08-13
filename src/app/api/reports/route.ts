@@ -3,6 +3,9 @@ import { getInitialOrders, getPaymentMethods } from '@/lib/database-service';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { type DateRange } from 'react-day-picker';
 import { type MenuItem, type Order, type OrderItem, type Payment, type OrderStatusUpdate } from '@/lib/types';
+import { requireAuth } from '@/lib/auth';
+import User from '@/models/User';
+import { requireProAccess } from '@/lib/subscription-access';
 
 type ReportOrder = Order & {
   customerName?: string;
@@ -236,6 +239,14 @@ function generateKitchen(orders: ReportOrder[]) {
 
 export async function GET(request: Request) {
   try {
+    const auth = await requireAuth(request);
+    if (!auth?.userId) {
+      return NextResponse.json(
+        createApiResponse(undefined, 'Unauthorized'),
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const from = searchParams.get('from');
     const to = searchParams.get('to');
@@ -245,6 +256,28 @@ export async function GET(request: Request) {
       return NextResponse.json(
         createApiResponse(undefined, 'restaurantId is required'),
         { status: 400 }
+      );
+    }
+
+    // Only members of the restaurant can read its reports
+    const user = await User.findOne({ id: auth.userId });
+    const belongsToRestaurant =
+      user &&
+      (user.restaurantId === restaurantId ||
+        (user.restaurantIds || []).includes(restaurantId));
+    if (!belongsToRestaurant) {
+      return NextResponse.json(
+        createApiResponse(undefined, 'Forbidden'),
+        { status: 403 }
+      );
+    }
+
+    // Reports are a Pro-only feature
+    const denied = await requireProAccess(restaurantId);
+    if (denied) {
+      return NextResponse.json(
+        createApiResponse(undefined, denied.error),
+        { status: denied.status }
       );
     }
 

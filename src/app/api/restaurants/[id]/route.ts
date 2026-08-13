@@ -13,6 +13,7 @@ import Subscription from '@/models/Subscription';
 import Invitation from '@/models/Invitation';
 import Role from '@/models/Role';
 import { initializeDatabase } from '@/lib/database-service';
+import { hasProAccess } from '@/lib/subscription-access';
 
 /**
  * Collections tied to a restaurant that must be purged when it is deleted.
@@ -62,6 +63,14 @@ export async function GET(
         { error: 'Restaurant not found' },
         { status: 404 }
       );
+    }
+
+    // Re-evaluate membership on read so an expired subscription downgrades
+    // the restaurant (and everything gated behind Pro) automatically.
+    if (restaurant.membership === 'pro') {
+      await hasProAccess(id);
+      const refreshed = await Restaurant.findOne({ id });
+      if (refreshed) return NextResponse.json(refreshed.toObject());
     }
 
     return NextResponse.json(restaurant.toObject());
