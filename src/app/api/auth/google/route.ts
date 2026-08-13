@@ -3,7 +3,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { User } from '@/models';
 import Restaurant from '@/models/Restaurant';
 import mongoose from 'mongoose';
-import jwt from 'jsonwebtoken';
+import { signToken } from '@/lib/auth';
 import { v4 as uuidv4 } from 'uuid';
 import debug from 'debug';
 import { seedRestaurantData } from '@/lib/seed-data';
@@ -100,11 +100,7 @@ export async function POST(request: Request) {
     if (freshUser) user = freshUser;
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'chefcito_secret_key',
-      { expiresIn: '24h' }
-    );
+    const token = await signToken({ userId: user.id, email: user.email });
 
     const userObject = user.toObject();
     delete userObject.password;

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { User } from '@/models';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import { signToken } from '@/lib/auth';
 import { debugAuth } from '@/lib/helpers';
 import { initializeDatabase } from '@/lib/database-service';
 
@@ -51,11 +51,7 @@ export async function POST(request: Request) {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      process.env.JWT_SECRET || 'chefcito_secret_key',
-      { expiresIn: '24h' }
-    );
+    const token = await signToken({ userId: user.id, email: user.email });
     debugAuth('POST: generated JWT token for user %s', login);
 
     // Return user without password and token

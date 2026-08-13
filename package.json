@@ -52,6 +52,7 @@
     "google-auth-library": "^10.6.2",
     "i18next": "^26.3.6",
     "immer": "^11.0.1",
+    "jose": "^6.2.8",
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",

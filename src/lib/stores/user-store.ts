@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { setAuthToken, clearAuthToken } from '@/lib/client-auth';
 
 // Simplified User interface without Mongoose document methods
 interface User {
@@ -68,6 +69,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
     } else {
       set({ currentUserId: null });
       localStorage.removeItem('chefcito-user');
+      clearAuthToken();
     }
   },
   
@@ -87,6 +89,8 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
       }
       
       const userData = await response.json();
+      // Persist the JWT for authenticated API requests
+      if (userData.token) setAuthToken(userData.token);
       // Create a plain object from the user data to avoid Mongoose document issues
       const plainUser = JSON.parse(JSON.stringify(userData.user));
       set((state) => ({
@@ -110,6 +114,7 @@ export const useUserStore = create<NormalizedUserState>()((set, get) => ({
   logout: () => {
     set({ currentUserId: null });
     localStorage.removeItem('chefcito-user');
+    clearAuthToken();
   },
   
   updateRestaurantMembership: (restaurantId, membership) => {

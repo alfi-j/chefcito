@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/lib/stores/user-store';
+import { getAuthToken } from '@/lib/client-auth';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
 import { debugKDS } from '@/lib/helpers';
@@ -98,7 +99,10 @@ export default function KdsPage() {
     let eventSource: EventSource;
 
     try {
-      eventSource = new EventSource(`/api/orders/events?restaurantId=${encodeURIComponent(user.restaurantId)}`);
+      const token = getAuthToken();
+      const params = new URLSearchParams({ restaurantId: user.restaurantId });
+      if (token) params.set('token', token);
+      eventSource = new EventSource(`/api/orders/events?${params.toString()}`);
 
       eventSource.onmessage = (event) => {
         try {

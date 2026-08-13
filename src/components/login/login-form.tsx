@@ -10,17 +10,6 @@ import { useTranslation } from 'react-i18next'
 import { useUserStore } from "@/lib/stores/user-store";
 import { clearSWRCache } from "@/lib/swr-fetcher"
 
-// Simple cookie utility
-const setCookie = (name: string, value: string, days: number) => {
-    let expires = "";
-    if (days) {
-        const date = new Date();
-        date.setTime(date.getTime() + (days*24*60*60*1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
-}
-
 export function LoginForm() {
     const router = useRouter()
     const { t } = useTranslation();
@@ -36,9 +25,6 @@ export function LoginForm() {
         if (success) {
             // IMPORTANT: Clear SWR cache to ensure fresh data for this user
             clearSWRCache();
-            
-            // Set the auth cookie to maintain session
-            setCookie("chefcito-auth", "true", 1);
 
             toast.success(t('userMenu.login_success_title'), {
                 description: t('userMenu.login_success_desc'),
@@ -95,7 +81,7 @@ export function SignupForm() {
         }
 
         try {
-            const response = await fetch('/api/users', {
+            const response = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

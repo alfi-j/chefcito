@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/lib/stores/user-store";
 import { clearSWRCache } from "@/lib/swr-fetcher";
+import { setAuthToken } from "@/lib/client-auth";
 import { toast } from "sonner";
 
 declare global {
@@ -71,7 +72,7 @@ export function GoogleButton({ role }: GoogleButtonProps) {
 
             clearSWRCache();
             setUser(data.user);
-            document.cookie = "chefcito-auth=true; path=/; max-age=86400";
+            if (data.token) setAuthToken(data.token);
             router.push("/pos");
           } catch {
             toast.error("Google sign-in failed");

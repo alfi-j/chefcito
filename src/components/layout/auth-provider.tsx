@@ -3,6 +3,7 @@ import React, { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUserStore } from "@/lib/stores/user-store";
 import { clearSWRCache } from "@/lib/swr-fetcher";
+import { clearAuthToken } from "@/lib/client-auth";
 import { AppLayoutContent } from "@/components/layout/app-layout";
 
 // Wrapper function that clears SWR cache on logout
@@ -28,6 +29,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
       } catch (e) {
         console.error('Error parsing stored user:', e);
         localStorage.removeItem('chefcito-user');
+        clearAuthToken();
       }
     }
     // Defer the load-complete flag to avoid a synchronous setState in the effect
