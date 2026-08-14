@@ -16,6 +16,10 @@ export const KDS_STATES = {
 
 export type KDSState = typeof KDS_STATES[keyof typeof KDS_STATES];
 
+// Free plan shows up to this number of live orders on the KDS; beyond it the
+// kitchen display is gated behind the Pro payment wall.
+export const KDS_FREE_ORDER_LIMIT = 6;
+
 export const WORKSTATION_FLOW = {
   INITIAL_STATUS: 'New',
   FINAL_STATUS: 'Ready' // Changed from 'served' to 'Ready' as the final workstation is for ready items

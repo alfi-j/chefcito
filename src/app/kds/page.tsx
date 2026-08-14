@@ -12,9 +12,10 @@ import { getAuthToken } from '@/lib/client-auth';
 import { fetcher } from '@/lib/swr-fetcher';
 import { type IWorkstation } from '@/models/Workstation';
 import { debugKDS } from '@/lib/helpers';
-import { KDS_STATES } from '@/lib/constants';
+import { KDS_STATES, KDS_FREE_ORDER_LIMIT } from '@/lib/constants';
 import useKDSStore from '@/lib/stores/kds-store';
 import { usePermissions } from '@/lib/hooks/use-permissions';
+import { ProFeatureGate } from '@/components/subscription/pro-feature-gate';
 
 export default function KdsPage() {
   const { t } = useTranslation();
@@ -29,6 +30,15 @@ export default function KdsPage() {
     ? allWorkstations.filter(ws => allowedWsIds.includes(ws.id))
     : allWorkstations;
   const orders = kdsStore.getTodayOrders(); // Filter orders to only show items from the current day (< 24 hours old)
+
+  // Live orders shown on the kitchen display (pending, unpaid). The free plan
+  // is limited to KDS_FREE_ORDER_LIMIT of them; beyond that the Pro payment
+  // wall is shown instead of the board.
+  const activeOrderCount = useMemo(() => {
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    return safeOrders.filter(order => order.status !== 'completed' && !order.isPaid).length;
+  }, [orders]);
+  const exceedsKDSOrderLimit = activeOrderCount > KDS_FREE_ORDER_LIMIT;
   
   const {
     activeTab,
@@ -419,6 +429,26 @@ export default function KdsPage() {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-200px)] text-muted-foreground">
         <p>{t('kds.access_denied') || 'You do not have permission to access the Kitchen Display.'}</p>
+      </div>
+    );
+  }
+
+  // Free plan limit: once more than KDS_FREE_ORDER_LIMIT live orders land on
+  // the pass, the kitchen display is replaced by the Pro payment wall.
+  // Pro subscribers still see the full board (rendered as the gate children).
+  if (exceedsKDSOrderLimit) {
+    return (
+      <div className="p-4 sm:p-6">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>{t('kds.data_error_title')}</AlertTitle>
+            <AlertDescription>{(error as Error).message || String(error)}</AlertDescription>
+          </Alert>
+        )}
+        <ProFeatureGate>
+          {renderWorkstations()}
+        </ProFeatureGate>
       </div>
     );
   }
