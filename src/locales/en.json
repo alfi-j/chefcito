@@ -979,5 +979,92 @@
     "toast": {
         "success": "Success",
         "error": "Error"
+    },
+    "landing": {
+        "nav": {
+            "journey": "How a ticket moves",
+            "features": "Features",
+            "login": "Log in",
+            "start": "Start the service"
+        },
+        "hero": {
+            "badge": "POS + Kitchen display",
+            "title_1": "Order faster at the table.",
+            "title_2": "Read it in the kitchen.",
+            "body": "Chefcito turns every order into a ticket the kitchen can actually read — live on the pass, no shouting across the window, nothing lost between the table and the plate.",
+            "cta_login": "Log in to your restaurant",
+            "cta_follow": "Follow a ticket",
+            "cash": "Cash",
+            "card": "Card",
+            "payphone": "PayPhone",
+            "built_for": "— built for Ecuador"
+        },
+        "journey": {
+            "eyebrow": "The life of a ticket",
+            "title": "Four moves, from your counter to your books.",
+            "step1": {
+                "title": "Order",
+                "body": "Take the order right at the table in a few taps. Modifiers, quantities and table notes ride along on the ticket."
+            },
+            "step2": {
+                "title": "Kitchen",
+                "body": "The paid order lands on the right station — grill, fry or bar — the moment it goes through."
+            },
+            "step3": {
+                "title": "Pass",
+                "body": "Mark each line In Progress, then Ready. The whole kitchen can see where every ticket stands."
+            },
+            "step4": {
+                "title": "Close",
+                "body": "Close the ticket and it counts itself into your reports. Cash, card and PayPhone reconciled."
+            }
+        },
+        "features": {
+            "eyebrow": "Everything in one shift",
+            "title": "Built for the counter, the pass and the books.",
+            "f1": {
+                "title": "Point of sale",
+                "body": "A menu grid that stays fast in the middle of service. Add modifiers, split bills and send to the kitchen in a few taps."
+            },
+            "f2": {
+                "title": "Kitchen display",
+                "body": "Tickets reach the right station with colour, notes and urgency that the whole pass can read at a glance."
+            },
+            "f3": {
+                "title": "Payments for Ecuador",
+                "body": "Cash, card and PayPhone through the built-in payment box — money reconciled, not guessed at."
+            },
+            "f4": {
+                "title": "Reports & SAF-T",
+                "body": "Z-report, seller totals and SAF-T export ready for the SRI. Close the shift and walk away."
+            },
+            "f5": {
+                "title": "Roles that match your staff",
+                "body": "Waiter, cashier, kitchen — each person sees exactly what their shift needs, nothing more."
+            },
+            "f6": {
+                "title": "Works in three languages",
+                "body": "The same order in English, Spanish or French — the counter and the kitchen in their own language."
+            }
+        },
+        "cta": {
+            "title": "Your pass is waiting.",
+            "body": "Log in and start the shift. Orders go out, the kitchen keeps up, and the day counts itself.",
+            "button": "Log in to Chefcito",
+            "footnote": "New restaurant? Log in with Google and create your owner account."
+        },
+        "footer": {
+            "tagline": "POS and kitchen display for the restaurants of Ecuador.",
+            "login": "Log in",
+            "journey": "How a ticket moves",
+            "features": "Features",
+            "copyright": "© {{year}} Chefcito. Made for the dinner rush."
+        },
+        "ticket": {
+            "window": "Pass · Grill station",
+            "live": "LIVE",
+            "orders": "{{count}} orders on the pass",
+            "longest": "Longest wait {{minutes}} min"
+        }
     }
 }

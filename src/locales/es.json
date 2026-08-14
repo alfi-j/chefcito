@@ -955,5 +955,92 @@
     "toast": {
         "success": "Éxito",
         "error": "Error"
+    },
+    "landing": {
+        "nav": {
+            "journey": "Cómo viaja un ticket",
+            "features": "Funciones",
+            "login": "Iniciar sesión",
+            "start": "Empezar el servicio"
+        },
+        "hero": {
+            "badge": "POS + pantalla de cocina",
+            "title_1": "Ordena más rápido desde la mesa.",
+            "title_2": "Léelo en la cocina.",
+            "body": "Chefcito convierte cada pedido en un ticket que la cocina realmente puede leer — en vivo en el pasaje, sin gritos por la ventana, sin que nada se pierda entre la mesa y el plato.",
+            "cta_login": "Entrar a tu restaurante",
+            "cta_follow": "Sigue un ticket",
+            "cash": "Efectivo",
+            "card": "Tarjeta",
+            "payphone": "PayPhone",
+            "built_for": "— hecho para Ecuador"
+        },
+        "journey": {
+            "eyebrow": "La vida de un ticket",
+            "title": "Cuatro pasos, de tu mostrador a tus libros.",
+            "step1": {
+                "title": "Orden",
+                "body": "Toma el pedido directo en la mesa con unos toques. Modificadores, cantidades y notas de mesa viajan en el ticket."
+            },
+            "step2": {
+                "title": "Cocina",
+                "body": "El pedido pagado llega a la estación correcta — parrilla, freidora o barra — en el momento en que pasa."
+            },
+            "step3": {
+                "title": "Pasaje",
+                "body": "Marca cada línea En progreso y luego Listo. Toda la cocina ve en qué punto está cada ticket."
+            },
+            "step4": {
+                "title": "Cierre",
+                "body": "Cierra el ticket y se cuenta solo en tus reportes. Efectivo, tarjeta y PayPhone conciliados."
+            }
+        },
+        "features": {
+            "eyebrow": "Todo en un turno",
+            "title": "Hecho para el mostrador, el pasaje y los libros.",
+            "f1": {
+                "title": "Punto de venta",
+                "body": "Una cuadrícula de menú rápida en pleno servicio. Agrega modificadores, divide cuentas y envía a la cocina en unos toques."
+            },
+            "f2": {
+                "title": "Pantalla de cocina",
+                "body": "Los tickets llegan a la estación correcta con color, notas y urgencia que todo el pasaje puede leer de un vistazo."
+            },
+            "f3": {
+                "title": "Pagos para Ecuador",
+                "body": "Efectivo, tarjeta y PayPhone a través de la cajita de pagos integrada — el dinero conciliado, no adivinado."
+            },
+            "f4": {
+                "title": "Reportes y SAF-T",
+                "body": "Reporte Z, totales por vendedor y exportación SAF-T lista para el SRI. Cierra el turno y vete tranquilo."
+            },
+            "f5": {
+                "title": "Roles a la medida de tu equipo",
+                "body": "Mesero, cajero, cocina — cada persona ve exactamente lo que su turno necesita, nada más."
+            },
+            "f6": {
+                "title": "Funciona en tres idiomas",
+                "body": "El mismo pedido en inglés, español o francés — el mostrador y la cocina en su propio idioma."
+            }
+        },
+        "cta": {
+            "title": "Tu pasaje te espera.",
+            "body": "Inicia sesión y empieza el turno. Los pedidos salen, la cocina se mantiene al día y el día se cuenta solo.",
+            "button": "Entrar a Chefcito",
+            "footnote": "¿Restaurante nuevo? Inicia sesión con Google y crea tu cuenta de propietario."
+        },
+        "footer": {
+            "tagline": "Punto de venta y pantalla de cocina para los restaurantes de Ecuador.",
+            "login": "Iniciar sesión",
+            "journey": "Cómo viaja un ticket",
+            "features": "Funciones",
+            "copyright": "© {{year}} Chefcito. Hecho para la hora pico."
+        },
+        "ticket": {
+            "window": "Pasaje · Estación de parrilla",
+            "live": "EN VIVO",
+            "orders": "{{count}} pedidos en el pasaje",
+            "longest": "Espera más larga {{minutes}} min"
+        }
     }
 }

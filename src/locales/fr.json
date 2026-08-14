@@ -976,5 +976,92 @@
     "toast": {
         "success": "Succès",
         "error": "Erreur"
+    },
+    "landing": {
+        "nav": {
+            "journey": "Le parcours d'un ticket",
+            "features": "Fonctionnalités",
+            "login": "Connexion",
+            "start": "Démarrer le service"
+        },
+        "hero": {
+            "badge": "Caisse + affichage cuisine",
+            "title_1": "Commandez plus vite à la table.",
+            "title_2": "Lisez-le en cuisine.",
+            "body": "Chefcito transforme chaque commande en ticket que la cuisine peut vraiment lire — en direct au passe, sans crier à travers la fenêtre, rien ne se perd entre la table et l'assiette.",
+            "cta_login": "Accéder à votre restaurant",
+            "cta_follow": "Suivre un ticket",
+            "cash": "Espèces",
+            "card": "Carte",
+            "payphone": "PayPhone",
+            "built_for": "— conçu pour l'Équateur"
+        },
+        "journey": {
+            "eyebrow": "La vie d'un ticket",
+            "title": "Quatre étapes, du comptoir à vos livres.",
+            "step1": {
+                "title": "Commande",
+                "body": "Prenez la commande directement à la table en quelques touches. Modificateurs, quantités et notes de table voyagent sur le ticket."
+            },
+            "step2": {
+                "title": "Cuisine",
+                "body": "La commande payée arrive au bon poste — grill, friteuse ou bar — au moment même où elle passe."
+            },
+            "step3": {
+                "title": "Passe",
+                "body": "Marquez chaque ligne En cours, puis Prêt. Toute la cuisine voit où en est chaque ticket."
+            },
+            "step4": {
+                "title": "Clôture",
+                "body": "Clôturez le ticket et il se compte tout seul dans vos rapports. Espèces, carte et PayPhone réconciliés."
+            }
+        },
+        "features": {
+            "eyebrow": "Tout en un service",
+            "title": "Conçu pour le comptoir, le passe et les livres.",
+            "f1": {
+                "title": "Point de vente",
+                "body": "Une grille de menu qui reste rapide en pleine service. Ajoutez des modificateurs, divisez l'addition et envoyez en cuisine en quelques touches."
+            },
+            "f2": {
+                "title": "Affichage cuisine",
+                "body": "Les tickets arrivent au bon poste avec couleur, notes et urgence que tout le passe peut lire d'un coup d'œil."
+            },
+            "f3": {
+                "title": "Paiements pour l'Équateur",
+                "body": "Espèces, carte et PayPhone via la caisse intégrée — l'argent réconcilié, pas deviné."
+            },
+            "f4": {
+                "title": "Rapports et SAF-T",
+                "body": "Rapport Z, totaux par vendeur et export SAF-T prêt pour le SRI. Clôturez le service et partez."
+            },
+            "f5": {
+                "title": "Des rôles qui collent à votre équipe",
+                "body": "Serveur, caissier, cuisine — chacun voit exactement ce que son service demande, rien de plus."
+            },
+            "f6": {
+                "title": "Fonctionne en trois langues",
+                "body": "La même commande en anglais, espagnol ou français — le comptoir et la cuisine dans leur propre langue."
+            }
+        },
+        "cta": {
+            "title": "Votre passe vous attend.",
+            "body": "Connectez-vous et démarrez le service. Les commandes partent, la cuisine suit, et la journée se compte d'elle-même.",
+            "button": "Se connecter à Chefcito",
+            "footnote": "Nouveau restaurant ? Connectez-vous avec Google et créez votre compte propriétaire."
+        },
+        "footer": {
+            "tagline": "Caisse et affichage cuisine pour les restaurants d'Équateur.",
+            "login": "Connexion",
+            "journey": "Le parcours d'un ticket",
+            "features": "Fonctionnalités",
+            "copyright": "© {{year}} Chefcito. Pensé pour le coup de feu."
+        },
+        "ticket": {
+            "window": "Passe · Poste grill",
+            "live": "EN DIRECT",
+            "orders": "{{count}} commandes au passe",
+            "longest": "Attente la plus longue {{minutes}} min"
+        }
     }
 }

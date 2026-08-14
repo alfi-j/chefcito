@@ -40,7 +40,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
   const user = getCurrentUser();
   const isAuthenticated = !!user;
   // Pages that don't require auth and render without the app layout
-  const isPublicPage = pathname.startsWith('/login')
+  const isPublicPage = pathname === '/'
+    || pathname.startsWith('/login')
     || pathname.startsWith('/register')
     || pathname.startsWith('/thank-you');
 
