@@ -201,8 +201,8 @@ export function MenuSelection({ menuItems, categories }: MenuSelectionProps) {
                           )}
                       </div>
                       <CardFooter className="p-2 flex-grow flex flex-col items-start">
-                        <p className="font-semibold font-body text-sm leading-tight">{item.name}</p>
-                        <p className="text-xs text-primary font-bold">${item.price.toFixed(2)}</p>
+                        <p className="font-semibold font-body text-lg leading-tight">{item.name}</p>
+                        <p className="text-base text-primary font-bold">${item.price.toFixed(2)}</p>
                       </CardFooter>
                     </Card>
                   );
@@ -236,10 +236,10 @@ export function MenuSelection({ menuItems, categories }: MenuSelectionProps) {
                         )}
                       </div>
                       <div className="flex-grow min-w-0">
-                        <p className="font-semibold text-sm leading-tight truncate">{item.name}</p>
-                        <p className="text-xs text-muted-foreground line-clamp-1">{item.description}</p>
+                        <p className="font-semibold text-base leading-tight truncate">{item.name}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
                       </div>
-                      <div className="text-sm font-bold text-primary flex-shrink-0">
+                      <div className="text-base font-bold text-primary flex-shrink-0">
                         ${item.price.toFixed(2)}
                       </div>
                     </Card>
