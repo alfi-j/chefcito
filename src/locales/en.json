@@ -227,6 +227,11 @@
         "payment_status": "Payment",
         "paid": "Paid",
         "unpaid": "Unpaid",
+        "days": {
+            "today": "Today",
+            "yesterday": "Yesterday",
+            "orders_count": "orders"
+        },
         "table": {
             "order_id": "Order #",
             "date": "Date & Time",

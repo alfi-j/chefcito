@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/lib/stores/user-store';
 import useSWR from 'swr';
@@ -8,7 +8,7 @@ import { fetcher } from '@/lib/swr-fetcher';
 import { type Order } from '@/lib/types';
 import { getOrderTotal } from '@/lib/helpers';
 import { debugOrders } from '@/lib/helpers';
-import { format } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 import {
@@ -46,6 +46,22 @@ const getStatusVariant = (status: Order['status']) => {
   }
 }
 
+// Group orders by calendar day (local time) preserving their order, so a
+// visual separator can be rendered between consecutive days.
+const groupByDay = (orders: Order[]): { dayKey: string; orders: Order[] }[] => {
+  const groups: { dayKey: string; orders: Order[] }[] = [];
+  for (const order of orders) {
+    const dayKey = format(new Date(order.createdAt), 'yyyy-MM-dd');
+    const last = groups[groups.length - 1];
+    if (last && last.dayKey === dayKey) {
+      last.orders.push(order);
+    } else {
+      groups.push({ dayKey, orders: [order] });
+    }
+  }
+  return groups;
+}
+
 export default function OrdersPage() {
   const router = useRouter();
   const user = useUserStore((state) => state.getCurrentUser());
@@ -75,7 +91,8 @@ export default function OrdersPage() {
     
     let filtered = orders.filter(order => 
       order.id.toString().includes(searchQuery) ||
-      (order.staffName && order.staffName.toLowerCase().includes(searchQuery.toLowerCase()))
+      (order.staffName && order.staffName.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (order.orderType === 'dine-in' && order.table.toString().includes(searchQuery))
     );
     
     if (activeTab !== 'all') {
@@ -89,6 +106,19 @@ export default function OrdersPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentOrders = filteredOrders.slice(startIndex, endIndex);
+  const currentDayGroups = useMemo(() => groupByDay(currentOrders), [currentOrders]);
+
+  const getDayLabel = (dayKey: string) => {
+    const date = new Date(`${dayKey}T00:00:00`);
+    if (isToday(date)) return t('orders.days.today');
+    if (isYesterday(date)) return t('orders.days.yesterday');
+    return format(date, 'PP');
+  }
+
+  const getOrderTypeLabel = (order: Order) => {
+    if (order.orderType === 'delivery') return t('pos.order_type.delivery');
+    return `${t('pos.current_order.table')} ${order.table}`;
+  }
   
   const handleViewDetails = (order: Order) => {
     setSelectedOrder(order);
@@ -235,54 +265,58 @@ export default function OrdersPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    currentOrders.map((order) => (
-                      <TableRow key={order.id} className="cursor-pointer">
-                        <TableCell className="font-medium">#{order.orderNumber}</TableCell>
-                        <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge variant={getStatusVariant(order.status)} className="capitalize">
-                            {t(`orders.status.${order.status}`)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          {order.isPaid ? (
-                            <Badge className="border-transparent bg-green-500/15 text-green-800">{t('orders.paid')}</Badge>
-                          ) : (
-                            <Badge variant="secondary" className="capitalize">{t('orders.unpaid')}</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>{order.staffName || 'N/A'}</TableCell>
-                        <TableCell className="text-right font-semibold">
-                          ${getOrderTotal(order).toFixed(2)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">{t('orders.table.toggle_menu')}</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleEditOrder(order)}>
-                                  {t('orders.table.edit')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleViewDetails(order)}>
-                                  {t('orders.table.view_details')}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)}>
-                                  {t('orders.table.delete')}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                    currentDayGroups.map((group) => (
+                      <Fragment key={group.dayKey}>
+                        <TableRow className="bg-muted/50 hover:bg-muted/50 border-y">
+                          <TableCell colSpan={8} className="py-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                            {getDayLabel(group.dayKey)} — {group.orders.length} {t('orders.days.orders_count')}
+                          </TableCell>
+                        </TableRow>
+                        {group.orders.map((order) => (
+                          <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetails(order)}>
+                            <TableCell className="font-medium">#{order.orderNumber}</TableCell>
+                            <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
+                            <TableCell className="hidden md:table-cell">{getOrderTypeLabel(order)}</TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              <Badge variant={getStatusVariant(order.status)} className="capitalize">
+                                {t(`orders.status.${order.status}`)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">
+                              {order.isPaid ? (
+                                <Badge className="border-transparent bg-green-500/15 text-green-800">{t('orders.paid')}</Badge>
+                              ) : (
+                                <Badge variant="secondary" className="capitalize">{t('orders.unpaid')}</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell>{order.staffName || 'N/A'}</TableCell>
+                            <TableCell className="text-right font-semibold">
+                              ${getOrderTotal(order).toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex justify-end">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                      <span className="sr-only">{t('orders.table.toggle_menu')}</span>
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => handleEditOrder(order)}>
+                                      {t('orders.table.edit')}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)}>
+                                      {t('orders.table.delete')}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </Fragment>
                     ))
                   )}
                 </TableBody>
@@ -290,73 +324,74 @@ export default function OrdersPage() {
             </div>
             
             {/* Mobile Card View */}
-            <div className="md:hidden space-y-4">
+            <div className="md:hidden space-y-6">
               {currentOrders.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-center">
                   <p>{t('orders.no_orders_found')}</p>
                 </div>
               ) : (
-                currentOrders.map((order) => (
-                  <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-bold text-lg">#{order.orderNumber}</p>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {order.orderType === 'dine-in' ? `${t('pos.current_order.table')} ${order.table}` : t('pos.order_type.delivery')}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <Badge variant={getStatusVariant(order.status)} className="capitalize">
-                            {t(`orders.status.${order.status}`)}
-                          </Badge>
-                          <Badge className={order.isPaid ? 'border-transparent bg-green-500/15 text-green-800' : 'border-transparent bg-secondary text-secondary-foreground'}>
-                            {order.isPaid ? t('orders.paid') : t('orders.unpaid')}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-3 space-y-1">
-                        <p>{format(new Date(order.createdAt), 'PPp')}</p>
-                        <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t">
-                        <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
-                        <div className="grid grid-cols-2 gap-2 mt-3">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditOrder(order);
-                            }}
-                          >
-                            {t('orders.table.edit')}
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDetails(order);
-                            }}
-                          >
-                            {t('orders.table.view_details')}
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteOrder(order.id);
-                            }}
-                            className="col-span-2"
-                          >
-                            {t('orders.table.delete')}
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                currentDayGroups.map((group) => (
+                  <div key={group.dayKey}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <p className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                        {getDayLabel(group.dayKey)}
+                      </p>
+                      <span className="text-sm text-muted-foreground">— {group.orders.length} {t('orders.days.orders_count')}</span>
+                    </div>
+                    <div className="space-y-4">
+                      {group.orders.map((order) => (
+                        <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleViewDetails(order)}>
+                          <CardContent className="p-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-bold text-lg">#{order.orderNumber}</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {getOrderTypeLabel(order)}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-1">
+                                <Badge variant={getStatusVariant(order.status)} className="capitalize">
+                                  {t(`orders.status.${order.status}`)}
+                                </Badge>
+                                <Badge className={order.isPaid ? 'border-transparent bg-green-500/15 text-green-800' : 'border-transparent bg-secondary text-secondary-foreground'}>
+                                  {order.isPaid ? t('orders.paid') : t('orders.unpaid')}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="text-sm text-muted-foreground mt-3 space-y-1">
+                              <p>{format(new Date(order.createdAt), 'PPp')}</p>
+                              <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
+                            </div>
+                            <div className="mt-4 pt-3 border-t">
+                              <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
+                              <div className="grid grid-cols-2 gap-2 mt-3">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditOrder(order);
+                                  }}
+                                >
+                                  {t('orders.table.edit')}
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteOrder(order.id);
+                                  }}
+                                >
+                                  {t('orders.table.delete')}
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 ))
               )}
             </div>

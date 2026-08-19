@@ -46,6 +46,7 @@ interface SendOrderPayload {
   createdAt: string;
   status: string;
   staffName: string;
+  staffId?: string;
   deliveryInfo?: DeliveryInfo;
 }
 
@@ -335,7 +336,8 @@ function PosPageContent() {
         orderType: currentOrderType,
         createdAt: new Date().toISOString(),
         status: 'pending',
-        staffName: 'POS Terminal'
+        staffName: user?.name || 'POS Terminal',
+        staffId: user?.id,
       };
 
       console.log('Sending order to kitchen:', orderData);

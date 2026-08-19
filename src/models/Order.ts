@@ -8,6 +8,9 @@ export interface IOrder extends Document {
   table: string;
   customerName?: string;
   staffName?: string;
+  staffId?: string;
+  orderType?: 'dine-in' | 'delivery';
+  deliveryInfo?: { name?: string; address?: string; phone?: string };
   items: OrderItem[];
   status: 'pending' | 'completed';
   statusHistory?: { status: 'pending' | 'completed'; timestamp: Date }[];
@@ -41,6 +44,13 @@ const OrderSchema: Schema = new Schema({
   table: { type: String, required: true },
   customerName: { type: String },
   staffName: { type: String },
+  staffId: { type: String },
+  orderType: { type: String, enum: ['dine-in', 'delivery'], default: 'dine-in' },
+  deliveryInfo: {
+    name: { type: String },
+    address: { type: String },
+    phone: { type: String },
+  },
   items: { type: [OrderItemSchema], required: true },
   status: { type: String, required: true },
   statusHistory: [{

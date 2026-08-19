@@ -49,6 +49,7 @@ export type Order = {
   position?: number;
   customerId?: string;
   staffName?: string;
+  staffId?: string;
   statusHistory?: OrderStatusUpdate[];
   isPaid?: boolean;
   notes?: string;

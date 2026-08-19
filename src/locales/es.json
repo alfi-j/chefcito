@@ -228,6 +228,11 @@
         "payment_status": "Pago",
         "paid": "Pagado",
         "unpaid": "No pagado",
+        "days": {
+            "today": "Hoy",
+            "yesterday": "Ayer",
+            "orders_count": "órdenes"
+        },
         "table": {
             "order_id": "Orden #",
             "date": "Fecha y Hora",
