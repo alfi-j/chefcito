@@ -273,7 +273,7 @@ export default function OrdersPage() {
                           </TableCell>
                         </TableRow>
                         {group.orders.map((order) => (
-                          <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleViewDetails(order)}>
+                          <TableRow key={order.id} className="cursor-pointer hover:bg-muted/50" onClick={() => handleEditOrder(order)}>
                             <TableCell className="font-medium">#{order.orderNumber}</TableCell>
                             <TableCell className="hidden sm:table-cell">{format(new Date(order.createdAt), 'PPp')}</TableCell>
                             <TableCell className="hidden md:table-cell">{getOrderTypeLabel(order)}</TableCell>
@@ -304,10 +304,20 @@ export default function OrdersPage() {
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
-                                    <DropdownMenuItem onClick={() => handleEditOrder(order)}>
-                                      {t('orders.table.edit')}
+                                    <DropdownMenuItem onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleViewDetails(order);
+                                    }}>
+                                      {t('orders.table.details')}
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleDeleteOrder(order.id)}>
+                                    <DropdownMenuItem 
+                                      onClick={() => {
+                                        if (confirm(t('orders.confirm_delete'))) {
+                                          handleDeleteOrder(order.id);
+                                        }
+                                      }}
+                                      className="text-destructive"
+                                    >
                                       {t('orders.table.delete')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
@@ -340,7 +350,7 @@ export default function OrdersPage() {
                     </div>
                     <div className="space-y-4">
                       {group.orders.map((order) => (
-                        <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleViewDetails(order)}>
+                        <Card key={order.id} className="cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => handleEditOrder(order)}>
                           <CardContent className="p-4">
                             <div className="flex justify-between items-start">
                               <div>
@@ -362,30 +372,35 @@ export default function OrdersPage() {
                               <p>{format(new Date(order.createdAt), 'PPp')}</p>
                               <p>{t('orders.table.staff')}: {order.staffName || 'N/A'}</p>
                             </div>
-                            <div className="mt-4 pt-3 border-t">
+                            <div className="mt-4 pt-3 border-t flex justify-between items-center">
                               <p className="text-lg font-bold text-primary">${getOrderTotal(order).toFixed(2)}</p>
-                              <div className="grid grid-cols-2 gap-2 mt-3">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={(e) => {
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">{t('orders.table.toggle_menu')}</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>{t('orders.table.actions')}</DropdownMenuLabel>
+                                  <DropdownMenuItem onClick={(e) => {
                                     e.stopPropagation();
-                                    handleEditOrder(order);
-                                  }}
-                                >
-                                  {t('orders.table.edit')}
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleDeleteOrder(order.id);
-                                  }}
-                                >
-                                  {t('orders.table.delete')}
-                                </Button>
-                              </div>
+                                    handleViewDetails(order);
+                                  }}>
+                                    {t('orders.table.details')}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => {
+                                      if (confirm(t('orders.confirm_delete'))) {
+                                        handleDeleteOrder(order.id);
+                                      }
+                                    }}
+                                    className="text-destructive"
+                                  >
+                                    {t('orders.table.delete')}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </CardContent>
                         </Card>

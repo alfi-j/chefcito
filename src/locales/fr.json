@@ -243,6 +243,7 @@
             "toggle_menu": "Basculer le menu",
             "edit": "Modifier la commande",
             "view_details": "Voir les détails",
+            "details": "Détails",
             "delete": "Supprimer la commande",
             "search_placeholder": "Rechercher par n° de commande ou n° de table..."
         },
@@ -274,7 +275,8 @@
         "toast": {
             "fetch_error": "Impossible de récupérer l'historique des commandes.",
             "deleted": "Commande supprimée",
-            "deleted_desc": "La commande a été supprimée avec succès."
+            "deleted_desc": "La commande a été supprimée avec succès.",
+            "confirm_delete": "Êtes-vous sûr de vouloir supprimer cette commande ? Cette action est irréversible."
         }
     },
     "restaurant": {
